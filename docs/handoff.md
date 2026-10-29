@@ -2,27 +2,38 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## Cloud update: 29 Oct 2026 — review 105A on `claude/r105a` (from `slice2-app` 3f14b70): Part 1 done; stopped on server questions
+## Cloud update: 29 Oct 2026 — review 105A done on `claude/r105a` (from `slice2-app` 3f14b70); shots still to check on the PC
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
 **After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
 
-- **Branch:** `claude/r105a`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed, **no migration**. `lib/features/notebook/` untouched (claude/r104 has it).
-- **Done: Part 1** (adab5e2), SP1 2666:38461 / AR 2666:38593:
-  - the Space's tab bar is gone; a **Work · Chat** switch under the header, Chat with its unread count (`BvSegment` got an optional badge);
-  - **Library** (folder) and **People** (people) in the header beside Search; they open as screens of their own (`/spaces/:id/library`, `/spaces/:id/people`, `lib/features/spaces/space_sections.dart`). People has a dot while join requests wait (admins); Invite sits in its header;
-  - **⋯ is gone**: the Space's name opens Space info, which now has a "Work" group: Walk mode, Week report, Daily report. The daily report and a walk hand back to the Space, so they start from (and come back to) Work;
-  - the post bar is the bottom of the screen; Arabic mirrors (back arrow right, Work at the right).
-  - Tests changed on purpose: those that went through the tab bar or ⋯ (walk, daily report, templates, week report, search, New Space, Library, Chat, F105 back, the header component).
-- **Stopped (the brief: "if something needs the server, stop and tell me")**:
-  - **Part 2 needs the server twice.** (1) *Pin*: the review says "pins are per person (as now)", but there is no per-person pin anywhere, only an announcement's Space-wide `pinned_until`. (2) *Share* of a work item: nothing carries an item card into chat (only files and week reports have a share function); and work never leaves the Space (rule 8). Also not specified: once **hold selects**, where Edit, Give to, Update, Unpin, Save as template and Cancel go (today they are only on the hold menu; the opened page has none of them). Delete (`delete_space_post`, author only, before anyone adds) and Duplicate need no server. Nothing of Part 2 is built.
-  - **Part 3**: the bar's **mic** needs the server (post blocks have no voice type). The rest (kind chips, For · Place · Due · Team rows, + · camera · attach, Send) is app-only and not started.
-  - **Part 6**: "until the day ends in the **Space's time zone**": a Space has no time zone the app can read (markets have `time_zone`, a Space doesn't expose its market). Today a pin ends at the phone's midnight. The Needs you line is app-only. Not started.
-  - **Parts 7 and 8** are app-only and not started (stopped with the rest, as briefed).
-- **Checks (cloud):** `flutter analyze`: no issues. `flutter test`: 2,404 pass, 3 failed: photo_privacy H1 (root-only in the cloud), and `activity_part2` "join_request opens SpaceScreen" (EN, AR), which now opens the Space's People over it; that expectation is updated in 39fa823 (Activity: 50 pass). SQL stand-in: migrations apply; 3,038 checks in 48 files pass. Screenshots: PC later; no `test_screens`, no `--update-goldens`.
-- **For the PC, when the shots are checked:** every Space screen shot changes on purpose (no tab bar; the switch; the header icons; Space info's new Work group). The two Space-menu shots (MN1, in `daybook_test` and `slice7_test`, and the one taken in `slice9_test`) are removed from the shot tests with the menu; their PNGs in `docs/screens` can go. `R2-header-search` no longer opens ⋯.
-- **Who has which branch:** this cloud session had `claude/r105a` (Part 1 done, pushed). PC: `slice2-app`. `claude/r104` is with the lead.
+- **Branch:** `claude/r105a`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed, **no migration**. `lib/features/notebook/` untouched (claude/r104 has it; Work imports its `SelectionBar` and `reminderWhen` only).
+- **The lead's rulings (29 Oct) followed:** Q1–Q5, search in People, and Walk moved into the camera as Photo · Walk (6ee4224; Space info keeps Week report and Daily report in its Work group).
+- **Commits:** adab5e2 and 39fa823 Part 1; 6ee4224 the rulings; a1407be Part 8; 65d6b64 Parts 2, 3 and 6; a743037 Part 7.
+- **Part 2, the gestures (SP5, SP6, ruling Q3):**
+  - **Tap opens** the item (its page). The old hold menu's actions are there: tap the **title** (or words) to edit in place, the **For line** to give it to someone else, **"Add an update"** at the bottom, **Send back** as a button for whoever checks it, and **⋯** for Unpin · Save as template · Cancel (Cancel work item still held). A pinned announcement opens the same way on a hold (a tap still folds and unfolds it).
+  - **Hold selects:** "1 selected" with ✕ in the Space header (SP6: brand-soft paper, an orange edge); a tap adds or takes off; the bottom bar is **Duplicate** (one card: a new card at Now with the same kind, words, owner and place, no due or pin) · **Delete** (asked first; only my own, never a Checked or cancelled one; `delete_space_post`, which refuses once someone else has added: that one stays and says to cancel it). No Move. Back or ✕ ends it; Viewers don't select.
+  - **Swipe toward the end: Reminder**, a phone notification for me only (the notebook's picker; `space_reminders` on the phone, per account; its tap opens the card on Work through `RoutedReminders` in `core/push/reminders.dart`, never My notebook).
+  - **Behind the off flag** (`workLaterProvider`, null until 105B): **Pin** (swipe), **Share** (hold bar), **Archive** (swipe toward the start, Lead + Checked only, a round button: `BvSwipeCard.startFullSwipe: false` keeps it round).
+  - Sign as done, Check and Send back are never on a swipe or a hold; the old Update swipe is gone.
+- **Part 3, the writing card (SP2):** the kinds as one choice that scrolls sideways (Note · Work item · Checklist · Announcement · Scheduled; Work item first); title, then details ("Add details."); **For · Place · Due · Team rows** that open their pickers (For: Give to's picker, one person for a work item; Place: free text until 105B; Team: "Whole Space" until one is chosen), only the rows a kind uses (Note: Team only); the bar **+ · camera · attach, then Send**, no mic (Q4). + holds what the rows don't: a template, an announcement's pin. **A work item now goes with its Team** (`create_work_item` already takes `p_team`; app only). A file post starts from the Library's Add a file; a daily report from Space info.
+- **Part 6:** **"3 need you · 2 due today ›"** at the top of Work, in the To do strip's place (the strip and its sheet are removed): mine waiting on the page and in what's due; a tap shows only those (older pages are read until all are there), again everything; hidden when nothing waits. **An announcement starts pinned until today ends, at the phone's midnight** (Q5); + changes or removes it. Got it as now.
+- **Part 7 (card only):** when my item is Checked, once, for 4 s: "Added to your proof of work · Checked by {name} · {time} · View"; View goes to my proof of work on the Profile tab (pushing it over a Space clashes in go_router, so it is a `go`). Owner's phone only; shown once (kept per account); not for a check over a day old.
+- **Part 8 (SP8):** one "In this Space" list (Leads first): name; title · company (registered company in ink, medium; typed one plain grey, `SpacePerson.companyRegistered` from the embed already fetched); the pass and the person's Teams as chips. Join requests on top under "Needs you · Join request" with **Decline · Confirm**; Confirm asks for the pass as before. **Search** in People's header (name, role or company).
+- **Things I chose that the review didn't spell out (for the lead):**
+  - the hold on a pinned announcement opens it (its tap was already fold/unfold);
+  - Duplicate drops the due and the pin; Delete of several posts deletes each the server allows and says how many stayed;
+  - the work-item hint is "Add details." without "+ for bullet points, a table or a table of tasks": the writing card's + doesn't offer those until 105C (SP4); the rest of the hint goes in with them;
+  - the Needs you count is what waits on me on the page (to sign, to check, to give to, sent back) plus my due items; "due today" counts those due today;
+  - the admin's "Space admin" now shows as a tag beside the pass in People (SP8 shows no admin line).
+- **Checks (cloud):** `flutter analyze` (whole project, test_screens included): no issues. `flutter test`: 2,488 pass, 1 fails — `test/core/photo_privacy_test.dart` H1, which fails only because the cloud runs as root (a read-only file is still writable for root); it passes on the PC. SQL stand-in: ok=3038, files failing 0. No test_screens run, no goldens updated, no migration.
+- **For the PC, when the shots are checked:**
+  - every Work shot changes on purpose (the Needs you line for the To do strip, the writing card with chips, rows and the new bar, a selected card), and People's (SP8);
+  - these shot drivers still use the old hold menu, kind menu, ⋯ More, the To do strip or the Update swipe and need moving to the new gestures before shooting: `test_screens/slice2_test.dart`, `slice3_test.dart`, `slice5_test.dart`, `slice7_test.dart`, `slice8_test.dart`, `slice9_test.dart`, `slice10_test.dart`, `daybook_test.dart`, `review80_test.dart`, `review82_test.dart`, `around_test.dart`, `slice4_test.dart` (People), `bh_test.dart`, `pg_test.dart` and `f102_test.dart` (holds: check each is not a notebook hold);
+  - the To do strip's PNGs (and its sheet's) can go;
+  - the MN1 Space-menu PNGs can go (Part 1).
+- **Who has which branch:** this cloud session had `claude/r105a` (105A done, pushed). PC: `slice2-app`. `claude/r104` is with the lead.
 
 ## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
 
