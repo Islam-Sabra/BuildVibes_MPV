@@ -258,6 +258,9 @@ abstract final class BvIcons {
     matchTextDirection: true,
   );
 
+  /// Share again (review 106 T5): the same turning arrow.
+  static const shareAgain = sendBack;
+
   /// arrow-counter-clockwise again: a numbered list's Restart at 1.
   static const restartNumbering = sendBack;
 

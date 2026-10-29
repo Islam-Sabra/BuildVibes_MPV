@@ -76,8 +76,8 @@ Future<FakeNotebookRepository> _open(
 Future<void> _share(WidgetTester tester, String choice) async {
   await tester.longPress(_key('note-entry-pour'));
   await tester.pumpAndSettle();
-  await _tap(tester, _key('select-share'));
-  await _tap(tester, _key('share-$choice'));
+  // Review 106 T4: the held entry's icon for [choice].
+  await _tap(tester, _key('note-status-entry-pour-$choice'));
 }
 
 void main() {
@@ -87,10 +87,27 @@ void main() {
     final d = DaybookSamples(lang);
 
     group('BH4 Share [$lang]', () {
-      testWidgets('on one entry: the bar\'s first action; its card over the '
-          'bar turns into Feed · Space · Message', (tester) async {
+      testWidgets('review 106 T4: on one entry, Share left the bar; its '
+          'Space icon opens the Space step, whose ‹ closes it', (tester) async {
         await _open(tester, lang);
         await tester.longPress(_key('note-entry-pour'));
+        await tester.pumpAndSettle();
+        expect(_key('select-share'), findsNothing);
+        await _tap(tester, _key('note-status-entry-pour-space'));
+        expect(_key('share-space-${DaybookSamples.space}'), findsOneWidget);
+        await _tap(tester, _key('menu-back'));
+        expect(_key('share-menu'), findsNothing);
+      });
+
+      testWidgets('on selected lines: the bar\'s first action; its card over '
+          'the bar turns into Feed · Space · Message', (tester) async {
+        await _open(tester, lang);
+        await _tap(tester, _key('note-entry-pour'));
+        await tester.tap(
+          find.text(s.t('Check the rebar cover', 'فحص غطاء الحديد')),
+        );
+        await tester.pumpAndSettle();
+        await tester.longPress(_key('note-marker-b-2'));
         await tester.pumpAndSettle();
         await _tap(tester, _key('select-share'));
         expect(_key('share-menu'), findsOneWidget);

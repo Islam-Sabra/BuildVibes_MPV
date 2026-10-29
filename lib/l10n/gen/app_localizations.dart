@@ -9338,6 +9338,54 @@ abstract class AppLocalizations {
   /// **'Change'**
   String get notebookStatusChange;
 
+  /// Review 106 T4: at the start of a held entry's status row, whose icons are its actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to do it'**
+  String get notebookTapToDo;
+
+  /// Review 106 T4: a screen reader's word for a held entry's reminder icon with no reminder yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a reminder'**
+  String get notebookActRemind;
+
+  /// Review 106 T4: a screen reader's word for a held entry's feed icon not used yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to the feed'**
+  String get notebookActFeed;
+
+  /// Review 106 T4: a screen reader's word for a held entry's Space icon not used yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to a Space'**
+  String get notebookActSpace;
+
+  /// Review 106 T4: a screen reader's word for a held entry's message icon not used yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send in a message'**
+  String get notebookActMessage;
+
+  /// Review 106 T4: a used icon of a held entry, read out: its status, then what a tap does ("Shared to Kuwait City Tower at 08:45. Share again").
+  ///
+  /// In en, this message translates to:
+  /// **'{status}. {action}'**
+  String notebookStatusThen(String status, String action);
+
+  /// Review 106 T4 and T5: shares the entry as it is now, through the same step; the old share stays in the log.
+  ///
+  /// In en, this message translates to:
+  /// **'Share again'**
+  String get notebookShareAgain;
+
+  /// Review 106 T5: under a share in a status card, made before the entry last changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Older version · changed at {time}'**
+  String notebookOlderVersion(String time);
+
   /// Review 106 T1 and T3: the reminder status: its card's title, its Filter choice, its group in the Status sort.
   ///
   /// In en, this message translates to:
@@ -9775,6 +9823,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t share {titles}.'**
   String workShareFailed(String titles);
+
+  /// Review 106 K5: under a share in a status card, made before the entry last changed on another day: 'yesterday' or a short date, then the time.
+  ///
+  /// In en, this message translates to:
+  /// **'Older version · changed {day} at {time}'**
+  String notebookOlderVersionOn(String day, String time);
 }
 
 class _AppLocalizationsDelegate

@@ -95,17 +95,18 @@ void main() {
         await _hold(tester, _key('note-entry-pour'));
         expect(_key('selection-close'), findsOneWidget);
         expect(find.text(l10n.notebookSelected(1)), findsOneWidget);
+        // Review 106 T4: one entry's actions are its status icons.
         expect(_actions(tester), [
-          'select-share',
           'select-move',
           'select-duplicate',
           'select-delete',
         ]);
         expect(_key('page-write'), findsNothing);
-        // A tap on another adds it; Share is for one entry only.
+        // A tap on another adds it; for two or more, Pin (review 106 T4).
         await _tap(tester, _key('note-entry-gate'));
         expect(find.text(l10n.notebookSelected(2)), findsOneWidget);
         expect(_actions(tester), [
+          'select-pin',
           'select-move',
           'select-duplicate',
           'select-delete',

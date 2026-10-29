@@ -93,8 +93,8 @@ Future<FakeNotebookRepository> _open(
   await tester.pumpAndSettle();
   await tester.longPress(_key('note-entry-pour'));
   await tester.pumpAndSettle();
-  await _tap(tester, _key('select-share'));
-  await _tap(tester, _key('share-space'));
+  // Review 106 T4: the held entry's Space icon.
+  await _tap(tester, _key('note-status-entry-pour-space'));
   await _tap(tester, _key('share-space-${DaybookSamples.space}'));
   return repo;
 }

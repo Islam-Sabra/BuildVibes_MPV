@@ -254,7 +254,8 @@ void main() {
       await _open(tester, lang, _siteA);
       await tester.longPress(_key('note-entry-pour'));
       await tester.pumpAndSettle();
-      await _tap(tester, _key('select-share'));
+      // Review 106 T4: Share left the bar; the held entry's status icons
+      // are its actions (NS5).
       await _snap(tester, 'BH4-share', lang);
     });
 
@@ -262,8 +263,8 @@ void main() {
       await _open(tester, lang, _siteA);
       await tester.longPress(_key('note-entry-pour'));
       await tester.pumpAndSettle();
-      await _tap(tester, _key('select-share'));
-      await _tap(tester, _key('share-message'));
+      // Review 106 T4: the held entry's Message icon.
+      await _tap(tester, _key('note-status-entry-pour-message'));
       await _tap(tester, _key('share-person-p-ahmed'));
       await _snap(tester, 'BH5-message-preview', lang);
     });

@@ -89,8 +89,8 @@ Future<void> _share(
   await tester.pumpAndSettle();
   await tester.longPress(_key('note-$id'));
   await tester.pumpAndSettle();
-  await _tap(tester, _key('select-share'));
-  await _tap(tester, _key('share-$choice'));
+  // Review 106 T4: the held entry's icon for [choice].
+  await _tap(tester, _key('note-status-$id-$choice'));
 }
 
 void main() {
@@ -140,12 +140,18 @@ void main() {
         // As it is (a scroll would close it).
         await tester.tap(_key('swipe-pin-entry-pour'));
         await tester.pumpAndSettle();
-        // No signal: Share is hidden for it.
+        // No signal: a share says so, and nothing goes (review 106 T4: from
+        // the held entry's icon).
         await tester.longPress(_key('note-entry-pour'));
         await tester.pumpAndSettle();
-        expect(_key('select-share'), findsNothing);
-        expect(_key('select-move'), findsOneWidget);
-        await _tap(tester, _key('selection-close'));
+        await _tap(tester, _key('note-status-entry-pour-feed'));
+        expect(find.text(l10n.notebookShareOffline), findsOneWidget);
+        expect(_key('share-preview'), findsNothing);
+        // K3: nothing went, so it stays held; Back lets it go.
+        expect(_key('selection-bar'), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(_key('selection-bar'), findsNothing);
         // Back on (the outbox tries again by itself): the pin goes before
         // the share.
         repo.offline = false;

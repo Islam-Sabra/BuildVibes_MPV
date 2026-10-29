@@ -1540,6 +1540,14 @@
   "notebookStatusSpace": "نُشرت في {name} الساعة {time}",
   "notebookStatusSent": "أُرسلت إلى {name} الساعة {time}",
   "notebookStatusChange": "تغيير",
+  "notebookTapToDo": "اضغط للتنفيذ",
+  "notebookActRemind": "ضبط تذكير",
+  "notebookActFeed": "انشر في الأخبار",
+  "notebookActSpace": "انشر في مساحة",
+  "notebookActMessage": "أرسل في رسالة",
+  "notebookStatusThen": "{status}. {action}",
+  "notebookShareAgain": "شارك مجددًا",
+  "notebookOlderVersion": "نسخة أقدم · تغيّرت {time}",
   "notebookStatusTitleReminder": "تذكير",
   "notebookStatusTitleFeed": "نُشرت في الأخبار",
   "notebookStatusTitleSpace": "نُشرت في مساحة",
@@ -1612,5 +1620,6 @@
   "workUnarchive": "إلغاء الأرشفة",
   "workUnarchived": "عاد إلى العمل",
   "workPinsMore": "+{count} أخرى",
-  "workShareFailed": "تعذّرت مشاركة {titles}."
+  "workShareFailed": "تعذّرت مشاركة {titles}.",
+  "notebookOlderVersionOn": "نسخة أقدم · تغيّرت {day} {time}"
 }

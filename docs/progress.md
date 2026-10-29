@@ -809,6 +809,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - the month without archived posts.
   - The app: Give to before such a Send back; Undo and Unarchive; the card's OPEN, hidden and gone; 3 pins and "+n more"; Unpin when held; Share keeps going with Try again; the midnight on Post.
   - Checks: 3,155 SQL checks; analyze clean; 2,696 app tests; 454 shots unchanged; 10 new shots for the lead.
+- **29 Oct: review 106 T4 and T5** on `claude/r106b`, for the lead; nothing merged, live or built:
+  - T4: a held entry's status icons are its actions; the bar loses Share.
+  - T5: a dot on a share older than the entry, "Older version" and Share again.
+  - Migration 51 (`notes.content_changed_at`, by deferred triggers): local only.
+  - Checks: analyze clean; 2,686 app tests; 3,079 SQL checks.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
@@ -1008,3 +1013,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **29 Oct 2026 (cloud, `claude/r105a`): the lead's check of 105A.** H1 no signature on a camera hold; H2 pinned announcements open on a tap, select on a hold, fold on their own chevron; H4 Delete hidden on Checked; H5 multi-delete tries every post and names the failures; H6 tokens; H7 `SpaceDetail.mayPostWork`; H8 Work's own words, `SelectionBar` in `lib/shared/widgets/`; H9 the 15 shot drivers on the new gestures (not run). **H3 (Photo · Walk inside the camera) not done:** it needs the `camera` plugin, which this session could not add; the sheet stays until the founder decides. 2,501 tests pass (photo_privacy H1 root-only), SQL 3,038.
 - **29 Oct 2026 (cloud, `claude/r105a`): H3 as the lead ruled.** The post bar's camera opens the phone's camera at once for a photo post; Walk is the writing card's last kind chip (mayPostWork only); the Photo · Walk sheet is removed. 2,503 tests pass (photo_privacy H1 root-only), SQL 3,038.
+- **29 Oct 2026 (cloud, `claude/r106b`): the lead's check of r106b, K1–K6.** Older is the server's key compare (`note_shares.content_key`, migration 51 edited in place, not live); the phone's rule is gone and the entry is read again after a save; the key coalesces every field; the selection waits for the action; Share again on every card; the day in "changed at"; a voice recording counts. SQL 3,088, 2,699 tests (photo_privacy H1 root-only). Shots: 10 images (BH2, BH4, BH5, NB-put-in-space, NS1; EN, AR) in `docs/reviews/shots-106b/`, cloud with cloud.

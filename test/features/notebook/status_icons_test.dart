@@ -263,7 +263,11 @@ void main() {
         expect(inCard(l10n.notebookStatusTitleFeed), findsOneWidget);
         expect(inCard(clock(_feedAt)), findsOneWidget);
         expect(inCard(clock(_otherAt)), findsOneWidget);
-        await tester.tap(_key('line-popover-barrier'));
+        // Outside the card (K4: Share again makes it taller).
+        await tester.tapAt(
+          tester.getBottomLeft(_key('line-popover-barrier')) +
+              const Offset(4, -4),
+        );
         await tester.pumpAndSettle();
         await tester.tap(_key('note-status-a-message'));
         await tester.pumpAndSettle();
