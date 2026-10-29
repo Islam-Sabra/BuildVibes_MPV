@@ -360,6 +360,7 @@ class DaybookPost {
     this.authorName,
     this.teamId,
     this.place,
+    this.placeId,
     this.dueDate,
     this.dueAt,
     this.item,
@@ -404,6 +405,7 @@ class DaybookPost {
       authorName: json['author_name'] as String?,
       teamId: json['team_id'] as String?,
       place: json['place'] as String?,
+      placeId: json['place_id'] as String?,
       dueDate: _day(json['due_date']),
       dueAt: _time(json['due_at']),
       item: item == null ? null : DaybookItem.fromJson(item),
@@ -503,7 +505,13 @@ class DaybookPost {
 
   /// Null: Everyone.
   final String? teamId;
+
+  /// Where, as typed on an older post (space_posts.place_text).
   final String? place;
+
+  /// Its place in the Space's list (review 105C, migration 52): its site
+  /// tag. An older post has none and keeps [place].
+  final String? placeId;
 
   /// The due day, and its time when it has one.
   final DateTime? dueDate;
@@ -630,6 +638,7 @@ class DaybookPost {
     authorName: authorName,
     teamId: teamId,
     place: place,
+    placeId: placeId,
     dueDate: dueDate,
     dueAt: dueAt,
     item: item == null
@@ -1290,4 +1299,29 @@ class DaybookRef {
 
   /// The time on its line: when it was checked, or the note posted.
   DateTime? get at => isNote ? createdAt : checkedAt;
+}
+
+/// One of a Space's places, its site tags (review 105C, migration 52's
+/// space_places): "L3 · Grid B4". Unique in its Space whatever its case
+/// and spaces.
+@immutable
+class SpacePlace {
+  const SpacePlace({required this.id, required this.name});
+
+  factory SpacePlace.fromJson(Map<String, dynamic> json) =>
+      SpacePlace(id: json['id'] as String, name: json['name'] as String);
+
+  final String id;
+  final String name;
+
+  /// As the server compares names: no case and no spaces.
+  static String fold(String name) =>
+      name.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+  @override
+  bool operator ==(Object other) =>
+      other is SpacePlace && other.id == id && other.name == name;
+
+  @override
+  int get hashCode => Object.hash(id, name);
 }

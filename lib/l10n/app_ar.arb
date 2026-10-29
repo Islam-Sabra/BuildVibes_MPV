@@ -1621,5 +1621,18 @@
   "workUnarchived": "عاد إلى العمل",
   "workPinsMore": "+{count} أخرى",
   "workShareFailed": "تعذّرت مشاركة {titles}.",
-  "notebookOlderVersionOn": "نسخة أقدم · تغيّرت {day} {time}"
+  "notebookOlderVersionOn": "نسخة أقدم · تغيّرت {day} {time}",
+  "daybookPlaceSearch": "ابحث عن مكان أو أضفه",
+  "daybookPlaceAdd": "إضافة المكان «{name}»",
+  "daybookPlaceNone": "لا أماكن بعد. اكتب مكانًا لإضافته.",
+  "daybookPlaceRename": "إعادة التسمية",
+  "daybookPlaceRenameTitle": "إعادة تسمية المكان",
+  "daybookPlaceDeleteTitle": "حذف {name}؟",
+  "daybookPlaceDeleteBody": "تبقى منشوراته في العمل، دون هذا الوسم.",
+  "daybookPlaceTaken": "هذا المكان موجود في المساحة.",
+  "daybookPlaceFilterClear": "عرض كل الأماكن",
+  "daybookBefore": "قبل · {time}",
+  "daybookAfter": "بعد · {time}",
+  "searchPlaces": "الأماكن",
+  "searchPlaceLine": "عرض أعماله"
 }

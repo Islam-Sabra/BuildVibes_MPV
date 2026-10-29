@@ -5899,4 +5899,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String notebookOlderVersionOn(String day, String time) {
     return 'Older version · changed $day at $time';
   }
+
+  @override
+  String get daybookPlaceSearch => 'Find or add a place';
+
+  @override
+  String daybookPlaceAdd(String name) {
+    return 'Add place “$name”';
+  }
+
+  @override
+  String get daybookPlaceNone => 'No places yet. Type one to add it.';
+
+  @override
+  String get daybookPlaceRename => 'Rename';
+
+  @override
+  String get daybookPlaceRenameTitle => 'Rename place';
+
+  @override
+  String daybookPlaceDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get daybookPlaceDeleteBody =>
+      'Its posts stay in Work, without this tag.';
+
+  @override
+  String get daybookPlaceTaken => 'This Space has that place already.';
+
+  @override
+  String get daybookPlaceFilterClear => 'Show all places';
+
+  @override
+  String daybookBefore(String time) {
+    return 'Before · $time';
+  }
+
+  @override
+  String daybookAfter(String time) {
+    return 'After · $time';
+  }
+
+  @override
+  String get searchPlaces => 'Places';
+
+  @override
+  String get searchPlaceLine => 'Show its work';
 }

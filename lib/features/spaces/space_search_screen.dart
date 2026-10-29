@@ -10,6 +10,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/daybook.dart' show SpacePlace;
 import '../../data/models/library.dart';
 import '../../data/models/space_search.dart';
 import '../../data/models/work_item.dart';
@@ -21,6 +22,7 @@ import '../../shared/widgets/bv_tap_target.dart';
 import '../library/library_parts.dart' show libraryDay;
 import '../work/daybook_draft.dart' show DaybookKind;
 import '../work/daybook_writing.dart' show kindIcon;
+import '../work/work_places.dart' show workPlaceFilterProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import 'former_member.dart';
@@ -98,6 +100,12 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
           h.threadId!,
           message: h.id,
         );
+      // Review 105C: back on Work, for that place.
+      case SpaceSearchKind.place:
+        ref
+            .read(workPlaceFilterProvider(space).notifier)
+            .show(SpacePlace(id: h.id, name: h.title ?? ''));
+        context.pop();
     }
   }
 
@@ -211,6 +219,14 @@ class _Results extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final groups = [
+      // Review 105C: the Space's places, first.
+      (
+        l10n.searchPlaces,
+        [
+          for (final h in hits)
+            if (h.kind == SpaceSearchKind.place) h,
+        ],
+      ),
       // Review 96 F1: every kind of post has a number now, so the group
       // is Posts, each row with its own kind's icon.
       (
@@ -307,6 +323,11 @@ class _HitRow extends ConsumerWidget {
         BvIcons.chat,
         l10n.searchMessage(snippet),
         joinMeta([who, day]),
+      ),
+      SpaceSearchKind.place => (
+        BvIcons.place,
+        inOwnDirection(title),
+        l10n.searchPlaceLine,
       ),
     };
 

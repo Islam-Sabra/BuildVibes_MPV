@@ -179,7 +179,7 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
                 BvGiveToSpec.searchPaddingHorizontal,
                 BvGiveToSpec.searchPaddingBottom,
               ),
-              child: _Search(
+              child: BvPickerSearch(
                 controller: _search,
                 focusNode: _searchFocus,
                 placeholder: widget.searchPlaceholder,
@@ -205,14 +205,19 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
   }
 }
 
-class _Search extends StatelessWidget {
-  const _Search({
+/// A picker's search field (Give to, Place): the whole field focuses it,
+/// and its touch area reaches into the padding above and below.
+class BvPickerSearch extends StatelessWidget {
+  const BvPickerSearch({
+    super.key,
+    this.fieldKey = const Key('give-to-search'),
     required this.controller,
     required this.focusNode,
     required this.placeholder,
     required this.autofocus,
   });
 
+  final Key fieldKey;
   final TextEditingController controller;
   final FocusNode focusNode;
   final String placeholder;
@@ -224,7 +229,7 @@ class _Search extends StatelessWidget {
     // The whole field focuses the search, and its touch area reaches into
     // the padding above and below (48 high in all).
     final field = Container(
-      key: const Key('give-to-search'),
+      key: fieldKey,
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: BvGiveToSpec.fieldPaddingHorizontal,
         vertical: BvGiveToSpec.fieldPaddingVertical,

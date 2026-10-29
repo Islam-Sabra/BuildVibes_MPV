@@ -497,10 +497,18 @@ class BvSlipPhoto extends StatelessWidget {
     this.image,
     this.stamp,
     this.onDoubleTap,
+    this.label,
+    this.stampLow = false,
   });
 
   /// [BvSlipSpec.photoHeightProof] on a proof.
   final double height;
+
+  /// At its top start, on a dark label ("Before · 08:10", review 105C).
+  final String? label;
+
+  /// The stamp low on the photo, under [label] (After, SP7).
+  final bool stampLow;
 
   /// Null while loading: the subtle surface shows.
   final ImageProvider? image;
@@ -524,10 +532,32 @@ class BvSlipPhoto extends StatelessWidget {
                 : DecorationImage(image: image!, fit: BoxFit.cover),
           ),
         ),
+        if (label != null)
+          PositionedDirectional(
+            top: BvSlipSpec.photoLabelInset,
+            start: BvSlipSpec.photoLabelInset,
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                color: BvColors.surfacePhotoLabel,
+                borderRadius: BvSlipSpec.photoLabelRadius,
+              ),
+              child: Padding(
+                padding: BvSlipSpec.photoLabelPadding,
+                child: Text(
+                  label!,
+                  style: BvType.of(
+                    context,
+                  ).overline.copyWith(color: BvColors.textInverse),
+                ),
+              ),
+            ),
+          ),
         if (stamp != null)
           PositionedDirectional(
-            top: BvSlipSpec.photoStampTop,
-            start: BvSlipSpec.photoStampStart,
+            top: stampLow ? BvSlipSpec.pairStampTop : BvSlipSpec.photoStampTop,
+            start: stampLow
+                ? BvSlipSpec.pairStampStart
+                : BvSlipSpec.photoStampStart,
             child: stamp!,
           ),
       ],
@@ -536,6 +566,112 @@ class BvSlipPhoto extends StatelessWidget {
       photo = GestureDetector(onDoubleTap: onDoubleTap, child: photo);
     }
     return photo;
+  }
+}
+
+/// Before / after on a work item (review 105C, SP7): the photo posted
+/// with it and its Sign as done photo, side by side with their times;
+/// [stamp] (CHECKED) on After. Before comes first in the reading order, so
+/// in Arabic After is at the left.
+class BvSlipBeforeAfter extends StatelessWidget {
+  const BvSlipBeforeAfter({
+    super.key,
+    required this.before,
+    required this.after,
+    required this.beforeLabel,
+    required this.afterLabel,
+    this.stamp,
+    this.onDoubleTap,
+  });
+
+  final ImageProvider? before;
+  final ImageProvider? after;
+  final String beforeLabel;
+  final String afterLabel;
+  final Widget? stamp;
+  final VoidCallback? onDoubleTap;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    key: const Key('before-after'),
+    spacing: BvSlipSpec.pairGap,
+    children: [
+      Expanded(
+        child: BvSlipPhoto(
+          key: const Key('photo-before'),
+          height: BvSlipSpec.pairHeight,
+          image: before,
+          label: beforeLabel,
+        ),
+      ),
+      Expanded(
+        child: BvSlipPhoto(
+          key: const Key('photo-after'),
+          height: BvSlipSpec.pairHeight,
+          image: after,
+          label: afterLabel,
+          stamp: stamp,
+          stampLow: true,
+          onDoubleTap: onDoubleTap,
+        ),
+      ),
+    ],
+  );
+}
+
+/// A post's place on its card (review 105 Part 5, SP1): sand, a pin and
+/// the place's name. A tap filters Work to that place.
+class BvSiteTag extends StatelessWidget {
+  const BvSiteTag({super.key, required this.name, this.onTap});
+
+  final String name;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tag = Container(
+      padding: BvSlipSpec.tagPadding,
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceSiteTag,
+        borderRadius: BvSlipSpec.tagRadius,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSlipSpec.tagGap,
+        children: [
+          const Icon(
+            BvIcons.place,
+            size: BvSlipSpec.tagIcon,
+            color: BvColors.iconPrimary,
+          ),
+          Flexible(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(
+                context,
+              ).labelSm.copyWith(color: BvColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Semantics(
+        button: onTap != null,
+        child: onTap == null
+            ? tag
+            : BvTapTarget(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTap,
+                  child: tag,
+                ),
+              ),
+      ),
+    );
   }
 }
 

@@ -122,6 +122,25 @@ abstract class DaybookRepository {
   /// unarchive_space_post (review 105B L7): back in Work.
   Future<void> unarchivePost(String postId);
 
+  /// The Space's places, its site tags, A to Z (review 105C; migration
+  /// 52's space_places, members read).
+  Future<List<SpacePlace>> places(String spaceId);
+
+  /// A new place [name] with the id [id] (who may post work). A name the
+  /// Space has already, whatever its case and spaces, is refused
+  /// ([SpaceFailure.badInput], 23505).
+  Future<void> addPlace(String spaceId, String id, String name);
+
+  /// A Lead renames a place.
+  Future<void> renamePlace(String placeId, String name);
+
+  /// A Lead deletes a place; its posts keep no tag.
+  Future<void> deletePlace(String placeId);
+
+  /// set_post_place: a post's place, or null to clear it (its author, its
+  /// owner or a Lead).
+  Future<void> setPostPlace(String postId, String? placeId);
+
   /// shared_post_gone (review 105B L8): a post shared in a thread I read
   /// was deleted, not only hidden from me.
   Future<bool> sharedPostGone(String postId);
@@ -699,6 +718,45 @@ class SupabaseDaybookRepository implements DaybookRepository {
   );
 
   @override
+  Future<List<SpacePlace>> places(String spaceId) => _guard(() async {
+    final rows = await _client
+        .from('space_places')
+        .select('id, name')
+        .eq('space_id', spaceId);
+    return sortedPlaces([for (final r in rows) SpacePlace.fromJson(r)]);
+  });
+
+  @override
+  Future<void> addPlace(String spaceId, String id, String name) => _guard(
+    () => _client.from('space_places').insert({
+      'id': id,
+      'space_id': spaceId,
+      'name': name.trim(),
+      'created_by': _client.auth.currentUser?.id,
+    }),
+  );
+
+  @override
+  Future<void> renamePlace(String placeId, String name) => _guard(
+    () => _client
+        .from('space_places')
+        .update({'name': name.trim()})
+        .eq('id', placeId),
+  );
+
+  @override
+  Future<void> deletePlace(String placeId) =>
+      _guard(() => _client.from('space_places').delete().eq('id', placeId));
+
+  @override
+  Future<void> setPostPlace(String postId, String? placeId) => _guard(
+    () => _client.rpc<void>(
+      'set_post_place',
+      params: {'p_post': postId, 'p_place': placeId},
+    ),
+  );
+
+  @override
   Future<bool> sharedPostGone(String postId) => _guard(
     () async =>
         await _client.rpc<bool?>(
@@ -731,3 +789,8 @@ final daybookChildCardProvider = FutureProvider.autoDispose
     .family<DaybookCard?, String>(
       (ref, id) => ref.watch(daybookRepositoryProvider).card(id),
     );
+
+/// [places] A to Z, as the picker lists them (case-blind).
+List<SpacePlace> sortedPlaces(List<SpacePlace> places) =>
+    [...places]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));

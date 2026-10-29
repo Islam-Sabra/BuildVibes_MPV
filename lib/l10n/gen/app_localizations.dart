@@ -9829,6 +9829,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Older version · changed {day} at {time}'**
   String notebookOlderVersionOn(String day, String time);
+
+  /// Review 105C: the Place picker's search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Find or add a place'**
+  String get daybookPlaceSearch;
+
+  /// Review 105C: the Place picker's row that adds the typed name as a new place.
+  ///
+  /// In en, this message translates to:
+  /// **'Add place “{name}”'**
+  String daybookPlaceAdd(String name);
+
+  /// Review 105C: the Place picker with no places and nothing typed.
+  ///
+  /// In en, this message translates to:
+  /// **'No places yet. Type one to add it.'**
+  String get daybookPlaceNone;
+
+  /// Review 105C: a Lead's long press on a place: rename it.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get daybookPlaceRename;
+
+  /// Review 105C: the rename dialog's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename place'**
+  String get daybookPlaceRenameTitle;
+
+  /// Review 105C: asked before a Lead deletes a place.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String daybookPlaceDeleteTitle(String name);
+
+  /// Review 105C: what deleting a place does.
+  ///
+  /// In en, this message translates to:
+  /// **'Its posts stay in Work, without this tag.'**
+  String get daybookPlaceDeleteBody;
+
+  /// Review 105C: a new or renamed place whose name the Space has already.
+  ///
+  /// In en, this message translates to:
+  /// **'This Space has that place already.'**
+  String get daybookPlaceTaken;
+
+  /// Review 105C: what a screen reader says for the place filter chip's ✕.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all places'**
+  String get daybookPlaceFilterClear;
+
+  /// Review 105C SP7: the label on the photo posted with a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Before · {time}'**
+  String daybookBefore(String time);
+
+  /// Review 105C SP7: the label on a work item's Sign as done photo.
+  ///
+  /// In en, this message translates to:
+  /// **'After · {time}'**
+  String daybookAfter(String time);
+
+  /// Review 105C: Search's group of the Space's places.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get searchPlaces;
+
+  /// Review 105C: under a place in Search: a tap shows Work for that place.
+  ///
+  /// In en, this message translates to:
+  /// **'Show its work'**
+  String get searchPlaceLine;
 }
 
 class _AppLocalizationsDelegate

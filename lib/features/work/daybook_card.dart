@@ -213,6 +213,7 @@ class DaybookCardView extends StatelessWidget {
     this.lineKey,
     this.onTap,
     this.nameOf,
+    this.site,
   });
 
   /// The card as the phone shows it: what waits to be sent is already on
@@ -269,6 +270,11 @@ class DaybookCardView extends StatelessWidget {
   /// Who ticked a point, by id.
   final DaybookNameOf? nameOf;
 
+  /// Its site tag (review 105C): its place's name in the Space's list, and
+  /// what a tap does (filters Work to it). An older post has none and
+  /// keeps its typed place as a fact.
+  final ({String name, VoidCallback? onTap})? site;
+
   /// History lines drawn collapsed.
   static const shownLines = 3;
 
@@ -307,7 +313,23 @@ class DaybookCardView extends StatelessWidget {
     lineKey: (lifted ?? this.lifted) ? null : lineKey,
     onTap: onTap == null ? this.onTap : onTap(),
     nameOf: nameOf,
+    site: site,
   );
+
+  /// The site tag, for a post with a place in the Space's list.
+  Widget? _siteTag() {
+    final site = this.site;
+    if (site == null) return null;
+    return BvSiteTag(
+      key: Key('site-tag-${_post.id}'),
+      name: site.name,
+      onTap: lifted || waiting ? null : site.onTap,
+    );
+  }
+
+  /// The typed place of an older post (no site tag).
+  String? get _typedPlace =>
+      site == null && (_post.place ?? '').isNotEmpty ? _post.place : null;
 
   @override
   Widget build(BuildContext context) {
@@ -358,6 +380,7 @@ class DaybookCardView extends StatelessWidget {
               : BvAvatarTints.forId(authorId),
         ),
         BvSlipTitle(post.title, cancelled: post.cancelled),
+        ?_siteTag(),
         // A walk is its rows: its owner is its author, its due theirs.
         if (!post.isTarget)
           BvSlipFacts(
@@ -367,13 +390,13 @@ class DaybookCardView extends StatelessWidget {
                 text: words.meta(post, me: me, now: now),
                 marks: _factMarks(context),
               ),
-              if ((post.place ?? '').isNotEmpty)
-                BvSlipFact(icon: BvIcons.place, text: post.place!),
+              if (_typedPlace case final typed?)
+                BvSlipFact(icon: BvIcons.place, text: typed),
             ],
           )
-        else if ((post.place ?? '').isNotEmpty)
+        else if (_typedPlace case final typed?)
           BvSlipFacts(
-            children: [BvSlipFact(icon: BvIcons.place, text: post.place!)],
+            children: [BvSlipFact(icon: BvIcons.place, text: typed)],
           ),
         ?_quote(),
         if (chips.isNotEmpty) BvSlipChips(children: chips),
@@ -390,6 +413,23 @@ class DaybookCardView extends StatelessWidget {
         ?_openPage(),
         if (localPhoto != null)
           _LocalPhoto(path: localPhoto!, stamp: proof == null ? null : stamp)
+        // Review 105C (SP7): the photo it was posted with, and its Sign as
+        // done photo, side by side.
+        else if (proof != null &&
+            proof.photos.isNotEmpty &&
+            post.coverPath != null &&
+            !post.isTarget)
+          _BeforeAfter(
+            before: post.coverPath!,
+            after: proof.photos.first.path,
+            beforeLabel: l10n.daybookBefore(
+              words.photoWhen(post.createdAt, proof.at, now),
+            ),
+            afterLabel: l10n.daybookAfter(
+              words.photoWhen(proof.at, post.createdAt, now),
+            ),
+            stamp: stamp,
+          )
         else if (proof != null && proof.photos.isNotEmpty)
           _Photo(path: proof.photos.first.path, stamp: stamp)
         // A target's photos are on its rows' strip, not here.
@@ -603,6 +643,7 @@ class DaybookCardView extends StatelessWidget {
       case DaybookPost.noteKind:
         return [
           BvSlipTitle(post.title, cancelled: post.cancelled),
+          ?_siteTag(),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           ?_quote(),
           ?cover,
@@ -611,6 +652,7 @@ class DaybookCardView extends StatelessWidget {
       case DaybookPost.checklistKind:
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
+          ?_siteTag(),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           ?_quote(),
           BvSlipFacts(
@@ -645,6 +687,7 @@ class DaybookCardView extends StatelessWidget {
       case DaybookPost.activityKind:
         return [
           ...top(DaybookActivityWhat(post: post, words: words, now: now)),
+          ?_siteTag(),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           ?_quote(),
           if (post.people.isNotEmpty || action != null)
@@ -938,6 +981,32 @@ class _Photo extends ConsumerWidget {
     height: BvSlipSpec.photoHeightCard,
     stamp: stamp,
     image: ref.watch(daybookPhotoProvider(path)),
+  );
+}
+
+/// Before / after (review 105C, SP7), from the Space's private files.
+class _BeforeAfter extends ConsumerWidget {
+  const _BeforeAfter({
+    required this.before,
+    required this.after,
+    required this.beforeLabel,
+    required this.afterLabel,
+    this.stamp,
+  });
+
+  final String before;
+  final String after;
+  final String beforeLabel;
+  final String afterLabel;
+  final Widget? stamp;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => BvSlipBeforeAfter(
+    before: ref.watch(daybookPhotoProvider(before)),
+    after: ref.watch(daybookPhotoProvider(after)),
+    beforeLabel: beforeLabel,
+    afterLabel: afterLabel,
+    stamp: stamp,
   );
 }
 

@@ -8412,5 +8412,77 @@
         "type": "String"
       }
     }
+  },
+  "daybookPlaceSearch": "Find or add a place",
+  "@daybookPlaceSearch": {
+    "description": "Review 105C: the Place picker's search field."
+  },
+  "daybookPlaceAdd": "Add place “{name}”",
+  "@daybookPlaceAdd": {
+    "description": "Review 105C: the Place picker's row that adds the typed name as a new place.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPlaceNone": "No places yet. Type one to add it.",
+  "@daybookPlaceNone": {
+    "description": "Review 105C: the Place picker with no places and nothing typed."
+  },
+  "daybookPlaceRename": "Rename",
+  "@daybookPlaceRename": {
+    "description": "Review 105C: a Lead's long press on a place: rename it."
+  },
+  "daybookPlaceRenameTitle": "Rename place",
+  "@daybookPlaceRenameTitle": {
+    "description": "Review 105C: the rename dialog's title."
+  },
+  "daybookPlaceDeleteTitle": "Delete {name}?",
+  "@daybookPlaceDeleteTitle": {
+    "description": "Review 105C: asked before a Lead deletes a place.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPlaceDeleteBody": "Its posts stay in Work, without this tag.",
+  "@daybookPlaceDeleteBody": {
+    "description": "Review 105C: what deleting a place does."
+  },
+  "daybookPlaceTaken": "This Space has that place already.",
+  "@daybookPlaceTaken": {
+    "description": "Review 105C: a new or renamed place whose name the Space has already."
+  },
+  "daybookPlaceFilterClear": "Show all places",
+  "@daybookPlaceFilterClear": {
+    "description": "Review 105C: what a screen reader says for the place filter chip's ✕."
+  },
+  "daybookBefore": "Before · {time}",
+  "@daybookBefore": {
+    "description": "Review 105C SP7: the label on the photo posted with a work item.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookAfter": "After · {time}",
+  "@daybookAfter": {
+    "description": "Review 105C SP7: the label on a work item's Sign as done photo.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "searchPlaces": "Places",
+  "@searchPlaces": {
+    "description": "Review 105C: Search's group of the Space's places."
+  },
+  "searchPlaceLine": "Show its work",
+  "@searchPlaceLine": {
+    "description": "Review 105C: under a place in Search: a tap shows Work for that place."
   }
 }

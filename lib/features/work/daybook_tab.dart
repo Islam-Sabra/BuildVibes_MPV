@@ -61,6 +61,7 @@ import '../../shared/widgets/bv_popover_menu.dart'
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_proof_moment.dart';
 import '../../shared/widgets/bv_selection_bar.dart';
+import '../../shared/widgets/bv_chip.dart' show BvFilterChip;
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
@@ -91,6 +92,7 @@ import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_gestures.dart';
 import 'work_outbox.dart';
+import 'work_places.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
@@ -281,6 +283,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    // Review 105C: Work for one place reads every page, as Needs you does,
+    // so none of that place's posts is left out.
+    ref.listenManual(workPlaceFilterProvider(_spaceId), (_, place) {
+      if (place != null) unawaited(_readAllPages());
+    }, fireImmediately: true);
     // A card that only quotes a message just put in this Space (review
     // 64, DM5), or one just made from a note, is new, not a Draft from
     // before. F88: any other kept card,
@@ -764,6 +771,29 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           !await pages.loadOlder()) {
         break;
       }
+      if (!mounted) return;
+    }
+  }
+
+  /// The cards to show: those of [place] when Work is filtered to one,
+  /// and of [waiting] when it shows what waits on me; both, together.
+  static Set<String>? _shownOnly(
+    List<DaybookCard> cards,
+    SpacePlace? place,
+    Set<String>? waiting,
+  ) {
+    if (place == null) return waiting;
+    final there = {
+      for (final c in cards)
+        if (c.post.placeId == place.id) c.id,
+    };
+    return waiting == null ? there : there.intersection(waiting);
+  }
+
+  /// Every page of Work, oldest last (a place's filter, review 105C).
+  Future<void> _readAllPages() async {
+    final pages = ref.read(daybookCardsProvider(_spaceId).notifier);
+    while (pages.hasOlder && await pages.loadOlder()) {
       if (!mounted) return;
     }
   }
@@ -1449,6 +1479,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
     }
 
+    // Review 105C: Work for one place, said by a chip with ✕.
+    final place = ref.watch(workPlaceFilterProvider(_spaceId));
     final shown = _shownDay ?? today;
     // Any new post waiting to send keeps the first page away: a work
     // item, another kind, a walk.
@@ -1476,7 +1508,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
         signing: signing,
-        only: _needsMine ? waiting : null,
+        only: _shownOnly(cards, place, _needsMine ? waiting : null),
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -1516,6 +1548,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (place != null && !_writing)
+                Padding(
+                  padding: BvPlaceFilterSpec.outer,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: BvFilterChip(
+                      key: const Key('place-filter'),
+                      icon: BvIcons.place,
+                      label: place.name,
+                      clearLabel: l10n.daybookPlaceFilterClear,
+                      clearKey: const Key('place-filter-clear'),
+                      onClear: ref
+                          .read(workPlaceFilterProvider(_spaceId).notifier)
+                          .clear,
+                    ),
+                  ),
+                ),
               BvDaybookMasthead(
                 key: _mastheadKey,
                 weekday: atToday
@@ -2792,6 +2841,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     ];
   }
 
+  /// [post]'s site tag (review 105C): its place's name, and a tap that
+  /// filters Work to it.
+  ({String name, VoidCallback? onTap})? _siteOf(
+    DaybookPost post,
+    List<SpacePlace>? places,
+  ) {
+    final place = places?.where((p) => p.id == post.placeId).firstOrNull;
+    if (place == null) return null;
+    return (
+      name: place.name,
+      onTap: _writing
+          ? null
+          : () => ref
+                .read(workPlaceFilterProvider(_spaceId).notifier)
+                .show(place),
+    );
+  }
+
   Widget _diary(
     List<DaybookCard> cards,
     List<PendingItem> pending,
@@ -2827,6 +2894,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final marks = ref.watch(daybookMarksProvider);
     final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
     final names = ref.watch(spacePeopleProvider(_spaceId)).value;
+    final places = ref.watch(spacePlacesProvider(_spaceId)).value;
     // Every kind the daybook draws, with what still waits for a signal. A
     // pinned announcement sits under the masthead instead.
     final shown = <_Shown>[
@@ -2982,6 +3050,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         nameOf: (id) =>
             names?.member(id)?.person.fullName ??
             c.history.where((e) => e.byId == id).firstOrNull?.byName,
+        site: _siteOf(c.post, places),
         selected: selected.contains(c.id),
         // While writing, a tap on a card puts the card down, as anywhere
         // off it; while selecting it adds or takes off this one; a refused

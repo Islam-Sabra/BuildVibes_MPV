@@ -164,7 +164,7 @@ void main() {
         expect(who.empty, isFalse);
       });
 
-      testWidgets('Place opens its field (free text until 105B); Due its '
+      testWidgets('Place opens the Place picker (review 105C); Due its '
           'picker', (tester) async {
         await _write(
           tester,
@@ -172,16 +172,16 @@ void main() {
           due: (day: DateTime(2026, 10, 16), at: null),
         );
         await _tap(tester, _key('writing-place-row'));
-        expect(_key('writing-place'), findsOneWidget);
+        expect(_key('place-picker'), findsOneWidget);
         await tester.enterText(
           find.descendant(
-            of: _key('writing-place'),
+            of: _key('place-search'),
             matching: find.byType(TextField),
           ),
           s.levelTwo,
         );
-        await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
+        await _tap(tester, _key('place-add'));
         expect(_row(tester, 'writing-place-row').value, s.levelTwo);
         await _tap(tester, _key('writing-due-row'));
         expect(_row(tester, 'writing-due-row').empty, isFalse);
