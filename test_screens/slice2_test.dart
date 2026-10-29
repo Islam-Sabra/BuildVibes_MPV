@@ -119,6 +119,13 @@ Future<List<Override>> _overrides(
     daybookRepositoryProvider.overrideWithValue(
       FakeDaybookRepository()
         ..posts[DaybookSamples.space] = posts
+        // Review 105C: the Space's places, for the Place picker.
+        ..placesBySpace[DaybookSamples.space] = [
+          SpacePlace(
+            id: _gatePlaceId,
+            name: s.t('Gate office', 'مكتب البوابة'),
+          ),
+        ]
         ..extrasBySpace[DaybookSamples.space] = extras
         ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
         ..acksByPost.addAll(acks)
@@ -177,6 +184,9 @@ Widget _space(BuildContext _) =>
 
 /// The Space with its Library's route: a file post starts there (review
 /// 105 SP2).
+/// The gate office in the Space's list of places (review 105C).
+const _gatePlaceId = 'place-gate-office';
+
 Widget _routedSpace(BuildContext _) => const RoutedSpace(DaybookSamples.space);
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
@@ -649,14 +659,9 @@ void main() {
             s.siteWalk,
           );
           await _more(tester, l10n, l10n.daybookActivityTime);
+          // Review 105C: one of the Space's places, from the picker.
           await _more(tester, l10n, l10n.daybookLocation);
-          await _type(
-            tester,
-            find.byKey(const Key('popover-field')),
-            s.t('Gate office', 'مكتب البوابة'),
-          );
-          await tester.testTextInput.receiveAction(TextInputAction.done);
-          await tester.pumpAndSettle();
+          await _tap(tester, find.byKey(const Key('place-row-$_gatePlaceId')));
           await _more(tester, l10n, l10n.daybookPeople);
           await _pick(tester, s.omarName);
           await _pick(tester, s.saraName);
