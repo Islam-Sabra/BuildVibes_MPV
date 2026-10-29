@@ -199,10 +199,12 @@ void main() {
         final repo = await _open(tester, lang);
         await _share(tester, 'space');
         await _tap(tester, _key('share-space-${DaybookSamples.space}'));
+        // Review 104 N10: Team and For are rows that open pickers.
+        await _tap(tester, _key('share-team'));
         expect(_key('share-team-none'), findsOneWidget);
         await _tap(tester, _key('share-team-t-site'));
         await _tap(tester, _key('share-kind-work_item'));
-        expect(_key('share-for-${DaybookSamples.islam}'), findsOneWidget);
+        expect(_key('share-for'), findsOneWidget);
         await _tap(tester, _key('share-send'));
         expect(repo.spaceShares.last['team'], 't-site');
         expect(repo.spaceShares.last['owner'], DaybookSamples.islam);
@@ -210,7 +212,15 @@ void main() {
         await _share(tester, 'space');
         await _tap(tester, _key('share-space-${DaybookSamples.space}'));
         await _tap(tester, _key('share-kind-checklist'));
-        await _tap(tester, _key('share-for-${DaybookSamples.omar}'));
+        await _tap(tester, _key('share-for'));
+        await _tap(
+          tester,
+          find.descendant(
+            of: _key('share-for-picker'),
+            matching: find.text(DaybookSamples(lang).omarName),
+          ),
+        );
+        await _tap(tester, _key('share-for-done'));
         await _tap(tester, _key('share-send'));
         expect(
           repo.spaceShares.last['people'],

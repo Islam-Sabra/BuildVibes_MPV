@@ -109,6 +109,7 @@ void main() {
       await tester.longPress(_key('note-entry-gate'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       await _tap(tester, _key('page-filter'));
       await _tap(tester, _key('filter-show-todos_open'));
       expect(_key('filter-hit-entry-pour'), findsOneWidget);
@@ -145,6 +146,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
+      // Review 104 F1: an emptied entry asks first.
+      await tester.tap(find.byKey(const Key('bv-dialog-confirm')));
+      await tester.pumpAndSettle();
       expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
       await _barGoes(tester);
       expect(app.notebook.calls, contains('delete-entries:entry-gate'));
@@ -163,6 +167,7 @@ void main() {
       await tester.longPress(_key('note-marker-b-2'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       final held = app.prefs.getString('notebook_held:user-1');
       expect(held, isNotNull);
       final change = jsonDecode(held!) as Map<String, dynamic>;

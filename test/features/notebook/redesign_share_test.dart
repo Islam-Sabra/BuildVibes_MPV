@@ -98,6 +98,15 @@ void main() {
           expect(_key('share-$c'), findsOneWidget, reason: c);
         }
         expect(find.text(l10n.notebookShareFeedNote), findsOneWidget);
+        // Review 104 S1: a note, not a post.
+        expect(
+          find.text(
+            lang == 'en'
+                ? 'A note, work item or checklist'
+                : 'ملاحظة أو بند عمل أو قائمة تحقق',
+          ),
+          findsOneWidget,
+        );
         expect(find.byType(BottomSheet), findsNothing);
         // Over the bar.
         expect(
@@ -260,9 +269,14 @@ void main() {
           ],
         );
         await _open(tester, lang, notebook: notebook);
+        // Review 104 N12: the mark is the Space icon in the top line; its
+        // card says where and when.
+        expect(_key('note-status-entry-gate-space'), findsOneWidget);
+        await tester.tap(_key('note-status-entry-gate-space'));
+        await tester.pumpAndSettle();
         expect(
           find.descendant(
-            of: _key('note-entry-gate'),
+            of: _key('note-status-card'),
             matching: find.textContaining(d.spaceName),
           ),
           findsOneWidget,

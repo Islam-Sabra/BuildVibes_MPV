@@ -8831,7 +8831,7 @@ abstract class AppLocalizations {
   /// Review 100 BH4: under Space.
   ///
   /// In en, this message translates to:
-  /// **'A post, work item or checklist'**
+  /// **'A note, work item or checklist'**
   String get notebookShareSpaceNote;
 
   /// Review 100 BH4: Share's third choice.
@@ -8917,24 +8917,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post'**
   String get notebookPost;
-
-  /// Review 100 Part 6: Space: what it goes in as.
-  ///
-  /// In en, this message translates to:
-  /// **'Post'**
-  String get notebookShareKindPost;
-
-  /// Review 100 Part 6: Space: a work item, for you.
-  ///
-  /// In en, this message translates to:
-  /// **'Work item'**
-  String get notebookShareKindWork;
-
-  /// Review 100 Part 6: Space: a checklist of its to-dos, for you.
-  ///
-  /// In en, this message translates to:
-  /// **'Checklist'**
-  String get notebookShareKindChecklist;
 
   /// Review 100 Part 6: Message: search among people you can message.
   ///
@@ -9217,6 +9199,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to the usual order'**
   String get notebookSortOff;
+
+  /// Review 104 N6: the confirm before entries are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this entry?} other{Delete these entries?}}'**
+  String notebookConfirmDeleteEntries(int count);
+
+  /// Review 104 N6: the confirm before pages are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this page and everything in it?} other{Delete these pages and everything in them?}}'**
+  String notebookConfirmDeletePages(int count);
+
+  /// Review 104 N6: the confirm before lines selected with the bottom bar are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this line?} other{Delete these lines?}}'**
+  String notebookConfirmDeleteLines(int count);
+
+  /// Review 104 N6: the confirm before a Draft is discarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this draft?'**
+  String get notebookConfirmDeleteDraft;
+
+  /// Review 104 N6: the confirm's body; days is the person's 7, 30 or 90.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, other{It goes to Deleted items for {days} days.}}'**
+  String notebookConfirmDeleteKeptFor(int days);
+
+  /// Review 104 N6: the confirm's body when the days can't be read (no signal).
+  ///
+  /// In en, this message translates to:
+  /// **'It goes to Deleted items.'**
+  String get notebookConfirmDeleteKept;
+
+  /// Review 104 N6: the confirm's body for what was never saved (a Draft, lines written in this edit).
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t kept in Deleted items.'**
+  String get notebookConfirmDeleteNotKept;
+
+  /// Review 104 N7: the pages list's SORT, oldest page first.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest created'**
+  String get notebookSortOldestCreated;
+
+  /// Review 104 N7: a page's SORT, entries grouped by what they hold.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get notebookSortType;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos'**
+  String get notebookTypeTodos;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get notebookTypeChecklists;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get notebookTypePhotos;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get notebookTypeFiles;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get notebookTypeVoice;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get notebookTypeText;
+
+  /// Review 104 N10: Share → Space's Team row; a tap opens the Space's Teams.
+  ///
+  /// In en, this message translates to:
+  /// **'Team: {team}'**
+  String notebookShareTeamRow(String team);
+
+  /// Review 104 N10: Share → Space's For row; a tap opens the Give to picker.
+  ///
+  /// In en, this message translates to:
+  /// **'For: {name}'**
+  String notebookShareForRow(String name);
+
+  /// Review 104 N10: several people a checklist is for: the first, and how many more.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} + {count}'**
+  String notebookShareForMore(String name, int count);
+
+  /// Review 104 N11: the time picker's mode switch, on the clock.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the wheels'**
+  String get timePickerToWheels;
+
+  /// Review 104 N11: the time picker's mode switch, on the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the clock'**
+  String get timePickerToClock;
+
+  /// Review 104 N12: a screen reader's label of an entry's reminder icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder, {when}'**
+  String notebookStatusReminder(String when);
+
+  /// Review 104 N12: a screen reader's label of an entry's feed icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed at {time}'**
+  String notebookStatusFeed(String time);
+
+  /// Review 104 N12: a screen reader's label of an entry's Space icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name} at {time}'**
+  String notebookStatusSpace(String name, String time);
+
+  /// Review 104 N12: a screen reader's label of an entry's message icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name} at {time}'**
+  String notebookStatusSent(String name, String time);
+
+  /// Review 104 F3: the badge past three status icons ("+3").
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String notebookStatusMore(int count);
+
+  /// Review 104 N12: a screen reader's label of the +N past three icons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} more}}'**
+  String notebookStatusMoreLabel(int count);
+
+  /// Review 104 N12: in a reminder icon's card, changes the reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get notebookStatusChange;
+
+  /// Review 104 F1: the confirm before a saved entry left empty after editing is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this empty entry?'**
+  String get notebookConfirmDeleteEmpty;
+
+  /// Review 104 F2: how a screen reader reads an hour on the clock face.
+  ///
+  /// In en, this message translates to:
+  /// **'{hour} o\'clock'**
+  String timeClockHour(int hour);
+
+  /// Review 104 F2: how a screen reader reads the minutes on the clock face (0, 5 … 55).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String timeClockMinutes(int count);
 }
 
 class _AppLocalizationsDelegate

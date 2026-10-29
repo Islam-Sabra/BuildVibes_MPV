@@ -129,17 +129,24 @@ void main() {
       expect(set.at, DateTime(2026, 10, 15, 16));
       expect(set.title, l10n.reminderTitle);
       expect(set.body, s.sleevesTodo);
-      final line = tester.widget<Text>(
+      // Review 104 N12: an icon in the top line, in the accent colour while
+      // it is still to ring; its card says when.
+      final icon = tester.widget<Icon>(
         find.descendant(
-          of: _key('note-reminder-note-sleeves'),
-          matching: find.byType(Text),
+          of: _key('note-status-note-sleeves-reminder'),
+          matching: find.byType(Icon),
         ),
       );
-      expect(line.data, startsWith(l10n.notebookReminderLine('')));
+      expect(icon.color, BvColors.iconAction);
+      await _tap(tester, _key('note-status-note-sleeves-reminder'));
+      final line = tester.widget<Text>(
+        find.descendant(
+          of: _key('note-status-card'),
+          matching: find.textContaining(l10n.notebookReminderLine('')),
+        ),
+      );
       expect(line.data, contains(l10n.daybookToday));
       expect(line.data, contains('4:00'));
-      // In grey: the person's own time, not a due.
-      expect(line.style?.color, BvColors.textSecondary);
     });
 
     testWidgets('Remind me with no time: that morning; a time gone by is '
@@ -152,7 +159,16 @@ void main() {
         app.reminders.onPhone['note-sleeves']!.at,
         DateTime(2026, 10, 16, 9),
       );
-      expect(find.textContaining(l10n.daybookTomorrow), findsWidgets);
+      // N12: the reminder icon's card says when.
+      await _tap(tester, _key('note-status-note-sleeves-reminder'));
+      expect(
+        find.descendant(
+          of: _key('note-status-card'),
+          matching: find.textContaining(l10n.daybookTomorrow),
+        ),
+        findsOneWidget,
+      );
+      await _tap(tester, _key('line-popover-barrier'));
 
       _picked = (day: DateTime(2026, 10, 15), at: DateTime(2026, 10, 15, 8));
       await _menu(tester, 'note-sleeves');
@@ -171,14 +187,14 @@ void main() {
       );
       final app = await _open(tester, lang, notes: [note]);
       expect(app.reminders.onPhone, contains('note-sleeves'));
-      expect(_key('note-reminder-note-sleeves'), findsOneWidget);
+      expect(_key('note-status-note-sleeves-reminder'), findsOneWidget);
       _picked = (day: null, at: null);
       await _menu(tester, 'note-sleeves');
       await _tap(tester, _remindButton);
       expect(app.notebook.kept['note-sleeves']!.remindAt, isNull);
       expect(app.reminders.onPhone, isEmpty);
       expect(app.reminders.calls.last, 'cancel note-sleeves');
-      expect(_key('note-reminder-note-sleeves'), findsNothing);
+      expect(_key('note-status-note-sleeves-reminder'), findsNothing);
     });
 
     testWidgets('done or deleted: the reminder goes [$lang]', (tester) async {
@@ -194,11 +210,23 @@ void main() {
       expect(app.reminders.onPhone.keys, {'note-sleeves', 'note-yesterday'});
       await _tap(tester, _key('note-done-note-sleeves'));
       expect(app.reminders.onPhone.keys, {'note-yesterday'});
-      expect(_key('note-reminder-note-sleeves'), findsNothing);
+      // N12: it won't ring, so its icon is grey.
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(
+                of: _key('note-status-note-sleeves-reminder'),
+                matching: find.byType(Icon),
+              ),
+            )
+            .color,
+        BvColors.iconSecondary,
+      );
       // Review 100 Part 3: held, then Delete on the selection bar.
       await tester.longPress(_key('note-note-yesterday'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       expect(app.reminders.onPhone, isEmpty);
     });
 

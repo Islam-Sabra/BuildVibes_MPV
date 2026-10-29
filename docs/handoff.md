@@ -2,6 +2,50 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 — the lead's check of `claude/r104`: F1–F3 done; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r104` (this cloud session), from 226919b, pushed. Nothing merged, nothing live, no deploy, nothing installed, no migration.
+- **Commits:**
+  - 7b19fd3 **F1**: a saved entry left empty after editing now asks "Delete this empty entry?" («حذف هذه التدوينة الفارغة؟»), with the days kept and Cancel · Delete. Cancel brings the editor back with the empty entry, and whatever asked (Back, Done, opening another entry, New entry) does not go on; Back on New entry leaves the screen only after Delete. Delete goes on as before ("Deleted · Undo", to Deleted items when the bar closes). The app going behind asks nothing and keeps the edit on the phone (D1 opens it again). D3 and H5 tap Delete in the confirm now.
+  - 1b65bac **F2**: the dial's numbers are read "7 o'clock" / «الساعة 7» and "35 minutes" / «35 دقيقة» («5 دقائق»), from the ARB; tested with the semantics finder (tapping an hour and a minute by their words).
+  - 2a76d2a **F3**: the "+N" badge has its own key `notebookStatusMore` ("+3"); the screen reader's "3 more" moved to `notebookStatusMoreLabel`. A share whose Space or person has no name is left out of the icons.
+- **Checks (cloud):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,486 pass, 1 fails: photo_privacy H1, root-only in the cloud (as before).
+  - SQL stand-in: migrations apply; 3,038 checks in 48 files pass.
+  - Screenshots: PC later; no `test_screens`, no `--update-goldens`. F1–F3 change no shot (F2 is semantics only; F3 shows the same "+3").
+- **The PC still has to:** the steps in the section below (test_screens without updating; the shots review 104 changes on purpose, plus the new N11-time-clock; the lead's check; merge with the founder's yes; one build). No database push.
+- **Who has which branch:** this cloud session had `claude/r104` (F1–F3 done, pushed). PC: `slice2-app`.
+
+## Cloud update: 28 Oct 2026 — review 104 (N6–N12) on `claude/r104` (from `slice2-app` 3f14b70); stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r104`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed. **No migration and no server change**: Share → Space already took the kind, Team, owner and people.
+- **Commits, in the order done:**
+  - 8c55e14 **N8** (bug, first): the cause was the card's summary drawing a table as one line of its first row only (`rows.take(1)`). It now draws the whole table (`PageTableView`, as Work's page), sideways scroll when wider, columns mirrored in Arabic. The data and the editor already kept every row; tests prove the card, a wide table, the editor reopened, the full make-and-Send flow and the JSON round trip.
+  - e85cdfe **N6**: one confirm before every delete: entries, pages (page menu and pages list), selected lines, a Draft's Discard (swipe and top bar). The body reads the person's 7/30/90 days from the server; with no answer in 2 s it says "It goes to Deleted items." without a number; a Draft and lines never saved say "It isn't kept in Deleted items." (they never go there). Cancel · Delete, Delete in red. The Undo bar after Delete is unchanged; Archive asks nothing.
+  - 98d7c50 **N7**: pages list + Oldest created; inside a page + Name A–Z and Type (groups To-dos · Checklists · Photos · Files · Voice notes · Text, the first kind found, newest first in each; an empty group has no label). Day headers and hold-and-move only in the two date sorts (elsewhere a hold selects). Pinned on top in every sort. Two Phosphor icons added (calendar-blank, shapes), checked against the bundled font.
+  - 473e15e **N9 + N10**: the kinds read the Space's own words and icons (`kindName`/`kindIcon`); "Post" and its three strings gone. Team and For are rows: Team opens a one-choice sheet of the Space's Teams; For opens `BvGiveToPicker` (me first as You, the chosen Team's people, then the rest A–Z; no Viewers). A work item takes exactly one (a pick closes it); a checklist several until Done ("You + 2"). Tested with 120 members.
+  - 873bfe3 **N11**: `showBvTimePicker` (`lib/shared/widgets/bv_time_picker.dart`) is the one picker in all six places. Clock face by default (our own dial: Material's can't grey passed times), the mode switch where typed input was, the wheels as the second mode; AM/PM above in both; nothing typed; passed times greyed in both; the last mode kept on the phone (`time_picker_mode`). `showBvTimeWheel` and its dialog are gone; `BvTimeWheel` is the wheel mode.
+  - 4b893af **N12**: status icons beside the time (pinned, reminder accent/grey, feed, Space, person), 14 grey, 4 apart, max 3 then "+N"; a tap opens a compact card (the reminder's with Change); screen-reader labels; the text marks under the entry are gone. Found on the way: the reminder's day dialog overflowed 31 px in Arabic with Remove showing; Remove now takes the free room and wraps.
+- **Tests changed on purpose** (the old rule they checked was replaced by this review): every test that deleted without a question now taps Delete in the confirm (N6; one title read "Delete: no question"); review 102 N5's sort tests now expect four choices each (N7); H11's Team/For chips are now rows (N10); the wheel tests open the picker on its wheels, and `note_page_test`'s reminder expects the clock (N11); the reminder line and share-mark tests now read the icons and their card (N12).
+- **Checks (cloud):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,473 pass, 1 fails: photo_privacy H1, which fails only when run as root (the cloud), as on every cloud branch; the PC runs it as a user.
+  - SQL stand-in (`bash supabase/dev/standin/run.sh .`): all migrations apply; 3,038 checks in 48 files pass.
+  - Screenshots: PC later. `test_screens` not run, no `--update-goldens`.
+- **The PC still has to:**
+  1. run `flutter test test_screens` without updating. Expected to change on purpose: BH3 and PG4 (icons replace the marks); BH4 and BH5 (Note · Work item · Checklist, and the Team and For rows); `r102` N2-time-wheel (the mode switch is now in the dialog's bottom row); the BH9 sort parts (four choices). New, no golden yet: `r102` N11-time-clock (EN, AR). List any other changed shot with before/after; don't accept it;
+  2. check the shots against Figma with the lead, then accept only those;
+  3. with the founder's yes, merge `claude/r104` into `slice2-app` and run every check;
+  4. one build on his phone, plus a Desktop copy. No database push is needed.
+- **Who has which branch:** this cloud session had `claude/r104` (done, pushed). PC: `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

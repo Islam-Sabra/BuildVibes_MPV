@@ -47,6 +47,7 @@ import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_draft.dart' show DaybookDraft;
+import '../work/daybook_page.dart' show PageTableView;
 import '../work/daybook_words.dart';
 import '../library/library_parts.dart' show maxFileBytes, pickDocumentProvider;
 import '../work/daybook_writing.dart'
@@ -60,6 +61,7 @@ import 'note_outline.dart'
     show copiedBlock, numberAt, numberLabel, visibleLines;
 import 'note_page_editor.dart';
 import 'note_reminders.dart' show remindsAt;
+import 'note_status.dart';
 import 'note_writing.dart';
 import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
@@ -160,7 +162,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     // (B8).
     _life = AppLifecycleListener(
       onHide: () {
-        if (_away == 0) _putDown();
+        if (_away == 0) unawaited(_putDown(hiding: true));
       },
       onResume: () => unawaited(ref.read(notebookProvider.notifier).retry()),
     );
@@ -239,7 +241,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final held = ref.read(noteDraftProvider);
     if (held != null) {
       if (held.editing != null) {
-        await _finishEdit(quiet: true);
+        // F1: an emptied entry asked first; Cancel keeps it in hand.
+        if (!await _finishEdit(quiet: true)) return;
       } else {
         await _drafts.park();
       }
@@ -294,6 +297,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   Future<void> _discardWriting() async {
     final draft = ref.read(noteDraftProvider);
     if (draft == null || draft.editing != null) return;
+    // N6: asked first; Cancel goes back to writing.
+    if (!await _sureDiscard() || !mounted) return;
     _closeBar();
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -303,6 +308,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     await _discardDraft(draft, writing: true);
     if (widget.pageId == null && mounted) Navigator.of(context).maybePop();
   }
+
+  /// Review 104 N6: a Draft's Discard asks first; it isn't kept in
+  /// Deleted items.
+  Future<bool> _sureDiscard() => confirmNotebookDelete(
+    context,
+    ref,
+    title: AppLocalizations.of(context).notebookConfirmDeleteDraft,
+    kept: false,
+  );
 
   /// A Draft's card swiped toward the start (review 100 Part 3b), or the
   /// entry being written discarded: gone, with Undo.
@@ -344,20 +358,46 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// The edit as it was opened; null after the app was closed mid-edit.
   String? _editOpened;
 
+  /// An emptied entry's "Delete this empty entry?" is open (F1).
+  var _askingEmpty = false;
+
   /// Back from a saved entry (review 100 B2): saved in place when it
   /// changed, with "Saved · Undo" (Undo puts back the entry as it was
-  /// opened); nothing at all when it didn't. Never a Draft.
-  Future<void> _finishEdit({bool quiet = false}) async {
+  /// opened); nothing at all when it didn't. Never a Draft. False when it
+  /// was left in hand: an emptied entry's Cancel (review 104 F1), or the
+  /// app going behind ([hiding]), which asks nothing and keeps the edit.
+  Future<bool> _finishEdit({bool quiet = false, bool hiding = false}) async {
     final draft = ref.read(noteDraftProvider);
     final was = draft?.editing;
-    if (draft == null || was == null) return;
-    final changed = _editOpened == null || _editOpened != _shape(draft);
+    if (draft == null || was == null) return true;
+    final opened = _editOpened;
+    final changed = opened == null || opened != _shape(draft);
     _editOpened = null;
     if (!changed) {
       await _drafts.discard();
-      return;
+      return true;
     }
     if (!draft.ready) {
+      // D1: the edit stays on the phone and opens again in the editor.
+      if (hiding) {
+        _editOpened = opened;
+        return false;
+      }
+      // F1: a delete asks first, as every delete does; Cancel brings the
+      // editor back with the empty entry.
+      if (!mounted) return false;
+      _askingEmpty = true;
+      final yes = await confirmNotebookDelete(
+        context,
+        ref,
+        title: AppLocalizations.of(context).notebookConfirmDeleteEmpty,
+      );
+      _askingEmpty = false;
+      if (!yes) {
+        _editOpened = opened;
+        await _goOn();
+        return false;
+      }
       // D3: emptied and left, it is deleted, with Undo (the Delete rules:
       // it goes when the bar closes). Held on the phone first, then the
       // Draft goes (D2).
@@ -371,7 +411,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         );
       }
       await _drafts.discard();
-      return;
+      return true;
     }
     final note = _noteOf(draft);
     final notebook = ref.read(notebookProvider.notifier);
@@ -388,6 +428,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         bottom: 0,
       );
     }
+    return true;
   }
 
   /// Lines deleted from the entry being written (review 100 BH12): from a
@@ -485,7 +526,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       final hand = ref.read(noteDraftProvider);
       if (hand != null && hand.id != lost.id) {
         if (hand.editing != null) {
-          await _finishEdit(quiet: true);
+          if (!await _finishEdit(quiet: true)) return;
         } else {
           await _drafts.park();
         }
@@ -540,8 +581,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   OverlayEntry? _lifted;
   Timer? _edge;
 
+  /// Held and moved within its day: only in the date sorts (N7).
   bool _canArrange(Note n, bool selecting) =>
-      !widget.archived && !selecting && !n.pinned;
+      !widget.archived && !selecting && !n.pinned && _sort.byDate;
 
   bool get _stillMotion => MediaQuery.of(context).disableAnimations;
 
@@ -799,7 +841,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final draft = ref.read(noteDraftProvider);
     if (draft != null && draft.id != note.id) {
       if (draft.editing != null) {
-        await _finishEdit(quiet: true);
+        if (!await _finishEdit(quiet: true)) return;
       } else {
         await _drafts.park();
       }
@@ -816,15 +858,25 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// anything in it stays as the Draft (NBW5); an empty one is gone. Back
   /// on New entry goes back to the pages too.
   void _leave() {
-    _putDown();
+    final down = _putDown();
     if (widget.pageId != null) return;
+    // F1: an emptied entry asks first; the screen goes only on Delete.
+    if (_askingEmpty) {
+      unawaited(
+        down.then((yes) {
+          if (yes && mounted) Navigator.of(context).maybePop();
+        }),
+      );
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.of(context).maybePop();
     });
   }
 
-  void _putDown() {
-    if (!_writing) return;
+  /// False when the entry stays in hand ([_finishEdit]).
+  Future<bool> _putDown({bool hiding = false}) {
+    if (!_writing) return Future.value(true);
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _writing = false;
@@ -832,10 +884,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     });
     // B2: a saved entry is saved in place; only a new one is a Draft.
     if (ref.read(noteDraftProvider)?.editing != null) {
-      unawaited(_finishEdit());
-    } else {
-      unawaited(_drafts.close());
+      return _finishEdit(hiding: hiding);
     }
+    unawaited(_drafts.close());
+    return Future.value(true);
   }
 
   /// Send (it replaces Save): the note is kept in its page, and the slip
@@ -1689,6 +1741,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// Undo for 5 s, kept in the phone's outbox, then in Deleted items (99B).
   Future<void> _deleteSelected(List<Note> notes) async {
     final l10n = AppLocalizations.of(context);
+    // N6: asked first; Cancel keeps them selected.
+    final yes = await confirmNotebookDelete(
+      context,
+      ref,
+      title: l10n.notebookConfirmDeleteEntries(notes.length),
+    );
+    if (!yes || !mounted) return;
     setState(_selected.clear);
     await holdWithUndo(
       context,
@@ -1702,6 +1761,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
   /// How many lines of the entry being written are selected (BH12).
   int _linesPicked = 0;
+
+  /// Delete on the selected lines (N6): asked first. Lines of a saved
+  /// entry go to Deleted items; lines written in this edit just go.
+  Future<void> _deleteLines() async {
+    final editor = _editorKey.currentState;
+    if (editor == null) return;
+    final saved = {
+      for (final b
+          in ref.read(noteDraftProvider)?.editing?.blocks ??
+              const <PageBlock>[])
+        b.id,
+    };
+    final yes = await confirmNotebookDelete(
+      context,
+      ref,
+      title: AppLocalizations.of(
+        context,
+      ).notebookConfirmDeleteLines(_linesPicked),
+      kept: editor.selectedLineIds.every(saved.contains),
+    );
+    if (yes && mounted) _editorKey.currentState?.deleteSelectedLines();
+  }
 
   /// The selection bar, where Share's card opens (BH4).
   final _selectionBarKey = GlobalKey();
@@ -1867,6 +1948,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         if (pick == null) return;
         await notebook.movePages([page.id], pick.id);
       case 'delete':
+        // N6: asked first.
+        final yes = await confirmNotebookDelete(
+          context,
+          ref,
+          title: l10n.notebookConfirmDeletePages(1),
+        );
+        if (!yes || !mounted) return;
         await holdWithUndo(
           context,
           ref,
@@ -1958,8 +2046,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         : widget.archived
         ? data.archived(page.id)
         : data.entries(page.id);
-    // Newest first as kept, or oldest first (review 102 N5).
-    final entries = _sort == EntrySort.oldest ? kept.reversed.toList() : kept;
+    // Newest first as kept, or in the page's sort (review 104 N7).
+    final entries = _sort.sorted(
+      kept,
+      Localizations.localeOf(context).languageCode,
+    );
     final chosen = [
       for (final n in entries)
         if (_selected.contains(n.id)) n,
@@ -2091,6 +2182,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               onLongPress: widget.archived || _canArrange(n, selecting)
                   ? null
                   : () => _select(n),
+              onReminder: widget.archived ? null : () => unawaited(_remind(n)),
             ),
           ),
         ),
@@ -2102,10 +2194,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       for (final n in entries)
         if (n.pinned) n,
     ];
+    // N7: day headers only in the date sorts; Name A–Z is one list, Type
+    // a list under each group's label.
     final byDay = <DateTime, List<Note>>{};
+    final byType = <EntryType, List<Note>>{};
+    final named = <Note>[];
     for (final n in entries) {
-      if (!n.pinned) byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
+      if (n.pinned) continue;
+      switch (_sort) {
+        case EntrySort.newest || EntrySort.oldest:
+          byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
+        case EntrySort.type:
+          byType.putIfAbsent(EntryType.of(n), () => []).add(n);
+        case EntrySort.name:
+          named.add(n);
+      }
     }
+    final firstShown = [
+      ...pinned,
+      for (final notes in byDay.values) ...notes,
+      ...named,
+      for (final notes in byType.values) ...notes,
+    ].firstOrNull;
     // Review 102 N3: each day in its hand order.
     for (final day in byDay.keys.toList()) {
       byDay[day] = inHandOrder(
@@ -2256,6 +2366,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                   icon: BvIcons.discard,
                   label: l10n.notebookDiscardDraft,
                   color: BvColors.textDestructive,
+                  // N6: asked first; Cancel puts the card back.
+                  confirm: _sureDiscard,
                   onTap: () => unawaited(_discardDraft(d)),
                 ),
                 child: writingSlip(d, writing: false),
@@ -2270,7 +2382,29 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           for (final n in pinned)
             (
               ValueKey(('entry-row', n.id)),
-              () => entry(n, first: n == entries.first),
+              () => entry(n, first: n == firstShown),
+            ),
+        ],
+        for (final n in named)
+          (
+            ValueKey(('entry-row', n.id)),
+            () => entry(n, first: n == firstShown),
+          ),
+        for (final MapEntry(key: kind, value: notes) in byType.entries) ...[
+          (
+            ValueKey(('type-row', kind)),
+            () => Padding(
+              key: Key('type-label-${kind.name}'),
+              padding: const EdgeInsetsDirectional.only(
+                top: BvNotebookPagesSpec.dayTop,
+              ),
+              child: NotebookLabel(kind.label(l10n)),
+            ),
+          ),
+          for (final n in notes)
+            (
+              ValueKey(('entry-row', n.id)),
+              () => entry(n, first: n == firstShown),
             ),
         ],
         for (final day in byDay.keys) ...[
@@ -2286,13 +2420,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           for (final n in byDay[day]!)
             (
               ValueKey(('entry-row', n.id)),
-              () => entry(
-                n,
-                first:
-                    pinned.isEmpty &&
-                    n == byDay[day]!.first &&
-                    day == byDay.keys.first,
-              ),
+              () => entry(n, first: n == firstShown),
             ),
         ],
         if (widget.archived && entries.isEmpty && notebook.hasValue)
@@ -2547,8 +2675,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                       icon: BvIcons.delete,
                       label: l10n.delete,
                       destructive: true,
-                      onTap: () =>
-                          _editorKey.currentState?.deleteSelectedLines(),
+                      onTap: () => unawaited(_deleteLines()),
                     ),
                   ],
                 )
@@ -2715,6 +2842,7 @@ class NoteSlip extends ConsumerWidget {
     required this.now,
     this.onEdit,
     this.onLongPress,
+    this.onReminder,
     this.selected = false,
   });
 
@@ -2722,6 +2850,9 @@ class NoteSlip extends ConsumerWidget {
   final DaybookWords words;
   final DateTime now;
   final VoidCallback? onEdit;
+
+  /// The reminder icon's card's Change (review 104 N12).
+  final VoidCallback? onReminder;
 
   /// A long-press: select it (review 99 A4); its other actions are on its
   /// swipe (review 100 Part 3b).
@@ -2749,8 +2880,10 @@ class NoteSlip extends ConsumerWidget {
     );
     final due = note.dueAt;
     final title = note.isPage ? note.title.trim() : '';
+    final statuses = noteStatuses(note, l10n, words, now);
     final children = <Widget>[
-      // PG4: the title, or the kind, with the time at the end, then ⋯.
+      // PG4: the title, or the kind, with the time at the end, then ⋯;
+      // review 104 N12: the status icons beside the time.
       Row(
         key: Key('note-head-${note.id}'),
         spacing: BvSpace.s8,
@@ -2764,6 +2897,13 @@ class NoteSlip extends ConsumerWidget {
                     style: type.headingMd.copyWith(color: BvColors.textPrimary),
                   ),
           ),
+          if (statuses.isNotEmpty)
+            NoteStatusIcons(
+              key: Key('note-status-${note.id}'),
+              id: note.id,
+              statuses: statuses,
+              onChangeReminder: onReminder,
+            ),
           Text(
             words.time.clock(note.createdAt),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
@@ -2837,33 +2977,8 @@ class NoteSlip extends ConsumerWidget {
         },
       if (note.photos.isNotEmpty && !note.isPage)
         NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
-      if (remindsAt(note, now))
-        BvSlipQuiet(
-          key: Key('note-reminder-${note.id}'),
-          l10n.notebookReminderLine(
-            reminderWhen(l10n, words, note.remindAt!, now),
-          ),
-        ),
+      // N12: the reminder and the shares are icons in the top line now.
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
-      if (note.shares.lastOrNull case final share?)
-        BvSlipQuiet(
-          key: Key('note-share-mark-${note.id}'),
-          switch (share.target) {
-            NoteShareTarget.feed => l10n.notebookMarkFeed(
-              words.time.clock(share.at),
-            ),
-            NoteShareTarget.space => l10n.notebookMarkTo(
-              share.name ?? '',
-              words.time.clock(share.at),
-            ),
-            NoteShareTarget.message => l10n.notebookMarkSent(
-              share.name ?? '',
-              words.time.clock(share.at),
-            ),
-          },
-        )
-      else if (note.putInPostId != null && !note.waiting)
-        BvSlipQuiet(l10n.notebookPut),
     ];
     // PG4: a plain white card; selected (A4, BH2), tinted and lifted with
     // the selected edge.
@@ -3005,9 +3120,11 @@ class NotePageSummary extends ConsumerWidget {
         linkOf: (ref, path) =>
             ref.read(notebookRepositoryProvider).recordingUrl(path),
       ),
-      PageTable(:final rows) => line(
-        [for (final r in rows.take(1)) r.join(' · ')].join(),
-        main,
+      // Review 104 N8: the whole table, every row and column; wider than
+      // the card, it scrolls sideways.
+      PageTable(:final rows) => PageTableView(
+        key: Key('note-summary-table-${b.id}'),
+        rows: rows,
       ),
       _ => line(blockWords(b).join(' · '), main),
     };

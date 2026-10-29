@@ -320,6 +320,7 @@ void main() {
           isNot(isNull),
         );
         await _tap(tester, _key('writing-discard'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         expect(_key('note-tools'), findsNothing);
         expect(_key('note-draft-card-draft-1'), findsNothing);
         expect(find.text(l10n.notebookDiscarded), findsOneWidget);

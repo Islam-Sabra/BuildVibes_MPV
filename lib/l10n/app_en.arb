@@ -7482,7 +7482,7 @@
   "@notebookShareSpace": {
     "description": "Review 100 BH4: Share's second choice."
   },
-  "notebookShareSpaceNote": "A post, work item or checklist",
+  "notebookShareSpaceNote": "A note, work item or checklist",
   "@notebookShareSpaceNote": {
     "description": "Review 100 BH4: under Space."
   },
@@ -7554,18 +7554,6 @@
   "notebookPost": "Post",
   "@notebookPost": {
     "description": "Review 100 Part 6: the Feed and Space previews' send."
-  },
-  "notebookShareKindPost": "Post",
-  "@notebookShareKindPost": {
-    "description": "Review 100 Part 6: Space: what it goes in as."
-  },
-  "notebookShareKindWork": "Work item",
-  "@notebookShareKindWork": {
-    "description": "Review 100 Part 6: Space: a work item, for you."
-  },
-  "notebookShareKindChecklist": "Checklist",
-  "@notebookShareKindChecklist": {
-    "description": "Review 100 Part 6: Space: a checklist of its to-dos, for you."
   },
   "notebookShareFind": "Find a person",
   "@notebookShareFind": {
@@ -7833,5 +7821,209 @@
   "notebookSortOff": "Back to the usual order",
   "@notebookSortOff": {
     "description": "Review 102 N5: for screen readers, the sort chip's ✕."
+  },
+  "notebookConfirmDeleteEntries": "{count, plural, =1{Delete this entry?} other{Delete these entries?}}",
+  "@notebookConfirmDeleteEntries": {
+    "description": "Review 104 N6: the confirm before entries are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeletePages": "{count, plural, =1{Delete this page and everything in it?} other{Delete these pages and everything in them?}}",
+  "@notebookConfirmDeletePages": {
+    "description": "Review 104 N6: the confirm before pages are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteLines": "{count, plural, =1{Delete this line?} other{Delete these lines?}}",
+  "@notebookConfirmDeleteLines": {
+    "description": "Review 104 N6: the confirm before lines selected with the bottom bar are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteDraft": "Delete this draft?",
+  "@notebookConfirmDeleteDraft": {
+    "description": "Review 104 N6: the confirm before a Draft is discarded."
+  },
+  "notebookConfirmDeleteKeptFor": "{days, plural, other{It goes to Deleted items for {days} days.}}",
+  "@notebookConfirmDeleteKeptFor": {
+    "description": "Review 104 N6: the confirm's body; days is the person's 7, 30 or 90.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteKept": "It goes to Deleted items.",
+  "@notebookConfirmDeleteKept": {
+    "description": "Review 104 N6: the confirm's body when the days can't be read (no signal)."
+  },
+  "notebookConfirmDeleteNotKept": "It isn't kept in Deleted items.",
+  "@notebookConfirmDeleteNotKept": {
+    "description": "Review 104 N6: the confirm's body for what was never saved (a Draft, lines written in this edit)."
+  },
+  "notebookSortOldestCreated": "Oldest created",
+  "@notebookSortOldestCreated": {
+    "description": "Review 104 N7: the pages list's SORT, oldest page first."
+  },
+  "notebookSortType": "Type",
+  "@notebookSortType": {
+    "description": "Review 104 N7: a page's SORT, entries grouped by what they hold."
+  },
+  "notebookTypeTodos": "To-dos",
+  "@notebookTypeTodos": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeChecklists": "Checklists",
+  "@notebookTypeChecklists": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypePhotos": "Photos",
+  "@notebookTypePhotos": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeFiles": "Files",
+  "@notebookTypeFiles": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeVoice": "Voice notes",
+  "@notebookTypeVoice": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeText": "Text",
+  "@notebookTypeText": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookShareTeamRow": "Team: {team}",
+  "@notebookShareTeamRow": {
+    "description": "Review 104 N10: Share → Space's Team row; a tap opens the Space's Teams.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareForRow": "For: {name}",
+  "@notebookShareForRow": {
+    "description": "Review 104 N10: Share → Space's For row; a tap opens the Give to picker.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareForMore": "{name} + {count}",
+  "@notebookShareForMore": {
+    "description": "Review 104 N10: several people a checklist is for: the first, and how many more.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timePickerToWheels": "Use the wheels",
+  "@timePickerToWheels": {
+    "description": "Review 104 N11: the time picker's mode switch, on the clock."
+  },
+  "timePickerToClock": "Use the clock",
+  "@timePickerToClock": {
+    "description": "Review 104 N11: the time picker's mode switch, on the wheels."
+  },
+  "notebookStatusReminder": "Reminder, {when}",
+  "@notebookStatusReminder": {
+    "description": "Review 104 N12: a screen reader's label of an entry's reminder icon.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusFeed": "Shared to the feed at {time}",
+  "@notebookStatusFeed": {
+    "description": "Review 104 N12: a screen reader's label of an entry's feed icon.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusSpace": "Shared to {name} at {time}",
+  "@notebookStatusSpace": {
+    "description": "Review 104 N12: a screen reader's label of an entry's Space icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusSent": "Sent to {name} at {time}",
+  "@notebookStatusSent": {
+    "description": "Review 104 N12: a screen reader's label of an entry's message icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusMore": "+{count}",
+  "@notebookStatusMore": {
+    "description": "Review 104 F3: the badge past three status icons (\"+3\").",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookStatusMoreLabel": "{count, plural, other{{count} more}}",
+  "@notebookStatusMoreLabel": {
+    "description": "Review 104 N12: a screen reader's label of the +N past three icons.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookStatusChange": "Change",
+  "@notebookStatusChange": {
+    "description": "Review 104 N12: in a reminder icon's card, changes the reminder."
+  },
+  "notebookConfirmDeleteEmpty": "Delete this empty entry?",
+  "@notebookConfirmDeleteEmpty": {
+    "description": "Review 104 F1: the confirm before a saved entry left empty after editing is deleted."
+  },
+  "timeClockHour": "{hour} o'clock",
+  "@timeClockHour": {
+    "description": "Review 104 F2: how a screen reader reads an hour on the clock face.",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "timeClockMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@timeClockMinutes": {
+    "description": "Review 104 F2: how a screen reader reads the minutes on the clock face (0, 5 … 55).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

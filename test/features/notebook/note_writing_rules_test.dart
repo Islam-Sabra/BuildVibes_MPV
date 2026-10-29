@@ -545,6 +545,10 @@ void main() {
             await _menu(tester, n);
           }
           await _tap(tester, _key(row));
+          // Review 104 N6: Delete asks first.
+          if (row == 'select-delete') {
+            await _tap(tester, _key('bv-dialog-confirm'));
+          }
           if (row == 'page-turn-into') {
             await _tap(tester, _key('page-turn-bullets'));
           }

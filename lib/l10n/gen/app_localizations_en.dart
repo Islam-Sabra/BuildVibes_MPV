@@ -5240,7 +5240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookShareSpace => 'Space';
 
   @override
-  String get notebookShareSpaceNote => 'A post, work item or checklist';
+  String get notebookShareSpaceNote => 'A note, work item or checklist';
 
   @override
   String get notebookShareMessage => 'Message';
@@ -5288,15 +5288,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookPost => 'Post';
-
-  @override
-  String get notebookShareKindPost => 'Post';
-
-  @override
-  String get notebookShareKindWork => 'Work item';
-
-  @override
-  String get notebookShareKindChecklist => 'Checklist';
 
   @override
   String get notebookShareFind => 'Find a person';
@@ -5474,4 +5465,158 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'Back to the usual order';
+
+  @override
+  String notebookConfirmDeleteEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these entries?',
+      one: 'Delete this entry?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeletePages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these pages and everything in them?',
+      one: 'Delete this page and everything in it?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these lines?',
+      one: 'Delete this line?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteDraft => 'Delete this draft?';
+
+  @override
+  String notebookConfirmDeleteKeptFor(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'It goes to Deleted items for $days days.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteKept => 'It goes to Deleted items.';
+
+  @override
+  String get notebookConfirmDeleteNotKept => 'It isn\'t kept in Deleted items.';
+
+  @override
+  String get notebookSortOldestCreated => 'Oldest created';
+
+  @override
+  String get notebookSortType => 'Type';
+
+  @override
+  String get notebookTypeTodos => 'To-dos';
+
+  @override
+  String get notebookTypeChecklists => 'Checklists';
+
+  @override
+  String get notebookTypePhotos => 'Photos';
+
+  @override
+  String get notebookTypeFiles => 'Files';
+
+  @override
+  String get notebookTypeVoice => 'Voice notes';
+
+  @override
+  String get notebookTypeText => 'Text';
+
+  @override
+  String notebookShareTeamRow(String team) {
+    return 'Team: $team';
+  }
+
+  @override
+  String notebookShareForRow(String name) {
+    return 'For: $name';
+  }
+
+  @override
+  String notebookShareForMore(String name, int count) {
+    return '$name + $count';
+  }
+
+  @override
+  String get timePickerToWheels => 'Use the wheels';
+
+  @override
+  String get timePickerToClock => 'Use the clock';
+
+  @override
+  String notebookStatusReminder(String when) {
+    return 'Reminder, $when';
+  }
+
+  @override
+  String notebookStatusFeed(String time) {
+    return 'Shared to the feed at $time';
+  }
+
+  @override
+  String notebookStatusSpace(String name, String time) {
+    return 'Shared to $name at $time';
+  }
+
+  @override
+  String notebookStatusSent(String name, String time) {
+    return 'Sent to $name at $time';
+  }
+
+  @override
+  String notebookStatusMore(int count) {
+    return '+$count';
+  }
+
+  @override
+  String notebookStatusMoreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookStatusChange => 'Change';
+
+  @override
+  String get notebookConfirmDeleteEmpty => 'Delete this empty entry?';
+
+  @override
+  String timeClockHour(int hour) {
+    return '$hour o\'clock';
+  }
+
+  @override
+  String timeClockMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
 }

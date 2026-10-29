@@ -16,7 +16,7 @@ import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_time_wheel.dart';
+import 'package:buildvibes/shared/widgets/bv_time_picker.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -586,19 +586,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.notebookRemindTime), findsOneWidget);
       expect(find.text(l10n.daybookDueTimeHelp), findsNothing);
-      // Review 102 N1, N2: the time wheels, and no "in the morning"; a
-      // reminder's time is chosen, or Cancel.
-      expect(find.byType(BvTimeWheel), findsOneWidget);
+      // Review 102 N1, no "in the morning"; review 104 N11, the one
+      // picker on its clock face. A reminder's time is chosen, or Cancel.
+      expect(find.byType(BvClockFace), findsOneWidget);
       expect(
-        find.byKey(const Key('time-wheel-cancel')).evaluate().single.widget,
+        find.byKey(const Key('time-picker-cancel')).evaluate().single.widget,
         isA<TextButton>(),
       );
       expect(
         find.descendant(
-          of: find.byKey(const Key('time-wheel-cancel')),
+          of: find.byKey(const Key('time-picker-cancel')),
           matching: find.text(
             MaterialLocalizations.of(
-              tester.element(find.byType(BvTimeWheel)),
+              tester.element(find.byType(BvClockFace)),
             ).cancelButtonLabel,
           ),
         ),
