@@ -115,21 +115,38 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         unawaited(ref.read(lastSpaceProvider.notifier).opened(widget.spaceId));
       }
     });
-    if (widget.open == SpaceOpen.invite || widget.open == SpaceOpen.people) {
-      // Its People, with the invite screen on top when just made (S5).
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        unawaited(context.push(AppRoutes.spacePeople(widget.spaceId)));
-        if (widget.open == SpaceOpen.invite) {
-          unawaited(context.push(AppRoutes.spaceInvite(widget.spaceId)));
-        }
-      });
-    } else if (!widget.onChat) {
+    // Opened on its People, they come once the Space is on screen
+    // ([_openPeople]).
+    final onPeople =
+        widget.open == SpaceOpen.invite || widget.open == SpaceOpen.people;
+    if (!onPeople && !widget.onChat) {
       // Not over a thread opened on top of the Space.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_askWalk());
       });
     }
+  }
+
+  /// Its People, with the invite screen on top when just made (S5), after
+  /// the Space's first frame (review 105 J3): never from initState, and
+  /// only where there is a router to push them on.
+  bool _peopleAsked = false;
+
+  void _openPeople() {
+    if (_peopleAsked ||
+        (widget.open != SpaceOpen.invite && widget.open != SpaceOpen.people)) {
+      return;
+    }
+    _peopleAsked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final router = GoRouter.maybeOf(context);
+      if (router == null) return;
+      unawaited(router.push(AppRoutes.spacePeople(widget.spaceId)));
+      if (widget.open == SpaceOpen.invite) {
+        unawaited(router.push(AppRoutes.spaceInvite(widget.spaceId)));
+      }
+    });
   }
 
   /// A walk kept on the phone, left when the app was closed (review 79
@@ -257,6 +274,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       );
     }
 
+    _openPeople();
     final unread = spaceUnread(
       ref.watch(spaceThreadsProvider(widget.spaceId)).value ?? const [],
     );
