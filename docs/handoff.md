@@ -2,6 +2,46 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — `slice2-app` merged into `claude/r105a`; 105A's shots for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r105a` (worktree `BuildVibes-r105a`), at 86eff0e, with `origin/slice2-app` (11e99eb + 27bca2e: reviews 104 and 106) merged in. Pushed.
+  - Not merged into `slice2-app`; no goldens updated; no database push; no build.
+- **Commits:**
+  - a1b5900 the merge;
+  - 6934376 `docs/reviews/shots-105a/`;
+  - this handoff.
+- **Conflicts, and how each was resolved:**
+  - `lib/features/notebook/notebook_page_parts.dart`:
+    - 105A moved `SelectionAction` and `SelectionBar` to `lib/shared/widgets/bv_selection_bar.dart` (H8), with a re-export here; `slice2-app` added `confirmNotebookDelete` (review 104 N6) beside them.
+    - Kept: the move (not the old copy) and `confirmNotebookDelete`.
+    - `slice2-app` hadn't changed the bar's code since the base (3f14b70), so the shared copy loses nothing.
+    - The notebook keeps its review 106 bar. Against `slice2-app`, the merged notebook differs only by the bar's move.
+  - `lib/l10n/app_en.arb`, `app_ar.arb`: both sides had added keys in the same place.
+    - Merged key by key against the base. Kept: 105A's 39 new keys and `slice2-app`'s 44.
+    - Removed, as one side removed them and the other left them alone: `notebookShareKindPost`, `notebookShareKindWork` and `notebookShareKindChecklist` (review 104 N9); `notebookFilterReminders` and `notebookSortLabel` (review 106); `daybookHoldToProve` (105 H1).
+    - No key was changed differently on the two sides.
+  - `lib/l10n/gen/*.dart` (3 files): regenerated with `flutter gen-l10n` from the merged ARB files.
+  - `docs/handoff.md`: both sides' new sections kept (105A's, then `slice2-app`'s), above the common history.
+  - Everything else merged cleanly, including `daybook_writing.dart` (review 104's Team and For rows), `bv_popover_menu.dart`, `app_router.dart` and `app_routes.dart`.
+- **Checks (PC, on the merge):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,648 pass (photo_privacy H1 included).
+  - `supabase test db`: 3,058 checks in 49 files pass.
+  - `flutter test test_screens`, not updating: 230 pass, 228 fail.
+    - **120 shots changed (240 images)**, all Space screens: Work, People, Space info, the walk, Library and Chat with the new header, the To do strip, and the shots renamed in content (Y1-swipe-update, E2-more-menu, E6/F50/F63 kind menu, E6-kind-chip).
+    - All are expected under 105A. Old and new pairs and the full list are in `docs/reviews/shots-105a/`.
+- **For the lead:**
+  - **Unchanged though expected:** F95-walk-place (review80); MN1-space-menu (slice1, slice7, slice9: deletable, still drawn); R1-walk-start and R1-walk-photo (slice6).
+  - **Two scenarios fail on `claude/r105a` itself** (checked at 86eff0e, before the merge):
+    - `daybook_test` **X2 give it to someone else**: "Bad state: No element" at `openedPick(l10n.daybookGiveTo)`. No image, so X2-give-to is not in the list.
+    - `around_test` **SP1 the Space: People**: "No GoRouter found in context", from `SpaceScreen.initState`'s `context.push` to People in a scenario without a router. Its image is drawn and listed.
+    - Both are for 105A's side to fix.
+  - **Can be deleted** (the lead): the To do strip shots (review72 F61-to-do-strip, A1-to-do-sheet) and MN1.
+- **Next:** the lead's check of the shots; the two scenarios fixed; then goldens, the merge into `slice2-app` and a build, with the founder's yes.
+- **Who has which branch:** PC has `claude/r105a` (worktree `BuildVibes-r105a`, merged with `slice2-app`, pushed), `slice2-app` (worktree `BuildVibes-slice1`) and `r106` (merged).
+
 ## Cloud update: 29 Oct 2026 (later) — the lead's check of `claude/r105a`: H1–H9 done (H3 as the lead ruled)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -776,6 +776,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `r106` merged into `slice2-app` (11e99eb). Analyze clean; 2,535 app tests; 3,058 SQL checks; 462 shots, not updating.
   - Migration 50 (`notes.collapsed`) live as the only file; nothing pending.
   - Build 744 on the Desktop and on the founder's phone.
+- **29 Oct (PC): `slice2-app` merged into `claude/r105a`** (reviews 104 and 106 into 105A), for the lead; nothing merged into `slice2-app`, live or built:
+  - Conflicts in the notebook's parts (the shared SelectionBar), both ARB files (merged by key) and the handoff.
+  - Checks: analyze clean; 2,648 app tests; 3,058 SQL checks.
+  - test_screens: 120 Space shots changed (240 images), all expected; old and new pairs in `docs/reviews/shots-105a/`. Two scenarios (X2 give-to, SP1 People) fail on 105A itself.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
