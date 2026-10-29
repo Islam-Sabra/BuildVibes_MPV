@@ -1519,5 +1519,7 @@
   "notebookSortCreated": "الأحدث إنشاءً",
   "notebookSortNewest": "الأحدث أولًا",
   "notebookSortOldest": "الأقدم أولًا",
-  "notebookSortOff": "العودة إلى الترتيب المعتاد"
+  "notebookSortOff": "العودة إلى الترتيب المعتاد",
+  "spacesPeopleWaiting": "طلبات انضمام بانتظارك",
+  "spacesInfoWorkTools": "العمل"
 }

@@ -9217,6 +9217,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to the usual order'**
   String get notebookSortOff;
+
+  /// Review 105 Part 1: read after People when its dot shows.
+  ///
+  /// In en, this message translates to:
+  /// **'join requests waiting'**
+  String get spacesPeopleWaiting;
+
+  /// Review 105 Part 1: Space info's group holding what the Space's ⋯ held (walk, week report, daily report).
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get spacesInfoWorkTools;
 }
 
 class _AppLocalizationsDelegate

@@ -419,8 +419,8 @@ void main() {
       tester,
     ) async {
       final app = await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
-      await _tap(tester, find.text(l10n.spacesInfoTitle));
+      // Review 105 Part 1: the Space's name opens Space info.
+      await _tap(tester, _key('space-header'));
       await _tap(tester, _key('info-templates'));
       expect(find.byType(SpaceTemplatesScreen), findsOneWidget);
       expect(_key('template-${PostTemplate.dailyReportId}'), findsOneWidget);
@@ -453,8 +453,8 @@ void main() {
         pass: SpacePass.crew,
         admin: false,
       );
-      await _tap(tester, _key('space-more'));
-      await _tap(tester, find.text(l10n.spacesInfoTitle));
+      // Review 105 Part 1: the Space's name opens Space info.
+      await _tap(tester, _key('space-header'));
       expect(_key('info-templates'), findsNothing);
     });
   }

@@ -7833,5 +7833,13 @@
   "notebookSortOff": "Back to the usual order",
   "@notebookSortOff": {
     "description": "Review 102 N5: for screen readers, the sort chip's ✕."
+  },
+  "spacesPeopleWaiting": "join requests waiting",
+  "@spacesPeopleWaiting": {
+    "description": "Review 105 Part 1: read after People when its dot shows."
+  },
+  "spacesInfoWorkTools": "Work",
+  "@spacesInfoWorkTools": {
+    "description": "Review 105 Part 1: Space info's group holding what the Space's ⋯ held (walk, week report, daily report)."
   }
 }

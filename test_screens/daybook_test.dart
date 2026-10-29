@@ -1048,22 +1048,7 @@ void main() {
       );
     });
 
-    testWidgets('MN1 the Space menu [$lang]', (tester) async {
-      await warmSamplePhoto(tester);
-      await shoot(
-        tester,
-        'MN1-space-menu',
-        lang,
-        _space,
-        overrides: await _overrides(
-          s,
-          posts: s.v13(),
-          me: DaybookSamples.islam,
-          now: _afterSignOff,
-        ),
-        before: (tester) => _tap(tester, find.byKey(const Key('space-more'))),
-      );
-    });
+    // Review 105 Part 1: the Space menu (⋯) is gone; MN1 has no shot.
 
     testWidgets('O4 prove another work item [$lang]', (tester) async {
       await warmSamplePhoto(tester);

@@ -2,26 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import 'bv_space_emblem.dart';
 
-/// The top of a Space (Figma "Space header" 2080:11849): back, the Space
-/// emblem, its name and line, Search and ⋯, 60 high on the app surface with
-/// a line under it. Tapping the name opens Space info ([onOpen]); Search
-/// opens the Space's search ([onSearch], review 95: no longer behind ⋯);
-/// ⋯ opens the Space menu ([onMore]). The name ends in "…" when it must.
+/// The top of a Space (Figma "Space header" 2080:11849; review 105 Part 1,
+/// SP1 2666:38461): back, the Space emblem, its name and line, then Search,
+/// Library and People, 60 high on the app surface. Tapping the name opens
+/// Space info ([onOpen]), which holds what ⋯ held; Search opens the Space's
+/// search ([onSearch]); Library and People open theirs. People has a dot
+/// while join requests wait ([peopleWaiting]). The name ends in "…" when
+/// it must.
 class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
   const BvSpaceHeader({
     super.key,
     required this.name,
     required this.line,
     required this.backLabel,
-    required this.moreLabel,
-    required this.onMore,
     required this.onOpen,
     required this.searchLabel,
     required this.onSearch,
+    required this.libraryLabel,
+    required this.onLibrary,
+    required this.peopleLabel,
+    required this.onPeople,
+    this.peopleWaiting = false,
+    this.waitingLabel,
     this.onBack,
   });
 
@@ -30,11 +35,17 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
   /// "Private work · project Space".
   final String line;
   final String backLabel;
-  final String moreLabel;
-  final VoidCallback onMore;
   final VoidCallback onOpen;
   final String searchLabel;
   final VoidCallback onSearch;
+  final String libraryLabel;
+  final VoidCallback onLibrary;
+  final String peopleLabel;
+  final VoidCallback onPeople;
+
+  /// Join requests wait: People carries a dot, read as [waitingLabel].
+  final bool peopleWaiting;
+  final String? waitingLabel;
 
   /// Null: back closes the Space's route, when there is one.
   final VoidCallback? onBack;
@@ -58,14 +69,6 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
           height: BvSpaceHeaderSpec.height,
           padding: const EdgeInsetsDirectional.symmetric(
             horizontal: BvSpaceHeaderSpec.paddingHorizontal,
-          ),
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: BvColors.borderSubtle,
-                width: BvStroke.thin,
-              ),
-            ),
           ),
           child: Row(
             spacing: BvSpaceHeaderSpec.gap,
@@ -115,17 +118,32 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
-              _Square(
-                key: const Key('space-search'),
-                icon: BvIcons.search,
-                label: searchLabel,
-                onTap: onSearch,
-              ),
-              _Square(
-                key: const Key('space-more'),
-                icon: BvIcons.more,
-                label: moreLabel,
-                onTap: onMore,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: BvSpaceHeaderSpec.iconsGap,
+                children: [
+                  _Square(
+                    key: const Key('space-search'),
+                    icon: BvIcons.search,
+                    label: searchLabel,
+                    onTap: onSearch,
+                  ),
+                  _Square(
+                    key: const Key('space-library'),
+                    icon: BvIcons.library,
+                    label: libraryLabel,
+                    onTap: onLibrary,
+                  ),
+                  _Square(
+                    key: const Key('space-people'),
+                    icon: BvIcons.team,
+                    label: peopleWaiting && waitingLabel != null
+                        ? '$peopleLabel, $waitingLabel'
+                        : peopleLabel,
+                    onTap: onPeople,
+                    dot: peopleWaiting,
+                  ),
+                ],
               ),
             ],
           ),
@@ -142,11 +160,15 @@ class _Square extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.dot = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+
+  /// A dot at the top end corner (People, join requests waiting).
+  final bool dot;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -158,7 +180,25 @@ class _Square extends StatelessWidget {
       radius: BvSize.touchMin / 2,
       child: SizedBox.square(
         dimension: BvSize.touchMin,
-        child: Icon(icon, size: BvSize.iconLg, color: BvColors.iconPrimary),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(icon, size: BvSize.iconLg, color: BvColors.iconPrimary),
+            if (dot)
+              const PositionedDirectional(
+                top: BvSpaceHeaderSpec.dotInset,
+                end: BvSpaceHeaderSpec.dotInset,
+                child: DecoratedBox(
+                  key: Key('space-people-dot'),
+                  decoration: BoxDecoration(
+                    color: BvColors.actionPrimary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: SizedBox.square(dimension: BvSpaceHeaderSpec.dot),
+                ),
+              ),
+          ],
+        ),
       ),
     ),
   );

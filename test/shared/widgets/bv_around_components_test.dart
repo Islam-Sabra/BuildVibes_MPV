@@ -40,24 +40,27 @@ void main() {
   });
 
   group('BvSpaceHeader', () {
-    testBoth('60 high; the name opens Space info, ⋯ the menu', (
-      tester,
-      lang,
-    ) async {
+    testBoth('60 high; the name opens Space info; Search, Library and '
+        'People at the end (review 105 Part 1)', (tester, lang) async {
       var opened = 0;
-      var more = 0;
       var search = 0;
+      var library = 0;
+      var people = 0;
       await pumpComponent(
         tester,
         BvSpaceHeader(
           name: 'Kuwait City Tower — Site team',
           line: 'Private work · project Space',
           backLabel: 'Back',
-          moreLabel: 'Space menu',
           onOpen: () => opened++,
-          onMore: () => more++,
           searchLabel: 'Search',
           onSearch: () => search++,
+          libraryLabel: 'Library',
+          onLibrary: () => library++,
+          peopleLabel: 'People',
+          onPeople: () => people++,
+          peopleWaiting: true,
+          waitingLabel: 'join requests waiting',
         ),
         lang: lang,
         scroll: false,
@@ -67,20 +70,30 @@ void main() {
         BvSpaceHeaderSpec.height,
       );
       expect(find.byType(BvSpaceEmblem), findsOneWidget);
+      expect(find.byKey(const Key('space-more')), findsNothing);
       await tester.tap(find.text('Kuwait City Tower — Site team'));
-      await tester.tap(find.byKey(const Key('space-more')));
       await tester.tap(find.byKey(const Key('space-search')));
-      expect((opened, more, search), (1, 1, 1));
-      // ⋯ is at the end side: right in English, left in Arabic; Search
-      // (review 95) just before it, a 48 square with a 24 glass.
-      final x = tester.getCenter(find.byKey(const Key('space-more'))).dx;
-      final glass = tester.getCenter(find.byKey(const Key('space-search'))).dx;
-      expect(isRtl(lang) ? x < 100 : x > 290, isTrue);
-      expect(isRtl(lang) ? glass > x : glass < x, isTrue);
+      await tester.tap(find.byKey(const Key('space-library')));
+      await tester.tap(find.byKey(const Key('space-people')));
+      expect((opened, search, library, people), (1, 1, 1, 1));
+      // People is at the end side: right in English, left in Arabic;
+      // Library, then Search, before it, each a 48 square with a 24 icon.
+      double x(String k) => tester.getCenter(find.byKey(Key(k))).dx;
       expect(
-        tester.getSize(find.byKey(const Key('space-search'))),
-        const Size(48, 48),
+        isRtl(lang) ? x('space-people') < 100 : x('space-people') > 290,
+        isTrue,
       );
+      expect(
+        isRtl(lang)
+            ? x('space-search') > x('space-library') &&
+                  x('space-library') > x('space-people')
+            : x('space-search') < x('space-library') &&
+                  x('space-library') < x('space-people'),
+        isTrue,
+      );
+      for (final k in ['space-search', 'space-library', 'space-people']) {
+        expect(tester.getSize(find.byKey(Key(k))), const Size(48, 48));
+      }
       expect(
         tester
             .widget<Icon>(
@@ -92,7 +105,12 @@ void main() {
             .size,
         24,
       );
+      expect(find.byKey(const Key('space-people-dot')), findsOneWidget);
       expect(find.bySemanticsLabel('Search'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('People, join requests waiting'),
+        findsOneWidget,
+      );
     });
   });
 

@@ -2,14 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import 'bv_badge.dart';
 
-/// One choice of a [BvSegmented].
+/// One choice of a [BvSegmented]; with [badge] above zero, a count after
+/// its label (review 105 Part 1: Chat's unread), keyed [badgeKey].
 class BvSegment<T> {
-  const BvSegment({required this.value, required this.label, this.key});
+  const BvSegment({
+    required this.value,
+    required this.label,
+    this.key,
+    this.badge = 0,
+    this.badgeKey,
+  });
 
   final T value;
   final String label;
   final Key? key;
+  final int badge;
+  final Key? badgeKey;
 }
 
 /// One single choice as a pill track (SI1 2562:35617 Notifications, 2562:
@@ -67,16 +77,30 @@ class BvSegmented<T> extends StatelessWidget {
                       borderRadius: BvRadius.roundAll,
                       boxShadow: s.value == value ? BvShadow.infoSlip : null,
                     ),
-                    child: Text(
-                      s.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.labelMd.copyWith(
-                        color: s.value == value
-                            ? BvColors.textPrimary
-                            : BvColors.textSecondary,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: BvSegmentedSpec.badgeGap,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            s.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: type.labelMd.copyWith(
+                              color: s.value == value
+                                  ? BvColors.textPrimary
+                                  : BvColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        if (s.badge > 0)
+                          BvBadge(
+                            key: s.badgeKey,
+                            label: '${s.badge}',
+                            tone: BvBadgeTone.action,
+                          ),
+                      ],
                     ),
                   ),
                 ),

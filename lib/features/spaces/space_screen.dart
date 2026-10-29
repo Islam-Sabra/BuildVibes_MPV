@@ -4,40 +4,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/design/bv_icons.dart';
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/activity_repository.dart';
+import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_space_header.dart';
-import '../../shared/widgets/bv_bottom_bar.dart';
+import '../../shared/widgets/bv_segmented.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
-import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
 import '../work/work_outbox.dart';
-import 'people_tab.dart';
+import 'space_sections.dart';
 import 'spaces_state.dart';
-
-/// What the Space menu offers now (MN1).
-enum _SpaceMenu { walk, week, report, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
 /// work item card open, from Create (review 50 F1).
 enum SpaceOpen { people, invite, write }
 
-/// A Space: the Space header (MN1) and the tabs Work · Chat · People ·
-/// Library at the bottom.
+/// A Space (review 105 Part 1, SP1 2666:38461): the Space header with
+/// Search, Library and People, a Work · Chat switch under it, and the work
+/// down to the post bar at the bottom: no tab bar. People and Library
+/// open as screens of their own.
 class SpaceScreen extends ConsumerStatefulWidget {
   const SpaceScreen({
     super.key,
@@ -58,22 +56,15 @@ class SpaceScreen extends ConsumerStatefulWidget {
 
   static const workTab = 0;
   static const chatTab = 1;
-  static const peopleTab = 2;
-  static const libraryTab = 3;
 
   @override
   ConsumerState<SpaceScreen> createState() => _SpaceScreenState();
 }
 
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
-  late var _tab = widget.target != null
-      ? SpaceScreen.workTab
-      : widget.onChat
+  late var _tab = widget.onChat && widget.target == null
       ? SpaceScreen.chatTab
-      : switch (widget.open) {
-          SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
-          SpaceOpen.write || null => SpaceScreen.workTab,
-        };
+      : SpaceScreen.workTab;
 
   /// The Library asked for a file post (review 69 1b); a tab tap clears
   /// it, so it opens once.
@@ -122,9 +113,14 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         unawaited(ref.read(lastSpaceProvider.notifier).opened(widget.spaceId));
       }
     });
-    if (widget.open == SpaceOpen.invite) {
+    if (widget.open == SpaceOpen.invite || widget.open == SpaceOpen.people) {
+      // Its People, with the invite screen on top when just made (S5).
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.push(AppRoutes.spaceInvite(widget.spaceId));
+        if (!mounted) return;
+        unawaited(context.push(AppRoutes.spacePeople(widget.spaceId)));
+        if (widget.open == SpaceOpen.invite) {
+          unawaited(context.push(AppRoutes.spaceInvite(widget.spaceId)));
+        }
       });
     } else if (!widget.onChat) {
       // Not over a thread opened on top of the Space.
@@ -184,68 +180,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     refreshDay(container.invalidate);
   }
 
-  /// The Space menu (MN1 2566:35619), in its order: Walk the site (for
-  /// who may post work), Search, Week report (slice 9, every member),
-  /// Daily report (slice 7: a Lead or Crew) and Space info.
-  Future<void> _openMenu() async {
-    final l10n = AppLocalizations.of(context);
-    final detail = ref.read(spaceDetailProvider(widget.spaceId)).value;
-    final writes =
-        detail != null &&
-        detail.myRights.createItems &&
-        (detail.myPass == SpacePass.lead || detail.myPass == SpacePass.crew);
-    final picked = await showBvScreenMenu<_SpaceMenu>(
-      context,
-      key: const Key('space-menu'),
-      items: [
-        // Walk mode: for people who may post work (slice 6).
-        if (ref
-                .read(spaceDetailProvider(widget.spaceId))
-                .value
-                ?.myRights
-                .createItems ??
-            false)
-          BvMenuItem(
-            value: _SpaceMenu.walk,
-            label: l10n.walkMenu,
-            icon: BvIcons.camera,
-          ),
-        BvMenuItem(
-          value: _SpaceMenu.week,
-          label: l10n.weekReportTitle,
-          icon: BvIcons.month,
-        ),
-        if (writes)
-          BvMenuItem(
-            value: _SpaceMenu.report,
-            label: l10n.dailyReportMenu,
-            icon: BvIcons.clipboard,
-          ),
-        BvMenuItem(
-          value: _SpaceMenu.info,
-          label: l10n.spacesInfoTitle,
-          icon: BvIcons.info,
-        ),
-      ],
-    );
-    if (!mounted) return;
-    switch (picked) {
-      case _SpaceMenu.walk:
-        await context.push(AppRoutes.spaceWalk(widget.spaceId));
-      case _SpaceMenu.report:
-        setState(() {
-          _reportStart = DaybookReportStart();
-          _tab = SpaceScreen.workTab;
-        });
-      case _SpaceMenu.week:
-        await context.push(AppRoutes.spaceWeekReport(widget.spaceId));
-      case _SpaceMenu.info:
-        await _openInfo();
-      case null:
-        break;
-    }
-  }
-
   /// Search (review 95: in the header). A Library file found there can come
   /// back to be replaced by a file post.
   Future<void> _openSearch() async {
@@ -255,8 +189,40 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     if (replaces != null && mounted) _addFile(replaces: replaces);
   }
 
-  /// Space info (SI1).
-  Future<void> _openInfo() => context.push(AppRoutes.spaceInfo(widget.spaceId));
+  /// Space info (SI1), which holds what ⋯ held (review 105 Part 1): the
+  /// daily report it hands back opens on Work.
+  Future<void> _openInfo() async {
+    final asked = await context.push<SpaceInfoAction>(
+      AppRoutes.spaceInfo(widget.spaceId),
+    );
+    if (!mounted) return;
+    switch (asked) {
+      case SpaceInfoAction.dailyReport:
+        setState(() {
+          _reportStart = DaybookReportStart();
+          _tab = SpaceScreen.workTab;
+        });
+      case SpaceInfoAction.walk:
+        _show(SpaceScreen.workTab);
+        await context.push(AppRoutes.spaceWalk(widget.spaceId));
+      case null:
+        break;
+    }
+  }
+
+  /// The Library: a file it asks for comes back as a file post on Work.
+  Future<void> _openLibrary() async {
+    final ask = await context.push<SpaceFileAsk>(
+      AppRoutes.spaceLibrary(widget.spaceId),
+    );
+    if (ask != null && mounted) _addFile(replaces: ask.replaces);
+  }
+
+  void _show(int tab) => setState(() {
+    _tab = tab;
+    _fileStart = null;
+    _reportStart = null;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -279,67 +245,68 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       );
     }
 
+    final unread = spaceUnread(
+      ref.watch(spaceThreadsProvider(widget.spaceId)).value ?? const [],
+    );
+    final waiting =
+        detail.iAmAdmin &&
+        joinWaiting(ref.watch(spacePeopleProvider(widget.spaceId)).value);
     return Scaffold(
       appBar: BvSpaceHeader(
         name: detail.name,
         // As in the v13 frames, linked to a project or not (review 54 A4).
         line: l10n.spacesPrivateWork,
         backLabel: MaterialLocalizations.of(context).backButtonTooltip,
-        moreLabel: l10n.spacesMenu,
-        onOpen: _openInfo,
-        onMore: _openMenu,
+        onOpen: () => unawaited(_openInfo()),
         searchLabel: l10n.searchMenu,
         onSearch: () => unawaited(_openSearch()),
+        libraryLabel: l10n.spacesTabLibrary,
+        onLibrary: () => unawaited(_openLibrary()),
+        peopleLabel: l10n.spacesTabPeople,
+        onPeople: () =>
+            unawaited(context.push(AppRoutes.spacePeople(widget.spaceId))),
+        peopleWaiting: waiting,
+        waitingLabel: l10n.spacesPeopleWaiting,
       ),
-      body: switch (_tab) {
-        SpaceScreen.workTab => DaybookTab(
-          space: detail,
-          startWriting: widget.open == SpaceOpen.write,
-          target: widget.target,
-          startFile: _fileStart,
-          startReport: _reportStart,
-        ),
-        SpaceScreen.chatTab => ChatTab(space: detail),
-        SpaceScreen.libraryTab => LibraryTab(
-          space: detail,
-          onAddFile: _addFile,
-        ),
-        SpaceScreen.peopleTab => PeopleTab(space: detail),
-        _ => Padding(
-          padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-          child: EmptyNote(l10n.placeholderBody),
-        ),
-      },
-      bottomNavigationBar: BvBottomBar(
-        selectedIndex: _tab,
-        onSelect: (i) => setState(() {
-          _tab = i;
-          _fileStart = null;
-          _reportStart = null;
-        }),
-        items: [
-          BvBottomBarItem(
-            key: const Key('space-tab-work'),
-            icon: BvIcons.workItems,
-            label: l10n.spacesTabWork,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: BvSpaceHeaderSpec.switchPadding,
+            child: BvSegmented<int>(
+              key: const Key('space-switch'),
+              value: _tab,
+              onChanged: _show,
+              segments: [
+                BvSegment(
+                  key: const Key('space-switch-work'),
+                  value: SpaceScreen.workTab,
+                  label: l10n.spacesTabWork,
+                ),
+                BvSegment(
+                  key: const Key('space-switch-chat'),
+                  value: SpaceScreen.chatTab,
+                  label: l10n.spacesTabChat,
+                  badge: unread,
+                  badgeKey: const Key('space-chat-unread'),
+                ),
+              ],
+            ),
           ),
-          BvBottomBarItem(
-            key: const Key('space-tab-chat'),
-            icon: BvIcons.chat,
-            label: l10n.spacesTabChat,
-          ),
-          BvBottomBarItem(
-            key: const Key('space-tab-people'),
-            icon: BvIcons.team,
-            label: l10n.spacesTabPeople,
-          ),
-          BvBottomBarItem(
-            key: const Key('space-tab-library'),
-            icon: BvIcons.library,
-            label: l10n.spacesTabLibrary,
-          ),
+          Expanded(child: _body(detail)),
         ],
       ),
     );
   }
+
+  Widget _body(SpaceDetail detail) => switch (_tab) {
+    SpaceScreen.workTab => DaybookTab(
+      space: detail,
+      startWriting: widget.open == SpaceOpen.write,
+      target: widget.target,
+      startFile: _fileStart,
+      startReport: _reportStart,
+    ),
+    _ => ChatTab(space: detail),
+  };
 }

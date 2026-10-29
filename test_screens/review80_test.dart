@@ -477,7 +477,7 @@ void main() {
 
     testWidgets('F70 an empty Library [$lang]', (tester) async {
       await _space(tester, lang);
-      await _tap(tester, _key('space-tab-library'));
+      await _tap(tester, _key('space-library'));
       await _snap(tester, 'F70-library-empty', lang);
     });
 
@@ -543,7 +543,8 @@ void main() {
               .t('Level 2', 'الدور 2'),
         },
       );
-      await _tap(tester, _key('space-more'));
+      // Review 105 Part 1: Walk mode is in Space info.
+      await _tap(tester, _key('space-header'));
       await _tap(tester, find.text(l10n.walkMenu));
       await _snap(tester, 'F95-walk-place', lang);
     });
@@ -614,7 +615,7 @@ void main() {
         posts: _numbered(s),
         now: DateTime(2026, 10, 15, 11),
       );
-      await _tap(tester, _key('space-more'));
+      // Review 105 Part 1: no ⋯; the header's Search, Library and People.
       await _snapR95(tester, 'R2-header-search', lang);
     });
 

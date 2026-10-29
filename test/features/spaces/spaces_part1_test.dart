@@ -8,6 +8,7 @@ import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/features/spaces/invite_screen.dart';
 import 'package:buildvibes/features/spaces/new_space_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
+import 'package:buildvibes/features/spaces/space_sections.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -271,11 +272,15 @@ void main() {
         findsOneWidget,
       );
       await _tap(tester, 'entry-back');
+      // Review 105 Part 1: the Space's People is a screen over the Space.
+      expect(find.byType(SpacePeopleScreen), findsOneWidget);
+      // People ends with the invite code (P1).
+      expect(find.byKey(const Key('people-invite-code')), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
       expect(find.byType(SpaceScreen), findsOneWidget);
       // The header says "Private work" only, linked or not (review 54 A4).
       expect(find.text(l10n.spacesPrivateWork), findsOneWidget);
-      // People ends with the invite code (P1).
-      expect(find.byKey(const Key('people-invite-code')), findsOneWidget);
     });
 
     testWidgets('Invite: the code grouped, until, Share, New code [$lang]', (

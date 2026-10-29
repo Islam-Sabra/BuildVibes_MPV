@@ -210,7 +210,7 @@ void main() {
       'where the Space opened from', (tester) async {
     await _pump(tester);
     await _push(tester, '/spaces/$_space');
-    await _tapKey(tester, 'space-tab-chat');
+    await _tapKey(tester, 'space-switch-chat');
     await _tapKey(tester, 'chat-thread-$_thread');
     await _backToSpaceChat(tester);
     await _backHome(tester);

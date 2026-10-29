@@ -128,6 +128,10 @@ abstract final class AppRoutes {
   static String spaceMember(String id, String profileId) =>
       '/spaces/$id/members/$profileId';
   static String spaceInfo(String id) => '/spaces/$id/info';
+
+  /// Review 105 Part 1: the Space's People and Library, from its header.
+  static String spacePeople(String id) => '/spaces/$id/people';
+  static String spaceLibrary(String id) => '/spaces/$id/library';
   static String spaceTransfer(String id) => '/spaces/$id/transfer';
   static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
   static String spaceTeam(String id, String teamId) =>

@@ -151,8 +151,10 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// Review 105 Part 1: what the Space's ⋯ held is in Space info, opened by
+/// the Space's name.
 Future<void> _menu(WidgetTester tester, String label) async {
-  await _tap(tester, _key('space-more'));
+  await _tap(tester, _key('space-header'));
   await _tap(tester, find.text(label));
 }
 
@@ -278,7 +280,7 @@ void main() {
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
-      await _tap(tester, _key('space-more'));
+      await _tap(tester, _key('space-header'));
       expect(find.text(l10n.walkMenu), findsNothing);
     });
 

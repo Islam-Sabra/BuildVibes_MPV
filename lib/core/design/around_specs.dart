@@ -41,6 +41,20 @@ abstract final class BvSpaceHeaderSpec {
   static const height = 60.0;
   static const paddingHorizontal = BvSpace.s4;
   static const gap = BvSpace.s8;
+
+  /// Review 105 Part 1: Search, Library and People sit close together;
+  /// People's dot (join requests waiting) at its top end corner.
+  static const iconsGap = 0.0;
+  static const dot = BvSpace.s8;
+  static const dotInset = 10.0;
+
+  /// The Work · Chat switch under the header.
+  static const switchPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s4,
+    BvSpace.gutter,
+    BvSpace.s8,
+  );
 }
 
 /// A menu opened from a screen's ⋯ (the Space menu, MN1 2566:35755): 220
@@ -98,6 +112,9 @@ abstract final class BvSegmentedSpec {
   static const gap = BvSpace.s2;
   static const segmentPaddingHorizontal = BvSpace.s8;
   static const segmentPaddingVertical = 7.0;
+
+  /// Between a segment's label and its count (review 105 Part 1).
+  static const badgeGap = BvSpace.s6;
 }
 
 /// Needs you, across Spaces (2544:35068): each Space's things under its

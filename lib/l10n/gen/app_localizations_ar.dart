@@ -5507,4 +5507,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'العودة إلى الترتيب المعتاد';
+
+  @override
+  String get spacesPeopleWaiting => 'طلبات انضمام بانتظارك';
+
+  @override
+  String get spacesInfoWorkTools => 'العمل';
 }

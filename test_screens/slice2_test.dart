@@ -931,7 +931,7 @@ void main() {
             threads: threads,
           ),
           before: (tester) async {
-            await _tap(tester, find.byKey(const Key('space-tab-chat')));
+            await _tap(tester, find.byKey(const Key('space-switch-chat')));
             if (sheet) await _tap(tester, find.byKey(const Key('chat-new')));
           },
         );

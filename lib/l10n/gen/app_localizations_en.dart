@@ -5474,4 +5474,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'Back to the usual order';
+
+  @override
+  String get spacesPeopleWaiting => 'join requests waiting';
+
+  @override
+  String get spacesInfoWorkTools => 'Work';
 }

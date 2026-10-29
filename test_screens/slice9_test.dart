@@ -133,8 +133,8 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, path: _space);
-      await _tap(tester, _key('space-more'));
-      await _snap(tester, 'MN1-space-menu', lang);
+      // Review 105 Part 1: the week report is in Space info; MN1 is gone.
+      await _tap(tester, _key('space-header'));
       await _tap(tester, find.text(l10n.weekReportTitle));
       await _snap(tester, 'MR1-week-report', lang);
       await tester.drag(_key('week-list'), const Offset(0, -500));

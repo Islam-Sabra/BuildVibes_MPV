@@ -26,6 +26,7 @@ import '../work/daybook_templates.dart' show mayManageTemplates;
 import 'invite_screen.dart' show renewInviteCode;
 import 'new_space_screen.dart';
 import 'pass_words.dart';
+import 'space_sections.dart' show SpaceInfoAction;
 import 'space_errors.dart';
 import 'space_mute.dart';
 
@@ -279,6 +280,34 @@ class SpaceInfoScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: BvInfoSpec.groupGap),
+          // Review 105 Part 1: what the Space's ⋯ held, now that the name
+          // opens this. Walk the site for who may post work; the daily
+          // report for a Lead or Crew, opened on Work.
+          BvInfoGroup(
+            label: l10n.spacesInfoWorkTools,
+            rows: [
+              if (space.myRights.createItems)
+                BvInfoRow(
+                  key: const Key('info-walk'),
+                  title: l10n.walkMenu,
+                  onTap: () => context.pop(SpaceInfoAction.walk),
+                ),
+              BvInfoRow(
+                key: const Key('info-week'),
+                title: l10n.weekReportTitle,
+                onTap: () => context.push(AppRoutes.spaceWeekReport(spaceId)),
+              ),
+              if (space.myRights.createItems &&
+                  (space.myPass == SpacePass.lead ||
+                      space.myPass == SpacePass.crew))
+                BvInfoRow(
+                  key: const Key('info-report'),
+                  title: l10n.dailyReportMenu,
+                  onTap: () => context.pop(SpaceInfoAction.dailyReport),
+                ),
+            ],
           ),
           const SizedBox(height: BvInfoSpec.groupGap),
           BvInfoGroup(

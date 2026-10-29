@@ -459,7 +459,7 @@ void main() {
         (_) => const SpaceScreen(spaceId: _space),
         folder: _folder,
         overrides: await _overrides(lang),
-        before: (tester) => _tap(tester, 'space-tab-library'),
+        before: (tester) => _tap(tester, 'space-library'),
       );
     });
 

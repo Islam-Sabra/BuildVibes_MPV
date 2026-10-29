@@ -278,15 +278,11 @@ void main() {
       await _snap(tester, 'R2-daily-report', lang);
     });
 
-    testWidgets('Space menu with Daily report [$lang]', (tester) async {
-      await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
-      await _snap(tester, 'MN1-space-menu', lang);
-    });
+    // Review 105 Part 1: the Space menu (⋯) is gone; MN1 has no shot.
 
     testWidgets('the daily report while writing [$lang]', (tester) async {
       await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
+      await _tap(tester, _key('space-header'));
       await _tap(tester, find.text(l10n.dailyReportMenu));
       await tester.enterText(
         _key('report-on-site'),
@@ -357,8 +353,7 @@ void main() {
 
     testWidgets('Space info › Templates [$lang]', (tester) async {
       await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
-      await _tap(tester, find.text(l10n.spacesInfoTitle));
+      await _tap(tester, _key('space-header'));
       await tester.scrollUntilVisible(_key('info-templates'), 200);
       await _snap(tester, 'SI1-templates-row', lang);
       await _tap(tester, _key('info-templates'));
