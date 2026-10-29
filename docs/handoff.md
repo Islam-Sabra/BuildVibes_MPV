@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 — the lead's check of `claude/r106b`: K1–K6 done; shots compared
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r106b`, this cloud session's, pushed. Nothing merged, no database push, no deploy, no build, nothing installed, **no goldens updated**. Migration 51 edited in place (it isn't live).
+- **K1, one truth on the server:**
+  - `note_shares.content_key`, set by a before-insert trigger from the entry's key as the share is made (worked out at once, so a share made in the same transaction as an edit keeps the edited key); existing shares get their entry's key.
+  - **A share is older exactly when its key isn't the entry's.** No clocks. `content_changed_at` stays only for "changed at {time}".
+  - The phone's rule (`_contentChanged` and its stamps on save and Delete lines) is gone. The app reads `content_key` (`Note.contentKey`, `NoteShare.contentKey`, `NoteShare.olderThan`). After a save or Delete lines has gone, the entry is read again (`NotebookRepository.note(id)`), so the dot comes or goes with it; a share already reads the notebook again.
+  - pgTAP 51: a share right after an edit isn't older; an edit after it is; editing back to the shared words isn't.
+- **K2:** every field of `note_content_key` is coalesced inside `concat_ws` (test: words "[]" and an empty page are different keys); the header comment says a later migration that writes `notes` or `note_files` and then alters `notes` must `set constraints all immediate` first.
+- **K3:** the selection ends only when the action is done: a cancelled time picker, a closed share card or preview, no signal or an error keep the entry held (`shareEntry(onShared:)` runs only when something went; `_remind` says whether it set one).
+- **K4:** Share again ends every share card.
+- **K5:** "changed at" names the day when it isn't today: "Older version · changed yesterday at 10:12 am" / a short date (`notebookOlderVersionOn`; AR «نسخة أقدم · تغيّرت {day} {time}»).
+- **K6, the answer: a voice recording counts.** A recording is a `note_files` row (kind `voice`), and its path is in the key; on a page, a voice block also carries its `path` in `blocks`, which is in the key too. A new recording changes the key; the same file sent again doesn't. pgTAP 51 checks it.
+- **Checks (cloud):** see the numbers and the shots at the end of this section.
+- **Who has which branch:** this cloud session had `claude/r106b` (pushed). PC: `slice2-app`. Cursor has 105B (`lib/features/spaces/`, `lib/features/work/`, migration 20261113120000).
+
 ## PC update: 29 Oct 2026 — review 106 T4 and T5 on `claude/r106b`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
