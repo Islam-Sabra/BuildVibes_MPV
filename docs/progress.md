@@ -780,6 +780,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Conflicts in the notebook's parts (the shared SelectionBar), both ARB files (merged by key) and the handoff.
   - Checks: analyze clean; 2,648 app tests; 3,058 SQL checks.
   - test_screens: 120 Space shots changed (240 images), all expected; old and new pairs in `docs/reviews/shots-105a/`. Two scenarios (X2 give-to, SP1 People) fail on 105A itself.
+- **29 Oct (PC): review 105 J1–J4** on `claude/r105a`, for the lead; nothing merged, live or built:
+  - J1: back always in the Space header.
+  - J2: the shots lacked a fake page repository; the app was right.
+  - J3: People after the first frame, router-safe; the SP1 shot draws People; X2 draws.
+  - J4: "Write in this Space".
+  - F61, A1 and MN1 deleted.
+  - Checks: analyze clean; 2,652 app tests; 3,058 SQL checks. 123 changed shots (246 images) in `docs/reviews/shots-105a/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

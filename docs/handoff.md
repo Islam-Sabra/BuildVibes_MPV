@@ -2,6 +2,45 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 105 J1–J4 (the lead's check of the 105A shots) on `claude/r105a`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r105a` (worktree `BuildVibes-r105a`), pushed. Nothing merged, no goldens updated, no database push, no build.
+- **Commits, test first, EN and AR:**
+  - 1911316 **J1:** the Space's back is always there (SP1).
+    - With something under the Space it pops, as before.
+    - With nothing under it (a link, a notification) it goes to Home's Spaces.
+    - Test: `space_layout_test` J1 (opened with `go`, back shows, goes to Home on Spaces).
+  - 6137c4b **J2 (systematic-debugging): the cause was the shot's fake data, not the app.**
+    - The evidence: the opened item's `postPageProvider` was in error, from a `ProviderException`. `pageRepositoryProvider` builds the real Supabase repository, and the shots never start Supabase. The daybook and slice2 shot files build their own overrides and had no page repository; `pumpApp` gives one, so the app tests were fine.
+    - Fix: `FakePageRepository` in those two files' overrides. Y1, X1 and C6 now show the opened item: title, For line, and Edit page and ⋯ where they apply.
+    - No app change: there's none to test.
+  - 0245d33 **J3:**
+    - A Space opened on its People pushes them after the Space's first frame, scheduled from its first build (not `initState`), and only through a router that is there (`GoRouter.maybeOf`).
+    - The SP1 shot draws the People screen itself, since People is its own screen over the Space now.
+    - X2 needed nothing more: its "No element" was J2's error page, which has no For line. `openedPick` already uses the For line.
+  - 76b6a20 **J4:** Work's post bar reads "Write in this Space" («اكتب في هذه المساحة», new key `daybookWriteInSpace`).
+    - An opened item's bar keeps `daybookAddUpdate` ("Add update", «إضافة تحديث»).
+    - Test: `space_layout_test` J4.
+  - d33a13f **Deleted:**
+    - the F61-to-do-strip and A1-to-do-sheet goldens (review72), with their scenarios in `slice2_test`;
+    - the MN1-space-menu goldens in slice1, slice7 and slice9. No scenario had drawn them since Part 1.
+    - slice9's test is renamed "MR1 the week report".
+  - b64993e **Shots:** `docs/reviews/shots-105a/` replaced, with its README.
+- **Checks (PC):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,652 pass.
+  - `supabase test db`: 3,058 checks in 49 files pass.
+  - `flutter test test_screens`, not updating: 230 pass, 224 fail.
+    - Every failure is a changed picture: 123 shots, 246 images. No scenario errors now.
+- **Corrections to my list at 132d84e** (also in the README):
+  - It missed four changed shots: D-F24-update-sheet-keyboard, K1-announcement-checklist, T2-checklist-from-template and T3-menu-save-as-template. My pattern missed a line break; it was 248 images, not 240.
+  - "MN1 passes unchanged" was wrong: nothing drew those files.
+  - F71-replaces-picked is in two folders (review80, review82). Its two new images are now taken from each file's own run.
+- **Next:** the lead's check of the shots. Then, with the founder's yes: goldens (with the renames), the merge into `slice2-app` and a build.
+- **Who has which branch:** PC has `claude/r105a` (worktree `BuildVibes-r105a`), `slice2-app` (worktree `BuildVibes-slice1`) and `r106` (merged).
+
 ## PC update: 29 Oct 2026 — `slice2-app` merged into `claude/r105a`; 105A's shots for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
