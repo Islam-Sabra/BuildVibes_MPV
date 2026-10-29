@@ -122,3 +122,6 @@ Noted only, no change now: time maths as static methods on `BvTimeWheel`; the pi
 - **The lead checked the new shots against the review** (BH2, BH3, BH4, BH5, BH9, N2, N5, N11, NB-put-in-space, NB-reminder-slip, NB-remind-menu). All 10 changes and the new N11 clock come from review 104, so all are accepted. PG4 not changing is fine.
 - **One fix (S1):** Share → Space still reads "A post, work item or checklist" («منشور أو بند عمل أو قائمة تحقق»). It becomes "A note, work item or checklist" («ملاحظة أو بند عمل أو قائمة تحقق»).
 - **Then:** update goldens for these shots only, remove `docs/reviews/shots-104/`, merge, build.
+
+### Live (29 Oct, 08:05)
+- Merged into `slice2-app` (8e8c423). Build 729 is installed on the founder's phone (22120RN86G), over 712 with his data kept. No database change.
