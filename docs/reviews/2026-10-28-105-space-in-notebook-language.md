@@ -302,3 +302,38 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 
 ### 105B live (29 Oct, 17:20)
 - Merged (b76fd93). Migration 52 is live (confirmed on the live list). Build 800 is on the founder's phone. **Next: 105C**: the Place picker and filter, the table of tasks, before/after, the removal sheet.
+
+## 105C: the build brief (29 Oct), two cloud sessions
+**C-A, places and before / after** (branch `claude/r105c-a`):
+- **The Place row in the writing card** (SP2) opens a picker, built like the Give to picker:
+  - search, the Space's places A–Z, and "Add place ‹typed name›" for people who may post work;
+  - Leads can rename and delete from a long press on a place;
+  - it saves through `set_post_place` (migration 52).
+- **The site tag on cards** (sand, with a pin) shows the place's name. Old posts keep their free-text place.
+- **Tapping a tag filters Work to that place.** The filter shows as a chip with ✕ under the switch. Search finds places.
+  - If filtering needs the server, use one migration, `20261114120000_place_filter.sql`, with pgTAP.
+- **Before / after (Part 7, SP7):**
+  - Before is the photo posted with the work item; After is the Sign as done photo.
+  - When both exist they sit side by side with their times, and the Checked stamp is on After.
+  - In Arabic, After is at the left.
+
+**C-B, table of tasks and removal** (branch `claude/r105c-b`):
+- **`+` inside a work item** (SP4) offers Text · Bullet points · Checklist · Table · **Table of tasks** · Photo · File or scan.
+  - The writing card's hint names it: "Add details. + for bullet points, a table or a table of tasks."
+- **Table of tasks (Part 4, SP3, corrected):**
+  - It is a table block with a tick column: tick · Task · Note.
+  - The owner (or a Lead) ticks rows. A tick is not a signature.
+  - The For line shows "{n} of {m} ticked". A ticked row is crossed out. "Add a row" adds one.
+  - Sign as done stays once for the whole item, with its proof.
+  - In Arabic, the tick column is at the right.
+  - If the server checks block types, use one migration, `20261115120000_task_table_block.sql`, with pgTAP.
+- **The removal sheet (Part 9, SP9):**
+  - Removing a member who owns Open work opens a sheet: each item with a Give to picker (the item's creator by default), then Cancel · **Give and remove**.
+  - It calls `remove_member_with_handover`. Leaving by oneself shows the same sheet through `leave_space_with_handover`. This replaces the "Give your open work to someone else first" message.
+  - "Their checked work stays in the Space and on their profile."
+
+**Both sessions:**
+- C-A owns `daybook_writing.dart` and the card's tag and photo area.
+- C-B owns the page editor and blocks, and `lib/features/spaces/`.
+- If one must touch the other's file, keep the change small; the PC merges.
+- No test_screens in the cloud: the shots are made on the PC afterwards.
