@@ -391,3 +391,8 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
     - Lead long-press for Rename / Delete.
   - **O2. The writing hint is too long:** it takes two lines in English on every work item card (15 shots). Shorten it to **"Details, or + for lists and tables"** («التفاصيل، أو + للقوائم والجداول»), one line in both languages.
 - **Then:** test_screens without updating; fresh pairs in `docs/reviews/shots-105c/`. The 15 hint shots should then differ from the old goldens only in the words.
+
+### O1–O2 done (`r105c` at `0ca847e`)
+- **Accepted:** the Place picker is a sheet like Give to's; the hint fits on one line in both languages. All 30 changed images and the 14 new shots are accepted.
+- **Tidy list:** the Team row reads «المساحة كلها» in Work but «كل المساحة» in the notebook. Use one wording later.
+- **Next:** goldens, merge into `slice2-app`, push migrations `20261114120000` and `20261115120000` one at a time, build.
