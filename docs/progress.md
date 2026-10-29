@@ -758,7 +758,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - S1: Share → Space reads "A note, work item or checklist", test first.
   - The 11 accepted shots (EN and AR) updated, N11-time-clock new; `shots-104` removed.
   - `claude/r104` merged into `slice2-app` (8e8c423). Analyze clean; 2,487 app tests; 454 shots, not updating. No migration, no deploy.
-  - Build 729 on the Desktop; not yet on the founder's phone (it wasn't reachable over adb).
+  - **Review 104 live on build 729:** on the Desktop and on the founder's phone.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

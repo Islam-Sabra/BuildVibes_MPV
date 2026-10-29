@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 29 Oct 2026 — review 104 merged into `slice2-app`, build 729 made; not yet on the founder's phone
+## PC update: 29 Oct 2026 — review 104 live on build 729 (merged into `slice2-app`, on the founder's phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -16,7 +16,8 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   5. **Merged into `slice2-app`** with `--no-ff` (8e8c423, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,487; 454.
 - **No database push, no deploy:** review 104 has no migration and no server change.
 - **Build 729** (8e8c423, release, upload key, prod env, versionCode 729, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 712): on the Desktop as `BuildVibes-729.apk` (MD5 b97d5b53…).
-- **Not installed yet:** adb saw no device, and the founder's phone didn't answer at its last address (172.20.10.10:33521; wireless debugging takes a new port each time). No other device was tried. **Next:** with the phone's new wireless debugging address, check the model is 22120RN86G, install `BuildVibes-729.apk` over 712, BuildVibes only.
+- **Installed on the founder's Xiaomi** (29 Oct, 08:04, at 192.168.8.33:43045, the address he sent; model 22120RN86G checked first) over 712: versionCode 729, first install still 17 Oct, the installed `base.apk` byte-identical to `BuildVibes-729.apk`. BuildVibes is the only package of ours on it.
+- **Next:** the founder's test of build 729; review 105 when the lead hands it over.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), `claude/r104` (worktree `BuildVibes-r104`, merged) and `claude/r101-l1` (worktree `BuildVibes-l1`, for the lead).
 
 ## Cloud update: 29 Oct 2026 — the lead's check of `claude/r104`: F1–F3 done; stopped for the lead
