@@ -25,7 +25,7 @@ class BvTaskTable extends StatelessWidget {
     required this.taskLabel,
     required this.noteLabel,
     required this.tickLabel,
-    this.emptyNote = '—',
+    required this.emptyNote,
     this.addLabel,
     this.onTick,
     this.onAdd,
@@ -38,8 +38,8 @@ class BvTaskTable extends StatelessWidget {
   final String taskLabel;
   final String noteLabel;
 
-  /// The tick's words for a screen reader.
-  final String tickLabel;
+  /// A row's tick for a screen reader, with that row's task.
+  final String Function(String task) tickLabel;
 
   /// What an empty note shows.
   final String emptyNote;
@@ -109,7 +109,7 @@ class BvTaskTable extends StatelessWidget {
       final last = i == rows.length - 1 && !add;
       final tick = _Tick(
         on: r.ticked,
-        label: tickLabel,
+        label: tickLabel(r.text),
         onTap: onTick == null ? null : () => onTick!(r.id),
         tapKey: Key('task-tick-${r.id}'),
       );

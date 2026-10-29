@@ -58,6 +58,7 @@ Future<bool> holdToRemove(
       memberId: member.person.id,
       items: open,
       name: member.person.fullName,
+      firstName: member.person.firstName,
     );
     if (given == null || !context.mounted) return false;
     handovers = given;

@@ -449,7 +449,6 @@ abstract final class SpaceRight {
   static const invite = 'invite';
 }
 
-/// What a Space call can fail with, from the Postgres error code.
 /// An open work item someone owns, for the removal sheet (review 105
 /// SP9; open_work_to_hand_over): its reference and title, its Team, and
 /// who made it, the default new owner when [makerMayOwn].
@@ -493,6 +492,7 @@ List<Map<String, String>> handoversJson(List<Handover> handovers) => [
   for (final h in handovers) {'item': h.item, 'owner': h.owner},
 ];
 
+/// What a Space call can fail with, from the Postgres error code.
 enum SpaceFailure {
   /// 42501
   notAllowed,

@@ -327,5 +327,55 @@ void main() {
         expect(label.dx, lessThan(name.dx));
       }
     });
+
+    testWidgets('the lead\'s check N4: the sheet names the person by the '
+        'first name on their profile, even of two words [$lang]', (
+      tester,
+    ) async {
+      const abdul = SpacePerson(
+        id: 'p-abdul',
+        firstName: 'Abdul Rahman',
+        lastName: 'Saleh',
+      );
+      final spaces = _spaces()..openWorkBy['p-abdul'] = const [_sleeves];
+      spaces.spacePeople[_space] = SpacePeople(
+        members: [
+          ...spaces.spacePeople[_space]!.members,
+          SpaceMember(
+            person: abdul,
+            pass: SpacePass.crew,
+            isAdmin: false,
+            confirmedAt: testNow,
+            confirmedById: 'user-1',
+          ),
+        ],
+      );
+      await pumpApp(tester, language: lang, spaces: spaces);
+      await _openMember(tester, 'p-abdul');
+      await _tap(tester, 'member-remove');
+      expect(
+        find.text(l10n.handoverRemoveBody(inOwnDirection('Abdul Rahman'), 1)),
+        findsOneWidget,
+      );
+    });
+
+    test('the lead\'s check N4: the open-work count from 11 up [$lang]', () {
+      expect(
+        l10n.handoverLeaveBody(11),
+        lang == 'ar'
+            ? 'لديك 11 بند عمل مفتوحًا. أعطِ كل بند لشخص آخر حتى لا يبقى '
+                  'بند بلا مكلّف.'
+            : 'You have 11 open work items. Give each one to someone so '
+                  'nothing is left without an owner.',
+      );
+      expect(
+        l10n.handoverLeaveBody(3),
+        lang == 'ar'
+            ? 'لديك 3 بنود عمل مفتوحة. أعطِ كل بند لشخص آخر حتى لا يبقى '
+                  'بند بلا مكلّف.'
+            : 'You have 3 open work items. Give each one to someone so '
+                  'nothing is left without an owner.',
+      );
+    });
   }
 }

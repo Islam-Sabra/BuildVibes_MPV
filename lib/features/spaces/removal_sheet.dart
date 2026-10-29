@@ -29,8 +29,10 @@ Future<List<Handover>?> showHandoverSheet(
   required String memberId,
   required List<OpenWorkItem> items,
 
-  /// The person removed; null when I leave.
+  /// The person removed, and their profile's first name; null when I
+  /// leave.
   String? name,
+  String? firstName,
 }) async {
   final l10n = AppLocalizations.of(context);
   final SpacePeople people;
@@ -47,7 +49,7 @@ Future<List<Handover>?> showHandoverSheet(
       people: people,
       memberId: memberId,
       items: items,
-      name: name,
+      name: name == null ? null : (firstName ?? name),
       onDone: (handovers) => Navigator.of(sheet).pop(handovers),
       onCancel: () => Navigator.of(sheet).pop(),
     ),
@@ -86,6 +88,9 @@ class HandoverSheet extends StatefulWidget {
   final SpacePeople people;
   final String memberId;
   final List<OpenWorkItem> items;
+
+  /// The first name of the person removed, from their profile; null when
+  /// I leave.
   final String? name;
   final ValueChanged<List<Handover>> onDone;
   final VoidCallback onCancel;
@@ -130,9 +135,8 @@ class _HandoverSheetState extends State<HandoverSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final name = widget.name;
+    final first = widget.name;
     final count = widget.items.length;
-    final first = name?.split(' ').first;
     return Column(
       key: const Key('handover-sheet'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -146,7 +150,7 @@ class _HandoverSheetState extends State<HandoverSheet> {
         ),
         for (final item in widget.items) _item(item, type, l10n),
         Text(
-          name == null ? l10n.handoverMyChecked : l10n.handoverTheirChecked,
+          first == null ? l10n.handoverMyChecked : l10n.handoverTheirChecked,
           style: type.metadata.copyWith(color: BvColors.textSecondary),
         ),
         Row(
@@ -164,7 +168,7 @@ class _HandoverSheetState extends State<HandoverSheet> {
             Expanded(
               child: BvButton(
                 key: const Key('handover-confirm'),
-                label: name == null
+                label: first == null
                     ? l10n.handoverGiveAndLeave
                     : l10n.handoverGiveAndRemove,
                 style: BvButtonStyle.destructive,

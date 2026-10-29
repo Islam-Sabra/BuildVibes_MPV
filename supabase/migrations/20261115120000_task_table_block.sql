@@ -6,12 +6,13 @@
 --    on a work item only. The item keeps its one owner and Sign as done
 --    stays once for the whole item; a tick is not a signature.
 --    - validate_blocks (as in 20261021120000_report_notes.sql) takes it:
---      1 to 20 rows, each with its own id, a task and a note of up to 200
---      characters, and a tick. A tick that changes, or a ticked row whose
+--      1 to 20 rows, each with its own id, a task of 1 to 200 characters
+--      (as add_task_row), a note of up to 200, and a tick. A tick that changes, or a ticked row whose
 --      words change or that goes, is the owner's or a Lead's
 --      (may_tick_task), so the author's save can't tick or untick.
---    - tick_task_row: the owner or a Lead ticks a row while the item is
---      Open. add_task_row: they, or the author, add one ("Add a row").
+--    - tick_task_row: the owner or a Lead (not an admin on another pass)
+--      ticks a row while the item is Open. add_task_row: they, or the
+--      author, add one ("Add a row").
 --      Each moves the page's version on, so an editor open elsewhere reads
 --      the page again before it saves.
 --    - space_task_tables: the tables of the Space's work items the caller
@@ -26,8 +27,9 @@
 -- 1. The table of tasks
 -- ---------------------------------------------------------------------------
 
--- The caller may tick [p_post]'s rows now: its owner, or a Lead (or an
--- admin) of its Space who can see it; the item Open and live.
+-- The caller may tick [p_post]'s rows now: its owner, or a Lead of its
+-- Space who can see it (an admin on another pass can't); the item Open
+-- and live.
 create or replace function public.may_tick_task(p_post public.space_posts)
 returns boolean
 language sql
@@ -50,7 +52,7 @@ as $$
                        or exists (select 1 from public.space_members l
                                   where l.space_id = p_post.space_id
                                     and l.profile_id = auth.uid() and l.left_at is null
-                                    and (l.pass = 'lead' or l.is_admin))))
+                                    and l.pass = 'lead')))
     and public.can_see_space_post(p_post.id);
 $$;
 
@@ -192,9 +194,9 @@ begin
            or (v_row ->> 'id') !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
            or (v_row ->> 'id') = any (v_row_ids)
            or jsonb_typeof(v_row -> 'ticked') is distinct from 'boolean'
-           or not public.block_text_ok(v_row -> 'text', 0, 200)
+           or not public.block_text_ok(v_row -> 'text', 1, 200)
            or (v_row ? 'note' and not public.block_text_ok(v_row -> 'note', 0, 200)) then
-          raise exception 'each row has its id, a task and a note of up to 200 characters, and its tick'
+          raise exception 'each row has its id, a task of 1 to 200 characters, a note of up to 200, and its tick'
             using errcode = '22023';
         end if;
         v_row_ids := v_row_ids || (v_row ->> 'id');

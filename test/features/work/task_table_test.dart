@@ -5,6 +5,8 @@ import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
+import 'package:buildvibes/features/work/daybook_page.dart'
+    show mayTickTasks;
 import 'package:buildvibes/features/work/daybook_page_editor.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
@@ -111,12 +113,15 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 }
 
 /// The opened item: a tap on its card's title (its middle is the table
-/// now).
+/// now). Brought into sight first: in Arabic the card is taller than Work
+/// in the test's font, and its title is under the Needs you line.
 Future<void> _openItem(WidgetTester tester) async {
   final title = find.descendant(
     of: _key('daybook-card-$_post'),
     matching: find.byType(BvSlipTitle),
   );
+  await tester.ensureVisible(title.first);
+  await tester.pumpAndSettle();
   await tester.tap(title.first);
   await tester.pumpAndSettle();
 }
@@ -491,6 +496,73 @@ void main() {
         expect(tick.dx, lessThan(task.dx));
         expect(task.dx, lessThan(note.dx));
       }
+    });
+
+    test('the lead\'s check N1: a tick is not Done: "1 of 3 ticked" '
+        '[$lang]', () {
+      expect(
+        l10n.taskTableTicked(1, 3),
+        s.t('1 of 3 ticked', '1 من 3 معلَّمة'),
+      );
+    });
+
+    test('the lead\'s check N2: ticks are the owner\'s or a Lead\'s; an '
+        'admin with a Crew pass who doesn\'t own it can\'t [$lang]', () {
+      final post = _item(s);
+      expect(
+        mayTickTasks(
+          s.detail(pass: SpacePass.crew, admin: true),
+          post,
+          DaybookSamples.islam,
+        ),
+        isFalse,
+      );
+      expect(
+        mayTickTasks(s.detail(pass: SpacePass.lead), post, DaybookSamples.sara),
+        isTrue,
+      );
+      expect(
+        mayTickTasks(s.detail(), post, DaybookSamples.omar),
+        isTrue,
+      );
+    });
+
+    testWidgets('the lead\'s check N2: the admin on a Crew pass taps a tick '
+        'and nothing goes [$lang]', (tester) async {
+      final pages = FakePageRepository();
+      await _open(
+        tester,
+        lang,
+        me: DaybookSamples.islam,
+        pass: SpacePass.crew,
+        pages: pages,
+      );
+      await _openItem(tester);
+      await tester.tap(_inPage(_key('task-tick-$_grout')), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(pages.calls, isEmpty);
+    });
+
+    testWidgets('the lead\'s check N4: each tick names its row\'s task to a '
+        'screen reader; an empty note reads the ARB\'s "—" [$lang]', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _open(tester, lang);
+      await _openItem(tester);
+      final grout = s.t('Grout gap at the lift door', 'فراغ الترويب عند باب المصعد');
+      expect(
+        find.bySemanticsLabel(l10n.taskTableTick(grout)),
+        findsWidgets,
+      );
+      expect(
+        find.descendant(
+          of: _inPage(_key('task-row-$_skirting')),
+          matching: find.text(l10n.taskTableNoNote),
+        ),
+        findsOneWidget,
+      );
+      semantics.dispose();
     });
   }
 }

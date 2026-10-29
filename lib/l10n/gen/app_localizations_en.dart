@@ -5926,7 +5926,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get taskTableNote => 'Note';
 
   @override
-  String get taskTableTick => 'Tick this row';
+  String taskTableTick(String task) {
+    return 'Tick $task';
+  }
+
+  @override
+  String get taskTableNoNote => '—';
 
   @override
   String taskTableTicked(int ticked, int total) {
@@ -5943,10 +5948,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoverChoose => 'Choose someone';
 
   @override
-  String get handoverTheirChecked => 'Their checked work stays in the Space and on their profile.';
+  String get handoverTheirChecked =>
+      'Their checked work stays in the Space and on their profile.';
 
   @override
-  String get handoverMyChecked => 'Your checked work stays in the Space and on your profile.';
+  String get handoverMyChecked =>
+      'Your checked work stays in the Space and on your profile.';
 
   @override
   String get handoverGiveAndRemove => 'Give and remove';

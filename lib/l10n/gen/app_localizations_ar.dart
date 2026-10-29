@@ -5964,11 +5964,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get taskTableNote => 'ملاحظة';
 
   @override
-  String get taskTableTick => 'علّم هذا الصف';
+  String taskTableTick(String task) {
+    return 'علّم $task';
+  }
+
+  @override
+  String get taskTableNoNote => '—';
 
   @override
   String taskTableTicked(int ticked, int total) {
-    return '$ticked من $total منجزة';
+    return '$ticked من $total معلَّمة';
   }
 
   @override
@@ -5981,10 +5986,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoverChoose => 'اختر شخصًا';
 
   @override
-  String get handoverTheirChecked => 'عمله الذي تم التحقق منه يبقى في المساحة وعلى ملفه.';
+  String get handoverTheirChecked =>
+      'عمله الذي تم التحقق منه يبقى في المساحة وعلى ملفه.';
 
   @override
-  String get handoverMyChecked => 'عملك الذي تم التحقق منه يبقى في المساحة وعلى ملفك.';
+  String get handoverMyChecked =>
+      'عملك الذي تم التحقق منه يبقى في المساحة وعلى ملفك.';
 
   @override
   String get handoverGiveAndRemove => 'أعطِ وأزِل';
@@ -5997,9 +6004,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
-      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
+      other: '$count بند عمل مفتوح. أعطِ كل بند لشخص آخر',
+      many: '$count بند عمل مفتوحًا. أعطِ كل بند لشخص آخر',
+      few: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
       two: 'بندا عمل مفتوحان. أعطِ كل بند لشخص آخر',
+      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
     );
     return 'لدى $name $_temp0 حتى لا يبقى بند بلا مكلّف.';
   }
@@ -6009,9 +6018,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
-      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
+      other: '$count بند عمل مفتوح. أعطِ كل بند لشخص آخر',
+      many: '$count بند عمل مفتوحًا. أعطِ كل بند لشخص آخر',
+      few: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
       two: 'بندا عمل مفتوحان. أعطِ كل بند لشخص آخر',
+      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
     );
     return 'لديك $_temp0 حتى لا يبقى بند بلا مكلّف.';
   }

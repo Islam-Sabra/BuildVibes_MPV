@@ -708,15 +708,14 @@ String forLineWithTasks(
     ? meta
     : l10n.daybookMeta(meta, l10n.taskTableTicked(tasks.ticked, tasks.total));
 
-/// May the reader tick [post]'s rows now: its owner, or a Lead (or an
-/// admin), while it is Open. The server decides again (tick_task_row).
+/// May the reader tick [post]'s rows now: its owner, or a Lead, while it
+/// is Open (an admin on another pass can't). The server decides again
+/// (tick_task_row).
 bool mayTickTasks(SpaceDetail space, DaybookPost post, String? me) =>
     post.isWorkItem &&
     post.isOpen &&
     me != null &&
-    (post.item?.ownerId == me ||
-        space.myPass == SpacePass.lead ||
-        space.iAmAdmin);
+    (post.item?.ownerId == me || space.myPass == SpacePass.lead);
 
 /// May the reader add a row: who may tick, or the item's author who may
 /// post work, while it is Open (add_task_row).
@@ -830,6 +829,7 @@ class _PageTaskTableViewState extends ConsumerState<PageTaskTableView> {
       taskLabel: l10n.taskTableTask,
       noteLabel: l10n.taskTableNote,
       tickLabel: l10n.taskTableTick,
+      emptyNote: l10n.taskTableNoNote,
       addLabel: add ? l10n.pageAddRow : null,
       onTick: tick ? (id) => unawaited(_tick(id)) : null,
       onAdd: add ? () => unawaited(_add()) : null,

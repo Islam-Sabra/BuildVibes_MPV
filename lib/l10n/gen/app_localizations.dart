@@ -9878,11 +9878,17 @@ abstract class AppLocalizations {
   /// **'Note'**
   String get taskTableNote;
 
-  /// Review 105 SP3: a row's tick, for a screen reader.
+  /// Review 105 SP3: a row's tick, for a screen reader, with its row's task (the lead's check N4).
   ///
   /// In en, this message translates to:
-  /// **'Tick this row'**
-  String get taskTableTick;
+  /// **'Tick {task}'**
+  String taskTableTick(String task);
+
+  /// Review 105 SP3: a row's Note cell when it has no note (the lead's check N4).
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get taskTableNoNote;
 
   /// Review 105 SP3: on the For line, the rows ticked of all rows.
   ///

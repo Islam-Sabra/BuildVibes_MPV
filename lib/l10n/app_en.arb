@@ -8445,9 +8445,18 @@
   "@taskTableNote": {
     "description": "Review 105 SP3: the table of tasks' Note column."
   },
-  "taskTableTick": "Tick this row",
+  "taskTableTick": "Tick {task}",
   "@taskTableTick": {
-    "description": "Review 105 SP3: a row's tick, for a screen reader."
+    "description": "Review 105 SP3: a row's tick, for a screen reader, with its row's task (the lead's check N4).",
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTableNoNote": "—",
+  "@taskTableNoNote": {
+    "description": "Review 105 SP3: a row's Note cell when it has no note (the lead's check N4)."
   },
   "taskTableTicked": "{ticked} of {total} ticked",
   "@taskTableTicked": {

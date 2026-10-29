@@ -1630,8 +1630,9 @@
   "pageFileOrScan": "ملف أو مسح ضوئي",
   "taskTableTask": "المهمة",
   "taskTableNote": "ملاحظة",
-  "taskTableTick": "علّم هذا الصف",
-  "taskTableTicked": "{ticked} من {total} منجزة",
+  "taskTableTick": "علّم {task}",
+  "taskTableNoNote": "—",
+  "taskTableTicked": "{ticked} من {total} معلَّمة",
   "taskTableNoteHint": "ملاحظة (اختيارية)",
   "handoverGiveTo": "أعطِ إلى",
   "handoverChoose": "اختر شخصًا",
@@ -1639,6 +1640,6 @@
   "handoverMyChecked": "عملك الذي تم التحقق منه يبقى في المساحة وعلى ملفك.",
   "handoverGiveAndRemove": "أعطِ وأزِل",
   "handoverGiveAndLeave": "أعطِ وغادِر",
-  "handoverRemoveBody": "لدى {name} {count, plural, =1{بند عمل مفتوح. أعطِه لشخص آخر} =2{بندا عمل مفتوحان. أعطِ كل بند لشخص آخر} other{{count} بنود عمل مفتوحة. أعطِ كل بند لشخص آخر}} حتى لا يبقى بند بلا مكلّف.",
-  "handoverLeaveBody": "لديك {count, plural, =1{بند عمل مفتوح. أعطِه لشخص آخر} =2{بندا عمل مفتوحان. أعطِ كل بند لشخص آخر} other{{count} بنود عمل مفتوحة. أعطِ كل بند لشخص آخر}} حتى لا يبقى بند بلا مكلّف."
+  "handoverRemoveBody": "لدى {name} {count, plural, =1{بند عمل مفتوح. أعطِه لشخص آخر} =2{بندا عمل مفتوحان. أعطِ كل بند لشخص آخر} few{{count} بنود عمل مفتوحة. أعطِ كل بند لشخص آخر} many{{count} بند عمل مفتوحًا. أعطِ كل بند لشخص آخر} other{{count} بند عمل مفتوح. أعطِ كل بند لشخص آخر}} حتى لا يبقى بند بلا مكلّف.",
+  "handoverLeaveBody": "لديك {count, plural, =1{بند عمل مفتوح. أعطِه لشخص آخر} =2{بندا عمل مفتوحان. أعطِ كل بند لشخص آخر} few{{count} بنود عمل مفتوحة. أعطِ كل بند لشخص آخر} many{{count} بند عمل مفتوحًا. أعطِ كل بند لشخص آخر} other{{count} بند عمل مفتوح. أعطِ كل بند لشخص آخر}} حتى لا يبقى بند بلا مكلّف."
 }

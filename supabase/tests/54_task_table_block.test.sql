@@ -1,5 +1,5 @@
--- Migration 53 (review 105C-B): a work item's table of tasks, and the
--- removal sheet's list. Run with: supabase test db
+-- Migration 20261115120000 (review 105C-B): a work item's table of tasks,
+-- and the removal sheet's list. Run with: supabase test db
 --
 -- Omar (f1) made the Space: its admin, a Lead. Rakesh (f2) and Tariq (f6)
 -- are Crew. Vera (f4) is a Viewer. Eve (f5) is not in the Space. Tariq
@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(58);
+select plan(61);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000053' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -103,6 +103,12 @@ select throws_ok($$select public.save_blocks(pg_temp.id('a002'), '[{"id": "00000
 select throws_ok($$select public.save_blocks(pg_temp.id('a002'), pg_temp.table_of(
   jsonb_build_array(jsonb_build_object('r', 'c001', 't', repeat('x', 201)))), 0)$$,
   '22023', null, 'a task of up to 200 characters');
+select throws_ok($$select public.save_blocks(pg_temp.id('a002'), pg_temp.table_of(
+  jsonb_build_array(jsonb_build_object('r', 'c001', 't', ''))), 0)$$,
+  '22023', null, 'the lead''s check N3: no empty task, as add_task_row');
+select throws_ok($$select public.save_blocks(pg_temp.id('a002'), pg_temp.table_of(
+  jsonb_build_array(jsonb_build_object('r', 'c001', 't', '   '))), 0)$$,
+  '22023', null, 'nor a task of spaces only');
 select throws_ok($$select public.save_blocks(pg_temp.id('a002'), jsonb_build_array(jsonb_build_object(
   'id', pg_temp.id('b003'), 'type', 'toggle', 'text', 'More',
   'children', pg_temp.table_of('[{"r": "c001", "t": "Tile"}]'))), 0)$$,
@@ -152,6 +158,17 @@ select throws_ok($$select public.tick_task_row(pg_temp.id('a001'), pg_temp.id('b
 select is((select count(*) from public.space_posts where id = pg_temp.id('a001'))::integer, 0,
   'who can''t read the work item and its table');
 reset role;
+-- The lead's check N2: an admin on a Crew pass who doesn't own the item
+-- can't tick: ticks are the owner's or a Lead's.
+update public.space_members set is_admin = true
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('f6');
+select pg_temp.as_user('f6');
+set local role authenticated;
+select throws_ok($$select public.tick_task_row(pg_temp.id('a001'), pg_temp.id('b001')::text,
+  pg_temp.id('c002')::text, true)$$, '42501', null, 'nor an admin on a Crew pass');
+reset role;
+update public.space_members set is_admin = false
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('f6');
 select ok(not pg_temp.ticked(pg_temp.id('a001'), 'c002'), 'so the row stays unticked');
 
 -- The author's save around the owner's ticks.
