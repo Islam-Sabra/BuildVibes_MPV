@@ -13,7 +13,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - 2a76d2a **F3**: the "+N" badge has its own key `notebookStatusMore` ("+3"); the screen reader's "3 more" moved to `notebookStatusMoreLabel`. A share whose Space or person has no name is left out of the icons.
 - **Checks (cloud):**
   - `flutter analyze`: no issues.
-  - `flutter test`: the full run is in progress; its count follows in the next commit.
+  - `flutter test`: 2,486 pass, 1 fails: photo_privacy H1, root-only in the cloud (as before).
   - SQL stand-in: migrations apply; 3,038 checks in 48 files pass.
   - Screenshots: PC later; no `test_screens`, no `--update-goldens`. F1–F3 change no shot (F2 is semantics only; F3 shows the same "+3").
 - **The PC still has to:** the steps in the section below (test_screens without updating; the shots review 104 changes on purpose, plus the new N11-time-clock; the lead's check; merge with the founder's yes; one build). No database push.
