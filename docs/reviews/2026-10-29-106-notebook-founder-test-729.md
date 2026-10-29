@@ -112,3 +112,51 @@ Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `stat
 
 ### Live (29 Oct, 10:21)
 - Merged into `slice2-app` (11e99eb). Migration 50 is live (the lead confirmed it on the live list). Build 744 is installed on the founder's phone over 729, with his data kept.
+
+## T4. On hold, the status icons are the actions (founder, 10:35; approved 10:38)
+- **Frames:** NS5 EN `2694:38925`, AR `2694:39077`.
+
+**Holding one entry**
+- It is selected, and **its status row shows all five icons:** Pin · Reminder · Feed · Space · Message.
+  - **Used ones** are filled, as now.
+  - **Unused ones** are outlined: a card fill with a line ring.
+  - A quiet "Tap to do it" («اضغط للتنفيذ») sits at the start of the row.
+- **Tapping an icon does the action straight away:**
+  - Pin pins or unpins;
+  - Reminder opens the time picker;
+  - Feed, Space and Message open their existing share steps (the preview, and For / Team for a Space).
+  - Tapping a used one does it again (share again, change the reminder, unpin).
+  - When the action is done, the selection ends and the icon shows as a status.
+- **The bottom bar becomes Move to… · Duplicate · Delete.** Share and its sub-menu are gone, because they moved to the icons.
+
+**Holding two or more entries:** no icon rows. The bar offers **Pin** · Move to… · Duplicate · Delete. Sharing many entries at once isn't offered.
+
+**Outside hold, nothing changes:** tapping an icon opens its detail card (T1).
+
+**Screen readers:**
+- an unused icon is announced as an action ("Share to a Space");
+- a used one gives its status and the action ("Shared to Kuwait City Tower at 08:45. Share again").
+
+## T5. Changed since shared (founder, 10:35; approved 10:38)
+- **Frames:** NS6 EN `2694:39006`, AR `2694:39158`.
+
+**Shared copies never change by themselves.** A feed post, a Space post or a message keeps the version that was sent.
+
+**What counts as a change:** adding, editing or removing text, lines, photos or files in the entry, or its title.
+- Ticking a to-do, pinning, folding and moving it to another page don't count.
+
+**The dot**
+- A share icon whose last share is older than the entry's last change gets a small accent dot (9 px, with a ring) at its top end.
+- The dot goes when that kind is shared again.
+- Each kind keeps its own dot.
+
+**The detail card (the log)**
+- It lists every share of that kind. A share older than the entry's last change says "Older version · changed at {time}" («نسخة أقدم · تغيّرت {time}»).
+- **Share again** («شارك مجددًا») sends the current version through the same step. The old share stays in the log.
+
+**The server**
+- Each share needs to know the version it sent. `note_shares` may already store it; if not, this needs **one migration** (a `note_version` column on the share, filled when sharing) and a pgTAP test.
+- The entry's content version already moves on edits. Make sure ticks and pins don't move it, or compare a content-only version.
+- **Cursor checks this first and reports** before writing a migration.
+
+**No full edit history in the MVP:** the log records shares and sends only.
