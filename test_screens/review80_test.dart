@@ -17,7 +17,6 @@ import 'package:buildvibes/features/messages/dm_live.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart' show SpaceOpen;
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +33,7 @@ import '../test/helpers/push_fakes.dart';
 import '../test/helpers/search_fakes.dart';
 import '../test/helpers/space_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
@@ -123,6 +123,7 @@ Future<TestApp> _space(
   DateTime? now,
   Object? open,
   String? postId,
+  bool addFiles = false,
 }) async {
   final s = DaybookSamples(lang);
   final daybook = FakeDaybookRepository()
@@ -135,6 +136,7 @@ Future<TestApp> _space(
     spaces: FakeSpaceRepository()
       ..details[DaybookSamples.space] = s.detail(
         admin: me == DaybookSamples.islam,
+        addFiles: addFiles,
       )
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: daybook,
@@ -162,22 +164,26 @@ Future<TestApp> _space(
   return app;
 }
 
-/// Opens a card, picks [kind] from the kind chip's menu and types [title].
+/// Opens a card, picks the kind named [kindName] from its kind chips
+/// (review 105 SP2: the kind menu became one row of chips) and types
+/// [title]. A file post starts from the Library's Add a file.
 Future<void> _write(
   WidgetTester tester,
   String lang,
   String kindName,
   String title,
 ) async {
-  await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('writing-kind-chip'));
-  await _tap(
-    tester,
-    find.descendant(
-      of: _key('writing-kind-menu'),
-      matching: find.text(kindName),
-    ),
-  );
+  final l10n = _l10n(lang);
+  if (kindName == l10n.daybookKindDocument) {
+    await _tap(tester, _key('space-library'));
+    await _tap(tester, _key('library-add-file'));
+  } else {
+    await _tap(tester, _key('post-bar-notepad'));
+    await _tap(
+      tester,
+      find.descendant(of: _key('writing-kinds'), matching: find.text(kindName)),
+    );
+  }
   if (title.isNotEmpty) {
     await tester.enterText(_key('writing-title'), title);
     await tester.pumpAndSettle();
@@ -363,19 +369,9 @@ void main() {
         ],
         pages: FakePageRepository()..pages[_post] = _page(s),
       );
-      final card = find.descendant(
-        of: _key('daybook-card-$_post'),
-        matching: find.byType(BvSlip),
-      );
-      await tester.longPress(card.first);
-      await tester.pumpAndSettle();
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('slip-menu'),
-          matching: find.text(l10n.pageEdit),
-        ),
-      );
+      // Review 105 Part 2: a tap opens the item; Edit page is on it.
+      await openCard(tester, _post);
+      await _tap(tester, _key('page-edit'));
       await _snap(tester, 'F89-F90-page-editor', lang);
       await _tap(tester, _key('page-point-handle-$_sized'));
       await _snap(tester, 'F92-point-menu', lang);
@@ -411,6 +407,8 @@ void main() {
         lang,
         files: [_m201],
         postId: 'post-review80-sending',
+        // A file post starts from the Library's Add a file (review 105).
+        addFiles: true,
       );
       app.library.holdUpload = Completer<void>();
       await _write(tester, lang, l10n.daybookKindDocument, 'M-201 Rev D');
@@ -525,7 +523,8 @@ void main() {
     ) async {
       await _space(tester, lang);
       await _write(tester, lang, l10n.daybookKindAnnouncement, s.halfDay);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      // Review 105 SP2: the bar's + holds Pin until.
+      await _tap(tester, _key('writing-add'));
       await _tap(tester, find.text(l10n.daybookPinUntil));
       await _snap(tester, 'F82-pin-add-time', lang);
       await _tap(tester, find.text(l10n.daybookPinAddTime));

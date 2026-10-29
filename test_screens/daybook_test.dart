@@ -33,7 +33,6 @@ import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -46,9 +45,11 @@ import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
 import '../test/helpers/hold.dart';
+import '../test/helpers/opened_item.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 /// E3's due: Sunday 18 October, no time.
 final _sunday = DateTime(2026, 10, 18);
@@ -145,9 +146,9 @@ Future<void> _fill(
   await _tap(tester, find.byKey(const Key('post-bar-notepad')));
   await _type(tester, 'writing-title', s.cableTraysTitle);
   await _type(tester, 'writing-body', s.traysBody);
-  // Assign through More: picking from Post would post at once.
-  await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-  await _tap(tester, find.text(l10n.daybookAssign));
+  // Review 105 SP2: For · Due · Place are rows on the card; assign
+  // through the For row (picking from Post would post at once).
+  await writingSet(tester, l10n, l10n.daybookAssign);
   await _tap(
     tester,
     find.descendant(
@@ -155,24 +156,17 @@ Future<void> _fill(
       matching: find.text(s.omarName),
     ),
   );
-  await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-  await _tap(tester, find.text(l10n.daybookDueDateMenu));
-  await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-  await _tap(tester, find.text(l10n.daybookLocation));
+  await writingSet(tester, l10n, l10n.daybookDueDateMenu);
+  await writingSet(tester, l10n, l10n.daybookLocation);
   await _type(tester, 'popover-field', s.traysPlace);
   await tester.testTextInput.receiveAction(TextInputAction.done);
   await tester.pumpAndSettle();
-  await _tap(tester, find.bySemanticsLabel(l10n.daybookCamera));
+  await _tap(tester, find.byKey(const Key('writing-camera')));
 }
 
-/// Long-presses the card [id]: lifted over the dim, its menu.
-Future<void> _longPress(WidgetTester tester, String id) async {
-  final slip = _inCard(id, find.byType(BvSlip));
-  await tester.ensureVisible(slip.first);
-  await tester.pumpAndSettle();
-  await tester.longPress(slip.first);
-  await tester.pumpAndSettle();
-}
+/// Review 105 Part 2: a tap on the card [id] opens the item; what its old
+/// hold menu held is on the opened item (a hold now selects the card).
+Future<void> _openItem(WidgetTester tester, String id) => openCard(tester, id);
 
 /// Double-taps the proof photo of card [id].
 /// Hold to check (review 94) on card [id].
@@ -410,8 +404,8 @@ void main() {
           now: _afterSignOff,
         ),
         before: (tester) async {
-          await _longPress(tester, 'post-sleeves');
-          await _tap(tester, find.text(l10n.daybookAddUpdate));
+          await _openItem(tester, 'post-sleeves');
+          await openedPick(tester, l10n.daybookAddUpdate);
           await tester.enterText(
             find.byKey(const Key('bv-send-field')),
             s.t('Area cleaned', 'نُظّفت المنطقة'),
@@ -438,8 +432,8 @@ void main() {
           now: _afterSignOff,
         ),
         before: (tester) async {
-          await _longPress(tester, 'post-sleeves');
-          await _tap(tester, find.text(l10n.daybookAddUpdate));
+          await _openItem(tester, 'post-sleeves');
+          await openedPick(tester, l10n.daybookAddUpdate);
           await tester.enterText(
             find.byKey(const Key('bv-send-field')),
             s.t('Area cleaned', 'نُظّفت المنطقة'),
@@ -464,8 +458,8 @@ void main() {
           now: _afterSignOff,
         ),
         before: (tester) async {
-          await _longPress(tester, 'post-sleeves');
-          await _tap(tester, find.text(l10n.daybookSendBack));
+          await _openItem(tester, 'post-sleeves');
+          await openedPick(tester, l10n.daybookSendBack);
           await _tap(tester, find.text(l10n.daybookReasonNotAsAsked));
           await tester.enterText(
             find.descendant(
@@ -656,7 +650,11 @@ void main() {
         ),
         before: (tester) async {
           await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-          await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+          // Review 105 SP2: ⋯ is the bar's +, holding what the rows don't.
+          final add = find.byKey(const Key('writing-add'));
+          await tester.ensureVisible(add);
+          await tester.pumpAndSettle();
+          await _tap(tester, add);
         },
       );
     });
@@ -765,9 +763,9 @@ void main() {
           now: _afterSignOff,
         ),
         before: (tester) async {
+          // Review 105 SP2: the kind chip became the writing card's row of
+          // kind chips; the shot shows the card open with its chips.
           await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-          // One kind in slice 1: the chip opens nothing.
-          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
         },
       );
     });
@@ -904,12 +902,11 @@ void main() {
           pass: SpacePass.crew,
           admin: false,
         ),
+        // Review 105 Part 2: the swipe's Update is gone (a swipe is now
+        // Reminder); Add an update is on the opened item.
         before: (tester) async {
-          await tester.drag(
-            _inCard('post-trays', find.byKey(const Key('swipe-reveal'))),
-            Offset(lang == 'ar' ? -80 : 80, 0),
-          );
-          await tester.pumpAndSettle();
+          await _openItem(tester, 'post-trays');
+          await openedPick(tester, l10n.daybookAddUpdate);
         },
       );
     });
@@ -927,7 +924,9 @@ void main() {
           me: DaybookSamples.islam,
           now: _afterSignOff,
         ),
-        before: (tester) => _longPress(tester, 'post-sleeves'),
+        // Review 105 Part 2: the hold menu is gone; the opened item
+        // shows what it held.
+        before: (tester) => _openItem(tester, 'post-sleeves'),
       );
     });
 
@@ -945,8 +944,8 @@ void main() {
           now: _afterSignOff,
         ),
         before: (tester) async {
-          await _longPress(tester, 'post-sleeves');
-          await _tap(tester, find.text(l10n.daybookSendBack));
+          await _openItem(tester, 'post-sleeves');
+          await openedPick(tester, l10n.daybookSendBack);
           await _tap(tester, find.text(l10n.daybookReasonNotAsAsked));
           await tester.enterText(
             find.descendant(
@@ -974,7 +973,9 @@ void main() {
           me: DaybookSamples.islam,
           now: _elevenTwenty,
         ),
-        before: (tester) => _longPress(tester, 'post-trays'),
+        // Review 105 Part 2: the hold menu is gone; the opened item
+        // shows what it held.
+        before: (tester) => _openItem(tester, 'post-trays'),
       );
     });
 
@@ -1002,7 +1003,9 @@ void main() {
           admin: false,
           now: _afterSignOff,
         ),
-        before: (tester) => _longPress(tester, 'post-sleeves'),
+        // Review 105 Part 2: the hold menu is gone; the opened item
+        // shows what it held.
+        before: (tester) => _openItem(tester, 'post-sleeves'),
       );
     });
 
@@ -1020,8 +1023,8 @@ void main() {
           now: _elevenTwenty,
         ),
         before: (tester) async {
-          await _longPress(tester, 'post-trays');
-          await _tap(tester, find.text(l10n.daybookGiveTo));
+          await _openItem(tester, 'post-trays');
+          await openedPick(tester, l10n.daybookGiveTo);
         },
       );
     });
@@ -1066,8 +1069,15 @@ void main() {
           admin: false,
         ),
         before: (tester) async {
-          await tester.longPress(find.byKey(const Key('post-bar-camera')));
+          // Review 105 H1: the camera has no hold; Sign as done starts
+          // from the card's own pill.
+          final pill = _inCard(
+            'post-sleeves',
+            find.byKey(const Key('slip-pill-action')),
+          );
+          await tester.ensureVisible(pill);
           await tester.pumpAndSettle();
+          await _tap(tester, pill);
           await _tap(tester, find.byKey(const Key('proof-switch-open')));
         },
       );

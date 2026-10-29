@@ -20,7 +20,6 @@ import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -32,12 +31,14 @@ import '../test/helpers/dm_fakes.dart';
 import '../test/helpers/fakes.dart';
 import '../test/helpers/notebook_fakes.dart';
 import '../test/helpers/notebook_samples.dart';
+import '../test/helpers/opened_item.dart';
 import '../test/helpers/page_fakes.dart';
 import '../test/helpers/pump_app.dart';
 import '../test/helpers/push_fakes.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
@@ -140,21 +141,9 @@ void main() {
         ],
       );
       await _go(tester, '/spaces/${DaybookSamples.space}');
-      final card = find.descendant(
-        of: _key('daybook-card-post-sleeves'),
-        matching: find.byType(BvSlip),
-      );
-      await tester.ensureVisible(card.first);
-      await tester.pumpAndSettle();
-      await tester.longPress(card.first);
-      await tester.pumpAndSettle();
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('slip-menu'),
-          matching: find.text(l10n.daybookSendBack),
-        ),
-      );
+      // Review 105 Part 2: a tap opens the item; Send back is on it.
+      await openCard(tester, 'post-sleeves');
+      await openedPick(tester, l10n.daybookSendBack);
       await tester.tap(find.text(l10n.daybookReasonNotFinished));
       await tester.pumpAndSettle();
       await tester.tap(
@@ -164,6 +153,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      // Back to Work to see the card.
+      await closeOpened(tester);
       await tester.ensureVisible(_key('daybook-card-post-sleeves'));
       await tester.pumpAndSettle();
       await _snap(tester, 'OF-no-signal', lang);
@@ -205,22 +196,9 @@ void main() {
         postPages: pages,
       );
       await _go(tester, '/spaces/${DaybookSamples.space}');
-      await tester.longPress(
-        find
-            .descendant(
-              of: _key('daybook-card-$_pagePost'),
-              matching: find.byType(BvSlip),
-            )
-            .first,
-      );
-      await tester.pumpAndSettle();
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('slip-menu'),
-          matching: find.text(l10n.pageEdit),
-        ),
-      );
+      // Review 105 Part 2: a tap opens the item; Edit page is on it.
+      await openCard(tester, _pagePost);
+      await _tap(tester, _key('page-edit'));
       final field = find.descendant(
         of: _key('page-field-t:$_pageText'),
         matching: find.byType(EditableText),

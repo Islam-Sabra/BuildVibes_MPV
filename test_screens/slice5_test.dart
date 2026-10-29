@@ -20,7 +20,6 @@ import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -35,6 +34,7 @@ import '../test/helpers/page_fakes.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 const _folder = 'slice5';
 
@@ -183,16 +183,9 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 }
 
 Future<void> _editPage(WidgetTester tester, String lang) async {
-  await tester.longPress(
-    find
-        .descendant(
-          of: find.byKey(const Key('daybook-card-$_post')),
-          matching: find.byType(BvSlip),
-        )
-        .first,
-  );
-  await tester.pumpAndSettle();
-  await _tap(tester, find.text(lang == 'ar' ? 'تعديل الصفحة' : 'Edit page'));
+  // Review 105 Part 2: a tap opens the item; Edit page is on it.
+  await openCard(tester, _post);
+  await _tap(tester, find.byKey(const Key('page-edit')));
 }
 
 void main() {
