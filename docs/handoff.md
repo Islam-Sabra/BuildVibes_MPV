@@ -2,6 +2,46 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026, 17:20 Kuwait — reviews 106 (T4/T5) and 105B live: merged into `slice2-app`, migrations 51 and 52 live, build 800 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead accepted K1–K6 (review 106) and L1–L11 (review 105):**
+  1. **`claude/r106b`** (5917c50, pushed), after `supabase db reset --local`:
+     - `test_screens`, not updating: 444 pass, 10 differ. These were exactly BH2, BH4, BH5, NB-put-in-space and NS1, in EN and AR, the accepted ones.
+     - **NS6 is new** (`test_screens/r106_test.dart`): an entry changed at 9:20 after its Space shares, with the dot on the Space icon. Its card shows "Older version · changed at 9:20 am" on each share, then Share again. EN and AR.
+     - Goldens updated for those six shots only (one `--plain-name` run each). `docs/reviews/shots-106b/` removed.
+     - Checks: `test_screens` 456 pass; `supabase test db` 3,088 in 50 files; analyze clean; `flutter test` 2,700.
+  2. **Merged into `slice2-app`** with `--no-ff` (16a324f), with no conflicts, and pushed. The same checks pass again: analyze clean, 2,700, 456 and 3,088.
+  3. **`r105b`:** `origin/slice2-app` merged in (ca2e357, pushed).
+     - **Conflicts, both sides kept:**
+       - `app_en.arb` and `app_ar.arb`: 105B's nine strings and 106 K5's `notebookOlderVersionOn`. The generated `lib/l10n/gen` was made again with `flutter gen-l10n`.
+       - `handoff.md` and `progress.md`: both branches' entries.
+     - The 10 accepted 105B shots (W1–W4 and C1, in EN and AR) became goldens in `docs/screens/r105b/`. `docs/reviews/shots-105b/` removed.
+     - After `supabase db reset --local`: `test_screens`, not updating, 466 pass; `supabase test db` 3,185 in 51 files; analyze clean; `flutter test` 2,744.
+     - **Merged into `slice2-app`** with `--no-ff` (b76fd93), with no conflicts, and pushed. The same checks pass again: analyze clean, 2,744, 466 and 3,185.
+  4. **Migrations live, one per push,** from a throwaway worktree with `supabase/.temp` copied whole (`cp -r`). The full output was kept in a log.
+     - At 16a324f, the dry run listed only `20261112120000_note_share_versions.sql`. The push exited 0, and `supabase migration list --linked` showed 20261112120000 live.
+     - At b76fd93, the dry run listed only `20261113120000_space_work_extras.sql`. The push exited 0, and the list then ended at 20261113120000, with nothing pending.
+     - Each push was followed by the known pg-delta certificate warning, which is harmless. The push worktree is removed. **No function deploys.**
+  5. **Build 800** (b76fd93, release, upload key, prod env; versionCode 800, versionName 0.9.0):
+     - Certificate SHA-256 9d02b7db…df9f, the same as 775.
+     - On the Desktop as `BuildVibes-800.apk` (MD5 f05d10ba…a9b).
+     - `android/app/google-services.json` was missing from `BuildVibes-slice1`, so the first try failed (`processReleaseGoogleServices`). It and `env/prod.json` were copied from the main repo for the build and deleted after. Both are git-ignored.
+  6. **Installed on the founder's Xiaomi** over 775, at 192.168.8.33:43045 (model 22120RN86G checked first):
+     - versionCode 800; first install still 17 Oct.
+     - The installed `base.apk` is byte-identical to `BuildVibes-800.apk`.
+     - BuildVibes is the only package of ours on it.
+- **Next:**
+  - the founder's test of build 800:
+    - the notebook: a held entry's icons, the dot and Share again;
+    - a Space's Work: my pins and "+n more", Archive with Undo and Unarchive, Share to a thread and its card in Chat, Leave and Remove refused while open work isn't handed over, and Send back to someone who has left;
+  - 105C (the Place picker and filter, the table of tasks, before/after, the removal sheet);
+  - the tidy lists in reviews 105 and 106.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `claude/r106b` (worktree `BuildVibes-r106b`) and `r105b` (worktree `BuildVibes-r105b`) are merged and can be removed.
+
 ## PC update: 29 Oct 2026 — review 105B L1–L11 (the lead's check) on `r105b`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

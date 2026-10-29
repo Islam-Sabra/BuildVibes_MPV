@@ -814,6 +814,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - T5: a dot on a share older than the entry, "Older version" and Share again.
   - Migration 51 (`notes.content_changed_at`, by deferred triggers): local only.
   - Checks: analyze clean; 2,686 app tests; 3,079 SQL checks.
+- **29 Oct (PC): reviews 106 (T4/T5) and 105B live** (founder's yes):
+  - NS6 shot added. The accepted shots became goldens: 106b's 5 and NS6, and 105B's 5, each in EN and AR.
+  - `claude/r106b`, then `r105b`, merged into `slice2-app`.
+  - Migrations 51 (`note_share_versions`) and 52 (`space_work_extras`) live, one push each.
+  - Build 800 on the founder's phone and the Desktop.
+  - Checks: 3,185 SQL checks; analyze clean; 2,744 app tests; 466 shots.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
