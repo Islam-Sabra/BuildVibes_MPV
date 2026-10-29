@@ -162,7 +162,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     // (B8).
     _life = AppLifecycleListener(
       onHide: () {
-        if (_away == 0) _putDown();
+        if (_away == 0) unawaited(_putDown(hiding: true));
       },
       onResume: () => unawaited(ref.read(notebookProvider.notifier).retry()),
     );
@@ -241,7 +241,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final held = ref.read(noteDraftProvider);
     if (held != null) {
       if (held.editing != null) {
-        await _finishEdit(quiet: true);
+        // F1: an emptied entry asked first; Cancel keeps it in hand.
+        if (!await _finishEdit(quiet: true)) return;
       } else {
         await _drafts.park();
       }
@@ -357,20 +358,46 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// The edit as it was opened; null after the app was closed mid-edit.
   String? _editOpened;
 
+  /// An emptied entry's "Delete this empty entry?" is open (F1).
+  var _askingEmpty = false;
+
   /// Back from a saved entry (review 100 B2): saved in place when it
   /// changed, with "Saved · Undo" (Undo puts back the entry as it was
-  /// opened); nothing at all when it didn't. Never a Draft.
-  Future<void> _finishEdit({bool quiet = false}) async {
+  /// opened); nothing at all when it didn't. Never a Draft. False when it
+  /// was left in hand: an emptied entry's Cancel (review 104 F1), or the
+  /// app going behind ([hiding]), which asks nothing and keeps the edit.
+  Future<bool> _finishEdit({bool quiet = false, bool hiding = false}) async {
     final draft = ref.read(noteDraftProvider);
     final was = draft?.editing;
-    if (draft == null || was == null) return;
-    final changed = _editOpened == null || _editOpened != _shape(draft);
+    if (draft == null || was == null) return true;
+    final opened = _editOpened;
+    final changed = opened == null || opened != _shape(draft);
     _editOpened = null;
     if (!changed) {
       await _drafts.discard();
-      return;
+      return true;
     }
     if (!draft.ready) {
+      // D1: the edit stays on the phone and opens again in the editor.
+      if (hiding) {
+        _editOpened = opened;
+        return false;
+      }
+      // F1: a delete asks first, as every delete does; Cancel brings the
+      // editor back with the empty entry.
+      if (!mounted) return false;
+      _askingEmpty = true;
+      final yes = await confirmNotebookDelete(
+        context,
+        ref,
+        title: AppLocalizations.of(context).notebookConfirmDeleteEmpty,
+      );
+      _askingEmpty = false;
+      if (!yes) {
+        _editOpened = opened;
+        await _goOn();
+        return false;
+      }
       // D3: emptied and left, it is deleted, with Undo (the Delete rules:
       // it goes when the bar closes). Held on the phone first, then the
       // Draft goes (D2).
@@ -384,7 +411,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         );
       }
       await _drafts.discard();
-      return;
+      return true;
     }
     final note = _noteOf(draft);
     final notebook = ref.read(notebookProvider.notifier);
@@ -401,6 +428,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         bottom: 0,
       );
     }
+    return true;
   }
 
   /// Lines deleted from the entry being written (review 100 BH12): from a
@@ -498,7 +526,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       final hand = ref.read(noteDraftProvider);
       if (hand != null && hand.id != lost.id) {
         if (hand.editing != null) {
-          await _finishEdit(quiet: true);
+          if (!await _finishEdit(quiet: true)) return;
         } else {
           await _drafts.park();
         }
@@ -813,7 +841,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final draft = ref.read(noteDraftProvider);
     if (draft != null && draft.id != note.id) {
       if (draft.editing != null) {
-        await _finishEdit(quiet: true);
+        if (!await _finishEdit(quiet: true)) return;
       } else {
         await _drafts.park();
       }
@@ -830,15 +858,25 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// anything in it stays as the Draft (NBW5); an empty one is gone. Back
   /// on New entry goes back to the pages too.
   void _leave() {
-    _putDown();
+    final down = _putDown();
     if (widget.pageId != null) return;
+    // F1: an emptied entry asks first; the screen goes only on Delete.
+    if (_askingEmpty) {
+      unawaited(
+        down.then((yes) {
+          if (yes && mounted) Navigator.of(context).maybePop();
+        }),
+      );
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.of(context).maybePop();
     });
   }
 
-  void _putDown() {
-    if (!_writing) return;
+  /// False when the entry stays in hand ([_finishEdit]).
+  Future<bool> _putDown({bool hiding = false}) {
+    if (!_writing) return Future.value(true);
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _writing = false;
@@ -846,10 +884,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     });
     // B2: a saved entry is saved in place; only a new one is a Draft.
     if (ref.read(noteDraftProvider)?.editing != null) {
-      unawaited(_finishEdit());
-    } else {
-      unawaited(_drafts.close());
+      return _finishEdit(hiding: hiding);
     }
+    unawaited(_drafts.close());
+    return Future.value(true);
   }
 
   /// Send (it replaces Save): the note is kept in its page, and the slip

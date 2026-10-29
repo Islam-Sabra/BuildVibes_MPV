@@ -384,6 +384,9 @@ void main() {
         await tester.pumpAndSettle();
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
+        // Review 104 F1: an emptied entry asks first.
+        await tester.tap(find.byKey(const Key('bv-dialog-confirm')));
+        await tester.pumpAndSettle();
         expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
         expect(_key('note-entry-1'), findsNothing);
         expect(_drafted(tester), isNull);
@@ -408,6 +411,9 @@ void main() {
         await tester.enterText(_key('page-field-t:s-1'), '');
         await tester.pumpAndSettle();
         await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        // Review 104 F1: an emptied entry asks first.
+        await tester.tap(find.byKey(const Key('bv-dialog-confirm')));
         await tester.pumpAndSettle();
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pump(const Duration(seconds: 6));

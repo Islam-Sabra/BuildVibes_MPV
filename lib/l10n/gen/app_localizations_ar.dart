@@ -5630,4 +5630,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookStatusChange => 'تغيير';
+
+  @override
+  String get notebookConfirmDeleteEmpty => 'حذف هذه التدوينة الفارغة؟';
 }

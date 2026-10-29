@@ -5595,4 +5595,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookStatusChange => 'Change';
+
+  @override
+  String get notebookConfirmDeleteEmpty => 'Delete this empty entry?';
 }

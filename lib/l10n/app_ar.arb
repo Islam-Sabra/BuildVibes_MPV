@@ -1542,5 +1542,6 @@
   "notebookStatusSpace": "نُشرت في {name} الساعة {time}",
   "notebookStatusSent": "أُرسلت إلى {name} الساعة {time}",
   "notebookStatusMore": "{count, plural, other{{count} أخرى}}",
-  "notebookStatusChange": "تغيير"
+  "notebookStatusChange": "تغيير",
+  "notebookConfirmDeleteEmpty": "حذف هذه التدوينة الفارغة؟"
 }

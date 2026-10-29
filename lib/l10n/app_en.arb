@@ -7994,5 +7994,9 @@
   "notebookStatusChange": "Change",
   "@notebookStatusChange": {
     "description": "Review 104 N12: in a reminder icon's card, changes the reminder."
+  },
+  "notebookConfirmDeleteEmpty": "Delete this empty entry?",
+  "@notebookConfirmDeleteEmpty": {
+    "description": "Review 104 F1: the confirm before a saved entry left empty after editing is deleted."
   }
 }

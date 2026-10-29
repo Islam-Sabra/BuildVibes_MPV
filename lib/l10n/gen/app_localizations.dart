@@ -9355,6 +9355,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change'**
   String get notebookStatusChange;
+
+  /// Review 104 F1: the confirm before a saved entry left empty after editing is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this empty entry?'**
+  String get notebookConfirmDeleteEmpty;
 }
 
 class _AppLocalizationsDelegate

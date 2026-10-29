@@ -146,6 +146,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
+      // Review 104 F1: an emptied entry asks first.
+      await tester.tap(find.byKey(const Key('bv-dialog-confirm')));
+      await tester.pumpAndSettle();
       expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
       await _barGoes(tester);
       expect(app.notebook.calls, contains('delete-entries:entry-gate'));
