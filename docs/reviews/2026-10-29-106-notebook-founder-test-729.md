@@ -26,3 +26,28 @@ The reminder's card keeps **Change**.
 **Data:** the app keeps every share already (`note_shares`). Today it shows only the latest one of each kind; the card now lists all of them. **No database change.**
 
 **Shots changed on purpose:** BH2, BH3, NB-reminder-slip, NB-remind-menu, and every notebook shot with a pinned or shared entry. Any other changed shot is listed, not accepted.
+
+## T2. Inside a page, every entry shows in full, and each can be folded
+- **Founder, 08:10:** entries in a page should be expanded by default, "as it's a page already", with a small button at the start of the title to collapse an entry, so he can organise and present his page.
+- **Frames:** NS2 EN `2682:38819`, AR `2682:38903`. **Status: proposal, waiting for the founder's ok.**
+
+**Inside a page, an entry shows in full by default:** every line, with text wrapping. Today it shows 3 single-line rows (`slipLines`).
+
+**The entry's head is:** fold control · title · time.
+- An entry with no title uses its first line as the title.
+
+**The fold control**
+- It is a 24 chevron at the start of the head: ⌄ when open, › when folded (‹ in Arabic). Its tap area is 44.
+- **A folded entry** shows only the head, plus one quiet line: "3 lines hidden" («3 أسطر مخفية»). The status row is hidden too.
+- Tapping the chevron (or the folded head) opens it again. **Tapping the text of an open entry still edits it,** as now.
+
+**The page's ⋯** gains **Collapse all · Expand all**. They act on this page only.
+
+**Folding is remembered on the entry.** It is the same on another phone and after an update. This needs **one migration:**
+- `notes.collapsed boolean not null default false`;
+- an owner-only update through the existing notes RLS;
+- a pgTAP test that someone else can't change it.
+
+**Elsewhere nothing changes:** the "My notebook" list keeps its short 3-line cards. Search and Filter open a folded entry when it is the match.
+
+**Hold, swipe and line folding (toggles) work as now.** A line's own fold stays separate from the entry's fold.
