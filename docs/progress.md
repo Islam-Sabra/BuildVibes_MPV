@@ -759,6 +759,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The 11 accepted shots (EN and AR) updated, N11-time-clock new; `shots-104` removed.
   - `claude/r104` merged into `slice2-app` (8e8c423). Analyze clean; 2,487 app tests; 454 shots, not updating. No migration, no deploy.
   - **Review 104 live on build 729:** on the Desktop and on the founder's phone.
+- **29 Oct (PC): review 106 (T1–T3)** on `r106`, for the lead; nothing merged, live or built:
+  - T1: the status row at the entry's bottom end, one icon per kind, all of them; its card lists every share.
+  - T2: a page's entries in full, foldable. Migration 50 (`notes.collapsed`, owner only) is local only.
+  - T3: the Filter card's Filter · Sort switch; STATUS beside SHOW; the Status sort.
+  - Checks: analyze clean; 2,525 app tests; 3,053 SQL checks; 434 shots pass. 22 changed images and 8 new ones are in `docs/reviews/shots-106/`, not accepted.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
