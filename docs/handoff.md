@@ -2,6 +2,31 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 105C live: merged into `slice2-app`, migrations 53 and 54 live, build 823 made (not yet on the phone)
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**With 105C, the Space redesign of review 105 is complete** (105A, 105B and 105C all live).
+
+- **The founder's yes (29 Oct), after the lead accepted O1–O2 and the shots:**
+  1. **Goldens on `r105c`** (cf106a9, pushed): the 30 accepted changed images were copied over their goldens, and the 14 new shots (P1–P3, BA1, SP3, SP4, SP9; EN, AR) were added in `docs/screens/r105c/`. `docs/reviews/shots-105c/` is removed.
+     - Checks: `test_screens`, not updating, 480 pass; `supabase db reset --local`, then `supabase test db`, 3,268 checks in 53 files; analyze clean; `flutter test`, 2,838.
+  2. **Merged into `slice2-app`** with `--no-ff` (ad9a926), with no conflicts, and pushed. The same checks pass again: analyze clean, 2,838, 480 and 3,268.
+  3. **Migrations live, one per push,** from a throwaway worktree with `supabase/.temp` copied whole. The full output was kept in a log.
+     - At e5f3217 (`r105c`'s first merge, part A only), the dry run listed only `20261114120000_place_filter.sql`, the same file as on `slice2-app`. The push exited 0, and `supabase migration list --linked` showed it live.
+     - At ad9a926, the dry run listed only `20261115120000_task_table_block.sql`. The push exited 0, and the list then ended at 20261115120000, with nothing pending.
+     - Each push was followed by the known pg-delta certificate warning, which is harmless. The push worktree is removed. **No function deploys.**
+  4. **Build 823** (ad9a926, release, upload key, prod env; versionCode 823, versionName 0.9.0):
+     - Certificate SHA-256 9d02b7db…df9f, the same as 800.
+     - On the Desktop as `BuildVibes-823.apk` (MD5 35ed2219…6f62).
+     - `android/app/google-services.json` and `env/prod.json` were copied from the main repo for the build, then deleted.
+  5. **Not installed yet:** the founder's phone isn't reachable. The address 192.168.8.33:43045 timed out, no wireless-debugging service showed on the network, and `adb devices` lists none. It needs wireless debugging on again, with its current address (and a pairing code if asked).
+- **Next:**
+  - install build 823 on the founder's phone (model 22120RN86G checked first; BuildVibes only);
+  - the founder's test of 105C: places and site tags, the place filter, before/after, + in a work item, the table of tasks, the removal sheet;
+  - the tidy lists in reviews 105 and 106, including one wording for the Team row («المساحة كلها» in Work, «كل المساحة» in the notebook).
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `r105c`, `claude/r105c-a` and `claude/r105c-b` are merged; their worktrees (`BuildVibes-r105c`, `BuildVibes-r105ca`, `BuildVibes-r105cb`) can be removed.
+
 ## PC update: 29 Oct 2026 — the lead's check of `r105c`: O1 and O2 on `r105c`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

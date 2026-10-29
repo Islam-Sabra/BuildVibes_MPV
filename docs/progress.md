@@ -832,6 +832,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **29 Oct (PC): the lead's check of `r105c`:** O1, the Place picker on a bottom sheet like Give to's; O2, the hint "Details, or + for lists and tables". Nothing merged, live or built.
   - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests.
   - Shots: 436 unchanged, 30 changed (13 shots only in the hint's words) and 14 new, in `docs/reviews/shots-105c/`.
+- **29 Oct (PC): review 105C live** (founder's yes); **the Space redesign of review 105 is complete:**
+  - The accepted shots became goldens: 30 changed images and 14 new ones.
+  - `r105c` merged into `slice2-app`.
+  - Migrations 53 (`place_filter`) and 54 (`task_table_block`) live, one push each.
+  - Build 823 on the Desktop; not yet on the founder's phone, which wasn't reachable.
+  - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests; 480 shots.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
