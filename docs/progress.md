@@ -838,6 +838,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migrations 53 (`place_filter`) and 54 (`task_table_block`) live, one push each.
   - Build 823 on the founder's phone and the Desktop.
   - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests; 480 shots.
+- **30 Oct (PC): review 107, onboarding v2 (OB1–OB7),** on `claude/r107`, for the lead; nothing merged, live or built:
+  - Migration 20261116120000: tips seen per account.
+  - The app: one welcome, the email code with waiting states, your name, your work as tiles, join your Space by code, and three first-run tips in Work. E1, E2, E9 and E10 left the flow.
+  - Checks: 3,289 SQL checks; analyze clean; 2,848 app tests.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

@@ -2,6 +2,50 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 30 Oct 2026 — review 107 (onboarding v2, OB1–OB7) on `claude/r107`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Where it ran:** the brief was written for a cloud session, but this session ran on the PC (Windows). Its rules were kept:
+  - pushed only to `claude/r107`;
+  - no `test_screens` run, no goldens;
+  - no merge, no database push, no deploy, no install.
+  - The SQL stand-in (`service postgresql start; bash supabase/dev/standin/run.sh .`) needs Linux, so the same pgTAP files ran with `supabase test db` on the local stack.
+- **Branch:** `claude/r107` (worktree `BuildVibes-r107`), from `slice2-app` 5e3a975. Commits: 5872bf4 (server), 8b98f88 (data and fakes), 6242fa7 (OB1–OB6), 7cbd014 (OB7 and the clean-up).
+- **Server: one migration, `20261116120000_first_run_tips.sql`.**
+  - `profile_tips_seen` (camera · hold · sign_done): the owner reads their own; nobody writes it directly.
+  - `mark_tip_seen(p_tip)` adds the caller's own row once: security definer, `search_path = ''`.
+  - pgTAP `55_first_run_tips` (21 checks): another user can't read, add, change or delete; anon can't mark one.
+  - **Onboarding's save needed no server change.** E9 saved through an RLS update of `profiles`, not a function. The fields that left (company, country, mobile) were already optional, or are filled without asking. Every check stays as it was.
+- **The app (test first, in EN and AR):**
+  - **OB1** one welcome: the language at the top, four role cards for the whole industry, Continue with email · I have an invite code · Just looking. E1 and E2 are removed; `/join` goes to the email.
+  - **OB2** the email, with "Sending…".
+  - **OB3** the code: the address masked (`s•••@domain`), "Checking…", Try another way (a different email, or a new code after the minute).
+  - **OB4** your name.
+  - **OB5** your work:
+    - nine tiles from the market pack, its popular trades first, with icons in `bv_icons` by trade id;
+    - search, and "Not listed? Type it";
+    - Continue saves the name and the work with "Saving…", and the home market is taken without asking.
+  - **OB6** join your Space by code (the boxes always left to right); Ask to join; Skip for now.
+  - E9 and E10 are removed; the role picker stays for Edit profile.
+  - **OB7** the first-run tips in Work (camera, hold, Sign as done), each with a spotlight, kept as seen on the server.
+  - 51 strings left by the old screens are removed. Other strings unused from before this branch (some Work, notebook and Space keys) are untouched.
+- **Checks (PC):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,848 pass.
+  - `supabase db reset --local`, then `supabase test db`: 3,289 checks in 54 files pass.
+- **For the lead:**
+  1. **The invite's Space before sign-in.** `invite_preview` needs a signed-in user, and changing that would let anyone signed out look up codes. So OB1 can't name the invite's Space under the line yet.
+     - "I have an invite code" keeps the code: it goes with sign-up (which also lets any market be home), and the join request is sent right after OB5, with no OB6.
+     - The app has no invite links yet: nothing sets the invite code from a link.
+  2. **"Lands in that Space."** Every join waits for the admin (`request_join` gives `requested`), so after OB5 an invited person lands Home with "Request sent". They go into the Space once confirmed, and straight in only when already a member.
+  3. **The home market with an invite** is the phone's region (any market) or the first live one. The app can't read the invite's Space market before sign-in, for the same reason as point 1.
+  4. **OB5's tiles** are the market pack's popular list: 7 trades in Kuwait (BIM specialist, site engineer, electrician, steel fixer, foreman, site manager, plumber), then the rest to make nine. The frame draws another nine (Engineer · Site supervisor · Foreman · …). To match it, the market pack's list changes; that is data, not code.
+  5. **The Arabic OB6 frame** draws the code mirrored (D M 4 Q 7 K). The brief says the boxes read left to right, and the build follows the brief.
+  6. The phone's own Back on "Your name" doesn't sign out, as before (the arrow does).
+- **Next:** the lead's check; then the shots on the PC (OB1–OB7, EN and AR), and with the founder's yes, the merge, migration 20261116120000 live, and a build.
+- **Who has which branch:** PC has `claude/r107` (worktree `BuildVibes-r107`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 29 Oct 2026 — review 105C live: merged into `slice2-app`, migrations 53 and 54 live, build 823 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
