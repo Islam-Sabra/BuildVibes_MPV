@@ -71,118 +71,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get componentsGallery => 'Components';
 
   @override
-  String entryStartingIn(String country) {
-    return 'Starting in $country';
-  }
-
-  @override
-  String get entryWelcomeTitle => 'The construction community around you.';
-
-  @override
-  String get entryWelcomeBody =>
-      'Meet engineers, foremen, trades and suppliers. Set up your presence when you\'re ready.';
-
-  @override
-  String entryBuiltFor(String country) {
-    return 'Built for $country construction';
-  }
-
-  @override
-  String get entryAudience1Title => 'Engineers';
-
-  @override
-  String get entryAudience1Body =>
-      'Share your projects. Get your work confirmed.';
-
-  @override
-  String get entryAudience2Title => 'Site crews and trades';
-
-  @override
-  String get entryAudience2Body =>
-      'Show your work. Get it confirmed by your team.';
-
-  @override
-  String get entryAudience3Title => 'Foremen and supervisors';
-
-  @override
-  String get entryAudience3Body => 'Run the day\'s work from your phone.';
-
-  @override
-  String get entryAudience4Title => 'Subcontractors';
-
-  @override
-  String get entryAudience4Body => 'Get work checked and signed off on time.';
-
-  @override
-  String get entryAudience5Title => 'Suppliers and traders';
-
-  @override
-  String get entryAudience5Body => 'Be found by the people who build.';
-
-  @override
-  String get entryAudience6Title => 'BIM and design';
-
-  @override
-  String get entryAudience6Body => 'Connect the model to the work on site.';
-
-  @override
-  String get entryBrowseFirstNote =>
-      'Browse first. Set up your presence when you\'re ready.';
-
-  @override
   String get entryCreateAccount => 'Create account';
 
   @override
   String get entrySignIn => 'Sign in';
-
-  @override
-  String get entrySkipToHome => 'Skip to Home';
-
-  @override
-  String get entryJoinTitle =>
-      'Your work, confirmed by the people who built it.';
-
-  @override
-  String get entryJoinBody =>
-      'Join with the number you already use. It takes about a minute.';
-
-  @override
-  String get entrySampleName => 'Sami Al-Mansour';
-
-  @override
-  String get entrySampleRole => 'BIM Manager · Harbour Tower';
-
-  @override
-  String get entrySampleBadge => 'Confirmed by teammates';
-
-  @override
-  String get entryContinuePhone => 'Continue with phone number';
-
-  @override
-  String get entryOrContinueWith => 'or continue with';
-
-  @override
-  String get entryGoogle => 'Google';
-
-  @override
-  String get entryApple => 'Apple';
-
-  @override
-  String get entryLinkedIn => 'LinkedIn';
-
-  @override
-  String get entryUseEmail => 'Use email instead';
-
-  @override
-  String get entryNoPassword =>
-      'No password. We never post for you or read your contacts.';
-
-  @override
-  String get entryTerms =>
-      'By continuing you agree to the Terms and Privacy Policy.';
-
-  @override
-  String get entryJustLooking => 'Just looking? Browse first';
 
   @override
   String get phoneTitle => 'Your phone number';
@@ -250,9 +142,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emailLabel => 'Email';
 
   @override
-  String get emailHelp => 'We send a 6-digit code. No password needed.';
-
-  @override
   String get emailError => 'Check the email address.';
 
   @override
@@ -275,11 +164,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String codeSentSms(String destination) {
     return 'We sent a 6-digit code to $destination by SMS. It works for 10 minutes.';
-  }
-
-  @override
-  String codeSentEmail(String destination) {
-    return 'We sent a 6-digit code to $destination. It works for 10 minutes. Check spam if you don\'t see it.';
   }
 
   @override
@@ -323,13 +207,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonRetry => 'Try again';
 
   @override
-  String get aboutTitle => 'About you';
-
-  @override
-  String get aboutIntro =>
-      'Step 1 of 2. This is how people will find you. You can change it later.';
-
-  @override
   String get firstName => 'First name';
 
   @override
@@ -358,12 +235,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastNameRequired => 'Write your last name.';
-
-  @override
-  String get roleRequired => 'Choose your role.';
-
-  @override
-  String get countryRequired => 'Choose your country.';
 
   @override
   String get companySheetTitle => 'Your company';
@@ -411,9 +282,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
-  String get peopleTitle => 'People to follow';
-
-  @override
   String get skip => 'Skip';
 
   @override
@@ -422,43 +290,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get peopleHeadline => 'Start with people you\'d work with';
-
-  @override
-  String peopleBody(String role, String country) {
-    return 'Picked for a $role in $country. You can change this any time.';
-  }
-
-  @override
-  String peopleFromCompany(String company) {
-    return 'FROM $company';
-  }
-
-  @override
-  String get peopleNearYou => 'WORKING NEAR YOU';
-
-  @override
-  String get reasonCompany => 'Your company';
-
-  @override
-  String reasonNear(String place) {
-    return 'Near you · $place';
-  }
-
-  @override
-  String reasonSameCountry(String country) {
-    return 'Works in $country';
-  }
-
-  @override
   String get follow => 'Follow';
 
   @override
   String get following => 'Following';
-
-  @override
-  String get peopleEmpty =>
-      'No suggestions yet. As your team joins BuildVibes, you\'ll see them here.';
 
   @override
   String get joinWallTitle => 'Join BuildVibes to do this';
@@ -850,20 +685,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryContinueEmail => 'Continue with email';
-
-  @override
-  String get entryJoinBodyEmail =>
-      'Join with your email. It takes about a minute.';
-
-  @override
-  String get countryChangeLater => 'You can change it in Settings.';
-
-  @override
-  String get mobileOptional => 'Mobile number (optional)';
-
-  @override
-  String get mobileHelp =>
-      'Private: only you see it. It\'s never shown on your profile.';
 
   @override
   String get homeFeed => 'Feed';

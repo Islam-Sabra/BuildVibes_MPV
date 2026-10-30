@@ -4,6 +4,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 import 'bv_tap_target.dart';
+import 'bv_tip.dart';
 
 /// The bar under the Daybook (spec §8): a notepad that starts writing in
 /// place, and the camera (a tap only: a signature is never on a hold, the
@@ -16,6 +17,7 @@ class BvPostBar extends StatelessWidget {
     this.onWrite,
     this.onCamera,
     this.cameraLabel,
+    this.cameraAnchor,
     this.field,
     this.end,
   }) : passLabel = null,
@@ -31,6 +33,7 @@ class BvPostBar extends StatelessWidget {
        onWrite = null,
        onCamera = null,
        cameraLabel = null,
+       cameraAnchor = null,
        field = null,
        end = null;
 
@@ -43,6 +46,9 @@ class BvPostBar extends StatelessWidget {
 
   /// What a screen reader says for the camera button.
   final String? cameraLabel;
+
+  /// The camera as a first-run tip's anchor, by this id ([BvTipAnchor]).
+  final Object? cameraAnchor;
 
   /// In place of the notepad (My notebook's recording bar, slice 8).
   final Widget? field;
@@ -154,22 +160,25 @@ class BvPostBar extends StatelessWidget {
                   ),
             ),
             end ??
-                Semantics(
-                  button: true,
-                  label: cameraLabel,
-                  child: Material(
-                    key: const Key('post-bar-camera'),
-                    color: BvColors.actionPrimary,
-                    shape: const CircleBorder(),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: onCamera,
-                      child: const SizedBox.square(
-                        dimension: BvPostBarSpec.cameraSize,
-                        child: Icon(
-                          BvIcons.camera,
-                          size: BvPostBarSpec.cameraIcon,
-                          color: BvColors.iconInverse,
+                BvTipAnchor(
+                  id: cameraAnchor,
+                  child: Semantics(
+                    button: true,
+                    label: cameraLabel,
+                    child: Material(
+                      key: const Key('post-bar-camera'),
+                      color: BvColors.actionPrimary,
+                      shape: const CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: onCamera,
+                        child: const SizedBox.square(
+                          dimension: BvPostBarSpec.cameraSize,
+                          child: Icon(
+                            BvIcons.camera,
+                            size: BvPostBarSpec.cameraIcon,
+                            color: BvColors.iconInverse,
+                          ),
                         ),
                       ),
                     ),

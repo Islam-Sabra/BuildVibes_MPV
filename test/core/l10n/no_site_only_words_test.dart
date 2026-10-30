@@ -43,8 +43,10 @@ void main() {
     // sets the day. The rest name a site among other places, or mean
     // "location" (الموقع in the project record).
     const kept = {
-      'entryAudience2Title',
-      'entryAudience6Body',
+      // The welcome's whole industry, as the founder approved it (review
+      // 107 OB1): "site teams", and the site engineer's card.
+      'obWelcomeLine',
+      'obCardSiteEngineer',
       'roleIntro',
       'matchSameSite',
       'cellLocation',

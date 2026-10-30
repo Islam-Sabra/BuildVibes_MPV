@@ -260,7 +260,7 @@ void main() {
 
     testWidgets('guests are never asked [$lang]', (tester) async {
       final app = await pumpApp(tester, language: lang, signedIn: false);
-      await tester.tap(find.byKey(const Key('welcome-skip')));
+      await tester.tap(find.byKey(const Key('welcome-look')));
       await tester.pumpAndSettle();
       expect(app.push.asked, 0);
     });

@@ -71,114 +71,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get componentsGallery => 'المكوّنات';
 
   @override
-  String entryStartingIn(String country) {
-    return 'نبدأ في $country';
-  }
-
-  @override
-  String get entryWelcomeTitle => 'مجتمع البناء من حولك.';
-
-  @override
-  String get entryWelcomeBody =>
-      'تعرّف على المهندسين ورؤساء العمال والحِرفيين والموردين. جهّز حضورك عندما تكون مستعدًا.';
-
-  @override
-  String entryBuiltFor(String country) {
-    return 'مصمَّم لقطاع البناء في $country';
-  }
-
-  @override
-  String get entryAudience1Title => 'المهندسون';
-
-  @override
-  String get entryAudience1Body => 'شارك مشاريعك واحصل على تأكيد عملك.';
-
-  @override
-  String get entryAudience2Title => 'فرق الموقع والحِرفيون';
-
-  @override
-  String get entryAudience2Body => 'اعرض عملك، واحصل على تأكيد فريقك.';
-
-  @override
-  String get entryAudience3Title => 'رؤساء العمال والمشرفون';
-
-  @override
-  String get entryAudience3Body => 'أدِر عمل اليوم من هاتفك.';
-
-  @override
-  String get entryAudience4Title => 'مقاولو الباطن';
-
-  @override
-  String get entryAudience4Body => 'احصل على التحقق من العمل واعتماده في وقته.';
-
-  @override
-  String get entryAudience5Title => 'الموردون والتجار';
-
-  @override
-  String get entryAudience5Body => 'ليجدك من يبنون.';
-
-  @override
-  String get entryAudience6Title => 'BIM والتصميم';
-
-  @override
-  String get entryAudience6Body => 'اربط النموذج بالعمل في الموقع.';
-
-  @override
-  String get entryBrowseFirstNote =>
-      'تصفّح أولًا، وجهّز حضورك عندما تكون مستعدًا.';
-
-  @override
   String get entryCreateAccount => 'إنشاء حساب';
 
   @override
   String get entrySignIn => 'تسجيل الدخول';
-
-  @override
-  String get entrySkipToHome => 'تخطَّ إلى الرئيسية';
-
-  @override
-  String get entryJoinTitle => 'عملك، يؤكده من بنوه معك.';
-
-  @override
-  String get entryJoinBody =>
-      'انضم برقمك الذي تستخدمه. يستغرق الأمر دقيقة تقريبًا.';
-
-  @override
-  String get entrySampleName => 'سامي المنصور';
-
-  @override
-  String get entrySampleRole => 'مدير BIM · برج الميناء';
-
-  @override
-  String get entrySampleBadge => 'أكّده زملاء العمل';
-
-  @override
-  String get entryContinuePhone => 'المتابعة برقم الهاتف';
-
-  @override
-  String get entryOrContinueWith => 'أو تابع باستخدام';
-
-  @override
-  String get entryGoogle => 'Google';
-
-  @override
-  String get entryApple => 'Apple';
-
-  @override
-  String get entryLinkedIn => 'LinkedIn';
-
-  @override
-  String get entryUseEmail => 'استخدم البريد الإلكتروني';
-
-  @override
-  String get entryNoPassword =>
-      'بدون كلمة مرور. لا ننشر باسمك ولا نقرأ جهات اتصالك.';
-
-  @override
-  String get entryTerms => 'بالمتابعة، أنت توافق على الشروط وسياسة الخصوصية.';
-
-  @override
-  String get entryJustLooking => 'تتصفح فقط؟ ابدأ بالتصفح';
 
   @override
   String get phoneTitle => 'رقم هاتفك';
@@ -246,9 +142,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emailLabel => 'البريد الإلكتروني';
 
   @override
-  String get emailHelp => 'نرسل رمزًا من 6 أرقام. لا حاجة لكلمة مرور.';
-
-  @override
   String get emailError => 'تحقق من عنوان البريد الإلكتروني.';
 
   @override
@@ -271,11 +164,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String codeSentSms(String destination) {
     return 'أرسلنا رمزًا من 6 أرقام إلى $destination برسالة نصية. يعمل لمدة 10 دقائق.';
-  }
-
-  @override
-  String codeSentEmail(String destination) {
-    return 'أرسلنا رمزًا من 6 أرقام إلى $destination. يعمل لمدة 10 دقائق. تحقق من البريد غير المرغوب فيه إن لم تجده.';
   }
 
   @override
@@ -318,13 +206,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonRetry => 'حاول مرة أخرى';
 
   @override
-  String get aboutTitle => 'عنك';
-
-  @override
-  String get aboutIntro =>
-      'الخطوة 1 من 2. هكذا سيجدك الناس. يمكنك التغيير لاحقًا.';
-
-  @override
   String get firstName => 'الاسم الأول';
 
   @override
@@ -353,12 +234,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lastNameRequired => 'اكتب اسم عائلتك.';
-
-  @override
-  String get roleRequired => 'اختر دورك.';
-
-  @override
-  String get countryRequired => 'اختر دولتك.';
 
   @override
   String get companySheetTitle => 'شركتك';
@@ -405,9 +280,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get save => 'حفظ';
 
   @override
-  String get peopleTitle => 'أشخاص لتتابعهم';
-
-  @override
   String get skip => 'تخطَّ';
 
   @override
@@ -416,43 +288,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get peopleHeadline => 'ابدأ بأشخاص قد تعمل معهم';
-
-  @override
-  String peopleBody(String role, String country) {
-    return 'اخترناهم لدور $role في $country. يمكنك التغيير في أي وقت.';
-  }
-
-  @override
-  String peopleFromCompany(String company) {
-    return 'من $company';
-  }
-
-  @override
-  String get peopleNearYou => 'يعملون بالقرب منك';
-
-  @override
-  String get reasonCompany => 'شركتك';
-
-  @override
-  String reasonNear(String place) {
-    return 'بالقرب منك · $place';
-  }
-
-  @override
-  String reasonSameCountry(String country) {
-    return 'يعمل في $country';
-  }
-
-  @override
   String get follow => 'متابعة';
 
   @override
   String get following => 'تتابعه';
-
-  @override
-  String get peopleEmpty =>
-      'لا توجد اقتراحات بعد. عندما ينضم فريقك إلى BuildVibes ستراهم هنا.';
 
   @override
   String get joinWallTitle => 'انضم إلى BuildVibes لتقوم بهذا';
@@ -845,19 +684,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entryContinueEmail => 'المتابعة بالبريد الإلكتروني';
-
-  @override
-  String get entryJoinBodyEmail =>
-      'انضم ببريدك الإلكتروني. يستغرق الأمر دقيقة تقريبًا.';
-
-  @override
-  String get countryChangeLater => 'يمكنك تغييرها من الإعدادات.';
-
-  @override
-  String get mobileOptional => 'رقم الجوال (اختياري)';
-
-  @override
-  String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبدًا.';
 
   @override
   String get homeFeed => 'الأخبار';

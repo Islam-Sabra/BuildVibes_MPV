@@ -218,108 +218,6 @@ abstract class AppLocalizations {
   /// **'Components'**
   String get componentsGallery;
 
-  /// Welcome pill. Country from the market pack.
-  ///
-  /// In en, this message translates to:
-  /// **'Starting in {country}'**
-  String entryStartingIn(String country);
-
-  /// E1 headline.
-  ///
-  /// In en, this message translates to:
-  /// **'The construction community around you.'**
-  String get entryWelcomeTitle;
-
-  /// E1 body.
-  ///
-  /// In en, this message translates to:
-  /// **'Meet engineers, foremen, trades and suppliers. Set up your presence when you\'re ready.'**
-  String get entryWelcomeBody;
-
-  /// E1 audience card header.
-  ///
-  /// In en, this message translates to:
-  /// **'Built for {country} construction'**
-  String entryBuiltFor(String country);
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'Engineers'**
-  String get entryAudience1Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Share your projects. Get your work confirmed.'**
-  String get entryAudience1Body;
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'Site crews and trades'**
-  String get entryAudience2Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Show your work. Get it confirmed by your team.'**
-  String get entryAudience2Body;
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'Foremen and supervisors'**
-  String get entryAudience3Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Run the day\'s work from your phone.'**
-  String get entryAudience3Body;
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'Subcontractors'**
-  String get entryAudience4Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Get work checked and signed off on time.'**
-  String get entryAudience4Body;
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'Suppliers and traders'**
-  String get entryAudience5Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Be found by the people who build.'**
-  String get entryAudience5Body;
-
-  /// E1 rotating audience card title.
-  ///
-  /// In en, this message translates to:
-  /// **'BIM and design'**
-  String get entryAudience6Title;
-
-  /// E1 rotating audience card text.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect the model to the work on site.'**
-  String get entryAudience6Body;
-
-  /// E1 card footer.
-  ///
-  /// In en, this message translates to:
-  /// **'Browse first. Set up your presence when you\'re ready.'**
-  String get entryBrowseFirstNote;
-
   /// E1 button.
   ///
   /// In en, this message translates to:
@@ -331,96 +229,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in'**
   String get entrySignIn;
-
-  /// E1 link: browse as a guest.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip to Home'**
-  String get entrySkipToHome;
-
-  /// E2 headline.
-  ///
-  /// In en, this message translates to:
-  /// **'Your work, confirmed by the people who built it.'**
-  String get entryJoinTitle;
-
-  /// E2 body.
-  ///
-  /// In en, this message translates to:
-  /// **'Join with the number you already use. It takes about a minute.'**
-  String get entryJoinBody;
-
-  /// E2 illustration: sample person.
-  ///
-  /// In en, this message translates to:
-  /// **'Sami Al-Mansour'**
-  String get entrySampleName;
-
-  /// E2 illustration: sample role and project.
-  ///
-  /// In en, this message translates to:
-  /// **'BIM Manager · Harbour Tower'**
-  String get entrySampleRole;
-
-  /// E2 illustration badge.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirmed by teammates'**
-  String get entrySampleBadge;
-
-  /// E2 main button.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue with phone number'**
-  String get entryContinuePhone;
-
-  /// E2 divider above Google / Apple.
-  ///
-  /// In en, this message translates to:
-  /// **'or continue with'**
-  String get entryOrContinueWith;
-
-  /// Brand name.
-  ///
-  /// In en, this message translates to:
-  /// **'Google'**
-  String get entryGoogle;
-
-  /// Brand name.
-  ///
-  /// In en, this message translates to:
-  /// **'Apple'**
-  String get entryApple;
-
-  /// Brand name.
-  ///
-  /// In en, this message translates to:
-  /// **'LinkedIn'**
-  String get entryLinkedIn;
-
-  /// E2 link.
-  ///
-  /// In en, this message translates to:
-  /// **'Use email instead'**
-  String get entryUseEmail;
-
-  /// E2 reassurance.
-  ///
-  /// In en, this message translates to:
-  /// **'No password. We never post for you or read your contacts.'**
-  String get entryNoPassword;
-
-  /// E2 legal line.
-  ///
-  /// In en, this message translates to:
-  /// **'By continuing you agree to the Terms and Privacy Policy.'**
-  String get entryTerms;
-
-  /// E2 guest link.
-  ///
-  /// In en, this message translates to:
-  /// **'Just looking? Browse first'**
-  String get entryJustLooking;
 
   /// E2p title.
   ///
@@ -536,12 +344,6 @@ abstract class AppLocalizations {
   /// **'Email'**
   String get emailLabel;
 
-  /// Email helper.
-  ///
-  /// In en, this message translates to:
-  /// **'We send a 6-digit code. No password needed.'**
-  String get emailHelp;
-
   /// Email validation.
   ///
   /// In en, this message translates to:
@@ -583,12 +385,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We sent a 6-digit code to {destination} by SMS. It works for 10 minutes.'**
   String codeSentSms(String destination);
-
-  /// E3e text.
-  ///
-  /// In en, this message translates to:
-  /// **'We sent a 6-digit code to {destination}. It works for 10 minutes. Check spam if you don\'t see it.'**
-  String codeSentEmail(String destination);
 
   /// E3 timer.
   ///
@@ -662,18 +458,6 @@ abstract class AppLocalizations {
   /// **'Try again'**
   String get commonRetry;
 
-  /// E9 title.
-  ///
-  /// In en, this message translates to:
-  /// **'About you'**
-  String get aboutTitle;
-
-  /// E9 intro.
-  ///
-  /// In en, this message translates to:
-  /// **'Step 1 of 2. This is how people will find you. You can change it later.'**
-  String get aboutIntro;
-
   /// Field label.
   ///
   /// In en, this message translates to:
@@ -733,18 +517,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Write your last name.'**
   String get lastNameRequired;
-
-  /// Validation.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your role.'**
-  String get roleRequired;
-
-  /// Validation.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your country.'**
-  String get countryRequired;
 
   /// Company search sheet title.
   ///
@@ -818,12 +590,6 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
-  /// E10 title.
-  ///
-  /// In en, this message translates to:
-  /// **'People to follow'**
-  String get peopleTitle;
-
   /// App bar action.
   ///
   /// In en, this message translates to:
@@ -836,48 +602,6 @@ abstract class AppLocalizations {
   /// **'Step {step} of {total}'**
   String stepOf(int step, int total);
 
-  /// E10 headline.
-  ///
-  /// In en, this message translates to:
-  /// **'Start with people you\'d work with'**
-  String get peopleHeadline;
-
-  /// E10 body.
-  ///
-  /// In en, this message translates to:
-  /// **'Picked for a {role} in {country}. You can change this any time.'**
-  String peopleBody(String role, String country);
-
-  /// E10 section. Capitals in English.
-  ///
-  /// In en, this message translates to:
-  /// **'FROM {company}'**
-  String peopleFromCompany(String company);
-
-  /// E10 section.
-  ///
-  /// In en, this message translates to:
-  /// **'WORKING NEAR YOU'**
-  String get peopleNearYou;
-
-  /// E10 reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Your company'**
-  String get reasonCompany;
-
-  /// E10 reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Near you · {place}'**
-  String reasonNear(String place);
-
-  /// E10 reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Works in {country}'**
-  String reasonSameCountry(String country);
-
   /// Button.
   ///
   /// In en, this message translates to:
@@ -889,12 +613,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Following'**
   String get following;
-
-  /// E10 empty state.
-  ///
-  /// In en, this message translates to:
-  /// **'No suggestions yet. As your team joins BuildVibes, you\'ll see them here.'**
-  String get peopleEmpty;
 
   /// Join wall (H7) title.
   ///
@@ -1609,30 +1327,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue with email'**
   String get entryContinueEmail;
-
-  /// E2 body when sign-in is by email.
-  ///
-  /// In en, this message translates to:
-  /// **'Join with your email. It takes about a minute.'**
-  String get entryJoinBodyEmail;
-
-  /// E9 country helper.
-  ///
-  /// In en, this message translates to:
-  /// **'You can change it in Settings.'**
-  String get countryChangeLater;
-
-  /// E9 field label.
-  ///
-  /// In en, this message translates to:
-  /// **'Mobile number (optional)'**
-  String get mobileOptional;
-
-  /// E9 field helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Private: only you see it. It\'s never shown on your profile.'**
-  String get mobileHelp;
 
   /// Home tab: the social feed.
   ///

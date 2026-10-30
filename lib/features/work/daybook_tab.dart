@@ -34,6 +34,7 @@ import '../../core/push/push_state.dart';
 import '../../core/push/reminders.dart' show spaceReminderId;
 import '../../core/network/signal_state.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/first_run_tip.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -46,6 +47,7 @@ import '../../data/repositories/page_repository.dart' show taskTablesProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_tip.dart';
 import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
@@ -79,6 +81,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import 'first_run_tips.dart';
 import 'daybook_attach.dart';
 import 'daybook_card.dart';
 import 'daybook_draft.dart';
@@ -1544,7 +1547,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // also while this screen holds Back for itself.
     final selected = ref.watch(workSelectionProvider(_spaceId));
     final selecting = selected.isNotEmpty && !_writing;
-    return BvBackSwipe(
+    final work = BvBackSwipe(
       holding: _writing || selecting,
       child: PopScope(
         canPop: !_writing && !selecting,
@@ -1793,6 +1796,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   placeholder: l10n.daybookWriteInSpace,
                   onWrite: _startWriting,
                   cameraLabel: l10n.daybookCameraLabel,
+                  // Review 107 OB7: the first tip points here.
+                  cameraAnchor: FirstRunTip.camera,
                   // The camera, with Photo · Walk at its bottom (the lead's
                   // rulings on 105A). Nothing on a hold: Sign as done is on
                   // the work item (H1).
@@ -1803,6 +1808,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ),
       ),
     );
+    // Review 107 OB7: the first-run tips, over Work.
+    return FirstRunTips(child: work);
   }
 
   /// The bottom bar while cards are held (SP6): Share (from 105B) ·
@@ -3112,25 +3119,29 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         key: _cardKeys.putIfAbsent(c.id, GlobalKey.new),
         child: KeyedSubtree(
           key: Key('daybook-card-${c.id}'),
-          // The card a row or a push opened (F20).
-          child: BvHighlight(
-            flash: _highlighted == c.id ? _flashes : null,
-            // A post not on the server yet has nothing to do on it.
-            child: unsent != null
-                ? view
-                : _swipes(
-                    c.post,
-                    _loop.withActions(
-                      context,
-                      view,
-                      me: me,
-                      signing: signing,
-                      // A hold selects (SP6), for who may post.
-                      onHold: widget.space.myRights.createItems
-                          ? () => select(c.id)
-                          : null,
+          // The card a row or a push opened (F20). Review 107 OB7: "Hold a
+          // card to share or delete it" points at it.
+          child: BvTipAnchor(
+            id: FirstRunTip.hold,
+            child: BvHighlight(
+              flash: _highlighted == c.id ? _flashes : null,
+              // A post not on the server yet has nothing to do on it.
+              child: unsent != null
+                  ? view
+                  : _swipes(
+                      c.post,
+                      _loop.withActions(
+                        context,
+                        view,
+                        me: me,
+                        signing: signing,
+                        // A hold selects (SP6), for who may post.
+                        onHold: widget.space.myRights.createItems
+                            ? () => select(c.id)
+                            : null,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       );
