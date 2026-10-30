@@ -11,13 +11,10 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/routing/app_routes.dart';
-import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
-import '../../shared/widgets/bv_code_field.dart';
-import '../../shared/widgets/bv_sheet.dart';
-import '../spaces/code_sheet.dart' show InviteCodeFormatter, inviteCodeLength;
 import 'entry_state.dart';
+import 'widgets/invite_code_sheet.dart';
 
 /// OB1 · Welcome (review 107, 2698:38995): one screen. The language at the
 /// top; the whole industry (four role cards, each with a real piece of
@@ -28,11 +25,7 @@ class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
   Future<void> _invite(BuildContext context, WidgetRef ref) async {
-    final code = await showBvSheet<String>(
-      context: context,
-      title: AppLocalizations.of(context).obInviteTitle,
-      builder: (sheet) => const _InviteSheet(),
-    );
+    final code = await showInviteCodeSheet(context);
     if (code == null || !context.mounted) return;
     ref.read(inviteCodeProvider.notifier).set(code);
     unawaited(context.push(AppRoutes.joinEmail));
@@ -94,7 +87,7 @@ class WelcomeScreen extends ConsumerWidget {
                         color: BvColors.textSecondary,
                       ),
                     ),
-                    if (invite != null) ...[
+                    if (invite != null && invite.isNotEmpty) ...[
                       const SizedBox(height: BvSpace.s12),
                       Text(
                         l10n.obInviteKept(ltrRun(invite)),
@@ -309,66 +302,6 @@ class _RoleCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// "I have an invite code": the 6 boxes, always left to right, then
-/// Continue. Pops with the code; it goes with sign-up, and the request to
-/// join is sent once the account has a name and a work (OB5).
-class _InviteSheet extends StatefulWidget {
-  const _InviteSheet();
-
-  @override
-  State<_InviteSheet> createState() => _InviteSheetState();
-}
-
-class _InviteSheetState extends State<_InviteSheet> {
-  final _code = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _code.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _code.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final code = normalizeInviteCode(_code.text);
-    return Column(
-      key: const Key('invite-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        Text(
-          l10n.obInviteSub,
-          style: BvType.of(
-            context,
-          ).bodyMd.copyWith(color: BvColors.textSecondary),
-        ),
-        BvCodeField(
-          controller: _code,
-          semanticLabel: l10n.spacesInviteCode,
-          autofocus: true,
-          inputFormatters: const [InviteCodeFormatter()],
-        ),
-        BvButton(
-          key: const Key('invite-continue'),
-          label: l10n.continueLabel,
-          expand: true,
-          onPressed: code.length == inviteCodeLength
-              ? () => Navigator.of(context).pop(code)
-              : null,
-        ),
-      ],
     );
   }
 }

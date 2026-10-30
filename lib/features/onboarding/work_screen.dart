@@ -20,6 +20,7 @@ import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/onboarding_scaffold.dart';
+import '../spaces/space_errors.dart';
 import 'onboarding_state.dart';
 
 /// OB5 · What's your work? (review 107, 2699:39043; step 2 of 3): nine big
@@ -43,6 +44,10 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
   var _saving = false;
   String? _error;
 
+  /// The profile is saved: Continue only tries the request to join again
+  /// (the lead's check Q2).
+  var _saved = false;
+
   @override
   void dispose() {
     _query.dispose();
@@ -55,12 +60,21 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
     ref.read(authRepositoryProvider).signUpInviteCode,
   );
 
-  String? _marketId(List<Market> markets) => homeMarketWithoutAsking(
-    markets: markets,
-    region: ref.watch(deviceRegionProvider),
-    accountMarketId: ref.watch(myProfileProvider).value?.homeMarketId,
-    invited: _invite != null,
-  );
+  /// The invite's Space market when known (Q1), else the rule without
+  /// asking.
+  String? _marketId(List<Market> markets) {
+    final invite = _invite;
+    final spaceMarket = invite == null
+        ? null
+        : ref.watch(onboardingInviteProvider(invite)).value?.marketId;
+    return homeMarketWithoutAsking(
+      markets: markets,
+      region: ref.watch(deviceRegionProvider),
+      accountMarketId:
+          spaceMarket ?? ref.watch(myProfileProvider).value?.homeMarketId,
+      invited: invite != null,
+    );
+  }
 
   static bool _matches(Trade t, String q) {
     bool has(LocalizedText? l) =>
@@ -83,7 +97,11 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
     ].take(BvEntrySpec.tiles).toList();
   }
 
-  Future<void> _save(RolePicker picker, String marketId) async {
+  Future<void> _save(
+    RolePicker picker,
+    String marketId,
+    List<Market> markets,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final own = _own.text.trim();
     final RoleChoice? role = _typing
@@ -109,52 +127,98 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
     final invite = _invite;
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final finishing = ref.read(onboardingFinishingProvider.notifier);
+    // The profile is complete once saved: this step stays open until it
+    // moves on (Q5).
+    finishing.set(true);
+    void go(String location) {
+      router.go(location);
+      finishing.set(false);
+    }
+
     try {
-      await ref
-          .read(profileRepositoryProvider)
-          .saveAboutYou(
-            userId,
-            AboutYouInput(
-              firstName: name.first,
-              lastName: name.last,
-              homeMarketId: marketId,
-              role: role,
-              locale: Localizations.localeOf(context).languageCode,
-            ),
-          );
-      ref.invalidate(myProfileProvider);
-      await ref.read(myProfileProvider.future);
+      if (!_saved) {
+        Future<void> save(String market) => ref
+            .read(profileRepositoryProvider)
+            .saveAboutYou(
+              userId,
+              AboutYouInput(
+                firstName: name.first,
+                lastName: name.last,
+                homeMarketId: market,
+                role: role,
+                locale: locale,
+              ),
+            );
+        try {
+          await save(marketId);
+        } on HomeMarketRefused {
+          // Never a dead end (Q3): the first live market, which can be
+          // changed later in Profile.
+          final live = liveMarkets(markets).firstOrNull;
+          if (live == null || live.id == marketId) rethrow;
+          await save(live.id);
+        }
+        _saved = true;
+      }
+      // The profile is read again (it is complete now) only once the
+      // request has gone, so a failed request leaves this step as it is.
+      Future<void> complete() async {
+        ref.invalidate(myProfileProvider);
+        await ref.read(myProfileProvider.future);
+      }
+
       if (invite == null) {
-        router.go(AppRoutes.onboardingSpace);
+        await complete();
+        go(AppRoutes.onboardingSpace);
         return;
       }
       // An invite: its Space, with no step 3 (review 107).
-      ref.read(inviteCodeProvider.notifier).set(null);
       final result = await ref
           .read(spaceRepositoryProvider)
           .requestJoin(invite);
       ref.invalidate(myJoinRequestsProvider);
+      await complete();
+      // The code is used: kept only until the request has gone (Q2).
+      ref.read(inviteCodeProvider.notifier).set('');
+      void home(String message) {
+        go(AppRoutes.home);
+        messenger.showSnackBar(SnackBar(content: Text(message)));
+      }
+
       switch (result.status) {
         case JoinStatus.member when result.spaceId != null:
-          router.go(AppRoutes.space(result.spaceId!));
-        case JoinStatus.requested || JoinStatus.pending:
-          router.go(AppRoutes.home);
+          go(AppRoutes.space(result.spaceId!));
+        case JoinStatus.requested:
+          home(l10n.spacesRequestSent);
+        case JoinStatus.pending:
+          home(l10n.spacesAlreadyWaiting);
+        case JoinStatus.declined:
           messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                result.status == JoinStatus.pending
-                    ? l10n.spacesAlreadyWaiting
-                    : l10n.spacesRequestSent,
-              ),
-            ),
+            SnackBar(content: Text(l10n.spacesDeclinedWait)),
           );
+          go(AppRoutes.onboardingSpace);
+        case JoinStatus.tooManyTries:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.spacesTooManyTries)),
+          );
+          go(AppRoutes.onboardingSpace);
         default:
-          // The code didn't work: step 3, to type another.
-          router.go(AppRoutes.onboardingSpace);
+          // The code doesn't work any more: step 3, to type another, and
+          // it says why.
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.spacesCodeNotValid)),
+          );
+          go(AppRoutes.onboardingSpace);
       }
-    } on SpaceException {
-      router.go(AppRoutes.onboardingSpace);
+    } on SpaceException catch (e) {
+      // No signal for the request: the code stays, and Continue tries
+      // again (Q2).
+      if (mounted) setState(() => _error = spaceErrorText(l10n, e));
     } on Exception {
+      // Nothing saved: not finishing yet.
+      if (!_saved) finishing.set(false);
       if (mounted) setState(() => _error = l10n.errorGeneric);
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -181,7 +245,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
         expand: true,
         onPressed: _saving || picker == null
             ? null
-            : () => _save(picker, marketId!),
+            : () => _save(picker, marketId!, markets),
       ),
       body: picker == null
           ? const Padding(

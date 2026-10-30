@@ -9955,6 +9955,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next'**
   String get obTipNext;
+
+  /// Review 107 Q1: under OB4's title, the Space the kept invite code opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining {space}'**
+  String obJoining(String space);
+
+  /// Review 107 Q1: on OB4, a kept invite code that is wrong, expired or refused.
+  ///
+  /// In en, this message translates to:
+  /// **'This code didn\'t work. Check it or skip.'**
+  String get obInviteFailed;
+
+  /// Review 107 Q1: type another invite code.
+  ///
+  /// In en, this message translates to:
+  /// **'Change code'**
+  String get obChangeCode;
+
+  /// Review 107 Q1: go on without the invite code.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get obSkip;
 }
 
 class _AppLocalizationsDelegate

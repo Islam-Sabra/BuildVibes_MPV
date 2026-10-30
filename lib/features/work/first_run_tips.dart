@@ -23,9 +23,12 @@ final tipsSeenProvider = FutureProvider<Set<FirstRunTip>>((ref) async {
 /// first time an item is given to me. A tip whose control isn't on screen
 /// waits. Next keeps it as seen and moves on; Skip tips keeps all three.
 /// Kept per account on the server, so each shows once on every phone.
+/// Only [tips], the ones this person will see, show; they are counted out
+/// of those ("Tip 1 of 2", the lead's check Q4).
 class FirstRunTips extends ConsumerStatefulWidget {
-  const FirstRunTips({super.key, required this.child});
+  const FirstRunTips({super.key, required this.tips, required this.child});
 
+  final List<FirstRunTip> tips;
   final Widget child;
 
   @override
@@ -63,7 +66,7 @@ class _FirstRunTipsState extends ConsumerState<FirstRunTips> {
     FirstRunTip? tip;
     Rect? target;
     if (seen != null) {
-      for (final t in FirstRunTip.values) {
+      for (final t in widget.tips) {
         if (seen.contains(t) || _seenHere.contains(t)) continue;
         final rect = _anchors.rectOf(t, screen);
         if (rect == null) continue;
@@ -109,7 +112,10 @@ class _FirstRunTipsState extends ConsumerState<FirstRunTips> {
           if (tip == null || target == null) return const SizedBox.shrink();
           return BvTipLayer(
             target: target,
-            count: l10n.obTipOf(tip.index + 1, FirstRunTip.values.length),
+            count: l10n.obTipOf(
+              widget.tips.indexOf(tip) + 1,
+              widget.tips.length,
+            ),
             text: switch (tip) {
               FirstRunTip.camera => l10n.obTipCamera,
               FirstRunTip.hold => l10n.obTipHold,

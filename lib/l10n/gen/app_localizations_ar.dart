@@ -6024,4 +6024,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get obTipNext => 'التالي';
+
+  @override
+  String obJoining(String space) {
+    return 'الانضمام إلى $space';
+  }
+
+  @override
+  String get obInviteFailed => 'لم يعمل هذا الرمز. تحقّق منه أو تخطَّه.';
+
+  @override
+  String get obChangeCode => 'تغيير الرمز';
+
+  @override
+  String get obSkip => 'تخطَّ';
 }

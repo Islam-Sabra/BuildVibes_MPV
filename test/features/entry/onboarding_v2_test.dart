@@ -8,9 +8,12 @@ import 'dart:async';
 
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/people.dart';
+import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/features/profile/edit/basics_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -28,7 +31,10 @@ Future<void> _tap(WidgetTester tester, String key) async {
 }
 
 Future<void> _type(WidgetTester tester, String key, String text) async {
-  final field = find.descendant(of: _key(key), matching: find.byType(TextField));
+  final field = find.descendant(
+    of: _key(key),
+    matching: find.byType(TextField),
+  );
   await tester.enterText(field.first, text);
   await tester.pumpAndSettle();
 }
@@ -55,12 +61,26 @@ Future<void> _name(WidgetTester tester) async {
 
 const _tower = 'Kuwait City Tower — Site team';
 
+/// K7Q4MD opens the tower; C41R0X opens a Space whose project is in Egypt.
 FakeSpaceRepository _spaces() => FakeSpaceRepository()
   ..invites['K7Q4MD'] = const FakeInvite(
     spaceId: 'space-kct',
     spaceName: _tower,
     invitedBy: 'Islam Sabra',
+  )
+  ..invites['C41R0X'] = const FakeInvite(
+    spaceId: 'space-cairo',
+    spaceName: 'Cairo Tower',
+    marketId: 'eg',
   );
+
+/// OB1: I have an invite code, [code], then Continue.
+Future<void> _keepInvite(WidgetTester tester, String code) async {
+  await _tap(tester, 'welcome-invite');
+  await tester.enterText(_key('code-input'), code);
+  await tester.pumpAndSettle();
+  await _tap(tester, 'invite-continue');
+}
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -358,7 +378,10 @@ void main() {
         await tester.enterText(_key('code-input'), 'k7q4md');
         await tester.pumpAndSettle();
         expect(
-          find.descendant(of: _key('space-preview'), matching: find.text(_tower)),
+          find.descendant(
+            of: _key('space-preview'),
+            matching: find.text(_tower),
+          ),
           findsOneWidget,
         );
         expect(
@@ -382,6 +405,129 @@ void main() {
         expect(app.spaces.requests, isEmpty);
         expect(_key('nav-home'), findsOneWidget);
       });
+    });
+
+    group('the lead\'s check: the invite right after sign-in (Q1), retries '
+        '(Q2), the market (Q3) [$lang]', () {
+      testWidgets('Q1: OB4 says which Space; its market is home', (
+        tester,
+      ) async {
+        final profiles = FakeProfileRepository();
+        await pumpApp(
+          tester,
+          language: lang,
+          signedIn: false,
+          profiles: profiles,
+          spaces: _spaces(),
+        );
+        await _keepInvite(tester, 'C41R0X');
+        await _signIn(tester, fromWelcome: false);
+        expect(find.text(l10n.obJoining('Cairo Tower')), findsOneWidget);
+        await _name(tester);
+        await _tap(tester, 'work-tile-foreman');
+        await _tap(tester, 'work-continue');
+        // The Space's market, not the phone's (Kuwait).
+        expect(profiles.lastSaved!.homeMarketId, 'eg');
+      });
+
+      testWidgets('Q1: a code that doesn\'t work says so on OB4, with '
+          'Change code · Skip; Skip goes on to step 3', (tester) async {
+        final app = await pumpApp(
+          tester,
+          language: lang,
+          signedIn: false,
+          spaces: _spaces(),
+        );
+        await _keepInvite(tester, 'ZZZZZZ');
+        await _signIn(tester, fromWelcome: false);
+        expect(find.text(l10n.obInviteFailed), findsOneWidget);
+        expect(_key('invite-change'), findsOneWidget);
+        await _tap(tester, 'invite-skip');
+        expect(find.text(l10n.obInviteFailed), findsNothing);
+        await _name(tester);
+        await _tap(tester, 'work-tile-foreman');
+        await _tap(tester, 'work-continue');
+        expect(app.spaces.requests, isEmpty);
+        expect(find.text(l10n.obSpaceTitle), findsOneWidget);
+      });
+
+      testWidgets('Q1: Change code: another code, and it says which Space', (
+        tester,
+      ) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          signedIn: false,
+          spaces: _spaces(),
+        );
+        await _keepInvite(tester, 'ZZZZZZ');
+        await _signIn(tester, fromWelcome: false);
+        await _tap(tester, 'invite-change');
+        await tester.enterText(_key('code-input'), 'K7Q4MD');
+        await tester.pumpAndSettle();
+        await _tap(tester, 'invite-continue');
+        expect(find.text(l10n.obInviteFailed), findsNothing);
+        expect(find.text(l10n.obJoining(_tower)), findsOneWidget);
+      });
+
+      testWidgets('Q2: no signal for the request: the code stays, it says '
+          'why, and Continue tries again', (tester) async {
+        final spaces = _spaces()..joinFailure = SpaceFailure.network;
+        await pumpApp(tester, language: lang, signedIn: false, spaces: spaces);
+        await _keepInvite(tester, 'K7Q4MD');
+        await _signIn(tester, fromWelcome: false);
+        await _name(tester);
+        await _tap(tester, 'work-tile-foreman');
+        await _tap(tester, 'work-continue');
+        expect(spaces.requests, isEmpty);
+        expect(_key('work-error'), findsOneWidget);
+        expect(find.text(l10n.obWorkTitle), findsOneWidget);
+        await _tap(tester, 'work-continue');
+        expect(spaces.requests.single.spaceId, 'space-kct');
+        expect(find.text(l10n.spacesRequestSent), findsOneWidget);
+      });
+
+      testWidgets('Q3: a market the server refuses: the first live market '
+          'is saved, never a dead end', (tester) async {
+        final profiles = FakeProfileRepository()..refusedMarkets.add('eg');
+        await pumpApp(
+          tester,
+          language: lang,
+          signedIn: false,
+          profiles: profiles,
+          spaces: _spaces(),
+        );
+        await _keepInvite(tester, 'C41R0X');
+        await _signIn(tester, fromWelcome: false);
+        await _name(tester);
+        await _tap(tester, 'work-tile-foreman');
+        await _tap(tester, 'work-continue');
+        expect(profiles.lastSaved!.homeMarketId, 'kw');
+        expect(_key('nav-home'), findsOneWidget);
+      });
+    });
+
+    group('the lead\'s check Q5: the old routes, once onboarded [$lang]', () {
+      for (final (from, toEdit) in [
+        ('/onboarding', false),
+        ('/onboarding/about', false),
+        ('/onboarding/people', false),
+        ('/onboarding/name', true),
+        ('/onboarding/work', true),
+      ]) {
+        testWidgets('$from goes ${toEdit ? 'to Edit profile' : 'Home'}', (
+          tester,
+        ) async {
+          await pumpApp(tester, language: lang);
+          GoRouter.of(tester.element(find.byType(Navigator).first)).go(from);
+          await tester.pumpAndSettle();
+          expect(
+            find.byType(BasicsScreen),
+            toEdit ? findsOneWidget : findsNothing,
+          );
+          if (!toEdit) expect(_key('nav-home'), findsOneWidget);
+        });
+      }
     });
 
     group('an invite [$lang]', () {

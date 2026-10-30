@@ -30,6 +30,7 @@ Future<TestApp> _open(
   String lang, {
   List<DaybookCard> posts = const [],
   Set<FirstRunTip> seen = const {},
+  SpaceDetail? detail,
 }) async {
   final s = DaybookSamples(lang);
   final app = await pumpApp(
@@ -40,10 +41,8 @@ Future<TestApp> _open(
       phone: '+96550000001',
     ),
     spaces: FakeSpaceRepository()
-      ..details[DaybookSamples.space] = s.detail(
-        pass: SpacePass.crew,
-        admin: false,
-      )
+      ..details[DaybookSamples.space] =
+          detail ?? s.detail(pass: SpacePass.crew, admin: false)
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = posts,
     tips: FakeTipsRepository(seen: Set.of(seen)),
@@ -139,9 +138,7 @@ void main() {
     });
 
     testWidgets('with no card to hold and nothing given to me, only the '
-        'camera; Sign as done waits for my first item [$lang]', (
-      tester,
-    ) async {
+        'camera; Sign as done waits for my first item [$lang]', (tester) async {
       final app = await _open(tester, lang);
       expect(find.text(l10n.obTipCamera), findsOneWidget);
       await _tap(tester, 'tip-next');
@@ -149,18 +146,48 @@ void main() {
       expect(app.tips.marked, [FirstRunTip.camera]);
     });
 
-    testWidgets('the first item given to me: Sign as done, on its own [$lang]', (
-      tester,
-    ) async {
+    testWidgets('the lead\'s check Q4: a Viewer can\'t hold a card or post: '
+        'no tip [$lang]', (tester) async {
       await _open(
         tester,
         lang,
-        posts: [mine()],
-        seen: {FirstRunTip.camera, FirstRunTip.hold},
+        posts: [theirs()],
+        detail: s.detail(pass: SpacePass.viewer, admin: false),
+      );
+      expect(_key('tip-card'), findsNothing);
+    });
+
+    testWidgets('Q4: the count is the tips this person will see: Crew who '
+        'may sign but not post gets "Tip 1 of 1" [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        posts: [theirs(), mine()],
+        detail: SpaceDetail(
+          id: DaybookSamples.space,
+          name: s.spaceName,
+          myPass: SpacePass.crew,
+          iAmAdmin: false,
+          myRights: const MemberRights(markDone: true),
+        ),
       );
       expect(find.text(l10n.obTipSignDone), findsOneWidget);
-      expect(find.text(l10n.obTipOf(3, 3)), findsOneWidget);
-      _spotlightOn(tester, find.text(l10n.daybookSignAsDone));
+      expect(find.text(l10n.obTipOf(1, 1)), findsOneWidget);
     });
+
+    testWidgets(
+      'the first item given to me: Sign as done, on its own [$lang]',
+      (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [mine()],
+          seen: {FirstRunTip.camera, FirstRunTip.hold},
+        );
+        expect(find.text(l10n.obTipSignDone), findsOneWidget);
+        expect(find.text(l10n.obTipOf(3, 3)), findsOneWidget);
+        _spotlightOn(tester, find.text(l10n.daybookSignAsDone));
+      },
+    );
   }
 }

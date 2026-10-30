@@ -108,18 +108,17 @@ void main() {
       (AppGate.onboarding, AppRoutes.joinCode, AppRoutes.onboardingName),
       (AppGate.onboarding, AppRoutes.onboardingWork, null),
       (AppGate.onboarding, AppRoutes.onboardingRole, null),
-      (
-        AppGate.onboarding,
-        AppRoutes.onboardingSpace,
-        AppRoutes.onboardingName,
-      ),
+      (AppGate.onboarding, AppRoutes.onboardingSpace, AppRoutes.onboardingName),
       (AppGate.ready, AppRoutes.welcome, AppRoutes.home),
       (AppGate.ready, AppRoutes.loading, AppRoutes.home),
-      // With a name and a work: your Space, and your work while it moves
-      // on; your name sends Home.
+      // With a name and a work: your Space; your name and your work are
+      // Edit profile's now; the old steps go Home (the lead's check Q5).
       (AppGate.ready, AppRoutes.onboardingSpace, null),
-      (AppGate.ready, AppRoutes.onboardingWork, null),
-      (AppGate.ready, AppRoutes.onboardingName, AppRoutes.home),
+      (AppGate.ready, AppRoutes.onboardingWork, AppRoutes.profileEditBasics),
+      (AppGate.ready, AppRoutes.onboardingName, AppRoutes.profileEditBasics),
+      (AppGate.ready, AppRoutes.onboarding, AppRoutes.home),
+      (AppGate.ready, '/onboarding/about', AppRoutes.home),
+      (AppGate.ready, '/onboarding/people', AppRoutes.home),
       (AppGate.ready, AppRoutes.onboardingRole, null),
       (AppGate.ready, AppRoutes.profile, null),
       (AppGate.profileError, AppRoutes.home, AppRoutes.loading),
@@ -129,6 +128,16 @@ void main() {
         expect(redirectForGate(gate, from), to);
       });
     }
+    test('your work stays while it moves on after its save (Q5)', () {
+      expect(
+        redirectForGate(
+          AppGate.ready,
+          AppRoutes.onboardingWork,
+          finishing: true,
+        ),
+        isNull,
+      );
+    });
   });
 
   test('fixtures: Kuwait is live, Egypt is coming soon', () {

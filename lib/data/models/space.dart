@@ -123,17 +123,23 @@ class InvitePreview {
     required this.spaceName,
     required this.expiresAt,
     this.invitedByName,
+    this.marketId,
   });
 
   factory InvitePreview.fromJson(Map<String, dynamic> json) => InvitePreview(
     spaceName: json['space_name'] as String,
     invitedByName: json['invited_by_name'] as String?,
     expiresAt: DateTime.parse(json['expires_at'] as String),
+    marketId: json['market_id'] as String?,
   );
 
   final String spaceName;
   final String? invitedByName;
   final DateTime expiresAt;
+
+  /// The Space's market (its project's), null without a project: an
+  /// invited person's home market (review 107 Q1).
+  final String? marketId;
 }
 
 /// The answer to request_join(). A wrong code is an answer, not an error.

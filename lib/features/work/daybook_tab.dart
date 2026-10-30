@@ -1808,8 +1808,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ),
       ),
     );
-    // Review 107 OB7: the first-run tips, over Work.
-    return FirstRunTips(child: work);
+    // Review 107 OB7: the first-run tips, over Work: the camera and holding
+    // a card for who may post, Sign as done for who may sign (Q4).
+    final rights = space.myRights;
+    return FirstRunTips(
+      tips: [
+        if (rights.createItems) ...[FirstRunTip.camera, FirstRunTip.hold],
+        if (rights.markDone) FirstRunTip.signDone,
+      ],
+      child: work,
+    );
   }
 
   /// The bottom bar while cards are held (SP6): Share (from 105B) ·
@@ -3122,7 +3130,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           // The card a row or a push opened (F20). Review 107 OB7: "Hold a
           // card to share or delete it" points at it.
           child: BvTipAnchor(
-            id: FirstRunTip.hold,
+            // Only for who can hold a card (Q4).
+            id: widget.space.myRights.createItems ? FirstRunTip.hold : null,
             child: BvHighlight(
               flash: _highlighted == c.id ? _flashes : null,
               // A post not on the server yet has nothing to do on it.

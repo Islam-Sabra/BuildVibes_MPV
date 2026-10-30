@@ -8527,5 +8527,26 @@
   "obTipNext": "Next",
   "@obTipNext": {
     "description": "Review 107 OB7: the next tip, or done after the last."
+  },
+  "obJoining": "Joining {space}",
+  "@obJoining": {
+    "description": "Review 107 Q1: under OB4's title, the Space the kept invite code opens.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "obInviteFailed": "This code didn't work. Check it or skip.",
+  "@obInviteFailed": {
+    "description": "Review 107 Q1: on OB4, a kept invite code that is wrong, expired or refused."
+  },
+  "obChangeCode": "Change code",
+  "@obChangeCode": {
+    "description": "Review 107 Q1: type another invite code."
+  },
+  "obSkip": "Skip",
+  "@obSkip": {
+    "description": "Review 107 Q1: go on without the invite code."
   }
 }

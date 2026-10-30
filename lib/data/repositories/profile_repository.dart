@@ -28,6 +28,13 @@ abstract class ProfileRepository {
   Future<void> unfollow(String userId, String otherId);
 }
 
+/// saveAboutYou with a home market the server's rule doesn't allow yet
+/// (check_home_market_live): onboarding then saves the first live market,
+/// which can be changed later in Profile (review 107 Q3).
+class HomeMarketRefused implements Exception {
+  const HomeMarketRefused();
+}
+
 class SupabaseProfileRepository implements ProfileRepository {
   const SupabaseProfileRepository(this._client);
 
@@ -57,10 +64,16 @@ class SupabaseProfileRepository implements ProfileRepository {
 
   @override
   Future<void> saveAboutYou(String userId, AboutYouInput input) async {
-    await _client
-        .from('profiles')
-        .update(input.toProfileUpdate())
-        .eq('id', userId);
+    try {
+      await _client
+          .from('profiles')
+          .update(input.toProfileUpdate())
+          .eq('id', userId);
+    } on PostgrestException catch (e) {
+      // check_home_market_live: a market not open, without an invite.
+      if (e.code == '23514') throw const HomeMarketRefused();
+      rethrow;
+    }
     final mobile = input.mobileE164;
     if (mobile != null && mobile.isNotEmpty) {
       await _client

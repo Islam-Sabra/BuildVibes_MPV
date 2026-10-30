@@ -29,6 +29,7 @@ import '../../features/explore/explore_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/onboarding/join_space_screen.dart';
 import '../../features/onboarding/name_screen.dart';
+import '../../features/onboarding/onboarding_state.dart';
 import '../../features/onboarding/work_screen.dart';
 import '../../features/onboarding/role_picker_screen.dart';
 import '../../data/models/profile.dart';
@@ -74,8 +75,13 @@ import 'app_routes.dart';
 export 'app_routes.dart';
 
 /// Where [gate] allows the app to be. Returns the path to go to instead of
-/// [location], or null when [location] is fine.
-String? redirectForGate(AppGate gate, String location) {
+/// [location], or null when [location] is fine. [finishing]: your work
+/// (OB5) is saving and moving on (review 107 Q5).
+String? redirectForGate(
+  AppGate gate,
+  String location, {
+  bool finishing = false,
+}) {
   bool under(String path) => location == path || location.startsWith('$path/');
   final inEntry = under(AppRoutes.welcome) || under(AppRoutes.join);
   final inOnboarding = under(AppRoutes.onboarding);
@@ -111,11 +117,20 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.onboardingRole)
           ? null
           : AppRoutes.onboardingName,
-    // With a name and a work: your Space (OB6), and the role picker (used
-    // by Edit profile) stay open. Your work stays while it moves on after
-    // its save; your name sends Home.
+    // With a name and a work: your Space (OB6) and the role picker (used
+    // by Edit profile) stay open. Your name and your work are Edit
+    // profile's now (your work stays while it moves on after its save);
+    // the old steps go Home (the lead's check Q5).
     AppGate.ready =>
-      inEntry || atLoading || atScheduled || under(AppRoutes.onboardingName)
+      under(AppRoutes.onboardingName) ||
+              (under(AppRoutes.onboardingWork) && !finishing)
+          ? AppRoutes.profileEditBasics
+          : inEntry ||
+                atLoading ||
+                atScheduled ||
+                location == AppRoutes.onboarding ||
+                under('${AppRoutes.onboarding}/about') ||
+                under('${AppRoutes.onboarding}/people')
           ? AppRoutes.home
           : null,
   };
@@ -160,7 +175,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.loading,
     refreshListenable: gate,
     redirect: (context, state) =>
-        redirectForGate(gate.value, state.matchedLocation),
+        // The full path: an old step has no route of its own (Q5).
+        redirectForGate(
+          gate.value,
+          state.uri.path,
+          finishing: ref.read(onboardingFinishingProvider),
+        ),
     routes: [
       _Screen(
         path: AppRoutes.loading,

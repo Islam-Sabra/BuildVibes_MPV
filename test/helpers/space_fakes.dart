@@ -7,11 +7,15 @@ class FakeInvite {
     required this.spaceId,
     required this.spaceName,
     this.invitedBy,
+    this.marketId,
   });
 
   final String spaceId;
   final String spaceName;
   final String? invitedBy;
+
+  /// The Space's market: its project's (review 107 Q1).
+  final String? marketId;
 }
 
 /// Spaces with no network. Codes in [invites] are valid; anything else is
@@ -30,6 +34,9 @@ class FakeSpaceRepository implements SpaceRepository {
 
   /// Overrides what request_join answers ("declined", "too many tries").
   JoinStatus? joinStatus;
+
+  /// The next request_join fails this way, once (review 107 Q2).
+  SpaceFailure? joinFailure;
   SpaceFailure? createFailure;
 
   static const newSpaceId = 'space-new';
@@ -55,11 +62,16 @@ class FakeSpaceRepository implements SpaceRepository {
             spaceName: invite.spaceName,
             invitedByName: invite.invitedBy,
             expiresAt: now.add(const Duration(days: 7)),
+            marketId: invite.marketId,
           );
   }
 
   @override
   Future<JoinResult> requestJoin(String code) async {
+    if (joinFailure case final failure?) {
+      joinFailure = null;
+      throw SpaceException(failure);
+    }
     final invite = invites[normalizeInviteCode(code)];
     final forced = joinStatus;
     if (forced != null) {

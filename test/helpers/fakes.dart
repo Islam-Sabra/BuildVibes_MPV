@@ -284,6 +284,10 @@ class FakeProfileRepository implements ProfileRepository {
   /// Holds saveAboutYou until it completes ("Saving…", review 107).
   Future<void>? saveGate;
 
+  /// Home markets the server refuses (check_home_market_live, review 107
+  /// Q3).
+  final refusedMarkets = <String>{};
+
   /// How long fetchMine takes, like a real network call.
   Duration fetchDelay = Duration.zero;
 
@@ -301,6 +305,9 @@ class FakeProfileRepository implements ProfileRepository {
   @override
   Future<void> saveAboutYou(String userId, AboutYouInput input) async {
     await saveGate;
+    if (refusedMarkets.contains(input.homeMarketId)) {
+      throw const HomeMarketRefused();
+    }
     lastSaved = input;
     final company = companies.where((c) => c.id == input.companyId).firstOrNull;
     profiles[userId] = MyProfile(

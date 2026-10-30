@@ -5977,4 +5977,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obTipNext => 'Next';
+
+  @override
+  String obJoining(String space) {
+    return 'Joining $space';
+  }
+
+  @override
+  String get obInviteFailed => 'This code didn\'t work. Check it or skip.';
+
+  @override
+  String get obChangeCode => 'Change code';
+
+  @override
+  String get obSkip => 'Skip';
 }
