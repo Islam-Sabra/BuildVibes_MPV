@@ -137,3 +137,5 @@ The founder will review these after he has finished testing the Space and the no
 4. **Profile and settings:** the profile as proof from work; settings kept minimal (rule 7).
 5. **Explore:** people search only in the MVP, filled with suggested people (projects, companies, trades) and recent searches.
 6. **Moving between screens:** one motion system across the whole app.
+
+- **Invite links** (deep links that fill the invite code; review 107): after the polish queue, before the pilot. Until then people type the code.
