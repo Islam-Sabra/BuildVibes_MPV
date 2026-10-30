@@ -2,6 +2,47 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 30 Oct 2026 — review 107, the lead's check (Q1–Q6) and the shots, on `claude/r107`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r107` (worktree `BuildVibes-r107`), pushed. Nothing merged, no database push, no build, no goldens updated.
+- **Migration 20261116120000 (not live), edited in place:**
+  - **Q1:** `invite_preview` also returns the Space's market (its project's; null without one). It is dropped and made again with the same grants.
+  - **Q6:** Carpenter and Mason are popular in Kuwait and Egypt, so OB5 shows nine. Egypt's two are marked for review.
+  - pgTAP 55 has 27 checks. In 03, Kuwait's count of popular trades is now nine.
+- **The app (test first, in EN and AR):**
+  - **Q1:** a kept invite code is looked up right after sign-in.
+    - OB4 says "Joining {Space}" («الانضمام إلى …»), and the Space's market is home.
+    - A code that doesn't work says so on OB4 ("This code didn't work. Check it or skip."), with Change code · Skip. Skip keeps an empty code.
+  - **Q2:** the code is kept until the request has gone.
+    - With no signal, OB5 stays open with the reason, and Continue tries the request again; the profile isn't saved twice.
+    - The profile is read again only once the request has gone. Before, a failed request after a new account's save fell through the loading gate to Home.
+    - A code that stops working after OB4 goes to OB6 and says why.
+  - **Q3:** a market the server refuses (`check_home_market_live`, now `HomeMarketRefused`) saves the first live market instead, which can be changed later in Profile.
+  - **Q4:** Work passes the tips this person will see: the camera and hold for who may post, Sign as done for who may sign.
+    - The count is out of those ("Tip 1 of 1").
+    - The hold anchor is only on cards that can be held.
+  - **Q5:** once onboarded, `/onboarding`, `/onboarding/about` and `/onboarding/people` go Home, and your name and your work go to Edit profile (Basics).
+    - Your work stays open while it moves on after its save (`onboardingFinishingProvider`).
+    - The router reads the full path, so old steps with no route still redirect.
+  - The invite code sheet moved to `entry/widgets/invite_code_sheet.dart`, for OB1 and OB4.
+- **Fixes from the shots:**
+  - the fourth role card fits OB1's stage;
+  - the Architect tile is the plain soft tint;
+  - a spotlight keeps a card's corners and hugs Sign as done (`BvSlipPill.action` takes the tip's anchor).
+- **Checks (PC):**
+  - `supabase db reset --local`, then `supabase test db`: 3,295 checks in 54 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,876 pass.
+  - `flutter test test_screens`, not updating: 480 pass, none changed; 20 fail, the new shots with no golden.
+- **Shots:** `test_screens/r107_test.dart`: OB1, OB2, OB3 (Checking…), OB4, OB4b (Joining …), OB5 (nine trades), OB6, and OB7 once per tip, in EN and AR. They are in `docs/reviews/shots-107/` with a README.
+- **Later, in the plan:** invite links (deep links that fill the code).
+- **Next:**
+  - the lead's check of the shots;
+  - with the founder's yes: the goldens, the merge into `slice2-app`, migration 20261116120000 live, and a build.
+- **Who has which branch:** PC has `claude/r107` (worktree `BuildVibes-r107`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 30 Oct 2026 — review 107 (onboarding v2, OB1–OB7) on `claude/r107`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
