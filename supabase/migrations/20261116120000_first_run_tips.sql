@@ -7,6 +7,8 @@
 --   again on another.
 -- - The owner reads their own rows through the policy. Nobody writes the
 --   table directly: mark_tip_seen(p_tip) adds the caller's own row, once.
+-- - Q1 (the lead's check): invite_preview also gives the Space's market.
+-- - Q6: nine popular trades in each market pack (Carpenter, Mason).
 -- - Onboarding needs no change here: E9 saved through an RLS update of
 --   profiles, and the fields that left the flow (company, country, mobile)
 --   were already optional or are filled without asking.
@@ -50,3 +52,66 @@ $$;
 
 revoke all on function public.mark_tip_seen(text) from public, anon;
 grant execute on function public.mark_tip_seen(text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- The lead's check of r107, Q1: an invite's market, right after sign-in
+-- ---------------------------------------------------------------------------
+
+-- As in 20261013130000_account.sql, with the Space's market: its
+-- project's (as space_time_zone), else null. Onboarding takes it as the
+-- home market of someone who came with the code. The return type changes,
+-- so it is dropped and made again with the same grants.
+drop function public.invite_preview(text);
+
+create function public.invite_preview(p_code text)
+returns table (space_name text, invited_by_name text, expires_at timestamptz,
+               market_id text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_invite public.space_invites;
+begin
+  if auth.uid() is null then
+    raise exception 'sign in first' using errcode = '42501';
+  end if;
+  if public.too_many_code_tries() then
+    return;
+  end if;
+  v_invite := public.live_invite(p_code);
+  if v_invite.id is null then
+    insert into public.space_code_attempts (profile_id) values (auth.uid());
+    return;
+  end if;
+  return query
+  select s.name,
+         case when public.is_hidden_account(v_invite.created_by) then null
+              else nullif(trim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '')
+         end,
+         v_invite.expires_at,
+         pr.market_id
+  from public.spaces s
+  left join public.profiles p on p.id = v_invite.created_by
+  left join public.projects pr on pr.id = s.project_id
+  where s.id = v_invite.space_id;
+end;
+$$;
+
+revoke all on function public.invite_preview(text) from public, anon;
+grant execute on function public.invite_preview(text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Q6: nine trades on OB5
+-- ---------------------------------------------------------------------------
+
+-- The welcome's "What's your work?" shows nine tiles: the market's popular
+-- trades. Seven were listed (20261011130000_entry_onboarding.sql);
+-- Carpenter and Mason follow. Egypt's list still needs a local's review.
+update public.market_trades as mt
+set popular_sort = p.sort
+from (values ('carpenter', 8), ('mason', 9)) as p(trade_id, sort)
+where mt.trade_id = p.trade_id and mt.market_id in ('kw', 'eg');
+update public.market_trades
+set needs_review = true
+where market_id = 'eg' and trade_id in ('carpenter', 'mason');

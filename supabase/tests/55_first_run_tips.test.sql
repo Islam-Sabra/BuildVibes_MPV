@@ -1,13 +1,16 @@
 -- Migration 20261116120000 (review 107 OB7): the first-run tips each
 -- account has seen. profile_tips_seen is the owner's own: read through its
 -- policy, written only by mark_tip_seen. Another user can neither read nor
--- write it. Run with: supabase test db
+-- write it. The lead's check of r107: Q1 invite_preview also gives the
+-- Space's market (its project's), so the invite's market is the home
+-- market; Q6 nine popular trades in each market pack. Run with:
+-- supabase test db
 --
 -- Omar (a1) sees the tips; Rakesh (b2) is someone else.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(27);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000055' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -83,6 +86,44 @@ set local role anon;
 select throws_ok($$select public.mark_tip_seen('camera')$$, '42501', null,
   'signed out: can''t mark a tip');
 reset role;
+
+-- Q1: the invite's market ------------------------------------------------------------------------
+
+select pg_temp.as_user('a1');
+set local role authenticated;
+select set_config('test.space', public.create_space('Tower B')::text, true);
+select set_config('test.code',
+  (select code from public.current_invite(current_setting('test.space')::uuid)), true);
+reset role;
+select pg_temp.as_user('b2');
+set local role authenticated;
+select is((select space_name from public.invite_preview(current_setting('test.code'))), 'Tower B',
+  'the code opens Tower B');
+select is((select market_id from public.invite_preview(current_setting('test.code'))), null,
+  'a Space with no project: no market');
+reset role;
+insert into public.projects (id, name, type_id, market_id)
+values ('00000000-0000-0000-0000-000000550001', 'Tower B',
+        (select id from public.project_types limit 1), 'eg');
+update public.spaces set project_id = '00000000-0000-0000-0000-000000550001'
+where id = current_setting('test.space')::uuid;
+select pg_temp.as_user('b2');
+set local role authenticated;
+select is((select market_id from public.invite_preview(current_setting('test.code'))), 'eg',
+  'with a project: its market');
+reset role;
+
+-- Q6: nine trades on OB5 ---------------------------------------------------------------------------
+
+select is((select count(*) from public.market_trades
+           where market_id = 'kw' and popular_sort is not null)::integer,
+  9, 'Kuwait has nine popular trades');
+select is((select count(*) from public.market_trades
+           where market_id = 'eg' and popular_sort is not null)::integer,
+  9, 'Egypt too');
+select is((select array_agg(trade_id order by popular_sort) from public.market_trades
+           where market_id = 'kw' and popular_sort > 7),
+  array['carpenter', 'mason'], 'Carpenter and Mason after the seven');
 
 -- The function -------------------------------------------------------------------------------------
 
