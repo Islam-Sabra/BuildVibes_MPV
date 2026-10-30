@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../shared/widgets/bv_tip.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../../core/design/daybook_page_specs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -946,13 +945,11 @@ class DaybookCardView extends StatelessWidget {
     return switch (card.need) {
       // Review 107 OB7: the third tip points here, the first time an item
       // is given to me.
-      DaybookNeed.toSign when signDone != null => BvTipAnchor(
-        id: FirstRunTip.signDone,
-        child: BvSlipPill.action(
-          label: l10n.daybookSignAsDone,
-          icon: BvIcons.camera,
-          onTap: signDone,
-        ),
+      DaybookNeed.toSign when signDone != null => BvSlipPill.action(
+        label: l10n.daybookSignAsDone,
+        icon: BvIcons.camera,
+        onTap: signDone,
+        tipAnchor: FirstRunTip.signDone,
       ),
       // Checking locks the item: held, never a tap (review 94).
       DaybookNeed.toCheck when check != null => BvHoldButton(

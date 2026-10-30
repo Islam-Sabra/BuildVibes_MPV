@@ -242,7 +242,11 @@ class _Spotlight extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final radius = Radius.circular(hole.shortestSide / 2);
+    // Round for a button; a card keeps its own corners.
+    final round = hole.longestSide < hole.shortestSide * 1.5;
+    final radius = Radius.circular(
+      round ? hole.shortestSide / 2 : BvRadius.card + BvEntrySpec.spotlightGap,
+    );
     final cut = RRect.fromRectAndRadius(hole, radius);
     canvas.drawPath(
       Path.combine(

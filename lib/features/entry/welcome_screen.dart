@@ -198,7 +198,7 @@ class _RoleCards extends StatelessWidget {
     final cards = [
       (
         BvIcons.ruler,
-        BvColors.surfaceSelected,
+        BvAvatarTints.plain,
         l10n.obCardArchitect,
         l10n.obCardArchitectWork,
       ),

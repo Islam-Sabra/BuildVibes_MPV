@@ -257,7 +257,7 @@ abstract final class BvEntrySpec {
   static const languagePaddingHorizontal = BvSpace.s12;
 
   /// The stage the four role cards lie on.
-  static const cardsHeight = 248.0;
+  static const cardsHeight = 268.0;
   static const roleCardPadding = BvSpace.s12;
   static const roleIconTile = BvSize.avatarSm; // 32
 
