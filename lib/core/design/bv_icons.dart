@@ -170,6 +170,10 @@ abstract final class BvIcons {
   // of the bundled font.
   static const useful = IconData(0xe606, fontFamily: _family);
 
+  /// The same seal-check for work that was checked (OB1's site engineer
+  /// card, review 107).
+  static const workChecked = useful;
+
   // Phosphor: translate (the post language line, L5)
   static const postLanguage = IconData(0xe4a2, fontFamily: _family);
 
@@ -392,4 +396,58 @@ abstract final class BvIcons {
   // list-numbers).
   static const timeClock = scheduled;
   static const timeWheels = IconData(0xe2f6, fontFamily: _family);
+
+  // Review 107 OB5: a trade's tile, by its market-pack id. Code points from
+  // PhosphorIconsRegular in phosphor_flutter 2.1.0.
+  // Phosphor: lightning
+  static const lightning = IconData(0xe2de, fontFamily: _family);
+  // Phosphor: drop
+  static const drop = IconData(0xe210, fontFamily: _family);
+  // Phosphor: hash
+  static const hash = IconData(0xe2a2, fontFamily: _family);
+  // Phosphor: wall
+  static const wall = IconData(0xe688, fontFamily: _family);
+  // Phosphor: paint-roller
+  static const paintRoller = IconData(0xe6f4, fontFamily: _family);
+  // Phosphor: grid-four
+  static const gridFour = IconData(0xe296, fontFamily: _family);
+  // Phosphor: fire
+  static const fire = IconData(0xe242, fontFamily: _family);
+  // Phosphor: fan
+  static const fan = IconData(0xe9f2, fontFamily: _family);
+  // Phosphor: bulldozer
+  static const bulldozer = IconData(0xec6c, fontFamily: _family);
+  // Phosphor: pencil-ruler
+  static const pencilRuler = IconData(0xe906, fontFamily: _family);
+  // Phosphor: calculator
+  static const calculator = IconData(0xe538, fontFamily: _family);
+  // Phosphor: shield-check
+  static const shieldCheck = IconData(0xe40c, fontFamily: _family);
+
+  /// A trade's tile (OB5), by the market pack's trade id; a trade the app
+  /// doesn't know yet shows the hard hat.
+  static IconData forTrade(String id) => switch (id) {
+    'site_engineer' || 'design_engineer' => company,
+    'architect' => ruler,
+    'bim_specialist' => cube,
+    'mep_engineer' => fan,
+    'quantity_surveyor' => calculator,
+    'project_manager' => briefcase,
+    'site_manager' => clipboard,
+    'site_supervisor' => crane,
+    'foreman' => team,
+    'safety_officer' => shieldCheck,
+    'electrician' => lightning,
+    'plumber' => drop,
+    'steel_fixer' => hash,
+    'carpenter' => hammer,
+    'mason' => wall,
+    'tiler' => gridFour,
+    'painter' => paintRoller,
+    'welder' => fire,
+    'hvac_technician' => fan,
+    'equipment_operator' => bulldozer,
+    'supplier' => truck,
+    _ => trade,
+  };
 }

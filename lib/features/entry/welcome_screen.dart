@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,64 +8,107 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
+import '../../core/l10n/locale_controller.dart';
 import '../../core/routing/app_routes.dart';
-import '../../data/models/market.dart';
-import '../../data/repositories/market_repository.dart';
+import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_code_field.dart';
+import '../../shared/widgets/bv_sheet.dart';
+import '../spaces/code_sheet.dart' show InviteCodeFormatter, inviteCodeLength;
 import 'entry_state.dart';
-import 'widgets/entry_hero.dart';
 
-/// The live market to name on the entry screens: the phone's region when it
-/// is a live market, otherwise the first live market. Null when offline.
-Market? entryMarket(WidgetRef ref) {
-  final markets = ref.watch(marketsProvider).value ?? const <Market>[];
-  final region = ref.watch(deviceRegionProvider)?.toLowerCase();
-  final live = liveMarkets(markets);
-  return live.where((m) => m.id == region).firstOrNull ?? live.firstOrNull;
-}
-
-/// E1 · Welcome.
+/// OB1 · Welcome (review 107, 2698:38995): one screen. The language at the
+/// top; the whole industry (four role cards, each with a real piece of
+/// work); one line; then Continue with email, I have an invite code, and
+/// Just looking. Signing in and creating an account are the same email
+/// code.
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
+
+  Future<void> _invite(BuildContext context, WidgetRef ref) async {
+    final code = await showBvSheet<String>(
+      context: context,
+      title: AppLocalizations.of(context).obInviteTitle,
+      builder: (sheet) => const _InviteSheet(),
+    );
+    if (code == null || !context.mounted) return;
+    ref.read(inviteCodeProvider.notifier).set(code);
+    unawaited(context.push(AppRoutes.joinEmail));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final country = entryMarket(ref)?.name.of(Localizations.localeOf(context));
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
+    final invite = ref.watch(inviteCodeProvider);
 
     return Scaffold(
-      body: Column(
-        children: [
-          EntryHero(countryName: country),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: BvSpace.gutter,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    l10n.entryWelcomeTitle,
-                    textAlign: TextAlign.center,
-                    style: type.titleLg,
-                  ),
-                  const SizedBox(height: BvSpace.s6),
-                  Text(
-                    l10n.entryWelcomeBody,
-                    textAlign: TextAlign.center,
-                    style: type.bodyMd.copyWith(color: BvColors.textSecondary),
-                  ),
-                  const SizedBox(height: BvSpace.s16),
-                  _AudienceCard(countryName: country),
-                ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  BvSpace.gutter,
+                  BvSpace.s8,
+                  BvSpace.gutter,
+                  0,
+                ),
+                child: _LanguageButton(
+                  label: arabic ? l10n.languageEnglish : l10n.languageArabic,
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .set(Locale(arabic ? 'en' : 'ar')),
+                ),
               ),
             ),
-          ),
-          SafeArea(
-            top: false,
-            child: Padding(
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: BvSpace.gutter,
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: BvSpace.s24),
+                    const _RoleCards(),
+                    const SizedBox(height: BvSpace.s24),
+                    Text(
+                      l10n.appTitle,
+                      style: type.labelLg.copyWith(color: BvColors.textAction),
+                    ),
+                    const SizedBox(height: BvSpace.s8),
+                    Text(
+                      l10n.obWelcomeTitle,
+                      textAlign: TextAlign.center,
+                      style: type.titleLg,
+                    ),
+                    const SizedBox(height: BvSpace.s8),
+                    Text(
+                      l10n.obWelcomeLine,
+                      textAlign: TextAlign.center,
+                      style: type.bodyMd.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                    if (invite != null) ...[
+                      const SizedBox(height: BvSpace.s12),
+                      Text(
+                        l10n.obInviteKept(ltrRun(invite)),
+                        key: const Key('welcome-invite-kept'),
+                        style: type.labelMd.copyWith(
+                          color: BvColors.textAction,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
                 BvSpace.s12,
@@ -75,21 +119,21 @@ class WelcomeScreen extends ConsumerWidget {
                 spacing: BvSpace.s8,
                 children: [
                   BvButton(
-                    key: const Key('welcome-create'),
-                    label: l10n.entryCreateAccount,
+                    key: const Key('welcome-email'),
+                    label: l10n.entryContinueEmail,
                     expand: true,
-                    onPressed: () => context.push(AppRoutes.join),
+                    onPressed: () => context.push(AppRoutes.joinEmail),
                   ),
                   BvButton(
-                    key: const Key('welcome-sign-in'),
-                    label: l10n.entrySignIn,
+                    key: const Key('welcome-invite'),
+                    label: l10n.obHaveInvite,
                     style: BvButtonStyle.secondary,
                     expand: true,
-                    onPressed: () => context.push(AppRoutes.join),
+                    onPressed: () => unawaited(_invite(context, ref)),
                   ),
                   BvButton(
-                    key: const Key('welcome-skip'),
-                    label: l10n.entrySkipToHome,
+                    key: const Key('welcome-look'),
+                    label: l10n.obJustLooking,
                     style: BvButtonStyle.tertiary,
                     onPressed: () {
                       ref.read(guestModeProvider.notifier).enter();
@@ -99,6 +143,169 @@ class WelcomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The other language, at the top end: "العربية" in English, "English" in
+/// Arabic.
+class _LanguageButton extends StatelessWidget {
+  const _LanguageButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: Material(
+      color: BvColors.surfaceElevated,
+      shape: const StadiumBorder(
+        side: BorderSide(color: BvColors.borderDefault, width: BvStroke.thin),
+      ),
+      child: InkWell(
+        key: const Key('welcome-language'),
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvEntrySpec.languagePaddingHorizontal,
+            vertical: BvEntrySpec.languagePaddingVertical,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvSpace.s6,
+            children: [
+              Text(label, style: BvType.of(context).labelMd),
+              const Icon(
+                BvIcons.language,
+                size: BvSize.iconMd,
+                color: BvColors.iconPrimary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// The whole industry, as four role cards that lie on the stage at a
+/// slight turn, each with a real piece of work.
+class _RoleCards extends StatelessWidget {
+  const _RoleCards();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final cards = [
+      (
+        BvIcons.ruler,
+        BvColors.surfaceSelected,
+        l10n.obCardArchitect,
+        l10n.obCardArchitectWork,
+      ),
+      (
+        BvIcons.calendar,
+        BvAvatarTints.ochre,
+        l10n.obCardProjectManager,
+        l10n.obCardProjectManagerWork,
+      ),
+      (
+        BvIcons.truck,
+        BvAvatarTints.green,
+        l10n.obCardSupplier,
+        l10n.obCardSupplierWork,
+      ),
+      (
+        BvIcons.workChecked,
+        BvAvatarTints.clay,
+        l10n.obCardSiteEngineer,
+        l10n.obCardSiteEngineerWork,
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, box) => SizedBox(
+        height: BvEntrySpec.cardsHeight,
+        child: Stack(
+          children: [
+            for (final (i, (icon, tint, role, work)) in cards.indexed)
+              PositionedDirectional(
+                start: box.maxWidth * BvEntrySpec.roleCards[i].$1,
+                top: BvEntrySpec.roleCards[i].$2,
+                child: Transform.rotate(
+                  // Mirrored in Arabic, as the cards are.
+                  angle:
+                      (rtl ? -1 : 1) *
+                      BvEntrySpec.roleCards[i].$3 *
+                      math.pi /
+                      180,
+                  child: _RoleCard(
+                    icon: icon,
+                    tint: tint,
+                    role: role,
+                    work: work,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleCard extends StatelessWidget {
+  const _RoleCard({
+    required this.icon,
+    required this.tint,
+    required this.role,
+    required this.work,
+  });
+
+  final IconData icon;
+  final Color tint;
+  final String role;
+  final String work;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Container(
+      padding: const EdgeInsetsDirectional.all(BvEntrySpec.roleCardPadding),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvRadius.cardAll,
+        boxShadow: BvShadow.sheet,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s12,
+        children: [
+          Container(
+            width: BvEntrySpec.roleIconTile,
+            height: BvEntrySpec.roleIconTile,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: tint,
+              borderRadius: BvRadius.smallAll,
+            ),
+            child: Icon(icon, size: BvSize.iconSm, color: BvColors.iconPrimary),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                role,
+                style: type.metadata.copyWith(color: BvColors.textSecondary),
+              ),
+              Text(work, style: type.labelLg),
+            ],
           ),
         ],
       ),
@@ -106,206 +313,62 @@ class WelcomeScreen extends ConsumerWidget {
   }
 }
 
-/// The rotating "who it's for" card. It stops rotating when the phone asks
-/// for less motion.
-class _AudienceCard extends StatefulWidget {
-  const _AudienceCard({required this.countryName});
-
-  final String? countryName;
+/// "I have an invite code": the 6 boxes, always left to right, then
+/// Continue. Pops with the code; it goes with sign-up, and the request to
+/// join is sent once the account has a name and a work (OB5).
+class _InviteSheet extends StatefulWidget {
+  const _InviteSheet();
 
   @override
-  State<_AudienceCard> createState() => _AudienceCardState();
+  State<_InviteSheet> createState() => _InviteSheetState();
 }
 
-class _AudienceCardState extends State<_AudienceCard> {
-  static const _icons = [
-    BvIcons.ruler,
-    BvIcons.explore,
-    BvIcons.clipboard,
-    BvIcons.hammer,
-    BvIcons.truck,
-    BvIcons.cube,
-  ];
-
-  final _pages = PageController();
-  Timer? _timer;
-  var _index = 0;
+class _InviteSheetState extends State<_InviteSheet> {
+  final _code = TextEditingController();
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _timer?.cancel();
-    if (!MediaQuery.disableAnimationsOf(context)) {
-      _timer = Timer.periodic(BvEntrySpec.rotateEvery, (_) => _next());
-    }
-  }
-
-  void _next() {
-    if (!_pages.hasClients) return;
-    _pages.animateToPage(
-      (_index + 1) % _icons.length,
-      duration: BvMotion.slow,
-      curve: BvMotion.standard,
-    );
+  void initState() {
+    super.initState();
+    _code.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _pages.dispose();
+    _code.dispose();
     super.dispose();
-  }
-
-  /// The height of the swiping cards: as drawn, or the tallest card's title
-  /// and body at the phone's text size, whichever is taller.
-  double _cardsHeight(
-    BuildContext context,
-    List<(String, String)> cards,
-    double width,
-    BvTypeSet type,
-  ) {
-    final scaler = MediaQuery.textScalerOf(context);
-    final direction = Directionality.of(context);
-    final textWidth = width - BvEntrySpec.audienceIconTile - BvSpace.s16;
-    double measure(String text, TextStyle style) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-      )..layout(maxWidth: textWidth);
-      final h = painter.height;
-      painter.dispose();
-      return h;
-    }
-
-    // The drawn height, unless a card's words need more.
-    var height = BvEntrySpec.audienceIconTile + BvSpace.s32;
-    for (final (title, body) in cards) {
-      final h =
-          measure(title, type.headingMd) +
-          BvSpace.s4 +
-          measure(body, type.bodyMd);
-      if (h > height) height = h;
-    }
-    return height;
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final cards = [
-      (l10n.entryAudience1Title, l10n.entryAudience1Body),
-      (l10n.entryAudience2Title, l10n.entryAudience2Body),
-      (l10n.entryAudience3Title, l10n.entryAudience3Body),
-      (l10n.entryAudience4Title, l10n.entryAudience4Body),
-      (l10n.entryAudience5Title, l10n.entryAudience5Body),
-      (l10n.entryAudience6Title, l10n.entryAudience6Body),
-    ];
-
-    return Container(
-      key: const Key('audience-card'),
-      padding: const EdgeInsetsDirectional.all(BvSpace.s16),
-      decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvRadius.cardAll,
-        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.countryName != null)
-            Row(
-              spacing: BvSpace.s8,
-              children: [
-                const DecoratedBox(
-                  decoration: BoxDecoration(color: BvColors.brandEnergy),
-                  child: SizedBox(
-                    width: BvEntrySpec.accentBarWidth,
-                    height: BvEntrySpec.accentBarHeight,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    l10n.entryBuiltFor(widget.countryName!),
-                    style: type.labelLg,
-                  ),
-                ),
-              ],
-            ),
-          LayoutBuilder(
-            builder: (context, box) => SizedBox(
-              // As tall as the tallest card's words, so a larger phone text
-              // size never cuts them.
-              height: _cardsHeight(context, cards, box.maxWidth, type),
-              child: PageView.builder(
-                controller: _pages,
-                itemCount: cards.length,
-                onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (context, i) => Row(
-                  spacing: BvSpace.s16,
-                  children: [
-                    Container(
-                      width: BvEntrySpec.audienceIconTile,
-                      height: BvEntrySpec.audienceIconTile,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: BvColors.surfaceSubtle,
-                        borderRadius: BvRadius.cardAll,
-                      ),
-                      child: Icon(
-                        _icons[i],
-                        size: BvSize.iconLg,
-                        color: BvColors.iconAction,
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: BvSpace.s4,
-                        children: [
-                          Text(cards[i].$1, style: type.headingMd),
-                          Text(
-                            cards[i].$2,
-                            style: type.bodyMd.copyWith(
-                              color: BvColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Row(
-            spacing: BvSpace.s6,
-            children: [
-              for (var i = 0; i < cards.length; i++)
-                AnimatedContainer(
-                  duration: BvMotion.fast,
-                  width: i == _index
-                      ? BvEntrySpec.dotActiveWidth
-                      : BvEntrySpec.dotSize,
-                  height: BvEntrySpec.dotSize,
-                  decoration: BoxDecoration(
-                    color: i == _index
-                        ? BvColors.brandEnergy
-                        : BvColors.borderDefault,
-                    borderRadius: BvRadius.roundAll,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: BvSpace.s16),
-          Text(
-            l10n.entryBrowseFirstNote,
-            style: type.bodySm.copyWith(color: BvColors.textSecondary),
-          ),
-        ],
-      ),
+    final code = normalizeInviteCode(_code.text);
+    return Column(
+      key: const Key('invite-sheet'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvSpace.s16,
+      children: [
+        Text(
+          l10n.obInviteSub,
+          style: BvType.of(
+            context,
+          ).bodyMd.copyWith(color: BvColors.textSecondary),
+        ),
+        BvCodeField(
+          controller: _code,
+          semanticLabel: l10n.spacesInviteCode,
+          autofocus: true,
+          inputFormatters: const [InviteCodeFormatter()],
+        ),
+        BvButton(
+          key: const Key('invite-continue'),
+          label: l10n.continueLabel,
+          expand: true,
+          onPressed: code.length == inviteCodeLength
+              ? () => Navigator.of(context).pop(code)
+              : null,
+        ),
+      ],
     );
   }
 }

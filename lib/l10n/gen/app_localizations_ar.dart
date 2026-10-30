@@ -6072,4 +6072,130 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'لديك $_temp0 حتى لا يبقى بند بلا مكلّف.';
   }
+
+  @override
+  String get obWelcomeTitle => 'مجتمع قطاع العمارة والهندسة والإنشاء والتشغيل.';
+
+  @override
+  String get obWelcomeLine =>
+      'معماريون ومهندسون ومديرو مشاريع وموردون وفرق مواقع.';
+
+  @override
+  String get obCardArchitect => 'معماري';
+
+  @override
+  String get obCardArchitectWork => 'إصدار A-501 Rev D';
+
+  @override
+  String get obCardProjectManager => 'مدير مشروع';
+
+  @override
+  String get obCardProjectManagerWork => 'البرنامج، الأسبوع 12';
+
+  @override
+  String get obCardSupplier => 'مورّد';
+
+  @override
+  String get obCardSupplierWork => 'تسليم 40 جلبة';
+
+  @override
+  String get obCardSiteEngineer => 'مهندس موقع';
+
+  @override
+  String get obCardSiteEngineerWork => 'تم التحقق من الصب';
+
+  @override
+  String get obHaveInvite => 'لديّ رمز دعوة';
+
+  @override
+  String get obJustLooking => 'أتصفّح فقط';
+
+  @override
+  String get obInviteTitle => 'رمز الدعوة';
+
+  @override
+  String get obInviteSub => 'أدخل الرمز الذي وصلك. تنضم بعد بريدك الإلكتروني.';
+
+  @override
+  String obInviteKept(String code) {
+    return 'رمز الدعوة $code';
+  }
+
+  @override
+  String get obEmailSub => 'نرسل رمزًا من 6 أرقام. بلا كلمة مرور.';
+
+  @override
+  String get obSending => 'جارٍ الإرسال…';
+
+  @override
+  String obCodeSent(String destination) {
+    return 'أرسلنا رمزًا من 6 أرقام إلى $destination';
+  }
+
+  @override
+  String get obChecking => 'جارٍ التحقق…';
+
+  @override
+  String get obTryAnotherWay => 'طريقة أخرى';
+
+  @override
+  String get obNameTitle => 'ما اسمك؟';
+
+  @override
+  String get obNameSub => 'كما يعرفك الناس في العمل.';
+
+  @override
+  String get obWorkTitle => 'ما عملك؟';
+
+  @override
+  String get obWorkSub => 'اختر الأقرب. يمكنك تغييره لاحقًا.';
+
+  @override
+  String get obWorkSearch => 'ابحث في كل المهن';
+
+  @override
+  String get obWorkNotListed => 'غير موجود؟ اكتبه';
+
+  @override
+  String get obWorkOwn => 'عملك بكلماتك';
+
+  @override
+  String get obWorkChoose => 'اختر عملك أو اكتبه.';
+
+  @override
+  String get obSaving => 'جارٍ الحفظ…';
+
+  @override
+  String get obSpaceTitle => 'انضم إلى مساحتك';
+
+  @override
+  String get obSpaceSub => 'أدخل رمز الدعوة الذي وصلك.';
+
+  @override
+  String obSpaceLetsIn(String name) {
+    return 'عمل خاص · $name يقبل الانضمام';
+  }
+
+  @override
+  String get obSkipForNow => 'تخطَّ الآن';
+
+  @override
+  String obTipOf(int n, int total) {
+    return 'نصيحة $n من $total';
+  }
+
+  @override
+  String get obTipCamera => 'اضغط الكاميرا لنشر صورة عملك.';
+
+  @override
+  String get obTipHold => 'اضغط مطوّلًا على البطاقة لمشاركتها أو حذفها.';
+
+  @override
+  String get obTipSignDone => 'وقّع كمنجز عندما ينتهي عملك.';
+
+  @override
+  String get obTipSkip => 'تخطَّ النصائح';
+
+  @override
+  String get obTipNext => 'التالي';
 }

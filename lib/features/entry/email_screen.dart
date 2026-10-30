@@ -10,10 +10,11 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import 'entry_errors.dart';
 import 'entry_state.dart';
-import 'widgets/entry_scaffold.dart';
+import 'widgets/onboarding_scaffold.dart';
 
-/// Email entry: a 6-digit code, never a password. Email sign-ups choose a
-/// live home market during onboarding.
+/// OB2 · Your email (review 107, 2698:39029): one field, then Send code.
+/// A 6-digit code, never a password; signing in and creating an account
+/// are the same. The home market is taken in onboarding, without asking.
 class EmailScreen extends ConsumerStatefulWidget {
   const EmailScreen({super.key});
 
@@ -71,11 +72,13 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return EntryScaffold(
+    return OnboardingScaffold(
       title: l10n.emailTitle,
-      footer: BvButton(
+      subtitle: l10n.obEmailSub,
+      // Review 107: the button says what it is doing while the code goes.
+      button: BvButton(
         key: const Key('email-send'),
-        label: l10n.sendCode,
+        label: _sending ? l10n.obSending : l10n.sendCode,
         expand: true,
         onPressed: _sending ? null : _send,
       ),
@@ -91,7 +94,6 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             textDirection: TextDirection.ltr,
-            helper: l10n.emailHelp,
             error: _error,
             onChanged: (_) {
               if (_error != null) setState(() => _error = null);

@@ -10027,6 +10027,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have {count, plural, =1{1 open work item. Give it to someone} other{{count} open work items. Give each one to someone}} so nothing is left without an owner.'**
   String handoverLeaveBody(int count);
+
+  /// Review 107 OB1: the welcome line (founder, 30 Oct).
+  ///
+  /// In en, this message translates to:
+  /// **'The community for the whole AECO industry.'**
+  String get obWelcomeTitle;
+
+  /// Review 107 OB1: under the welcome line.
+  ///
+  /// In en, this message translates to:
+  /// **'Architects, engineers, managers, suppliers and site teams.'**
+  String get obWelcomeLine;
+
+  /// Review 107 OB1: a role card on the welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Architect'**
+  String get obCardArchitect;
+
+  /// Review 107 OB1: the architect's piece of work.
+  ///
+  /// In en, this message translates to:
+  /// **'A-501 Rev D issued'**
+  String get obCardArchitectWork;
+
+  /// Review 107 OB1: a role card on the welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Project manager'**
+  String get obCardProjectManager;
+
+  /// Review 107 OB1: the project manager's piece of work.
+  ///
+  /// In en, this message translates to:
+  /// **'Programme, week 12'**
+  String get obCardProjectManagerWork;
+
+  /// Review 107 OB1: a role card on the welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get obCardSupplier;
+
+  /// Review 107 OB1: the supplier's piece of work.
+  ///
+  /// In en, this message translates to:
+  /// **'40 sleeves delivered'**
+  String get obCardSupplierWork;
+
+  /// Review 107 OB1: a role card on the welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Site engineer'**
+  String get obCardSiteEngineer;
+
+  /// Review 107 OB1: the site engineer's piece of work.
+  ///
+  /// In en, this message translates to:
+  /// **'Pour checked'**
+  String get obCardSiteEngineerWork;
+
+  /// Review 107 OB1: the second button.
+  ///
+  /// In en, this message translates to:
+  /// **'I have an invite code'**
+  String get obHaveInvite;
+
+  /// Review 107 OB1: browse Home without an account.
+  ///
+  /// In en, this message translates to:
+  /// **'Just looking'**
+  String get obJustLooking;
+
+  /// Review 107 OB1: the invite code sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite code'**
+  String get obInviteTitle;
+
+  /// Review 107 OB1: under the invite code sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code you were given. You\'ll join after your email.'**
+  String get obInviteSub;
+
+  /// Review 107 OB1: under the welcome once an invite code is in.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code {code}'**
+  String obInviteKept(String code);
+
+  /// Review 107 OB2: under "Your email".
+  ///
+  /// In en, this message translates to:
+  /// **'We send a 6-digit code. No password.'**
+  String get obEmailSub;
+
+  /// Review 107: a button while the code is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get obSending;
+
+  /// Review 107 OB3: the email, masked (s•••@gulfbuild.co).
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {destination}'**
+  String obCodeSent(String destination);
+
+  /// Review 107 OB3: while the code is checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get obChecking;
+
+  /// Review 107 OB3: a different email, or a new code.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another way'**
+  String get obTryAnotherWay;
+
+  /// Review 107 OB4: the title.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your name?'**
+  String get obNameTitle;
+
+  /// Review 107 OB4: under the title (founder, 30 Oct).
+  ///
+  /// In en, this message translates to:
+  /// **'As people at work know you.'**
+  String get obNameSub;
+
+  /// Review 107 OB5: the title.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your work?'**
+  String get obWorkTitle;
+
+  /// Review 107 OB5: under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the closest. You can change it later.'**
+  String get obWorkSub;
+
+  /// Review 107 OB5: the search under the tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Search all trades'**
+  String get obWorkSearch;
+
+  /// Review 107 OB5: type your own words.
+  ///
+  /// In en, this message translates to:
+  /// **'Not listed? Type it'**
+  String get obWorkNotListed;
+
+  /// Review 107 OB5: the field for your own words.
+  ///
+  /// In en, this message translates to:
+  /// **'Your work, in your words'**
+  String get obWorkOwn;
+
+  /// Review 107 OB5: Continue with nothing picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your work, or type it.'**
+  String get obWorkChoose;
+
+  /// Review 107: a button while your profile is saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get obSaving;
+
+  /// Review 107 OB6: the title (founder: Space, not site).
+  ///
+  /// In en, this message translates to:
+  /// **'Join your Space'**
+  String get obSpaceTitle;
+
+  /// Review 107 OB6: under the title (founder, 30 Oct).
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the invite code you were given.'**
+  String get obSpaceSub;
+
+  /// Review 107 OB6: under the Space the code opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Private work · {name} lets people in'**
+  String obSpaceLetsIn(String name);
+
+  /// Review 107 OB6: go Home without a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get obSkipForNow;
+
+  /// Review 107 OB7: above a first-run tip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip {n} of {total}'**
+  String obTipOf(int n, int total);
+
+  /// Review 107 OB7: tip 1, on the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the camera to post a photo of your work.'**
+  String get obTipCamera;
+
+  /// Review 107 OB7: tip 2, on a card.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold a card to share or delete it.'**
+  String get obTipHold;
+
+  /// Review 107 OB7: tip 3, on Sign as done, the first time an item is given to me.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign as done when your work is finished.'**
+  String get obTipSignDone;
+
+  /// Review 107 OB7: none of the tips again.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip tips'**
+  String get obTipSkip;
+
+  /// Review 107 OB7: the next tip, or done after the last.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get obTipNext;
 }
 
 class _AppLocalizationsDelegate

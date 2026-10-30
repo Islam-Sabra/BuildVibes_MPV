@@ -250,28 +250,41 @@ abstract final class BvStepProgressSpec {
   static const radius = BorderRadius.all(Radius.circular(2));
 }
 
-/// Entry screens (E1, E2): the hero with the wordmark and skyline.
+/// Onboarding v2 (review 107, OB1–OB7).
 abstract final class BvEntrySpec {
-  static const heroHeight = 200.0;
-  static const pillPaddingVertical = BvSpace.s6;
-  static const pillPaddingHorizontal = BvSpace.s16;
-  static const audienceCardHeight = 196.0;
-  static const audienceIconTile = BvSize.avatarLg; // 56
-  static const accentBarWidth = 3.0;
-  static const accentBarHeight = BvSpace.s16;
-  static const dotSize = BvSpace.s6;
-  static const dotActiveWidth = BvSpace.s20;
-  static const rotateEvery = Duration(seconds: 4);
-  static const skylineOpacity = 0.6;
+  // OB1 · Welcome (2698:38995).
+  static const languagePaddingVertical = BvSpace.s6;
+  static const languagePaddingHorizontal = BvSpace.s12;
 
-  /// Skyline blocks: (start as a share of the width, width, height).
-  static const skyline = [
-    (0.0, 54.0, 40.0),
-    (0.16, 54.0, 90.0),
-    (0.66, 54.0, 98.0),
-    (0.84, 46.0, 50.0),
-    (0.96, 20.0, 82.0),
+  /// The stage the four role cards lie on.
+  static const cardsHeight = 248.0;
+  static const roleCardPadding = BvSpace.s12;
+  static const roleIconTile = BvSize.avatarSm; // 32
+
+  /// Each role card: where it starts (a share of the width), its top and
+  /// its turn in degrees, as drawn.
+  static const roleCards = [
+    (0.03, 0.0, -3.0),
+    (0.36, 56.0, 2.5),
+    (0.05, 132.0, -2.0),
+    (0.31, 192.0, 2.0),
   ];
+
+  // OB5 · Your work (2699:39043): nine tiles, three to a row.
+  static const tiles = 9;
+  static const tileColumns = 3;
+  static const tileGap = BvSpace.s8;
+  static const tileHeight = 96.0;
+  static const tileIcon = 44.0;
+
+  // OB7 · a first-run tip (2699:39168).
+  static const tipWidth = 300.0;
+  static const tipPadding = BvSpace.s16;
+  static const tipGap = BvSpace.s12;
+
+  /// The ring around the real control, outside it.
+  static const spotlightGap = BvSpace.s6;
+  static const spotlightRing = BvStroke.thick + BvStroke.thin; // 3
 }
 
 /// Sign-in codes (E3).

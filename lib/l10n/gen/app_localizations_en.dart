@@ -6029,4 +6029,131 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return 'You have $_temp0 so nothing is left without an owner.';
   }
+
+  @override
+  String get obWelcomeTitle => 'The community for the whole AECO industry.';
+
+  @override
+  String get obWelcomeLine =>
+      'Architects, engineers, managers, suppliers and site teams.';
+
+  @override
+  String get obCardArchitect => 'Architect';
+
+  @override
+  String get obCardArchitectWork => 'A-501 Rev D issued';
+
+  @override
+  String get obCardProjectManager => 'Project manager';
+
+  @override
+  String get obCardProjectManagerWork => 'Programme, week 12';
+
+  @override
+  String get obCardSupplier => 'Supplier';
+
+  @override
+  String get obCardSupplierWork => '40 sleeves delivered';
+
+  @override
+  String get obCardSiteEngineer => 'Site engineer';
+
+  @override
+  String get obCardSiteEngineerWork => 'Pour checked';
+
+  @override
+  String get obHaveInvite => 'I have an invite code';
+
+  @override
+  String get obJustLooking => 'Just looking';
+
+  @override
+  String get obInviteTitle => 'Your invite code';
+
+  @override
+  String get obInviteSub =>
+      'Enter the code you were given. You\'ll join after your email.';
+
+  @override
+  String obInviteKept(String code) {
+    return 'Invite code $code';
+  }
+
+  @override
+  String get obEmailSub => 'We send a 6-digit code. No password.';
+
+  @override
+  String get obSending => 'Sending…';
+
+  @override
+  String obCodeSent(String destination) {
+    return 'We sent a 6-digit code to $destination';
+  }
+
+  @override
+  String get obChecking => 'Checking…';
+
+  @override
+  String get obTryAnotherWay => 'Try another way';
+
+  @override
+  String get obNameTitle => 'What\'s your name?';
+
+  @override
+  String get obNameSub => 'As people at work know you.';
+
+  @override
+  String get obWorkTitle => 'What\'s your work?';
+
+  @override
+  String get obWorkSub => 'Pick the closest. You can change it later.';
+
+  @override
+  String get obWorkSearch => 'Search all trades';
+
+  @override
+  String get obWorkNotListed => 'Not listed? Type it';
+
+  @override
+  String get obWorkOwn => 'Your work, in your words';
+
+  @override
+  String get obWorkChoose => 'Pick your work, or type it.';
+
+  @override
+  String get obSaving => 'Saving…';
+
+  @override
+  String get obSpaceTitle => 'Join your Space';
+
+  @override
+  String get obSpaceSub => 'Enter the invite code you were given.';
+
+  @override
+  String obSpaceLetsIn(String name) {
+    return 'Private work · $name lets people in';
+  }
+
+  @override
+  String get obSkipForNow => 'Skip for now';
+
+  @override
+  String obTipOf(int n, int total) {
+    return 'Tip $n of $total';
+  }
+
+  @override
+  String get obTipCamera => 'Tap the camera to post a photo of your work.';
+
+  @override
+  String get obTipHold => 'Hold a card to share or delete it.';
+
+  @override
+  String get obTipSignDone => 'Sign as done when your work is finished.';
+
+  @override
+  String get obTipSkip => 'Skip tips';
+
+  @override
+  String get obTipNext => 'Next';
 }
