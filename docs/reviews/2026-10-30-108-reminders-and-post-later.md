@@ -1,6 +1,6 @@
 # Review 108: reminders for someone else, and Post later — 30 Oct 2026
 
-**Founder, 20:06–20:21:** from a friend's test. Both are **before the pilot**. **Status: frames drawn, waiting for the founder's ok.**
+**Founder, 20:06–20:21:** from a friend's test. Both are **before the pilot**. **Status: frames approved (founder, 30 Oct 20:25). Build before the pilot, after review 107 is live.**
 
 ## 1. Reminder: For Me · Someone (RM1, RM2)
 - **Frames:** RM1 EN `2701:39107`, AR `2701:39374`; RM2 EN `2701:39185`, AR `2701:39452`.
