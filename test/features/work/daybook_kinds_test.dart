@@ -96,7 +96,8 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(_in(id, find.byType(BvChecklistPoint)), findsNWidgets(5));
+        // Review 110 F (HV1): its first 3 lines on the card.
+        expect(_in(id, find.byType(BvChecklistPoint)), findsNWidgets(3));
         final ticked = tester.widget<BvChecklistPoint>(
           find.byKey(const Key('checklist-point-pt-0')),
         );

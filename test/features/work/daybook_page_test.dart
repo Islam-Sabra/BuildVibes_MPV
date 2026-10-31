@@ -1,5 +1,6 @@
 // Slice 5 (review 76): a post's page opened in place (N1), edited by its
 // author (N2), "/" for a new block (N3) and Turn into (N4).
+import '../../helpers/daybook_rows.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -180,8 +181,8 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, me: DaybookSamples.omar, pass: SpacePass.crew);
-      expect(_key('card-open-page'), findsOneWidget);
-      await _tap(tester, _key('card-open-page'));
+      expect(seeMore(), findsOneWidget);
+      await _tap(tester, seeMore());
       expect(_key('daybook-page'), findsOneWidget);
       // Not his: no Edit page.
       expect(_key('page-edit'), findsNothing);
@@ -241,6 +242,8 @@ void main() {
         tester.element(find.byType(Navigator).first),
       ).push('/spaces/${DaybookSamples.space}');
       await tester.pumpAndSettle();
+      // Review 110 F: no Open the page link; its ticks are on the quiet
+      // line, with See more.
       expect(_key('card-open-page'), findsNothing);
     });
 
@@ -864,7 +867,7 @@ void main() {
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
-      await _tap(tester, _key('card-open-page'));
+      await _tap(tester, seeMore());
       expect(_key('daybook-page'), findsOneWidget);
       expect(_key('page-edit'), findsNothing);
     });

@@ -11,10 +11,14 @@ import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bidi.dart' show ltrRun;
 import '../../data/models/first_run_tip.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/space.dart' show SpaceException;
+import '../../data/repositories/daybook_repository.dart'
+    show daybookRepositoryProvider;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_card_history.dart';
-import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_hold_button.dart';
@@ -27,11 +31,13 @@ import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
+import '../spaces/space_errors.dart' show showSpaceError;
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_page.dart' show forLineWithTasks;
 import 'daybook_photos.dart';
 import 'daybook_report.dart' show DaybookReportBody;
+import 'daybook_state.dart' show daybookCardsProvider;
 import 'daybook_target_card.dart' show DaybookTargetRows;
 import 'daybook_words.dart';
 
@@ -338,6 +344,26 @@ class DaybookCardView extends StatelessWidget {
     );
   }
 
+  /// Review 110 TG1 (HV1): the place and the one tag, on one line; Safety
+  /// red.
+  Widget? _tags(BuildContext context) {
+    final site = _siteTag();
+    final tag = _post.tag;
+    if (tag == null) return site;
+    final lang = Localizations.localeOf(context).languageCode;
+    final chip = BvSiteTag(
+      key: Key('card-tag-${_post.id}'),
+      name: tag.nameIn(lang),
+      icon: BvIcons.tag,
+      danger: tag.danger,
+    );
+    return Wrap(
+      spacing: BvSpace.s8,
+      runSpacing: BvSpace.s4,
+      children: [?site, chip],
+    );
+  }
+
   /// The typed place of an older post (no site tag).
   String? get _typedPlace =>
       site == null && (_post.place ?? '').isNotEmpty ? _post.place : null;
@@ -350,20 +376,6 @@ class DaybookCardView extends StatelessWidget {
     final proof = card.proof;
     final hasPhoto = localPhoto != null || (proof?.photos.isNotEmpty ?? false);
     final stamp = _stamp(l10n);
-    final chips = [
-      for (final f in post.attachments)
-        BvSlipChip(
-          icon: BvIcons.document,
-          label: f.revLabel == null
-              ? fileName(f.name)
-              : l10n.daybookFileChip(fileName(f.name), f.revLabel!),
-        ),
-      if (post.pointsTotal > 0)
-        BvSlipChip(
-          icon: BvIcons.workItems,
-          label: l10n.daybookPoints(post.pointsTotal),
-        ),
-    ];
     final ref = post.ref;
     final authorId = post.authorId;
     final noteOnly = proof != null && !hasPhoto;
@@ -390,8 +402,14 @@ class DaybookCardView extends StatelessWidget {
               ? BvAvatarTints.plain
               : BvAvatarTints.forId(authorId),
         ),
-        BvSlipTitle(post.title, cancelled: post.cancelled),
-        ?_siteTag(),
+        BvSlipTitle(
+          post.title,
+          cancelled: post.cancelled,
+          maxLines: BvShortCardSpec.titleLines,
+        ),
+        if ((post.body ?? '').isNotEmpty)
+          BvSlipNote(post.body!, maxLines: BvShortCardSpec.detailLines),
+        ?_tags(context),
         // A walk is its rows: its owner is its author, its due theirs.
         if (!post.isTarget)
           BvSlipFacts(
@@ -404,6 +422,7 @@ class DaybookCardView extends StatelessWidget {
                   taskCount,
                 ),
                 marks: _factMarks(context),
+                maxLines: BvShortCardSpec.infoLines,
               ),
               if (_typedPlace case final typed?)
                 BvSlipFact(icon: BvIcons.place, text: typed),
@@ -414,8 +433,6 @@ class DaybookCardView extends StatelessWidget {
             children: [BvSlipFact(icon: BvIcons.place, text: typed)],
           ),
         ?_quote(),
-        if (chips.isNotEmpty) BvSlipChips(children: chips),
-        ?taskTables,
         if (post.isTarget)
           DaybookTargetRows(
             post: post,
@@ -426,7 +443,6 @@ class DaybookCardView extends StatelessWidget {
             onOpenChild: lifted ? null : actions.onOpenChild,
             onShowAll: lifted ? null : actions.onOpenPage,
           ),
-        ?_openPage(),
         if (localPhoto != null)
           _LocalPhoto(path: localPhoto!, stamp: proof == null ? null : stamp)
         // Review 105C (SP7): the photo it was posted with, and its Sign as
@@ -464,6 +480,7 @@ class DaybookCardView extends StatelessWidget {
               child: stamp,
             ),
           ),
+        if (!post.isTarget) ?_rest(l10n),
         ?history,
         if (couldNotSend)
           BvSlipError(l10n.daybookCouldNotSend)
@@ -474,13 +491,35 @@ class DaybookCardView extends StatelessWidget {
     );
   }
 
-  /// "Open the page ›" while its page holds blocks.
-  Widget? _openPage() {
-    final open = actions.onOpenPage;
+  /// Review 110 F (HV1): the rest in one quiet line, "2 files · 1 table
+  /// · 6 tasks", with See more ›, which opens the whole post in place
+  /// (HV2). None while there is nothing more to see.
+  Widget? _rest(AppLocalizations l10n) {
+    final post = _post;
     // A daily report shows its page on its card (R2).
-    if (_post.isReport) return null;
-    if (!_post.hasPage || open == null || lifted) return null;
-    return DaybookOpenPage(onTap: open);
+    if (post.isReport) return null;
+    final tasks = taskCount?.total ?? 0;
+    final parts = [
+      if (post.attachments.isNotEmpty) l10n.cardFiles(post.attachments.length),
+      if (post.tableCount > 0) l10n.cardTables(post.tableCount),
+      if (tasks > 0) l10n.cardTasks(tasks),
+      if (post.pointsTotal > 0)
+        l10n.daybookTicked(post.pointsTicked, post.pointsTotal),
+    ];
+    final more =
+        parts.isNotEmpty ||
+        post.hasPage ||
+        (post.body ?? '').contains('\n') ||
+        (post.body ?? '').length > BvShortCardSpec.detailChars;
+    if (!more) return null;
+    final open = actions.onOpenPage ?? actions.onOpen;
+    return BvSlipRest(
+      key: Key('card-rest-${post.id}'),
+      text: parts.join(' · '),
+      seeMore: l10n.cardSeeMore,
+      seeMoreKey: Key('card-see-more-${post.id}'),
+      onSeeMore: lifted || waiting ? null : open,
+    );
   }
 
   /// F73: "Sending · 3.1 of 8.7 MB" with a thin line while a file goes up,
@@ -568,20 +607,22 @@ class DaybookCardView extends StatelessWidget {
             name: personName(l10n, post.authorName),
             label: authorId != null && authorId == me ? l10n.daybookYou : null,
             // Review 95: every kind has its number, before its kind word.
-            ref: switch (post.ref) {
-              final ref? => l10n.daybookCardRefKind(
-                ltrRun(ref),
-                _kindWord(l10n),
-              ),
-              null => _kindWord(l10n),
-            },
+            ref: post.isThanks
+                ? null
+                : switch (post.ref) {
+                    final ref? => l10n.daybookCardRefKind(
+                      ltrRun(ref),
+                      _kindWord(l10n),
+                    ),
+                    null => _kindWord(l10n),
+                  },
             time: words.time.clock(activityAt),
             tint: authorId == null
                 ? BvAvatarTints.plain
                 : BvAvatarTints.forId(authorId),
           ),
           ..._kindBody(context, l10n),
-          ?_openPage(),
+          ?_rest(l10n),
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
@@ -658,18 +699,34 @@ class DaybookCardView extends StatelessWidget {
       // photos, for information; no faces and no buttons (F58).
       case DaybookPost.noteKind:
         return [
-          BvSlipTitle(post.title, cancelled: post.cancelled),
+          BvSlipTitle(
+            post.title,
+            cancelled: post.cancelled,
+            maxLines: BvShortCardSpec.titleLines,
+          ),
           ?_siteTag(),
-          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          if ((post.body ?? '').isNotEmpty)
+            BvSlipNote(post.body!, maxLines: BvShortCardSpec.detailLines),
           ?_quote(),
           ?cover,
           ?files,
         ];
+      // Review 110 TH2 (2715:39608): the green THANKS stamp, the words, who
+      // it is to and what for; Show on my profile only for them.
+      case DaybookPost.thanksKind:
+        return [DaybookThanksBody(post: post, lifted: lifted || waiting)];
       case DaybookPost.checklistKind:
         return [
-          ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
+          ...top(
+            BvSlipTitle(
+              post.title,
+              cancelled: post.cancelled,
+              maxLines: BvShortCardSpec.titleLines,
+            ),
+          ),
           ?_siteTag(),
-          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          if ((post.body ?? '').isNotEmpty)
+            BvSlipNote(post.body!, maxLines: BvShortCardSpec.detailLines),
           ?_quote(),
           BvSlipFacts(
             children: [
@@ -685,12 +742,8 @@ class DaybookCardView extends StatelessWidget {
                 ),
             ],
           ),
-          if (post.pointsTotal > 0)
-            BvChecklistProgress(
-              ticked: post.pointsTicked,
-              total: post.pointsTotal,
-              label: l10n.daybookTicked(post.pointsTicked, post.pointsTotal),
-            ),
+          // Review 110 F (HV1): its first 3 lines; "4 of 9 ticked" is on
+          // the quiet line under them.
           if (!waiting)
             DaybookChecklistPoints(
               post: post,
@@ -698,13 +751,15 @@ class DaybookCardView extends StatelessWidget {
               me: me,
               nameOf: nameOf ?? (_) => null,
               onTick: lifted || viewer ? null : actions.onTick,
+              most: BvShortCardSpec.points,
             ),
         ];
       case DaybookPost.activityKind:
         return [
           ...top(DaybookActivityWhat(post: post, words: words, now: now)),
           ?_siteTag(),
-          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          if ((post.body ?? '').isNotEmpty)
+            BvSlipNote(post.body!, maxLines: BvShortCardSpec.detailLines),
           ?_quote(),
           if (post.people.isNotEmpty || action != null)
             row(
@@ -1085,6 +1140,7 @@ class DaybookCardPhotos extends ConsumerWidget {
     final close = MaterialLocalizations.of(context).closeButtonLabel;
     return BvPhotoStrip(
       photos: photos,
+      moreLabel: AppLocalizations.of(context).cardMorePhotos,
       onOpen: (i) => Navigator.of(context).push(
         MaterialPageRoute<void>(
           fullscreenDialog: true,
@@ -1166,3 +1222,100 @@ List<DaybookEvent> foldPageEdits(List<DaybookEvent> oldestFirst) {
 
 /// How long one page edit session lasts on the card (F93).
 const pageSession = Duration(minutes: 10);
+
+/// Review 110 TH2: a Thanks on its card. "Show on my profile" shows only
+/// for the person thanked, and only they are told nothing else changes.
+class DaybookThanksBody extends ConsumerWidget {
+  const DaybookThanksBody({super.key, required this.post, this.lifted = false});
+
+  final DaybookPost post;
+  final bool lifted;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final t = post.thanks;
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final words = (post.body ?? '').trim();
+    final forLine = [?t?.forRef, ?t?.forTitle].join(' · ');
+    return Column(
+      key: Key('thanks-${post.id}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: BvSpace.s8,
+      children: [
+        BvInkStamp(
+          label: l10n.thanksStamp,
+          size: BvInkStampSize.sm,
+          tone: BvInkStampTone.positive,
+        ),
+        if (words.isNotEmpty)
+          BvSlipTitle(
+            words,
+            cancelled: post.cancelled,
+            maxLines: BvShortCardSpec.detailLines,
+          ),
+        if (t != null)
+          Row(
+            key: Key('thanks-to-${post.id}'),
+            spacing: BvSpace.s6,
+            children: [
+              Text(l10n.thanksTo, style: quiet),
+              if (t.toTeam)
+                const Icon(
+                  BvIcons.team,
+                  size: BvSlipSpec.factIconSize,
+                  color: BvColors.iconSecondary,
+                )
+              else
+                BvAvatar(
+                  name: personName(l10n, t.toName),
+                  size: BvAvatarSize.xs,
+                  tint: t.toId == null
+                      ? BvAvatarTints.plain
+                      : BvAvatarTints.forId(t.toId!),
+                ),
+              Flexible(
+                child: Text(
+                  t.toTeam ? (t.toName ?? '') : personName(l10n, t.toName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.emphasisSm.copyWith(color: BvColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+        if (forLine.isNotEmpty)
+          BvSlipFact(
+            key: Key('thanks-for-${post.id}'),
+            icon: BvIcons.confirmed,
+            text: forLine,
+            maxLines: BvShortCardSpec.infoLines,
+          ),
+        if (t != null && t.mine && !post.cancelled) ...[
+          BvButton(
+            key: Key('thanks-show-${post.id}'),
+            label: t.shown ? l10n.thanksHide : l10n.thanksShow,
+            icon: BvIcons.profile,
+            style: BvButtonStyle.secondary,
+            expand: true,
+            onPressed: lifted
+                ? null
+                : () async {
+                    try {
+                      await ref
+                          .read(daybookRepositoryProvider)
+                          .showThanks(post.id, on: !t.shown);
+                    } on SpaceException catch (e) {
+                      if (context.mounted) showSpaceError(context, e);
+                      return;
+                    }
+                    ref.invalidate(daybookCardsProvider);
+                  },
+          ),
+          Center(child: Text(l10n.thanksOnlyYou, style: quiet)),
+        ],
+      ],
+    );
+  }
+}

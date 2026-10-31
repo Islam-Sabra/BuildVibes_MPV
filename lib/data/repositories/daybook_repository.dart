@@ -115,6 +115,9 @@ abstract class DaybookRepository {
   /// pin_space_post / unpin_space_post (review 105B): for me only.
   Future<void> pinPost(String postId, {required bool on});
 
+  /// Review 110 TH2: set_thanks_on_profile, for the person thanked only.
+  Future<void> showThanks(String postId, {required bool on});
+
   /// archive_space_post (review 105B): a Lead, a Checked work item. It
   /// leaves Work; Search still finds it.
   Future<void> archivePost(String postId);
@@ -704,6 +707,14 @@ class SupabaseDaybookRepository implements DaybookRepository {
     () => _client.rpc<void>(
       on ? 'pin_space_post' : 'unpin_space_post',
       params: {'p_post': postId},
+    ),
+  );
+
+  @override
+  Future<void> showThanks(String postId, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      'set_thanks_on_profile',
+      params: {'p_post': postId, 'p_show': on},
     ),
   );
 

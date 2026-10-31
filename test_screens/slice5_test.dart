@@ -4,6 +4,7 @@
 // lead to check.
 // Run:
 //   flutter test test_screens/slice5_test.dart --update-goldens
+import '../test/helpers/daybook_rows.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -214,7 +215,7 @@ void main() {
         folder: _folder,
         overrides: await _overrides(s, me: DaybookSamples.omar),
         before: (tester) async {
-          await _tap(tester, find.byKey(const Key('card-open-page')));
+          await _tap(tester, seeMore());
           await _tap(tester, find.byKey(const Key('page-toggle-$_toggle')));
         },
       );
@@ -229,7 +230,7 @@ void main() {
         folder: _folder,
         overrides: await _overrides(s, me: DaybookSamples.omar),
         before: (tester) async {
-          await _tap(tester, find.byKey(const Key('card-open-page')));
+          await _tap(tester, seeMore());
           await tester.drag(
             find.byKey(const Key('page-blocks')),
             const Offset(0, -500),

@@ -46,6 +46,7 @@ class DaybookChecklistPoints extends ConsumerWidget {
     required this.nameOf,
     this.onTick,
     this.only,
+    this.most,
   });
 
   final DaybookPost post;
@@ -56,6 +57,9 @@ class DaybookChecklistPoints extends ConsumerWidget {
 
   /// A page's checklist block (slice 5): these points, in this order.
   final List<String>? only;
+
+  /// Review 110 F (HV1): a short card shows only its first lines.
+  final int? most;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,7 +75,7 @@ class DaybookChecklistPoints extends ConsumerWidget {
       key: Key('checklist-points-${post.id}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final p in _shown(points))
+        for (final p in _shown(points).take(most ?? points.length))
           _point(l10n, markedPoint(p, marks[p.id], me), mine: mine),
       ],
     );

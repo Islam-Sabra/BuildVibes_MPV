@@ -748,6 +748,9 @@ AS $function$
       where e.work_item_id = p_post.id and e.kind = 'reassigned'
       order by e.created_at desc, e.id desc limit 1),
     'has_page', jsonb_array_length(p_post.blocks) > 0,
+    -- Review 110 F (HV1): the short card's quiet line, "1 table".
+    'table_count', (select count(*) from jsonb_array_elements(p_post.blocks) b
+                    where b ->> 'type' = 'table'),
     'template_id', p_post.template_id,
     'cover_path', (
       select f.storage_path from public.post_files f

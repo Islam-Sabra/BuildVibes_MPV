@@ -277,6 +277,12 @@ class FakeDaybookRepository implements DaybookRepository {
   final deleteFails = <String>{};
 
   @override
+  Future<void> showThanks(String postId, {required bool on}) async {
+    _check();
+    calls.add('thanks $postId $on');
+  }
+
+  @override
   Future<void> pinPost(String postId, {required bool on}) async {
     _check();
     calls.add('pin $postId $on');

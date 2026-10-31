@@ -146,6 +146,13 @@ class FakeProfilePageRepository implements ProfilePageRepository {
   @override
   Future<void> block(String me, String other) async => blocked.add(other);
 
+  /// Review 110 TH2: shown Thanks, by profile.
+  final thanksOf = <String, List<ProfileThanks>>{};
+
+  @override
+  Future<List<ProfileThanks>> thanks(String profileId) async =>
+      thanksOf[profileId] ?? const [];
+
   @override
   Future<List<({String id, LocalizedText name, bool isCity})>> places(
     String marketId,
