@@ -2,6 +2,84 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 31 Oct 2026 — review 107 S1 and review 108 (reminders for someone else, Post later) on `claude/r108`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r108` (worktree `BuildVibes-r108`), from `slice2-app` c222178, pushed.
+  - **Not done, on purpose:** no merge, no database push, no function deploy, no build, and no goldens updated.
+  - **Commits:**
+    - 5f03017 S1
+    - 67fa7f5 server
+    - e5faf55 data
+    - 501debd RM1, RM2
+    - 5b98ddc PL1, PL2
+    - 74e2979 shots
+    - and this handoff
+- **Review 107 S1:**
+  - OB1's `obWelcomeTitle` uses `headingXl`: 24 Latin, 28 Arabic.
+  - The large-type guard has moved to `test/core/design/large_type_guard_test.dart`. It names OB1 with exactly one large line, and it failed first.
+  - The OB1 shots, old and new, are in `docs/reviews/shots-107b/`.
+- **Review 108, server:** migration `20261117120000_reminders_and_post_later.sql` (not live) and pgTAP 56 (75 checks).
+  - **Reminders for someone else:**
+    - Tables: `work_item_reminders` and `work_item_reminder_sends`.
+    - Functions: `set_work_reminder`, `remove_work_reminder`, `post_work_reminders`.
+    - Who may set one: the item's creator, its owner or a Lead.
+    - Who it can go to: 1 to 20 people who are members and can see the item.
+    - At most 5 waiting per item.
+    - `due_work_reminders()` runs as service_role.
+  - **Post later:**
+    - Table `scheduled_posts`; only its owner can read it.
+    - Functions: `schedule_post`, `update_scheduled_post` (the time), `cancel_scheduled_post`, `post_scheduled_now`, `my_waiting_scheduled`.
+    - `publish_due_posts()` runs as service_role. It calls the same create function as the author, through a whitelist of five, so every rule is checked again at that moment.
+    - A failure sets the state to failed with its reason and sends a `scheduled_failed` push.
+  - **Cron:** `supabase/ops/reminders_post_later_cron.sql` runs both functions every 5 minutes. It has **not been run**; it is a live step.
+  - **Push texts:** `supabase/functions/push`, 18 node tests. **Not deployed.**
+- **Review 108, app** (test first, EN and AR):
+  - **RM1:** Reminder opens a sheet with Me · Someone.
+    - Someone appears only for the item's creator, its owner or a Lead.
+    - Who: several people can be picked; the owner is chosen first.
+    - When: Tomorrow 7:00 · 1 h before due (only when the item has a time) · Pick….
+    - A note of up to 140 characters.
+  - **RM2:** an opened work item shows its Reminders: who · when. ✕ removes one, for whoever set it, the item's creator or a Lead.
+  - **PL1, the clock beside Send:**
+    - It is in a Space's writing bar, the Feed's, and a notebook share's preview.
+    - Post later offers Tomorrow 7:00 · {next working day} 7:00 · Pick…. The next working day is the first after tomorrow outside the person's market-pack weekend.
+    - A Space post, work item or Feed post goes through its outbox, so photos upload and a lost signal retries. It then calls `schedule_post` with the create call's own arguments.
+    - A scheduled post never shows as a slip or a card meanwhile.
+  - **PL2, Scheduled:** route `/scheduled-posts`, because `/scheduled` is account deletion.
+    - Each card shows when · where, then Post now · Edit · Cancel. A failed one says why.
+    - It opens from Profile (a clock in the bar, only while one is waiting), from the Space's "{n} scheduled" line, and from the failed push.
+- **Decisions for the lead** (technical, taken here):
+  1. **Push privacy:** the push queue keeps ids only. A reminder's item title and note go in the push only when that person has lock-screen text on. Otherwise it reads "Reminder from {name} · due HH:MM".
+  2. **A failed scheduled post** gets a push, and stays in Scheduled as failed with its reason. No Activity row.
+  3. **Edit on a scheduled post** changes only its time. Editing the text is not built.
+  4. **Times:** RM times use the Space's time zone. PL times use the phone's clock.
+  5. **No clock on some work items:** a work item with Library files, or with a place from the Space's list, has no clock in the Space. Those are attached after the item is made, so the item goes now.
+  6. **Sent signs wait:** a scheduled post doesn't count as sent until the server makes it. The "posted" chime and the notebook's "Went into a Space" mark wait for that.
+  7. **New pill option:** `BvPillButton.grey` (grey with dark words), for PL2's Edit, as in the frame.
+- **Checks (PC, on 74e2979 plus this handoff):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,927 pass.
+  - `flutter test test_screens`, not updating: 444 pass and 66 fail.
+    - 54 are writing-bar shots that now show the clock (60 images).
+    - 2 are OB1 (S1).
+    - 10 are the new r108 shots, which have no golden.
+    - Old and new copies are in `docs/reviews/shots-108/` with a README. The OB1 pair is in `shots-107b`.
+  - `supabase db reset --local`: all migrations apply, including 20261117120000.
+  - `supabase test db`: 55 files, 3,370 checks, PASS.
+  - `node --experimental-strip-types --test supabase/functions/push/message.test.ts`: 18 pass.
+- **Next, after the lead's check, and only with the founder's yes:**
+  1. the goldens, from shots-107b and shots-108;
+  2. merge `claude/r108` into `slice2-app`;
+  3. migration 20261117120000 live;
+  4. the two cron jobs in `supabase/ops/reminders_post_later_cron.sql`;
+  5. deploy the `push` function;
+  6. a build.
+- **Who has which branch:**
+  - PC: `claude/r108` (worktree `BuildVibes-r108`) and `slice2-app` (worktree `BuildVibes-slice1`).
+  - The `BuildVibes-r107` worktree can be removed.
+
 ## PC update: 31 Oct 2026 — review 107 live: merged into `slice2-app`, migration 55 live, build 836 on the emulator (not yet on the phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
