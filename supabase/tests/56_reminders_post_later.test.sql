@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(75);
+select plan(105);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000056' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -343,6 +343,206 @@ select is((select count(*) from public.push_queue where kind = 'scheduled_failed
            and profile_id = pg_temp.uid('d4'))::integer, 1, 'Lina is told: "Couldn''t post"');
 select is(coalesce(current_setting('request.jwt.claims', true), ''), current_setting('test.claims'),
   'the cron''s own session is as it was');
+
+-- The lead's check (V1-V10) -----------------------------------------------------------------------------
+
+-- V9: the read rule is the policy's; the app can't call the function. The
+-- reads above still work.
+select ok(not has_function_privilege('authenticated',
+  'public.can_read_work_reminder(public.work_item_reminders)', 'execute'),
+  'V9: the read rule is not the app''s to call');
+-- V9: each create call is one exact function; an overload made later
+-- never takes its place.
+create function public.create_post(p_id uuid, p_evil text) returns void language sql as 'select';
+select is(public.scheduled_call_sql('create_post', jsonb_build_object('p_evil', 'x')), null,
+  'V9: only the create call''s own signature');
+drop function public.create_post(uuid, text);
+-- V9: an id another author has is not allowed (not a server error).
+select pg_temp.as_user('f6');
+set local role authenticated;
+select throws_ok(format($q$select public.schedule_post(%L, 'create_post',
+  jsonb_build_object('p_id', %L, 'p_body', 'x', 'p_lang', 'en'), now() + interval '1 hour', 'x')$q$,
+  pg_temp.id('d001'), pg_temp.id('d001')), '42501', null, 'V9: not an id another author has');
+reset role;
+
+-- V1: the cron posts it; then Post now, Cancel, or a step holding an old
+-- copy of the row, change nothing and say nothing.
+insert into public.push_tokens (token, profile_id, platform)
+values (repeat('a', 40), pg_temp.uid('a1'), 'android');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.schedule_post(pg_temp.id('d010'), 'create_space_post',
+  jsonb_build_object('p_id', pg_temp.id('d010'), 'p_space', pg_temp.sp(), 'p_kind', 'announcement',
+                     'p_title', 'Gate 3 closed'),
+  now() + interval '1 day', 'Gate 3 closed');
+reset role;
+create temp table v1_copy as select r from public.scheduled_posts r where r.id = pg_temp.id('d010');
+update public.scheduled_posts set publish_at = now() - interval '1 minute' where id = pg_temp.id('d010');
+set local role service_role;
+select is(public.publish_due_posts(), 1, 'V1: the cron posts it');
+reset role;
+select pg_temp.as_user('a1');
+set local role authenticated;
+select throws_ok(format($q$select public.post_scheduled_now(%L)$q$, pg_temp.id('d010')), '22023', null,
+  'V1: Post now after the cron: no second post');
+select throws_ok(format($q$select public.cancel_scheduled_post(%L)$q$, pg_temp.id('d010')), '22023', null,
+  'V1: nor a Cancel');
+reset role;
+select is(public.publish_scheduled(c.r), false, 'V1: a copy read while it waited doesn''t post again')
+from v1_copy c;
+select is((select state || coalesce(' ' || error, '') from public.scheduled_posts where id = pg_temp.id('d010')),
+  'posted', 'V1: still posted, never "Couldn''t post"');
+select is((select count(*) from public.push_queue where kind = 'scheduled_failed'
+           and profile_id = pg_temp.uid('a1'))::integer, 0, 'V1: and Omar isn''t told it failed');
+select ok(pg_get_functiondef('public.my_scheduled(uuid, text[])'::regprocedure) ilike '%for update%',
+  'V1: Post now, Edit and Cancel lock the row first');
+
+-- V2, V10: a failed one is tried again (Post now) and posts.
+update public.space_members set left_at = null
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('d4');
+select pg_temp.as_user('d4');
+set local role authenticated;
+select is(public.post_scheduled_now(pg_temp.id('d008')), true, 'V2: Post now tries a failed one again');
+reset role;
+select is((select state from public.scheduled_posts where id = pg_temp.id('d008')), 'posted', 'V2: posted');
+select is((select author_id from public.space_posts where id = pg_temp.id('d008')), pg_temp.uid('d4'),
+  'V2: the post is in the Space, as Lina''s');
+
+-- V10: an author who lost the pass without leaving; V2: Cancel clears it.
+select pg_temp.as_user('d4');
+set local role authenticated;
+select public.schedule_post(pg_temp.id('d011'), 'create_space_post',
+  jsonb_build_object('p_id', pg_temp.id('d011'), 'p_space', pg_temp.sp(), 'p_kind', 'announcement',
+                     'p_title', 'Crane inspection'),
+  now() + interval '1 day', 'Crane inspection');
+reset role;
+update public.space_members set pass = 'viewer'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('d4');
+update public.scheduled_posts set publish_at = now() - interval '1 minute' where id = pg_temp.id('d011');
+set local role service_role;
+select is(public.publish_due_posts(), 0, 'V10: not published once her pass can''t post');
+reset role;
+select is((select state || ' ' || error from public.scheduled_posts where id = pg_temp.id('d011')),
+  'failed not_allowed', 'V10: failed, not allowed');
+select pg_temp.as_user('d4');
+set local role authenticated;
+select lives_ok(format($q$select public.cancel_scheduled_post(%L)$q$, pg_temp.id('d011')),
+  'V2: Cancel clears a failed one');
+select is((select count(*) from public.scheduled_posts where state in ('waiting', 'failed'))::integer, 0,
+  'V2: nothing is left in her Scheduled');
+reset role;
+update public.space_members set pass = 'crew'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('d4');
+
+-- V10: a soft-deleted Space: no reminder, no post.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.set_work_reminder(pg_temp.id('c020'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null);
+select public.schedule_post(pg_temp.id('d012'), 'create_space_post',
+  jsonb_build_object('p_id', pg_temp.id('d012'), 'p_space', pg_temp.sp(), 'p_kind', 'announcement',
+                     'p_title', 'Site closed'),
+  now() + interval '1 day', 'Site closed');
+reset role;
+update public.spaces set deleted_at = now() where id = pg_temp.sp();
+update public.work_item_reminders set remind_at = now() - interval '1 minute' where id = pg_temp.id('c020');
+update public.scheduled_posts set publish_at = now() - interval '1 minute' where id = pg_temp.id('d012');
+set local role service_role;
+select is(public.due_work_reminders(), 0, 'V10: no reminder in a deleted Space');
+select is(public.publish_due_posts(), 0, 'V10: nor a post');
+reset role;
+select is((select state from public.scheduled_posts where id = pg_temp.id('d012')), 'failed',
+  'V10: it failed');
+update public.spaces set deleted_at = null where id = pg_temp.sp();
+
+-- V10: a cancelled work item: no reminder, and none can be set.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.set_work_reminder(pg_temp.id('c021'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null);
+reset role;
+update public.space_posts set status = 'cancelled', cancelled_at = now() where id = pg_temp.id('a001');
+update public.work_item_reminders set remind_at = now() - interval '1 minute' where id = pg_temp.id('c021');
+set local role service_role;
+select is(public.due_work_reminders(), 0, 'V10: no reminder for a cancelled item');
+reset role;
+select pg_temp.as_user('a1');
+set local role authenticated;
+select throws_ok($$select public.set_work_reminder(pg_temp.id('c022'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null)$$, '42501', null,
+  'V10: and none is set on it');
+reset role;
+update public.space_posts set status = 'live', cancelled_at = null where id = pg_temp.id('a001');
+
+-- V5: the setter left, or may no longer remind: not sent.
+select pg_temp.as_user('c3');
+set local role authenticated;
+select public.set_work_reminder(pg_temp.id('c023'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null);
+reset role;
+update public.space_members set left_at = now()
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('c3');
+update public.work_item_reminders set remind_at = now() - interval '1 minute' where id = pg_temp.id('c023');
+set local role service_role;
+select is(public.due_work_reminders(), 0, 'V5: not sent once its setter has left');
+reset role;
+update public.space_members set left_at = null
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('c3');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.set_work_reminder(pg_temp.id('c024'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null);
+reset role;
+update public.space_members set pass = 'crew'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a1');
+update public.work_item_reminders set remind_at = now() - interval '1 minute' where id = pg_temp.id('c024');
+set local role service_role;
+select is(public.due_work_reminders(), 0,
+  'V5: nor once its setter is no longer a Lead, the creator or the owner');
+reset role;
+update public.space_members set pass = 'lead'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a1');
+
+-- V4: 20 a day for one person, and the item is locked before counting.
+select pg_temp.as_user('c3');
+set local role authenticated;
+select public.create_work_item(pg_temp.sp(), 'Riser ' || n, pg_temp.uid('b2'),
+  p_id => pg_temp.id('a10' || n))
+from generate_series(1, 4) n;
+select public.set_work_reminder(
+  pg_temp.id('c1' || lpad(n::text, 2, '0')), pg_temp.id('a10' || (1 + (n - 1) / 5)),
+  array[pg_temp.uid('b2')], now() + interval '1 hour', null)
+from generate_series(1, 20 - (select count(*)::integer from public.work_item_reminders
+                              where set_by = pg_temp.uid('c3'))) n;
+reset role;
+select is((select count(*) from public.work_item_reminders where set_by = pg_temp.uid('c3'))::integer, 20,
+  'V4: Tariq has set 20 today');
+select pg_temp.as_user('c3');
+set local role authenticated;
+select throws_ok($$select public.set_work_reminder(pg_temp.id('c199'), pg_temp.id('a001'),
+  array[pg_temp.uid('b2')], now() + interval '2 hours', null)$$, '54000', null,
+  'V4: the 21st in a day: "You''ve set the most reminders for today"');
+reset role;
+select ok(pg_get_functiondef('public.set_work_reminder(uuid, uuid, uuid[], timestamptz, text)'::regprocedure)
+          ilike '%for update%', 'V4: the item is locked before the 5 are counted');
+
+-- V8: one put in from My notebook marks its note as it goes.
+insert into public.notes (id, owner_id, kind, body)
+values (pg_temp.id('e001'), pg_temp.uid('a1'), 'text', 'Morning brief');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.schedule_post(pg_temp.id('d013'), 'create_space_post',
+  jsonb_build_object('p_id', pg_temp.id('d013'), 'p_space', pg_temp.sp(), 'p_kind', 'announcement',
+                     'p_title', 'Morning brief'),
+  now() + interval '1 day', 'Morning brief', pg_temp.id('e001'));
+select throws_ok(format($q$select public.schedule_post(%L, 'create_post',
+  jsonb_build_object('p_id', %L, 'p_body', 'x', 'p_lang', 'en'), now() + interval '1 day', 'x', %L)$q$,
+  pg_temp.id('d014'), pg_temp.id('d014'), pg_temp.id('e002')), '42501', null,
+  'V8: only a note of the caller''s own');
+select is(public.post_scheduled_now(pg_temp.id('d013')), true, 'V8: it goes');
+reset role;
+select is((select put_in_post_id from public.notes where id = pg_temp.id('e001')), pg_temp.id('d013'),
+  'V8: its note says "Went into a Space"');
 
 select * from finish();
 rollback;
