@@ -74,10 +74,11 @@ class WelcomeScreen extends ConsumerWidget {
                       style: type.labelLg.copyWith(color: BvColors.textAction),
                     ),
                     const SizedBox(height: BvSpace.s8),
+                    // Review 107 S1: the one larger text on OB1.
                     Text(
                       l10n.obWelcomeTitle,
                       textAlign: TextAlign.center,
-                      style: type.titleLg,
+                      style: type.headingXl,
                     ),
                     const SizedBox(height: BvSpace.s8),
                     Text(
