@@ -49,6 +49,9 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
       return { route: `/people/${row.actor_id}` };
     case "post_reply":
       return { route: `/posts/${d.post_id}` };
+    // Review 108: a scheduled post that couldn't go opens Scheduled.
+    case "scheduled_failed":
+      return { route: "/profile/scheduled" };
     // Everything else opens its card in the Space: the work item, or the
     // daybook post (migration 19's space_post_id); the Space with neither.
     default: {
@@ -88,6 +91,11 @@ export function buildPush(
       data,
       tag: row.data?.dm_thread_id ?? undefined,
     };
+  }
+  if (row.kind === "work_reminder") return reminderPush(row, t, name, data, locale);
+  if (row.kind === "scheduled_failed") {
+    const reason = t[`scheduled_reason_${row.data?.reason}`] ?? t.scheduled_reason_other;
+    return { title: t.title, body: t.scheduled_failed.replaceAll("{reason}", reason), data };
   }
   const template = t[row.kind];
   if (!template) throw new Error(`no text for ${row.kind}`);
@@ -133,6 +141,39 @@ function messagePush(
     data,
     tag,
   };
+}
+
+// Review 108 RM2: "Reminder from Islam Sabra" over the item's words and the
+// note (only when the person turned lock-screen text on; the queue then
+// holds them), else "A work item needs you.", then " · due 10:00" in the
+// Space's time zone, Western digits in Arabic too.
+function reminderPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  name: string,
+  data: Record<string, string>,
+  locale: string,
+): Push {
+  const words = row.message_text?.trim();
+  const dueAt = row.data?.due_at;
+  const due = dueAt
+    ? t.work_reminder_due.replaceAll("{time}", clockIn(dueAt, locale, row.data?.tz))
+    : "";
+  return {
+    title: t.work_reminder_title.replaceAll("{name}", name),
+    body: `${words || t.work_reminder_body}${due}`,
+    data: words ? { ...data, shown: "1" } : data,
+  };
+}
+
+// "10:00" at [iso] in [zone] (UTC without one).
+function clockIn(iso: string, locale: string, zone?: string): string {
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: zone || "UTC",
+  }).format(new Date(iso));
 }
 
 // "3 new messages" / «3 رسائل جديدة», as F97 and F101.

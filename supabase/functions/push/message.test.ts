@@ -30,6 +30,7 @@ test("every kind has its text in English and Arabic", () => {
     "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
     "activity_invited", "activity_starting", "file_new_version",
     "dm_message", "dm_request", "dm_follow_up",
+    "work_reminder", "scheduled_failed",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -224,4 +225,48 @@ test("review 89 M2: messages go on their own channel, with vibration; the rest s
     "../../../android/app/src/main/kotlin/com/buildvibes/buildvibes/MainActivity.kt", import.meta.url), "utf8");
   assert.ok(activity.includes(`"${MESSAGE_CHANNEL}"`) && activity.includes("enableVibration(true)"));
   assert.ok(activity.includes(`"${DEFAULT_CHANNEL}"`));
+});
+
+// Review 108 (migration 57).
+const reminder = (extra: Partial<QueueRow> = {}): QueueRow =>
+  row("work_reminder", {
+    actor_id: "p-islam",
+    data: { space_id: "s1", space_post_id: "sp1", due_at: "2026-11-01T07:00:00Z", tz: "Asia/Kuwait" },
+    ...extra,
+  });
+
+test("review 108 RM2: a reminder from someone opens the item; the time of the due in the Space's zone", () => {
+  const p = buildPush(reminder(), "en", "Islam Sabra", strings);
+  assert.equal(p.title, "Reminder from ⁨Islam Sabra⁩");
+  // Without lock-screen text: no title, no note.
+  assert.equal(p.body, "A work item needs you. · due 10:00");
+  assert.equal(p.data.route, "/spaces/s1/items/sp1");
+  const ar = buildPush(reminder(), "ar", "إسلام صبرة", strings);
+  assert.equal(ar.title, "تذكير من ⁨إسلام صبرة⁩");
+  assert.equal(ar.body, "بند عمل بانتظارك. · الموعد 10:00");
+});
+
+test("review 108 RM2: the item's words and the note only when the person chose lock-screen text", () => {
+  const p = buildPush(
+    reminder({ message_text: "Formwork check, level 3 · Check the formwork before the pour" }),
+    "en", "Islam Sabra", strings,
+  );
+  assert.equal(p.body, "Formwork check, level 3 · Check the formwork before the pour · due 10:00");
+  assert.equal(p.data.shown, "1");
+  const none = buildPush(reminder({ data: { space_id: "s1", space_post_id: "sp1" } }), "en", "Islam Sabra", strings);
+  assert.equal(none.body, "A work item needs you.");
+});
+
+test("review 108 PL: a scheduled post that couldn't go says why and opens Scheduled", () => {
+  const p = buildPush(
+    row("scheduled_failed", { actor_id: null, data: { scheduled_id: "x1", reason: "not_allowed" } }),
+    "en", null, strings,
+  );
+  assert.equal(p.body, "Couldn't post: you can't post there any more.");
+  assert.equal(p.data.route, "/profile/scheduled");
+  const ar = buildPush(
+    row("scheduled_failed", { actor_id: null, data: { scheduled_id: "x1", reason: "other" } }),
+    "ar", null, strings,
+  );
+  assert.equal(ar.body, "تعذّر النشر: افتح المجدولة لتحاول مجددًا.");
 });
