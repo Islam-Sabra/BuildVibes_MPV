@@ -167,13 +167,20 @@ function reminderPush(
 }
 
 // "10:00" at [iso] in [zone] (UTC without one).
+// Review 108 V6: a zone Intl can't read is UTC, never a dropped push.
 function clockIn(iso: string, locale: string, zone?: string): string {
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: zone || "UTC",
-  }).format(new Date(iso));
+  const format = (timeZone: string) =>
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      timeZone,
+    }).format(new Date(iso));
+  try {
+    return format(zone || "UTC");
+  } catch {
+    return format("UTC");
+  }
 }
 
 // "3 new messages" / «3 رسائل جديدة», as F97 and F101.

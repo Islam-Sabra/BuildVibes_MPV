@@ -257,6 +257,14 @@ test("review 108 RM2: the item's words and the note only when the person chose l
   assert.equal(none.body, "A work item needs you.");
 });
 
+test("review 108 V6: a time zone the phone can't read falls back to UTC; the push still goes", () => {
+  const p = buildPush(
+    reminder({ data: { space_id: "s1", space_post_id: "sp1", due_at: "2026-11-01T07:00:00Z", tz: "Not/AZone" } }),
+    "en", "Islam Sabra", strings,
+  );
+  assert.equal(p.body, "A work item needs you. · due 07:00");
+});
+
 test("review 108 PL: a scheduled post that couldn't go says why and opens Scheduled", () => {
   const p = buildPush(
     row("scheduled_failed", { actor_id: null, data: { scheduled_id: "x1", reason: "not_allowed" } }),
