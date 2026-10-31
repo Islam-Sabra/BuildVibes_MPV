@@ -89,3 +89,20 @@
   - a failed post that is retried and then cancelled.
 
 Then fresh shots of anything that changed into `docs/reviews/shots-108b/`. Stop again before merging.
+
+### V1–V10 done (`claude/r108` at `4a262c9`): accepted (31 Oct)
+- **SQL stand-in:** 3,400 checks pass.
+- **Spot-checked in the migration:**
+  - the scheduled row and the post are locked (`for update`);
+  - every state change requires `state = 'waiting'`;
+  - the 20-a-day cap counts the last 24 hours;
+  - `due_work_reminders` requires the setter to still be in the Space as a Lead, the creator or the owner.
+- **The 8 new shots match:** PL2c failed card (Post now · Cancel), RM1b full names, RM1c daily limit line, PL1b the "can't be scheduled yet" line.
+- **Accepted:** the 24-hour window; no second "Couldn't post" push on a failed retry; the pinned signatures, with the note kept in the handoff.
+- **Next, with the founder's yes:**
+  - goldens from shots-108, shots-108b and shots-107b;
+  - merge into `slice2-app`;
+  - migration `20261117120000` live;
+  - the two cron jobs from `supabase/ops/`;
+  - deploy `push`;
+  - a build.
