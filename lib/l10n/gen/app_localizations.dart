@@ -10195,6 +10195,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Items with files or a place can\'t be scheduled yet.'**
   String get plCantYet;
+
+  /// Review 110 B: set_work_reminder refused "not allowed".
+  ///
+  /// In en, this message translates to:
+  /// **'Only the person who made it, the person it\'s for, or a Lead can remind someone.'**
+  String get rmOnlyWhoMay;
+
+  /// Review 110 B: set_work_reminder refused "only an open work item".
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are only for open work items.'**
+  String get rmOnlyOpen;
 }
 
 class _AppLocalizationsDelegate

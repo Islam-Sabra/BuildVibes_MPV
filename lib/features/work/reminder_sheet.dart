@@ -83,9 +83,12 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
 
   String get _spaceId => widget.space.id;
 
-  /// The item's creator, its owner or a Lead may remind someone else.
+  /// The item's creator, its owner or a Lead may remind someone else, of
+  /// an open work item only (review 110 B: the server takes nothing else).
   bool _maySomeone(String? me) =>
       me != null &&
+      widget.post.isWorkItem &&
+      widget.post.isOpen &&
       (widget.post.authorId == me ||
           widget.post.item?.ownerId == me ||
           widget.space.myPass == SpacePass.lead);
@@ -232,12 +235,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       navigator.pop(l10n.rmSetDone);
     } on SpaceException catch (e) {
       if (mounted) {
-        setState(
-          () => _error = e.failure == SpaceFailure.limit
-              // Review 108 V4: 20 a day.
-              ? l10n.rmDailyMost
-              : spaceErrorText(l10n, e),
-        );
+        setState(() => _error = reminderErrorText(l10n, e));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -398,3 +396,15 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     );
   }
 }
+
+/// Review 110 B: each refusal of set_work_reminder in plain words; the
+/// generic line only for what the server doesn't say.
+String reminderErrorText(AppLocalizations l10n, SpaceException e) =>
+    switch (e.message) {
+      'not allowed' => l10n.rmOnlyWhoMay,
+      'only an open work item' => l10n.rmOnlyOpen,
+      // Review 108 V4: 20 a day.
+      'the most reminders for today' => l10n.rmDailyMost,
+      _ when e.failure == SpaceFailure.limit => l10n.rmDailyMost,
+      _ => spaceErrorText(l10n, e),
+    };

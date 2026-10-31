@@ -8741,5 +8741,13 @@
   "plCantYet": "Items with files or a place can't be scheduled yet.",
   "@plCantYet": {
     "description": "Review 108 V7: the clock on a work item with Library files or a place from the list."
+  },
+  "rmOnlyWhoMay": "Only the person who made it, the person it's for, or a Lead can remind someone.",
+  "@rmOnlyWhoMay": {
+    "description": "Review 110 B: set_work_reminder refused \"not allowed\"."
+  },
+  "rmOnlyOpen": "Reminders are only for open work items.",
+  "@rmOnlyOpen": {
+    "description": "Review 110 B: set_work_reminder refused \"only an open work item\"."
   }
 }

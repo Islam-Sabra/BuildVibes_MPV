@@ -6123,4 +6123,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plCantYet =>
       'Items with files or a place can\'t be scheduled yet.';
+
+  @override
+  String get rmOnlyWhoMay =>
+      'Only the person who made it, the person it\'s for, or a Lead can remind someone.';
+
+  @override
+  String get rmOnlyOpen => 'Reminders are only for open work items.';
 }

@@ -20,12 +20,13 @@ class FakeWorkReminderRepository implements WorkReminderRepository {
       >[];
   final removed = <String>[];
 
-  /// The next call fails this way.
+  /// The next call fails this way, with the server's [failureMessage].
   SpaceFailure? failure;
+  String? failureMessage;
 
   void _check() {
     final f = failure;
-    if (f != null) throw SpaceException(f);
+    if (f != null) throw SpaceException(f, failureMessage);
   }
 
   @override
@@ -81,12 +82,13 @@ class FakeScheduleRepository implements ScheduleRepository {
   final cancelled = <String>[];
   final postedNow = <String>[];
 
-  /// The next call fails this way.
+  /// The next call fails this way, with the server's [failureMessage].
   SpaceFailure? failure;
+  String? failureMessage;
 
   void _check() {
     final f = failure;
-    if (f != null) throw SpaceException(f);
+    if (f != null) throw SpaceException(f, failureMessage);
   }
 
   @override

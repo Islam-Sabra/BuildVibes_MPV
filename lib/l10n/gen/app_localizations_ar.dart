@@ -6170,4 +6170,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plCantYet => 'لا يمكن جدولة بند فيه ملفات أو مكان حاليًا.';
+
+  @override
+  String get rmOnlyWhoMay =>
+      'يذكّر الآخرين صاحب البند أو المكلّف أو المسؤول فقط.';
+
+  @override
+  String get rmOnlyOpen => 'التذكير للبنود المفتوحة فقط.';
 }
