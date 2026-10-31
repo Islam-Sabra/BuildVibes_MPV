@@ -2,6 +2,49 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 31 Oct 2026 — review 107 S1 and review 108 live: merged into `slice2-app`, migration 57 live, cron started, `push` deployed, build 852 on the emulator (not yet on the phone)
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **The founder's yes (31 Oct), after the lead accepted V1–V10 and the shots:**
+  1. **Goldens on `claude/r108`** (2427bcf):
+     - The 80 accepted images were copied from shots-108, shots-108b and shots-107b. Each was checked byte-identical with `cmp`.
+     - 62 changed goldens: 60 with the clock beside Send, plus OB1 in EN and AR. 18 new ones in `docs/screens/r108/`.
+     - That folder was git-ignored, so `!docs/screens/r108/` was added to `.gitignore`.
+     - The three shot folders are removed.
+     - Checks on `claude/r108`:
+       - `flutter test test_screens`, not updating: 518 pass.
+       - `flutter analyze`: no issues.
+       - `flutter test`: 2,947 pass.
+       - `supabase db reset --local`, then `supabase test db`: 55 files, 3,400 checks, PASS.
+  2. **Merged into `slice2-app`** with `--no-ff` (745fbcd), with no conflicts, and pushed. The same checks pass again: analyze clean, 2,947, 518 and 3,400.
+  3. **Migration 57 is live:** `20261117120000_reminders_and_post_later.sql`.
+     - It was pushed from a throwaway worktree at 745fbcd, with `supabase/.temp` copied whole. The full output was kept in a log.
+     - The dry run listed only that file. The push exited 0.
+     - The known pg-delta certificate warning followed. It is harmless: it is the CLI's catalog cache, after the migration had applied.
+     - `supabase migration list --linked` ends at 20261117120000, with local and remote matching on every row.
+  4. **`push` deployed** (exit 0): version 12, ACTIVE, `verify_jwt` false, with the reminder and "Couldn't post" texts.
+  5. **The cron jobs started:**
+     - `supabase db query --linked -f supabase/ops/reminders_post_later_cron.sql` ran, exit 0.
+     - `cron.job` now lists job 7 `work-reminders` and job 8 `publish-scheduled-posts`, each every 5 minutes and active, with the commands as written.
+     - First runs: both succeeded at 07:45 UTC on the first tick (`cron.job_run_details`: "1 row" each, with no error).
+     - The push worktree is removed.
+  6. **Build 852** (745fbcd, release, upload key, prod env; versionCode 852, versionName 0.9.0):
+     - Certificate SHA-256 9d02b7db…df9f (v2), the same as 836.
+     - On the Desktop as `BuildVibes-852.apk` (MD5 39f8f9c6…1151).
+     - `google-services.json` and `env/prod.json` were copied in for the build, then deleted.
+     - The build's line-ending-only changes in `lib/l10n/gen` were reverted.
+  7. **Installed on the emulator** (`adb -s emulator-5554`, AVD `Pixel_8`) and opened.
+     - It reports versionCode 852, and the installed `base.apk` has the same MD5 as the Desktop copy.
+     - The founder's phone was connected over wireless debugging at the time and was **not** touched. It still has 823.
+- **Next:**
+  - the founder's test on the emulator: Reminder for Me and Someone, Post later in a Space, the Feed and a notebook share, and Scheduled (Post now, Edit, Cancel);
+  - build 852 on his phone, with his yes, when he has it with him;
+  - review 109 (Check-in), once the founder agrees to it.
+- **Who has which branch:**
+  - PC: `slice2-app` (worktree `BuildVibes-slice1`).
+  - `claude/r108` is merged; its worktree `BuildVibes-r108` can be removed.
+
 ## PC update: 31 Oct 2026 — review 108, the lead's check (V1–V10) fixed on `claude/r108`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

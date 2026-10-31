@@ -869,6 +869,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The app: the Space's clock and calendar, the daily-cap line, full names, the "not yet" line on the clock, and the note sent with a scheduled post.
   - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; push texts 19; shots: 444 unchanged, 74 differ as expected (54 clock, 2 OB1, 18 r108 with no golden), 8 new in `docs/reviews/shots-108b/`.
 
+- **31 Oct (PC): review 107 S1 and review 108 live** (founder's yes):
+  - The accepted shots became goldens: 80 images (62 changed, 18 new in `docs/screens/r108`, now un-ignored).
+  - `claude/r108` merged into `slice2-app`.
+  - Migration 57 (`reminders_and_post_later`) live.
+  - The two cron jobs started.
+  - `push` deployed.
+  - Build 852 on the emulator and the Desktop; the founder's phone still has 823.
+  - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; 518 shots.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
