@@ -158,7 +158,7 @@ void main() {
           matching: find.text(s.omarName),
         ),
       );
-      await _tap(tester, _key('writing-later'));
+      await openPostLater(tester);
       await _snap(tester, 'PL1-post-later', lang);
     });
 
@@ -301,7 +301,9 @@ void main() {
       );
       await _tap(tester, _key('writing-place-row'));
       await _tap(tester, _key('place-row-place-l3'));
-      await _tap(tester, _key('writing-later'));
+      // Review 110 CP5: held Send, the menu says why.
+      await tester.longPress(_key('writing-post'));
+      await tester.pumpAndSettle();
       await _snap(tester, 'PL1b-later-not-yet', lang);
     });
   }

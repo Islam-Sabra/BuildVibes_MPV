@@ -121,6 +121,23 @@ abstract final class BvWritingToolbarSpec {
   // 40 // 40
 }
 
+/// Review 110 CP5 (2708:39511): the small card over Send while it is held.
+abstract final class BvHoldMenuSpec {
+  static const radius = BvRadius.cardAll; // 14
+  static const padding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s16,
+    vertical: BvSpace.s12,
+  );
+  static const icon = BvSize.iconMd; // 20
+  static const gapIcon = BvSpace.s12;
+
+  /// Between the card and the top of Send.
+  static const gap = BvSpace.s8;
+
+  /// Why it can't, under the action (review 108 V7), wraps at this width.
+  static const noteWidth = 220.0;
+}
+
 /// The More menu (2527:33433) and the kind picker (2535:34374).
 abstract final class BvPopoverMenuSpec {
   static const widthMore = 184.0;

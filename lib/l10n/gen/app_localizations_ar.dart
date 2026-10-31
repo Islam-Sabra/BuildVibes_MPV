@@ -6180,4 +6180,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rmClearTime => 'إلغاء هذا الوقت';
+
+  @override
+  String get plLater => 'نشر لاحقًا…';
 }

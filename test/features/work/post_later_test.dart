@@ -7,6 +7,7 @@
 // "{n} scheduled" line in the Space. In English and Arabic.
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/features/feed/feed_state.dart' show PendingPost;
 import 'package:buildvibes/features/notebook/notebook_page_screen.dart'
@@ -173,7 +174,7 @@ void main() {
           '7:00; nothing is posted now and the card is gone', (tester) async {
         final app = await _space(tester, lang);
         await _writeItem(tester, s);
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         expect(_key('later-sheet'), findsOneWidget);
         expect(find.text(l10n.plTitle), findsWidgets);
         expect(
@@ -218,13 +219,13 @@ void main() {
       testWidgets('the next working day, and Pick…', (tester) async {
         final app = await _space(tester, lang);
         await _writeItem(tester, s);
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         await _tap(tester, _key('later-workday'));
         await _tap(tester, _key('later-schedule'));
         expect(app.schedule.scheduled.single.at, _sunday7);
 
         await _writeItem(tester, s);
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         await _tap(tester, _key('later-pick'));
         await _tap(tester, _key('later-schedule'));
         expect(app.schedule.scheduled.last.at, DateTime(2026, 10, 20, 9));
@@ -257,6 +258,58 @@ void main() {
       });
     });
 
+    group('Review 110 CP5: no clock on any writing bar; hold Send [$lang]', () {
+      Future<void> holdShows(
+        WidgetTester tester,
+        String send,
+        String later,
+      ) async {
+        // No clock beside Send, nothing with a clock next to Due.
+        expect(_key(later), findsNothing);
+        expect(find.byIcon(BvIcons.clock), findsNothing);
+        await tester.longPress(_key(send));
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(of: _key(later), matching: find.text(l10n.plLater)),
+          findsOneWidget,
+        );
+      }
+
+      testWidgets('in a Space', (tester) async {
+        await _space(tester, lang);
+        await _writeItem(tester, s);
+        await holdShows(tester, 'writing-post', 'writing-later');
+      });
+
+      testWidgets('in the Feed', (tester) async {
+        await pumpApp(tester, language: lang, now: _now);
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('nav-create'));
+        await _tap(tester, _key('create-post'));
+        await tester.enterText(
+          _key('writing-body'),
+          s.t('Level 3 slab done', 'بلاطة الطابق 3 منجزة'),
+        );
+        await tester.pumpAndSettle();
+        await holdShows(tester, 'writing-post', 'writing-later');
+      });
+
+      testWidgets('on a notebook share', (tester) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          now: NotebookPageSamples.now,
+          notebook: NotebookPageSamples(lang).repository(),
+        );
+        _router(tester).push('/notebook/pages/${NotebookPageSamples.siteA}');
+        await tester.pumpAndSettle();
+        await tester.longPress(_key('note-entry-pour'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('note-status-entry-pour-feed'));
+        await holdShows(tester, 'share-send', 'share-later');
+      });
+    });
+
     group('PL1 Post later in the Feed [$lang]', () {
       testWidgets('the clock beside Post; Schedule keeps create_post', (
         tester,
@@ -276,7 +329,7 @@ void main() {
           s.t('Level 3 slab done', 'بلاطة الطابق 3 منجزة'),
         );
         await tester.pumpAndSettle();
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         await _tap(tester, _key('later-workday'));
         await _tap(tester, _key('later-schedule'));
         final sent = app.schedule.scheduled.single;
@@ -309,7 +362,7 @@ void main() {
         await tester.longPress(_key('note-entry-pour'));
         await tester.pumpAndSettle();
         await _tap(tester, _key('note-status-entry-pour-feed'));
-        await _tap(tester, _key('share-later'));
+        await openShareLater(tester);
         await _tap(tester, _key('later-schedule'));
         final sent = app.schedule.scheduled.single;
         expect(sent.call, ScheduledCall.noteToFeed);

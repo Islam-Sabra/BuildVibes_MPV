@@ -23,6 +23,7 @@ import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_hold_menu.dart';
 import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
@@ -851,25 +852,27 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               onPressed: _sending ? null : () => Navigator.of(context).pop(),
             ),
             const Spacer(),
-            // Review 108 PL1: Post later, for the Feed and a Space.
-            if (person == null)
-              IconButton(
-                key: const Key('share-later'),
-                tooltip: l10n.plTitle,
-                icon: const Icon(BvIcons.clock, color: BvColors.iconPrimary),
+            // Review 110 CP5: Post later for the Feed and a Space, on
+            // holding Post; no clock on the bar.
+            BvHoldMenu(
+              action: person != null || _sending || tooLong
+                  ? null
+                  : BvHoldAction(
+                      key: const Key('share-later'),
+                      icon: BvIcons.clock,
+                      label: l10n.plLater,
+                      onTap: () => unawaited(_later(sent)),
+                    ),
+              child: BvButton(
+                key: const Key('share-send'),
+                label: person != null ? l10n.chatSend : l10n.notebookPost,
+                icon: BvIcons.send,
+                style: BvButtonStyle.tertiary,
+                size: BvButtonSize.medium,
                 onPressed: _sending || tooLong
                     ? null
-                    : () => unawaited(_later(sent)),
+                    : () => unawaited(_go(sent())),
               ),
-            BvButton(
-              key: const Key('share-send'),
-              label: person != null ? l10n.chatSend : l10n.notebookPost,
-              icon: BvIcons.send,
-              style: BvButtonStyle.tertiary,
-              size: BvButtonSize.medium,
-              onPressed: _sending || tooLong
-                  ? null
-                  : () => unawaited(_go(sent())),
             ),
           ],
         ),

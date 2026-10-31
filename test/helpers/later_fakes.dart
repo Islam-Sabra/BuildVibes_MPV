@@ -148,11 +148,25 @@ class FakeScheduleRepository implements ScheduleRepository {
       List.of(posts)..sort((a, b) => a.publishAt.compareTo(b.publishAt));
 }
 
-/// Post later from the writing bar in hand (review 108 PL1).
-Future<void> openPostLater(WidgetTester tester) async {
-  final later = find.byKey(const Key('writing-later'));
-  await tester.ensureVisible(later.first);
+/// Post later (review 110 CP5): hold Send, then "Post later…" on the
+/// small menu over it.
+Future<void> openPostLater(WidgetTester tester) =>
+    _holdThenLater(tester, 'writing-post', 'writing-later');
+
+/// The same on a notebook share's preview: hold Post.
+Future<void> openShareLater(WidgetTester tester) =>
+    _holdThenLater(tester, 'share-send', 'share-later');
+
+Future<void> _holdThenLater(
+  WidgetTester tester,
+  String send,
+  String later,
+) async {
+  final hold = find.byKey(Key(send));
+  await tester.ensureVisible(hold.first);
   await tester.pumpAndSettle();
-  await tester.tap(later.first);
+  await tester.longPress(hold.first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(Key(later)).first);
   await tester.pumpAndSettle();
 }

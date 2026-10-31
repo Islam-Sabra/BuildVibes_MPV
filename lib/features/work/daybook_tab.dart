@@ -1831,11 +1831,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   // Review 108 PL1: Post later, once the post could go now.
                   // A work item's Library files and a place from the list
                   // are added after it is made, so it goes now.
-                  laterLabel: _editing ? null : l10n.plTitle,
+                  laterLabel: _editing ? null : l10n.plLater,
                   // V7: not yet for one with Library files or a place from
                   // the list (they are added after it is made); grey, and
                   // a tap says so.
                   laterReady: !laterBlocked,
+                  laterNote: l10n.plCantYet,
                   onLater:
                       !_editing &&
                           (cardDraft?.canPost(ref.watch(clockProvider)()) ??

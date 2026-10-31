@@ -10213,6 +10213,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear this time'**
   String get rmClearTime;
+
+  /// Review 110 CP5: the one item on the small menu that holding Send opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Post later…'**
+  String get plLater;
 }
 
 class _AppLocalizationsDelegate

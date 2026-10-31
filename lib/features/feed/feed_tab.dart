@@ -575,7 +575,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                   ? (editing ? _save : _post)
                   : null,
               // Review 108 PL1: Post later, once it could go now.
-              laterLabel: editing ? null : l10n.plTitle,
+              laterLabel: editing ? null : l10n.plLater,
               onLater: !editing && (cardDraft?.canPost ?? false)
                   ? () => unawaited(_postLater())
                   : null,

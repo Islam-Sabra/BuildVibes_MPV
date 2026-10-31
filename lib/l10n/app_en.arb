@@ -8753,5 +8753,9 @@
   "rmClearTime": "Clear this time",
   "@rmClearTime": {
     "description": "Review 110 C (RM1d): the × on the picked time, said by a screen reader."
+  },
+  "plLater": "Post later…",
+  "@plLater": {
+    "description": "Review 110 CP5: the one item on the small menu that holding Send opens."
   }
 }
