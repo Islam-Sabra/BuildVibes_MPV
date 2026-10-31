@@ -137,14 +137,18 @@ class _CodeScreenState extends ConsumerState<CodeScreen> {
             title: byEmail ? l10n.codeDifferentEmail : l10n.codeDifferentNumber,
             onTap: () => Navigator.of(sheet).pop(_Other.different),
           ),
-          BvListRow(
-            key: const Key('other-resend'),
-            leading: const BvRowIcon(BvIcons.send),
-            title: l10n.codeResend,
-            subtitle: _secondsLeft > 0 ? _resendIn(l10n) : null,
-            onTap: _secondsLeft > 0
-                ? null
-                : () => Navigator.of(sheet).pop(_Other.resend),
+          // Greyed until the server's minute between codes is over.
+          Opacity(
+            opacity: _secondsLeft > 0 ? BvEntrySpec.waitingOpacity : 1,
+            child: BvListRow(
+              key: const Key('other-resend'),
+              leading: const BvRowIcon(BvIcons.send),
+              title: l10n.codeResend,
+              subtitle: _secondsLeft > 0 ? _resendIn(l10n) : null,
+              onTap: _secondsLeft > 0
+                  ? null
+                  : () => Navigator.of(sheet).pop(_Other.resend),
+            ),
           ),
         ],
       ),
@@ -207,7 +211,8 @@ class _CodeScreenState extends ConsumerState<CodeScreen> {
             label: l10n.obTryAnotherWay,
             style: BvButtonStyle.secondary,
             expand: true,
-            onPressed: _checking ? null : () => _otherWay(draft),
+            // Always active (R1): a different email at once.
+            onPressed: () => _otherWay(draft),
           ),
         ],
       ),

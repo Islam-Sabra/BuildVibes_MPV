@@ -6,11 +6,14 @@
 // the buttons. In English and Arabic.
 import 'dart:async';
 
+import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/people.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/profile/edit/basics_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_button.dart';
+import 'package:buildvibes/shared/widgets/bv_list_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -203,6 +206,51 @@ void main() {
         await _tap(tester, 'other-resend');
         expect(app.auth.sent, hasLength(2));
         await _tap(tester, 'code-other-way');
+        await _tap(tester, 'other-email');
+        expect(find.text(l10n.emailTitle), findsOneWidget);
+      });
+
+      testWidgets('the lead\'s check R1: Try another way is always active; '
+          'a different email at once, a new code only after the timer', (
+        tester,
+      ) async {
+        final auth = FakeAuthRepository();
+        final check = Completer<void>();
+        auth.verifyGate = check.future;
+        await pumpApp(tester, language: lang, signedIn: false, auth: auth);
+        await _tap(tester, 'welcome-email');
+        await _type(tester, 'email-field', 'sami@gulfbuild.co');
+        await _tap(tester, 'email-send');
+        BvButton other() => tester.widget<BvButton>(_key('code-other-way'));
+        // While the timer runs.
+        expect(_key('code-timer'), findsOneWidget);
+        expect(other().onPressed, isNotNull);
+        // And while the code is checked.
+        await tester.enterText(_key('code-input'), '000000');
+        await tester.pump();
+        expect(find.text(l10n.obChecking), findsOneWidget);
+        expect(other().onPressed, isNotNull);
+        check.complete();
+        await tester.pumpAndSettle();
+        await _tap(tester, 'code-other-way');
+        // A new code waits for the timer, greyed, with how long.
+        final resend = tester.widget<BvListRow>(_key('other-resend'));
+        expect(resend.onTap, isNull);
+        expect(
+          tester
+              .widget<Opacity>(
+                find
+                    .ancestor(
+                      of: _key('other-resend'),
+                      matching: find.byType(Opacity),
+                    )
+                    .first,
+              )
+              .opacity,
+          BvEntrySpec.waitingOpacity,
+        );
+        expect(find.textContaining(l10n.codeResendIn('').trim()), findsWidgets);
+        // A different email at once.
         await _tap(tester, 'other-email');
         expect(find.text(l10n.emailTitle), findsOneWidget);
       });

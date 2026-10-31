@@ -270,6 +270,10 @@ abstract final class BvEntrySpec {
     (0.31, 192.0, 2.0),
   ];
 
+  /// OB3's "Send a new code" while the resend timer runs (the lead's
+  /// check R1).
+  static const waitingOpacity = 0.55;
+
   // OB5 · Your work (2699:39043): nine tiles, three to a row.
   static const tiles = 9;
   static const tileColumns = 3;
