@@ -51,3 +51,41 @@
 - pgTAP covers it.
 
 **Not in this review:** repeating posts and repeating work items (still out of the MVP).
+
+## The lead's check of `claude/r108` at `a97e8c4` (31 Oct)
+- **Checked:** the SQL stand-in passes 3,370 checks in 55 files; all RM1, RM2, PL1, PL2, PL2b and OB1 shots match the frames in EN and AR; two code reviews (spec, and standards with security).
+- **Security passed:** RLS on both tables, no client writes, security definer with `search_path=''`, the cron functions revoked from clients, the create call replayed as the author, injection-safe `scheduled_call_sql`.
+- **Accepted as built:**
+  - `/scheduled-posts`;
+  - Edit changes only the time;
+  - the reminder push hides the title and note unless lock-screen text is on (migration 14's rule);
+  - the Profile clock shows only while something waits;
+  - the grey pill.
+
+**Fix before merging (V1–V10), test first:**
+- **V1. Post later race.** Lock the row in `my_waiting_scheduled` (`for update`). Every state update also requires `state = 'waiting'`. A test covers Post now or Cancel against a row the cron already posted: no double post, no false "Couldn't post".
+- **V2. A failed post can be cleared.** On a failed card, **Post now** retries and **Cancel** removes it. A failed row no longer keeps the Profile clock showing once cancelled.
+- **V3. One clock and one calendar per place.**
+  - Reminders' **Pick…** uses the Space's time zone, like Tomorrow 7:00.
+  - **Post later in a Space** uses the Space's time zone and the Space's market weekend. In the Feed and a notebook share, it uses the phone's zone and the person's own market.
+  - Morning 7:00 is one shared spec constant, not typed in two files.
+- **V4. Reminder limits.**
+  - Lock the post row before counting the 5 waiting reminders.
+  - Add a per-setter cap of **20 Someone reminders a day** ("You've set the most reminders for today").
+- **V5. Setter must still be there.** `due_work_reminders` also skips a reminder whose setter has left the Space, or is no longer the creator, the owner or a Lead.
+- **V6. Push text.** `clockIn` falls back to UTC on a bad time zone instead of dropping the push. The reminder sheet shows the full name, not a first-name split (it breaks names like «عبد الله»).
+- **V7. The clock on a work item with Library files or a Space place stays off**, accepted for the MVP. Tapping it shows one line instead of doing nothing: "Items with files or a place can't be scheduled yet." («لا يمكن جدولة بند فيه ملفات أو مكان حاليًا.»)
+- **V8. The note mark.** The publishing step marks the note "Went into a Space" when a scheduled post came from My notebook through the writing card.
+- **V9. Small server tidy-ups:**
+  - revoke `can_read_work_reminder` from `authenticated`;
+  - make `scheduled_call_sql` match one exact function signature per name;
+  - make `schedule_post` answer `not allowed` on an id another author owns.
+- **V10. pgTAP adds:**
+  - a cancelled item;
+  - a soft-deleted Space;
+  - an author who lost the pass without leaving;
+  - the per-setter cap;
+  - the setter who left;
+  - a failed post that is retried and then cancelled.
+
+Then fresh shots of anything that changed into `docs/reviews/shots-108b/`. Stop again before merging.
