@@ -6130,4 +6130,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rmOnlyOpen => 'Reminders are only for open work items.';
+
+  @override
+  String get rmClearTime => 'Clear this time';
 }

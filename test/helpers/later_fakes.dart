@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/data/repositories/work_reminder_repository.dart';
@@ -144,4 +146,13 @@ class FakeScheduleRepository implements ScheduleRepository {
   @override
   Future<List<ScheduledPost>> mine() async =>
       List.of(posts)..sort((a, b) => a.publishAt.compareTo(b.publishAt));
+}
+
+/// Post later from the writing bar in hand (review 108 PL1).
+Future<void> openPostLater(WidgetTester tester) async {
+  final later = find.byKey(const Key('writing-later'));
+  await tester.ensureVisible(later.first);
+  await tester.pumpAndSettle();
+  await tester.tap(later.first);
+  await tester.pumpAndSettle();
 }

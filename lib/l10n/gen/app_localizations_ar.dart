@@ -6177,4 +6177,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rmOnlyOpen => 'التذكير للبنود المفتوحة فقط.';
+
+  @override
+  String get rmClearTime => 'إلغاء هذا الوقت';
 }

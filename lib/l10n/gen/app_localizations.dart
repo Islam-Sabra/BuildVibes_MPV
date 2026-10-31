@@ -10207,6 +10207,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders are only for open work items.'**
   String get rmOnlyOpen;
+
+  /// Review 110 C (RM1d): the × on the picked time, said by a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear this time'**
+  String get rmClearTime;
 }
 
 class _AppLocalizationsDelegate

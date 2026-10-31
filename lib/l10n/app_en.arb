@@ -8749,5 +8749,9 @@
   "rmOnlyOpen": "Reminders are only for open work items.",
   "@rmOnlyOpen": {
     "description": "Review 110 B: set_work_reminder refused \"only an open work item\"."
+  },
+  "rmClearTime": "Clear this time",
+  "@rmClearTime": {
+    "description": "Review 110 C (RM1d): the × on the picked time, said by a screen reader."
   }
 }

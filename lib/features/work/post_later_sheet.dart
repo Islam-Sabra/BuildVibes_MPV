@@ -130,32 +130,45 @@ class _PostLaterSheetState extends ConsumerState<_PostLaterSheet> {
         Wrap(
           spacing: BvSpace.s8,
           runSpacing: BvSpace.s8,
+          // Review 110 C (RM1d): a picked time stands alone, × back to
+          // the suggestions.
           children: [
-            BvChip(
-              key: const Key('later-tomorrow'),
-              label: l10n.rmTomorrowAt(words.time.clock(tomorrow)),
-              icon: BvIcons.clock,
-              selected: _when == _When.tomorrow,
-              onTap: () => setState(() => _when = _When.tomorrow),
-            ),
-            BvChip(
-              key: const Key('later-workday'),
-              label: l10n.plDayAt(
-                words.weekday(workday),
-                words.time.clock(workday),
+            if (_when == _When.picked && _picked != null)
+              BvFilterChip(
+                key: const Key('later-picked'),
+                clearKey: const Key('later-picked-clear'),
+                label: reminderWhen(l10n, words, _picked!, wallNow),
+                icon: BvIcons.clock,
+                clearLabel: l10n.rmClearTime,
+                onClear: () => setState(() {
+                  _picked = null;
+                  _when = _When.tomorrow;
+                }),
+              )
+            else ...[
+              BvChip(
+                key: const Key('later-tomorrow'),
+                label: l10n.rmTomorrowAt(words.time.clock(tomorrow)),
+                icon: BvIcons.clock,
+                selected: _when == _When.tomorrow,
+                onTap: () => setState(() => _when = _When.tomorrow),
               ),
-              selected: _when == _When.workday,
-              onTap: () => setState(() => _when = _When.workday),
-            ),
-            BvChip(
-              key: const Key('later-pick'),
-              label: _picked == null
-                  ? l10n.rmPick
-                  : reminderWhen(l10n, words, _picked!, wallNow),
-              icon: BvIcons.calendar,
-              selected: _when == _When.picked,
-              onTap: () => unawaited(_pick(wallNow)),
-            ),
+              BvChip(
+                key: const Key('later-workday'),
+                label: l10n.plDayAt(
+                  words.weekday(workday),
+                  words.time.clock(workday),
+                ),
+                selected: _when == _When.workday,
+                onTap: () => setState(() => _when = _When.workday),
+              ),
+              BvChip(
+                key: const Key('later-pick'),
+                label: l10n.rmPick,
+                icon: BvIcons.calendar,
+                onTap: () => unawaited(_pick(wallNow)),
+              ),
+            ],
           ],
         ),
         Text(
