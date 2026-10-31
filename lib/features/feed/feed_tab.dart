@@ -21,7 +21,9 @@ import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../work/daybook_words.dart';
+import '../work/post_later_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
@@ -232,8 +234,27 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     }
   }
 
-  Future<void> _post() async {
-    await _writer.post();
+  /// Post later (review 108 PL1): the time, then "Scheduled for …".
+  Future<void> _postLater() async {
+    final at = await showPostLaterSheet(context);
+    if (at == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final now = ref.read(clockProvider)();
+    await _post(at: at);
+    if (!mounted) return;
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    showSpaceMessage(
+      context,
+      l10n.plScheduledFor(reminderWhen(l10n, words, at, now)),
+    );
+  }
+
+  Future<void> _post({DateTime? at}) async {
+    await _writer.post(at: at);
     if (!mounted) return;
     FocusManager.instance.primaryFocus?.unfocus();
     ref.read(postWritingProvider.notifier).stop();
@@ -278,7 +299,11 @@ class _FeedTabState extends ConsumerState<FeedTab> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(feedProvider);
-    final pending = ref.watch(postOutboxProvider);
+    // Post later's go to the server, never to Home (review 108 PL1).
+    final pending = [
+      for (final p in ref.watch(postOutboxProvider))
+        if (p.scheduleAt == null) p,
+    ];
     final mode = ref.watch(postWritingProvider);
     final draft = ref.watch(postDraftProvider);
     final edit = ref.watch(postEditProvider);
@@ -548,6 +573,11 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                                   .isNotEmpty ??
                               false))
                   ? (editing ? _save : _post)
+                  : null,
+              // Review 108 PL1: Post later, once it could go now.
+              laterLabel: editing ? null : l10n.plTitle,
+              onLater: !editing && (cardDraft?.canPost ?? false)
+                  ? () => unawaited(_postLater())
                   : null,
             ),
         ],

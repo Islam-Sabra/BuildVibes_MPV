@@ -9,7 +9,8 @@ import '../../core/design/bv_tokens.dart';
 /// outline. The look is 32 high; the touch area is 44. With no [onTap]
 /// it is grey and does nothing (P2 "Choose a pass"). Review 105 SP8: a
 /// [strong] one is the action colour with white words (Confirm); a [quiet]
-/// one grey with grey words (Decline).
+/// one grey with grey words (Decline). Review 108 PL2: a [grey] one is
+/// grey with dark words (Edit).
 class BvPillButton extends StatelessWidget {
   const BvPillButton({
     super.key,
@@ -18,6 +19,7 @@ class BvPillButton extends StatelessWidget {
     this.soft = true,
     this.strong = false,
     this.quiet = false,
+    this.grey = false,
   });
 
   final String label;
@@ -25,6 +27,7 @@ class BvPillButton extends StatelessWidget {
   final bool soft;
   final bool strong;
   final bool quiet;
+  final bool grey;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +49,7 @@ class BvPillButton extends StatelessWidget {
                 vertical: BvProfileHeadSpec.pillPaddingVertical,
               ),
               decoration: BoxDecoration(
-                color: off || quiet
+                color: off || quiet || grey
                     ? BvColors.surfaceSubtle
                     : strong
                     ? BvColors.actionPrimary
@@ -54,7 +57,7 @@ class BvPillButton extends StatelessWidget {
                     ? BvColors.surfaceBrandSoft
                     : null,
                 borderRadius: BvRadius.roundAll,
-                border: soft || off || strong || quiet
+                border: soft || off || strong || quiet || grey
                     ? null
                     : Border.all(
                         color: BvColors.borderDefault,
@@ -68,7 +71,7 @@ class BvPillButton extends StatelessWidget {
                       ? BvColors.textSecondary
                       : strong
                       ? BvColors.actionPrimaryForeground
-                      : soft
+                      : soft && !grey
                       ? BvColors.textAction
                       : BvColors.textPrimary,
                 ),

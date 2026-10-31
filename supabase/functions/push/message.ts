@@ -51,7 +51,7 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
       return { route: `/posts/${d.post_id}` };
     // Review 108: a scheduled post that couldn't go opens Scheduled.
     case "scheduled_failed":
-      return { route: "/profile/scheduled" };
+      return { route: "/scheduled-posts" };
     // Everything else opens its card in the Space: the work item, or the
     // daybook post (migration 19's space_post_id); the Space with neither.
     default: {

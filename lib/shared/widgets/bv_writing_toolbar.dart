@@ -72,6 +72,8 @@ class BvWritingToolbar extends StatelessWidget {
     this.moreActive = false,
     this.moreKey,
     this.postReady = true,
+    this.laterLabel,
+    this.onLater,
   }) : tools = null,
        field = null,
        categories = null,
@@ -88,6 +90,8 @@ class BvWritingToolbar extends StatelessWidget {
     this.categoriesOpen = false,
     this.beside = const [],
     this.postReady = true,
+    this.laterLabel,
+    this.onLater,
   }) : cameraLabel = null,
        onCamera = null,
        attachLabel = null,
@@ -131,6 +135,11 @@ class BvWritingToolbar extends StatelessWidget {
   /// On the More button, so the screen can place the More menu over it.
   final Key? moreKey;
 
+  /// Review 108 PL1: the clock beside Send (Post later), shown when
+  /// [laterLabel] is given; off while [onLater] is null.
+  final String? laterLabel;
+  final VoidCallback? onLater;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -169,6 +178,7 @@ class BvWritingToolbar extends StatelessWidget {
                   active: moreActive,
                 ),
                 const Spacer(),
+                ..._later(),
                 _Post(label: postLabel, onTap: onPost, ready: postReady),
               ]
             : [
@@ -186,11 +196,22 @@ class BvWritingToolbar extends StatelessWidget {
                   for (final t in tools!)
                     if (t.holds) _tool(t),
                 ],
+                ..._later(),
                 _Post(label: postLabel, onTap: onPost, ready: postReady),
               ],
       ),
     );
   }
+
+  List<Widget> _later() => [
+    if (laterLabel case final label?)
+      _Tool(
+        key: const Key('writing-later'),
+        icon: BvIcons.clock,
+        label: label,
+        onTap: onLater,
+      ),
+  ];
 
   Widget _tool(BvWritingTool t) => _Tool(
     key: t.key,

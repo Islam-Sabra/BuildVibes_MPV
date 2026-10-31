@@ -44,6 +44,7 @@ import '../../data/repositories/daybook_repository.dart'
 import '../../data/models/template.dart';
 import '../../data/models/post_page.dart' show PageTaskTable, taskCount;
 import '../../data/repositories/page_repository.dart' show taskTablesProvider;
+import '../../data/repositories/schedule_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -81,6 +82,9 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import '../notebook/notebook_page_screen.dart' show reminderWhen;
+import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'post_later_sheet.dart';
 import 'reminder_sheet.dart';
 import 'first_run_tips.dart';
 import 'daybook_attach.dart';
@@ -1283,14 +1287,34 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   void _assigned() => _setMenu(null);
 
-  Future<void> _post(String? myName) async {
+  /// Post later (review 108 PL1): the time, then the post goes to the
+  /// server to be made then; "Scheduled for …".
+  Future<void> _postLater(String? myName) async {
+    final at = await showPostLaterSheet(context);
+    if (at == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final now = ref.read(clockProvider)();
+    await _post(myName, at: at);
+    if (!mounted) return;
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    showSpaceMessage(
+      context,
+      l10n.plScheduledFor(reminderWhen(l10n, words, at, now)),
+    );
+  }
+
+  Future<void> _post(String? myName, {DateTime? at}) async {
     // A daily report goes with its page, made now in the writer's words.
     final draft = _writer.draft;
     if (draft != null && draft.kind == DaybookKind.report) {
       await _writer.setPage(reportPage(AppLocalizations.of(context), draft));
       if (!mounted) return;
     }
-    await _writer.post(authorName: myName);
+    await _writer.post(authorName: myName, at: at);
     if (!mounted) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -1439,10 +1463,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         const <CalendarWorkItem>[];
     final draft = ref.watch(daybookDraftProvider(_spaceId));
     final edit = ref.watch(daybookEditProvider(_spaceId));
+    // Post later's go to the server, never to the page (review 108 PL1).
     final pending = [
       for (final i in ref.watch(workOutboxProvider))
-        if (i.spaceId == _spaceId) i,
+        if (i.spaceId == _spaceId && i.scheduleAt == null) i,
     ];
+    // Review 108 PL2: "{n} scheduled", mine waiting to go out here.
+    final scheduledHere = [
+      for (final p in ref.watch(myScheduledProvider).value ?? const [])
+        if (p.spaceId == _spaceId && p.state == ScheduledState.waiting) p,
+    ].length;
     final myName = ref
         .watch(spacePeopleProvider(_spaceId))
         .value
@@ -1787,10 +1817,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   postReady:
                       _editing ||
                       (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
+                  // Review 108 PL1: Post later, once the post could go now.
+                  // A work item's Library files and a place from the list
+                  // are added after it is made, so it goes now.
+                  laterLabel: _editing ? null : l10n.plTitle,
+                  onLater:
+                      !_editing &&
+                          (cardDraft?.canPost(ref.watch(clockProvider)()) ??
+                              false) &&
+                          !(cardDraft!.kind == DaybookKind.workItem &&
+                              (cardDraft.files.isNotEmpty ||
+                                  cardDraft.placeId != null))
+                      ? () => unawaited(_postLater(myName))
+                      : null,
                 )
               // A Draft on the page takes the post bar's place until it is
               // posted or emptied (E4).
-              else if (!card)
+              else if (!card) ...[
+                if (scheduledHere > 0) ScheduledLine(count: scheduledHere),
                 BvPostBar(
                   // Review 105 J4 (SP1).
                   placeholder: l10n.daybookWriteInSpace,
@@ -1803,6 +1847,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   // the work item (H1).
                   onCamera: () => unawaited(_camera()),
                 ),
+              ],
             ],
           ),
         ),

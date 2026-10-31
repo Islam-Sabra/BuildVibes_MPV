@@ -18,6 +18,7 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
+import '../../data/repositories/schedule_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
@@ -181,6 +182,7 @@ class PendingItem {
     this.placeId,
     this.handTo,
     this.handovers = const [],
+    this.scheduleAt,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -237,6 +239,7 @@ class PendingItem {
           owner: h['owner'] as String,
         ),
     ],
+    scheduleAt: _time(json['schedule_at']),
   );
 
   static DateTime? _time(Object? value) =>
@@ -330,6 +333,10 @@ class PendingItem {
   /// SP9), sent with it in one step.
   final List<Handover> handovers;
 
+  /// Post later (review 108 PL1): a new post the server makes at this
+  /// time (schedule_post), not now. It is never a slip on the daybook.
+  final DateTime? scheduleAt;
+
   /// The card this is about.
   String get cardId => postId ?? id;
 
@@ -376,6 +383,7 @@ class PendingItem {
     placeId: placeId,
     handTo: handTo,
     handovers: handovers,
+    scheduleAt: scheduleAt,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -410,6 +418,7 @@ class PendingItem {
     placeId: placeId,
     handTo: handTo,
     handovers: handovers,
+    scheduleAt: scheduleAt,
   );
 
   /// A new post, of any kind.
@@ -456,6 +465,7 @@ class PendingItem {
     'post_id': ?postId,
     'hand_to': ?handTo,
     if (handovers.isNotEmpty) 'handovers': handoversJson(handovers),
+    'schedule_at': ?scheduleAt?.toUtc().toIso8601String(),
   };
 
   /// Only the kinds this version knows are read back.
@@ -854,6 +864,17 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       }
     }
 
+    // Post later: the server has it to make at its time; nothing comes on
+    // the daybook now (review 108 PL1).
+    if (item.scheduleAt != null) {
+      _retry.reached();
+      ref.read(signalProvider.notifier).back();
+      await _drop(current);
+      _deleteFiles(current);
+      ref.invalidate(myScheduledProvider);
+      return true;
+    }
+
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
@@ -945,34 +966,53 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
   static const _idTaken = 'this id is taken';
 
+  /// Post later (review 108 PL1): the create call's arguments, kept on
+  /// the server to make as me at [at]; its rules are checked again then.
+  Future<void> _schedule(
+    PendingItem item,
+    String call,
+    Map<String, Object?> params,
+    DateTime at,
+  ) => ref
+      .read(scheduleRepositoryProvider)
+      .schedule(
+        id: item.id,
+        call: call,
+        params: params,
+        at: at,
+        title: item.draft?.title.trim() ?? item.title,
+      );
+
   Future<void> _call(PendingItem item, List<PendingPhoto> photos) async {
     final daybook = ref.read(daybookRepositoryProvider);
     final paths = [for (final p in photos) p.remote!];
     final fileIds = [for (final f in item.files) f.libraryId];
     switch (item.kind) {
       case PendingKind.workItem:
-        await daybook.createWorkItem(
-          NewWorkItem(
-            id: item.id,
-            spaceId: item.spaceId,
-            title: item.title,
-            ownerId: item.ownerId,
-            body: item.body,
-            // A chosen place goes by its id too (set_post_place, below);
-            // its name stays on the post if that is refused.
-            place: item.place,
-            dueDate: item.dueDate,
-            dueAt: item.dueAt,
-            photoPaths: paths,
-            libraryFileIds: fileIds,
-            quote: item.quote,
-            sourceMessageId: item.sourceMessageId,
-            templateId: item.templateId,
-            blocks: item.blocks,
-            points: item.points,
-            teamId: item.teamId,
-          ),
+        final made = NewWorkItem(
+          id: item.id,
+          spaceId: item.spaceId,
+          title: item.title,
+          ownerId: item.ownerId,
+          body: item.body,
+          // A chosen place goes by its id too (set_post_place, below);
+          // its name stays on the post if that is refused.
+          place: item.place,
+          dueDate: item.dueDate,
+          dueAt: item.dueAt,
+          photoPaths: paths,
+          libraryFileIds: fileIds,
+          quote: item.quote,
+          sourceMessageId: item.sourceMessageId,
+          templateId: item.templateId,
+          blocks: item.blocks,
+          points: item.points,
+          teamId: item.teamId,
         );
+        if (item.scheduleAt case final at?) {
+          return _schedule(item, ScheduledCall.workItem, made.toParams(), at);
+        }
+        await daybook.createWorkItem(made);
         // The same file twice is one attachment (attach_library_file).
         for (final id in fileIds) {
           await daybook.attachFile(item.id, id);
@@ -983,35 +1023,37 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         }
       case PendingKind.post:
         final d = item.draft!;
-        await daybook.createPost(
-          NewSpacePost(
-            id: item.id,
-            spaceId: item.spaceId,
-            kind: d.kind.json,
-            title: d.title,
-            body: d.body,
-            place: d.place,
-            dueDate: d.dueDate,
-            dueAt: d.dueAt,
-            pinnedUntil: d.pinnedUntil,
-            startsAt: d.startsAt,
-            endsAt: d.endsAt,
-            // A file post shares its file; the other kinds carry theirs as
-            // the post's own files (F39).
-            libraryFileId: d.kind == DaybookKind.file
-                ? fileIds.firstOrNull
-                : null,
-            attachedFileIds: d.kind == DaybookKind.file ? const [] : fileIds,
-            people: [for (final p in d.people) p.id],
-            points: d.writtenPoints,
-            photoPaths: paths,
-            teamId: d.teamId,
-            quote: d.quote,
-            sourceMessageId: d.sourceMessageId,
-            templateId: d.templateId,
-            blocks: d.blocks.isEmpty ? null : d.blocks,
-          ),
+        final made = NewSpacePost(
+          id: item.id,
+          spaceId: item.spaceId,
+          kind: d.kind.json,
+          title: d.title,
+          body: d.body,
+          place: d.place,
+          dueDate: d.dueDate,
+          dueAt: d.dueAt,
+          pinnedUntil: d.pinnedUntil,
+          startsAt: d.startsAt,
+          endsAt: d.endsAt,
+          // A file post shares its file; the other kinds carry theirs as
+          // the post's own files (F39).
+          libraryFileId: d.kind == DaybookKind.file
+              ? fileIds.firstOrNull
+              : null,
+          attachedFileIds: d.kind == DaybookKind.file ? const [] : fileIds,
+          people: [for (final p in d.people) p.id],
+          points: d.writtenPoints,
+          photoPaths: paths,
+          teamId: d.teamId,
+          quote: d.quote,
+          sourceMessageId: d.sourceMessageId,
+          templateId: d.templateId,
+          blocks: d.blocks.isEmpty ? null : d.blocks,
         );
+        if (item.scheduleAt case final at?) {
+          return _schedule(item, ScheduledCall.spacePost, made.toParams(), at);
+        }
+        await daybook.createPost(made);
         if (d.placeId case final place?) {
           await setPostPlaceOrKeepName(daybook, item.id, place);
         }

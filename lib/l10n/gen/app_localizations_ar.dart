@@ -6100,4 +6100,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rmSeparator => '، ';
+
+  @override
+  String get plTitle => 'النشر لاحقًا';
+
+  @override
+  String plDayAt(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get plGoesOut => 'يُنشر في ذلك الوقت حتى لو كان هاتفك مغلقًا.';
+
+  @override
+  String get plSchedule => 'جدولة';
+
+  @override
+  String plScheduledFor(String when) {
+    return 'مجدول في $when';
+  }
+
+  @override
+  String get plScheduled => 'المجدولة';
+
+  @override
+  String get plPostNow => 'انشر الآن';
+
+  @override
+  String get plEdit => 'تعديل';
+
+  @override
+  String get plCancel => 'إلغاء';
+
+  @override
+  String get plFeed => 'الأخبار';
+
+  @override
+  String get plEmpty => 'لا شيء مجدول.';
+
+  @override
+  String plCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منشورًا مجدولًا',
+      few: '$count منشورات مجدولة',
+      two: 'منشوران مجدولان',
+      one: 'منشور مجدول',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plFailed(String reason) {
+    return 'تعذّر النشر: $reason';
+  }
+
+  @override
+  String get plReasonNotAllowed => 'لم تعد تستطيع النشر هناك.';
+
+  @override
+  String get plReasonNotValid => 'شيء فيه لم يعد صالحًا.';
+
+  @override
+  String get plReasonOther => 'حاول مجددًا.';
 }

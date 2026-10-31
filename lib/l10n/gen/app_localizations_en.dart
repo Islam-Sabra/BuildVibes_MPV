@@ -6053,4 +6053,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rmSeparator => ', ';
+
+  @override
+  String get plTitle => 'Post later';
+
+  @override
+  String plDayAt(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get plGoesOut =>
+      'It goes out at that time, even if your phone is off.';
+
+  @override
+  String get plSchedule => 'Schedule';
+
+  @override
+  String plScheduledFor(String when) {
+    return 'Scheduled for $when';
+  }
+
+  @override
+  String get plScheduled => 'Scheduled';
+
+  @override
+  String get plPostNow => 'Post now';
+
+  @override
+  String get plEdit => 'Edit';
+
+  @override
+  String get plCancel => 'Cancel';
+
+  @override
+  String get plFeed => 'Feed';
+
+  @override
+  String get plEmpty => 'Nothing scheduled.';
+
+  @override
+  String plCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scheduled',
+      one: '1 scheduled',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plFailed(String reason) {
+    return 'Couldn\'t post: $reason';
+  }
+
+  @override
+  String get plReasonNotAllowed => 'you can\'t post there any more.';
+
+  @override
+  String get plReasonNotValid => 'something in it isn\'t valid any more.';
+
+  @override
+  String get plReasonOther => 'try again.';
 }

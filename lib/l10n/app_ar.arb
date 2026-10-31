@@ -1664,5 +1664,21 @@
   "rmReminders": "التذكيرات",
   "rmLine": "{name} · {when}",
   "rmRemoveFor": "إزالة التذكير لـ {name}",
-  "rmSeparator": "، "
+  "rmSeparator": "، ",
+  "plTitle": "النشر لاحقًا",
+  "plDayAt": "{day} {time}",
+  "plGoesOut": "يُنشر في ذلك الوقت حتى لو كان هاتفك مغلقًا.",
+  "plSchedule": "جدولة",
+  "plScheduledFor": "مجدول في {when}",
+  "plScheduled": "المجدولة",
+  "plPostNow": "انشر الآن",
+  "plEdit": "تعديل",
+  "plCancel": "إلغاء",
+  "plFeed": "الأخبار",
+  "plEmpty": "لا شيء مجدول.",
+  "plCount": "{count, plural, =1{منشور مجدول} =2{منشوران مجدولان} few{{count} منشورات مجدولة} other{{count} منشورًا مجدولًا}}",
+  "plFailed": "تعذّر النشر: {reason}",
+  "plReasonNotAllowed": "لم تعد تستطيع النشر هناك.",
+  "plReasonNotValid": "شيء فيه لم يعد صالحًا.",
+  "plReasonOther": "حاول مجددًا."
 }

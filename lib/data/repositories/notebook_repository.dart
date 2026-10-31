@@ -15,6 +15,48 @@ import 'work_repository.dart' show newUuid;
 /// My notebook and My calendar (slice 8, review 83; migration 21). Only
 /// the owner reads a note, not even a Space admin; every rule is the
 /// server's.
+/// What share_note_to_feed takes (review 108: Post later keeps it too).
+Map<String, Object?> shareToFeedParams(
+  String noteId,
+  String postId,
+  String lang, {
+  List<String>? lines,
+  required bool includeLocation,
+  List<Map<String, dynamic>> media = const [],
+}) => {
+  'p_note': noteId,
+  'p_post': postId,
+  'p_lang': lang,
+  'p_lines': lines,
+  'p_include_location': includeLocation,
+  'p_media': media,
+};
+
+/// What share_note_to_space takes (review 108: Post later keeps it too).
+Map<String, Object?> shareToSpaceParams(
+  String noteId,
+  String postId,
+  String spaceId,
+  String kind, {
+  List<String>? lines,
+  String? team,
+  String? owner,
+  List<String> people = const [],
+  required bool includeLocation,
+  List<Map<String, dynamic>> files = const [],
+}) => {
+  'p_note': noteId,
+  'p_post': postId,
+  'p_space': spaceId,
+  'p_kind': kind,
+  'p_lines': lines,
+  'p_team': team,
+  'p_owner': owner,
+  'p_people': people,
+  'p_include_location': includeLocation,
+  'p_files': files,
+};
+
 abstract class NotebookRepository {
   /// My notes, newest first (`notes` under its owner-only policy).
   Future<List<Note>> notes();
@@ -589,14 +631,14 @@ class SupabaseNotebookRepository implements NotebookRepository {
   }) => _guard(
     () => _client.rpc<void>(
       'share_note_to_feed',
-      params: {
-        'p_note': noteId,
-        'p_post': postId,
-        'p_lang': lang,
-        'p_lines': lines,
-        'p_include_location': includeLocation,
-        'p_media': media,
-      },
+      params: shareToFeedParams(
+        noteId,
+        postId,
+        lang,
+        lines: lines,
+        includeLocation: includeLocation,
+        media: media,
+      ),
     ),
   );
 
@@ -615,18 +657,18 @@ class SupabaseNotebookRepository implements NotebookRepository {
   }) => _guard(
     () => _client.rpc<void>(
       'share_note_to_space',
-      params: {
-        'p_note': noteId,
-        'p_post': postId,
-        'p_space': spaceId,
-        'p_kind': kind,
-        'p_lines': lines,
-        'p_team': team,
-        'p_owner': owner,
-        'p_people': people,
-        'p_include_location': includeLocation,
-        'p_files': files,
-      },
+      params: shareToSpaceParams(
+        noteId,
+        postId,
+        spaceId,
+        kind,
+        lines: lines,
+        team: team,
+        owner: owner,
+        people: people,
+        includeLocation: includeLocation,
+        files: files,
+      ),
     ),
   );
 

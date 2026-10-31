@@ -10087,6 +10087,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **', '**
   String get rmSeparator;
+
+  /// Review 108 PL1: the clock beside Send, and its sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post later'**
+  String get plTitle;
+
+  /// Review 108 PL1: the next working day's choice ("Sunday 7:00").
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String plDayAt(String day, String time);
+
+  /// Review 108 PL1: under the time choices.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes out at that time, even if your phone is off.'**
+  String get plGoesOut;
+
+  /// Review 108 PL1: the sheet's button.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get plSchedule;
+
+  /// Review 108 PL1: after Schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled for {when}'**
+  String plScheduledFor(String when);
+
+  /// Review 108 PL2: the screen of my posts waiting to go out.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get plScheduled;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'Post now'**
+  String get plPostNow;
+
+  /// Review 108 PL2: changes its time.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get plEdit;
+
+  /// Review 108 PL2: it never goes out.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get plCancel;
+
+  /// Review 108 PL2: where it goes, when not a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get plFeed;
+
+  /// Review 108 PL2: an empty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled.'**
+  String get plEmpty;
+
+  /// Review 108 PL2: the small line in a Space when I have some waiting there.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 scheduled} other{{count} scheduled}}'**
+  String plCount(int count);
+
+  /// Review 108 PL2: one that couldn't go.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t post: {reason}'**
+  String plFailed(String reason);
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'you can\'t post there any more.'**
+  String get plReasonNotAllowed;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'something in it isn\'t valid any more.'**
+  String get plReasonNotValid;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'try again.'**
+  String get plReasonOther;
 }
 
 class _AppLocalizationsDelegate

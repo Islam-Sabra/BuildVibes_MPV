@@ -8646,5 +8646,92 @@
   "rmSeparator": ", ",
   "@rmSeparator": {
     "description": "Review 108 RM1: between the first names on the Who row (\"Rakesh, Lina\")."
+  },
+  "plTitle": "Post later",
+  "@plTitle": {
+    "description": "Review 108 PL1: the clock beside Send, and its sheet's title."
+  },
+  "plDayAt": "{day} {time}",
+  "@plDayAt": {
+    "description": "Review 108 PL1: the next working day's choice (\"Sunday 7:00\").",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plGoesOut": "It goes out at that time, even if your phone is off.",
+  "@plGoesOut": {
+    "description": "Review 108 PL1: under the time choices."
+  },
+  "plSchedule": "Schedule",
+  "@plSchedule": {
+    "description": "Review 108 PL1: the sheet's button."
+  },
+  "plScheduledFor": "Scheduled for {when}",
+  "@plScheduledFor": {
+    "description": "Review 108 PL1: after Schedule.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "plScheduled": "Scheduled",
+  "@plScheduled": {
+    "description": "Review 108 PL2: the screen of my posts waiting to go out."
+  },
+  "plPostNow": "Post now",
+  "@plPostNow": {
+    "description": "Review 108 PL2."
+  },
+  "plEdit": "Edit",
+  "@plEdit": {
+    "description": "Review 108 PL2: changes its time."
+  },
+  "plCancel": "Cancel",
+  "@plCancel": {
+    "description": "Review 108 PL2: it never goes out."
+  },
+  "plFeed": "Feed",
+  "@plFeed": {
+    "description": "Review 108 PL2: where it goes, when not a Space."
+  },
+  "plEmpty": "Nothing scheduled.",
+  "@plEmpty": {
+    "description": "Review 108 PL2: an empty list."
+  },
+  "plCount": "{count, plural, =1{1 scheduled} other{{count} scheduled}}",
+  "@plCount": {
+    "description": "Review 108 PL2: the small line in a Space when I have some waiting there.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plFailed": "Couldn't post: {reason}",
+  "@plFailed": {
+    "description": "Review 108 PL2: one that couldn't go.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "plReasonNotAllowed": "you can't post there any more.",
+  "@plReasonNotAllowed": {
+    "description": "Review 108 PL2."
+  },
+  "plReasonNotValid": "something in it isn't valid any more.",
+  "@plReasonNotValid": {
+    "description": "Review 108 PL2."
+  },
+  "plReasonOther": "try again.",
+  "@plReasonOther": {
+    "description": "Review 108 PL2."
   }
 }

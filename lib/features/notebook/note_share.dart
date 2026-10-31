@@ -18,6 +18,7 @@ import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/dm_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/post_repository.dart';
+import '../../data/repositories/schedule_repository.dart';
 import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
@@ -31,10 +32,13 @@ import '../chat/voice.dart' show voiceTime;
 import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../entry/entry_state.dart' show authUserIdProvider;
 import '../messages/people_search_screen.dart' show peopleSearchProvider;
+import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_errors.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../work/daybook_draft.dart' show DaybookKind;
+import '../work/daybook_words.dart';
+import '../work/post_later_sheet.dart';
 import '../work/daybook_writing.dart'
     show assignablePeople, kindIcon, kindName, newPostIdProvider;
 import 'note_filter.dart' show byName;
@@ -42,6 +46,7 @@ import 'note_outline.dart' show numberAt, numberLabel;
 import 'note_page_editor.dart' show NoteTick;
 import 'note_writing.dart' show NotePhotos;
 import 'note_status.dart' show NoteStatusKind;
+import 'notebook_page_screen.dart' show reminderWhen;
 import 'notebook_state.dart';
 
 /// Where Share sends an entry (review 100 Part 6).
@@ -200,7 +205,7 @@ Future<void> shareEntry(
     final SpaceSummary s => _Target.space(s),
     _ => const _Target.feed(),
   };
-  final went = await showBvSheet<_Target>(
+  final went = await showBvSheet<_Sent>(
     context: context,
     builder: (sheet) => _SharePreview(
       note: entry,
@@ -211,7 +216,21 @@ Future<void> shareEntry(
   );
   if (went == null || !context.mounted) return;
   onShared?.call();
-  _say(context, switch (went) {
+  if (went.at case final at?) {
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    _say(
+      context,
+      l10n.plScheduledFor(
+        reminderWhen(l10n, words, at, ref.read(clockProvider)()),
+      ),
+    );
+    return;
+  }
+  _say(context, switch (went.target) {
     _Target(:final person?) => l10n.notebookSentTo(person.name ?? ''),
     _Target(:final space?) => l10n.notebookSharedTo(space.name),
     _ => l10n.notebookSharedFeed,
@@ -242,9 +261,13 @@ class _Sent {
     this.kind,
     this.team,
     this.people = const {},
+    this.at,
   });
 
   final _Target target;
+
+  /// Post later (review 108 PL1): the server shares it at this time.
+  final DateTime? at;
   final bool location;
   final ShareKind? kind;
 
@@ -545,6 +568,13 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
         : l10n.notebookShareForMore(name(first), forWhom.length - 1);
   }
 
+  /// Post later: the time, then the share goes to the server for then.
+  Future<void> _later(_Sent Function({DateTime? at}) sent) async {
+    final at = await showPostLaterSheet(context);
+    if (at == null || !mounted) return;
+    await _go(sent(at: at));
+  }
+
   Future<void> _go(_Sent sent) async {
     setState(() {
       _sending = true;
@@ -552,7 +582,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     });
     try {
       await widget.onSend(sent);
-      if (mounted) Navigator.of(context).pop(sent.target);
+      if (mounted) Navigator.of(context).pop(sent);
     } on SpaceException catch (e) {
       if (mounted) {
         setState(() {
@@ -604,6 +634,15 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     // A work item is mine by default; a checklist is for me and whoever is
     // picked.
     final forWhom = _people ?? {?me};
+    // What Send (or Post later, with its time) carries.
+    _Sent sent({DateTime? at}) => _Sent(
+      to,
+      location: hasPlace && _location,
+      kind: space == null ? null : _kind,
+      team: _team,
+      people: space == null || _kind == ShareKind.note ? const {} : forWhom,
+      at: at,
+    );
     return Column(
       key: const Key('share-preview'),
       mainAxisSize: MainAxisSize.min,
@@ -812,6 +851,16 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               onPressed: _sending ? null : () => Navigator.of(context).pop(),
             ),
             const Spacer(),
+            // Review 108 PL1: Post later, for the Feed and a Space.
+            if (person == null)
+              IconButton(
+                key: const Key('share-later'),
+                tooltip: l10n.plTitle,
+                icon: const Icon(BvIcons.clock, color: BvColors.iconPrimary),
+                onPressed: _sending || tooLong
+                    ? null
+                    : () => unawaited(_later(sent)),
+              ),
             BvButton(
               key: const Key('share-send'),
               label: person != null ? l10n.chatSend : l10n.notebookPost,
@@ -820,19 +869,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               size: BvButtonSize.medium,
               onPressed: _sending || tooLong
                   ? null
-                  : () => unawaited(
-                      _go(
-                        _Sent(
-                          to,
-                          location: hasPlace && _location,
-                          kind: space == null ? null : _kind,
-                          team: _team,
-                          people: space == null || _kind == ShareKind.note
-                              ? const {}
-                              : forWhom,
-                        ),
-                      ),
-                    ),
+                  : () => unawaited(_go(sent())),
             ),
           ],
         ),
@@ -938,6 +975,35 @@ Future<void> _send(
             .uploadPostPhoto(space.id, id, file);
         files.add({'path': path, 'mime': p.mime});
       }
+      final owner = sent.kind == ShareKind.workItem
+          ? sent.people.firstOrNull
+          : null;
+      final people = sent.kind == ShareKind.checklist
+          ? [...sent.people]
+          : const <String>[];
+      if (sent.at case final at?) {
+        await _schedule(
+          ref,
+          note: note,
+          lines: lines,
+          id: id,
+          call: ScheduledCall.noteToSpace,
+          params: shareToSpaceParams(
+            note.id,
+            id,
+            space.id,
+            sent.kind!.json,
+            lines: ids,
+            team: sent.team,
+            owner: owner,
+            people: people,
+            includeLocation: sent.location,
+            files: files,
+          ),
+          at: at,
+        );
+        return;
+      }
       await repo.shareToSpace(
         note.id,
         id,
@@ -945,8 +1011,8 @@ Future<void> _send(
         sent.kind!.json,
         lines: ids,
         team: sent.team,
-        owner: sent.kind == ShareKind.workItem ? sent.people.firstOrNull : null,
-        people: sent.kind == ShareKind.checklist ? [...sent.people] : const [],
+        owner: owner,
+        people: people,
         includeLocation: sent.location,
         files: files,
       );
@@ -965,6 +1031,25 @@ Future<void> _send(
         note.pageTitle,
         for (final b in lines ?? note.pageBlocks) ...blockWords(b),
       ].join('\n');
+      if (sent.at case final at?) {
+        await _schedule(
+          ref,
+          note: note,
+          lines: lines,
+          id: id,
+          call: ScheduledCall.noteToFeed,
+          params: shareToFeedParams(
+            note.id,
+            id,
+            detectLang(words),
+            lines: ids,
+            includeLocation: sent.location,
+            media: media,
+          ),
+          at: at,
+        );
+        return;
+      }
       await repo.shareToFeed(
         note.id,
         id,
@@ -975,6 +1060,28 @@ Future<void> _send(
       );
   }
   ref.invalidate(notebookProvider);
+}
+
+/// Post later (review 108 PL1): the share's arguments, kept on the server
+/// and made as me at [at], with the Space's rules checked again then. The
+/// entry gets its mark once it goes.
+Future<void> _schedule(
+  WidgetRef ref, {
+  required Note note,
+  required List<PageBlock>? lines,
+  required String id,
+  required String call,
+  required Map<String, Object?> params,
+  required DateTime at,
+}) async {
+  final title = [
+    note.pageTitle,
+    for (final b in lines ?? note.pageBlocks) ...blockWords(b),
+  ].map((w) => w.trim()).firstWhere((w) => w.isNotEmpty, orElse: () => '');
+  await ref
+      .read(scheduleRepositoryProvider)
+      .schedule(id: id, call: call, params: params, at: at, title: title);
+  ref.invalidate(myScheduledProvider);
 }
 
 /// A file of the entry on the phone: its own, or downloaded.

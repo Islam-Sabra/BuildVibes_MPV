@@ -263,7 +263,7 @@ test("review 108 PL: a scheduled post that couldn't go says why and opens Schedu
     "en", null, strings,
   );
   assert.equal(p.body, "Couldn't post: you can't post there any more.");
-  assert.equal(p.data.route, "/profile/scheduled");
+  assert.equal(p.data.route, "/scheduled-posts");
   const ar = buildPush(
     row("scheduled_failed", { actor_id: null, data: { scheduled_id: "x1", reason: "other" } }),
     "ar", null, strings,
