@@ -31,6 +31,7 @@ import 'package:buildvibes/data/repositories/work_reminder_repository.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 import 'package:buildvibes/data/repositories/week_report_repository.dart';
+import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -252,6 +253,9 @@ Future<TestApp> pumpApp(
   FakeWorkReminderRepository? workReminders,
   FakeScheduleRepository? schedule,
 
+  /// The market pack; [testMarkets] by default.
+  List<Market>? markets,
+
   /// What this phone kept from before (an app opened again).
   Map<String, Object> stored = const {},
 
@@ -362,7 +366,7 @@ Future<TestApp> pumpApp(
         referenceRepositoryProvider.overrideWithValue(
           FakeReferenceRepository(),
         ),
-        marketsProvider.overrideWith((ref) async => testMarkets),
+        marketsProvider.overrideWith((ref) async => markets ?? testMarkets),
         deviceRegionProvider.overrideWithValue(region),
         phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),

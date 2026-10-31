@@ -6116,4 +6116,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plReasonOther => 'try again.';
+
+  @override
+  String get rmDailyMost => 'You\'ve set the most reminders for today.';
+
+  @override
+  String get plCantYet =>
+      'Items with files or a place can\'t be scheduled yet.';
 }

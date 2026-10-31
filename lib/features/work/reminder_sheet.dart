@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
@@ -63,7 +64,7 @@ class _ReminderSheet extends ConsumerStatefulWidget {
 
 class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   /// "Tomorrow 7:00".
-  static const _morning = 7;
+  static const _morning = BvLaterSpec.morningHour;
   static const _noteMax = 140;
 
   final _note = TextEditingController();
@@ -123,7 +124,8 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     return switch (_when) {
       _When.tomorrow => spaceTimeOn(zone, now, days: 1, hour: _morning),
       _When.beforeDue => widget.post.dueAt?.subtract(const Duration(hours: 1)),
-      _When.picked => _picked,
+      // As picked, on the same clock as Tomorrow 7:00 (V3).
+      _When.picked => _picked == null ? null : spaceTimeAt(zone, _picked!),
     };
   }
 
@@ -229,7 +231,14 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       ref.invalidate(postRemindersProvider(widget.post.id));
       navigator.pop(l10n.rmSetDone);
     } on SpaceException catch (e) {
-      if (mounted) setState(() => _error = spaceErrorText(l10n, e));
+      if (mounted) {
+        setState(
+          () => _error = e.failure == SpaceFailure.limit
+              // Review 108 V4: 20 a day.
+              ? l10n.rmDailyMost
+              : spaceErrorText(l10n, e),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -300,10 +309,8 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                     ? chosen.single.name
                     : l10n.rmWhoMore(
                         inOwnDirection(chosen.first.name),
-                        [
-                          for (final p in chosen.skip(1))
-                            inOwnDirection(p.name.split(' ').first),
-                        ].join(l10n.rmSeparator),
+                        [for (final p in chosen.skip(1)) inOwnDirection(p.name)]
+                            .join(l10n.rmSeparator),
                       ),
                 person: chosen.firstOrNull?.name,
                 empty: chosen.isEmpty,

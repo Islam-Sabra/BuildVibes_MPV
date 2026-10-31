@@ -240,7 +240,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .select(
           'id, name, about, project_id, who_can_invite, site_start_date, '
           'time_zone, '
-          'project:projects(name, location_text, place:places(name))',
+          'project:projects(name, location_text, market_id, place:places(name))',
         )
         .eq('id', spaceId)
         .maybeSingle();
@@ -287,6 +287,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         _ => null,
       },
       timeZone: space['time_zone'] as String?,
+      marketId: project?['market_id'] as String?,
     );
   });
 
@@ -581,10 +582,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
     () => _client.rpc<void>(
       // Review 105B L1, as removeMember.
       'leave_space_with_handover',
-      params: {
-        'p_space': spaceId,
-        'p_assignments': handoversJson(handovers),
-      },
+      params: {'p_space': spaceId, 'p_assignments': handoversJson(handovers)},
     ),
   );
 

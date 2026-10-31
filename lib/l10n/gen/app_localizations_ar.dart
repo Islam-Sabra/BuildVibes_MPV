@@ -6164,4 +6164,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plReasonOther => 'حاول مجددًا.';
+
+  @override
+  String get rmDailyMost => 'تم ضبط أقصى عدد من التذكيرات لهذا اليوم.';
+
+  @override
+  String get plCantYet => 'لا يمكن جدولة بند فيه ملفات أو مكان حاليًا.';
 }

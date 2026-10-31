@@ -66,13 +66,15 @@ abstract final class ScheduledCall {
 /// makes it as me at the time, with every rule checked again then.
 abstract class ScheduleRepository {
   /// schedule_post: [call] with [params] at [at]; [title] is what Scheduled
-  /// shows. [id] is the post's own.
+  /// shows. [id] is the post's own. [noteId]: the note in My notebook it
+  /// was put in from, marked once it goes (review 108 V8).
   Future<void> schedule({
     required String id,
     required String call,
     required Map<String, dynamic> params,
     required DateTime at,
     required String title,
+    String? noteId,
   });
 
   /// update_scheduled_post: another time.
@@ -118,6 +120,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
     required Map<String, dynamic> params,
     required DateTime at,
     required String title,
+    String? noteId,
   }) => _guard(
     () => _client.rpc<void>(
       'schedule_post',
@@ -127,6 +130,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
         'p_params': params,
         'p_at': at.toUtc().toIso8601String(),
         'p_title': title,
+        'p_note': ?noteId,
       },
     ),
   );
@@ -153,7 +157,9 @@ class SupabaseScheduleRepository implements ScheduleRepository {
   Future<List<ScheduledPost>> mine() => _guard(() async {
     final rows = await _client
         .from('scheduled_posts')
-        .select('id, title, publish_at, state, error, space_id, space:spaces(name)')
+        .select(
+          'id, title, publish_at, state, error, space_id, space:spaces(name)',
+        )
         .inFilter('state', ['waiting', 'failed'])
         .order('publish_at');
     return [for (final r in rows) ScheduledPost.fromJson(r)];

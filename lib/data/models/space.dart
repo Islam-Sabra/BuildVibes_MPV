@@ -243,6 +243,7 @@ class SpaceDetail {
     this.myNotify = SpaceNotify.all,
     this.siteStartDate,
     this.timeZone,
+    this.marketId,
   });
 
   final String id;
@@ -270,6 +271,10 @@ class SpaceDetail {
   /// The Space's time zone (review 105B, space_time_zone): an IANA name
   /// from its market pack; null where the server didn't say (an older one).
   final String? timeZone;
+
+  /// Its project's market (review 108 V3): its weekend for Post later.
+  /// Null without a project.
+  final String? marketId;
 
   bool get canInvite => myRights.invite;
 

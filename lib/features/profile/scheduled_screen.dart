@@ -11,6 +11,7 @@ import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/schedule_repository.dart';
+import '../../data/repositories/space_repository.dart' show spaceDetailProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_pill_button.dart';
@@ -89,10 +90,20 @@ class _ScheduledCard extends ConsumerWidget {
     ref.invalidate(myScheduledProvider);
   }
 
+  /// Another time, on the Space's clock and calendar for a Space's (V3).
   Future<void> _edit(BuildContext context, WidgetRef ref) async {
-    final at = await showPostLaterSheet(context);
-    if (at == null || !context.mounted) return;
-    await _run(context, ref, (repo) => repo.reschedule(post.id, at));
+    final space = switch (post.spaceId) {
+      final id? => await ref.read(spaceDetailProvider(id).future),
+      null => null,
+    };
+    if (!context.mounted) return;
+    final later = await showPostLaterSheet(
+      context,
+      zone: space?.timeZone,
+      marketId: space?.marketId,
+    );
+    if (later == null || !context.mounted) return;
+    await _run(context, ref, (repo) => repo.reschedule(post.id, later.at));
   }
 
   String _reason(AppLocalizations l10n) => switch (post.error) {
@@ -176,12 +187,14 @@ class _ScheduledCard extends ConsumerWidget {
                   _run(context, ref, (repo) => repo.postNow(post.id)),
                 ),
               ),
-              BvPillButton(
-                key: Key('scheduled-edit-${post.id}'),
-                label: l10n.plEdit,
-                grey: true,
-                onTap: () => unawaited(_edit(context, ref)),
-              ),
+              // V2: a failed one is tried again or cleared.
+              if (!failed)
+                BvPillButton(
+                  key: Key('scheduled-edit-${post.id}'),
+                  label: l10n.plEdit,
+                  grey: true,
+                  onTap: () => unawaited(_edit(context, ref)),
+                ),
               BvPillButton(
                 key: Key('scheduled-cancel-${post.id}'),
                 label: l10n.plCancel,

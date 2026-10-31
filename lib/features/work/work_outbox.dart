@@ -981,6 +981,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         params: params,
         at: at,
         title: item.draft?.title.trim() ?? item.title,
+        // V8: the server marks the note once it goes.
+        noteId: item.fromNote,
       );
 
   Future<void> _call(PendingItem item, List<PendingPhoto> photos) async {

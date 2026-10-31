@@ -8,7 +8,16 @@ class FakeWorkReminderRepository implements WorkReminderRepository {
   final byPost = <String, List<WorkReminder>>{};
 
   /// Each set_work_reminder, in order.
-  final sets = <({String id, String postId, List<String> people, DateTime at, String? note})>[];
+  final sets =
+      <
+        ({
+          String id,
+          String postId,
+          List<String> people,
+          DateTime at,
+          String? note,
+        })
+      >[];
   final removed = <String>[];
 
   /// The next call fails this way.
@@ -59,7 +68,16 @@ class FakeScheduleRepository implements ScheduleRepository {
   final posts = <ScheduledPost>[];
 
   /// Each schedule_post, with its call and arguments.
-  final scheduled = <({String id, String call, Map<String, dynamic> params, DateTime at})>[];
+  final scheduled =
+      <
+        ({
+          String id,
+          String call,
+          Map<String, dynamic> params,
+          DateTime at,
+          String? noteId,
+        })
+      >[];
   final cancelled = <String>[];
   final postedNow = <String>[];
 
@@ -78,9 +96,10 @@ class FakeScheduleRepository implements ScheduleRepository {
     required Map<String, dynamic> params,
     required DateTime at,
     required String title,
+    String? noteId,
   }) async {
     _check();
-    scheduled.add((id: id, call: call, params: params, at: at));
+    scheduled.add((id: id, call: call, params: params, at: at, noteId: noteId));
     posts.add(
       ScheduledPost(
         id: id,
@@ -121,6 +140,6 @@ class FakeScheduleRepository implements ScheduleRepository {
   }
 
   @override
-  Future<List<ScheduledPost>> mine() async => List.of(posts)
-    ..sort((a, b) => a.publishAt.compareTo(b.publishAt));
+  Future<List<ScheduledPost>> mine() async =>
+      List.of(posts)..sort((a, b) => a.publishAt.compareTo(b.publishAt));
 }

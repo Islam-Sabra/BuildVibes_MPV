@@ -570,9 +570,9 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
 
   /// Post later: the time, then the share goes to the server for then.
   Future<void> _later(_Sent Function({DateTime? at}) sent) async {
-    final at = await showPostLaterSheet(context);
-    if (at == null || !mounted) return;
-    await _go(sent(at: at));
+    final later = await showPostLaterSheet(context);
+    if (later == null || !mounted) return;
+    await _go(sent(at: later.at));
   }
 
   Future<void> _go(_Sent sent) async {

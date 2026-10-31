@@ -86,6 +86,7 @@ import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
 import 'post_later_sheet.dart';
 import 'reminder_sheet.dart';
+import 'space_day.dart' show spaceWallNow;
 import 'first_run_tips.dart';
 import 'daybook_attach.dart';
 import 'daybook_card.dart';
@@ -1288,13 +1289,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void _assigned() => _setMenu(null);
 
   /// Post later (review 108 PL1): the time, then the post goes to the
-  /// server to be made then; "Scheduled for …".
+  /// server to be made then; "Scheduled for …". On the Space's clock and
+  /// its market's calendar (V3).
   Future<void> _postLater(String? myName) async {
-    final at = await showPostLaterSheet(context);
-    if (at == null || !mounted) return;
+    final space = widget.space;
+    final later = await showPostLaterSheet(
+      context,
+      zone: space.timeZone,
+      marketId: space.marketId,
+    );
+    if (later == null || !mounted) return;
     final l10n = AppLocalizations.of(context);
-    final now = ref.read(clockProvider)();
-    await _post(myName, at: at);
+    final now = spaceWallNow(space.timeZone, ref.read(clockProvider)());
+    await _post(myName, at: later.at);
     if (!mounted) return;
     final words = DaybookWords(
       l10n,
@@ -1303,7 +1310,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
     showSpaceMessage(
       context,
-      l10n.plScheduledFor(reminderWhen(l10n, words, at, now)),
+      l10n.plScheduledFor(reminderWhen(l10n, words, later.wall, now)),
     );
   }
 
@@ -1568,6 +1575,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     };
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final cardDraft = _editing ? edit : draft;
+    final laterBlocked =
+        cardDraft != null &&
+        cardDraft.kind == DaybookKind.workItem &&
+        (cardDraft.files.isNotEmpty || cardDraft.placeId != null);
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
     final atToday = _writing || !_wasAway || shown == today;
@@ -1821,14 +1832,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   // A work item's Library files and a place from the list
                   // are added after it is made, so it goes now.
                   laterLabel: _editing ? null : l10n.plTitle,
+                  // V7: not yet for one with Library files or a place from
+                  // the list (they are added after it is made); grey, and
+                  // a tap says so.
+                  laterReady: !laterBlocked,
                   onLater:
                       !_editing &&
                           (cardDraft?.canPost(ref.watch(clockProvider)()) ??
-                              false) &&
-                          !(cardDraft!.kind == DaybookKind.workItem &&
-                              (cardDraft.files.isNotEmpty ||
-                                  cardDraft.placeId != null))
-                      ? () => unawaited(_postLater(myName))
+                              false)
+                      ? (laterBlocked
+                            ? () => showSpaceMessage(context, l10n.plCantYet)
+                            : () => unawaited(_postLater(myName)))
                       : null,
                 )
               // A Draft on the page takes the post bar's place until it is

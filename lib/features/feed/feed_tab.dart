@@ -236,11 +236,11 @@ class _FeedTabState extends ConsumerState<FeedTab> {
 
   /// Post later (review 108 PL1): the time, then "Scheduled for …".
   Future<void> _postLater() async {
-    final at = await showPostLaterSheet(context);
-    if (at == null || !mounted) return;
+    final later = await showPostLaterSheet(context);
+    if (later == null || !mounted) return;
     final l10n = AppLocalizations.of(context);
     final now = ref.read(clockProvider)();
-    await _post(at: at);
+    await _post(at: later.at);
     if (!mounted) return;
     final words = DaybookWords(
       l10n,
@@ -249,7 +249,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     );
     showSpaceMessage(
       context,
-      l10n.plScheduledFor(reminderWhen(l10n, words, at, now)),
+      l10n.plScheduledFor(reminderWhen(l10n, words, later.wall, now)),
     );
   }
 

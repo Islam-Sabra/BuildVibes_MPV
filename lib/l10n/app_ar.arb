@@ -1680,5 +1680,7 @@
   "plFailed": "تعذّر النشر: {reason}",
   "plReasonNotAllowed": "لم تعد تستطيع النشر هناك.",
   "plReasonNotValid": "شيء فيه لم يعد صالحًا.",
-  "plReasonOther": "حاول مجددًا."
+  "plReasonOther": "حاول مجددًا.",
+  "rmDailyMost": "تم ضبط أقصى عدد من التذكيرات لهذا اليوم.",
+  "plCantYet": "لا يمكن جدولة بند فيه ملفات أو مكان حاليًا."
 }

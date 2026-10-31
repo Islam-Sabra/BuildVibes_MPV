@@ -8733,5 +8733,13 @@
   "plReasonOther": "try again.",
   "@plReasonOther": {
     "description": "Review 108 PL2."
+  },
+  "rmDailyMost": "You've set the most reminders for today.",
+  "@rmDailyMost": {
+    "description": "Review 108 V4: the 21st reminder for someone in a day."
+  },
+  "plCantYet": "Items with files or a place can't be scheduled yet.",
+  "@plCantYet": {
+    "description": "Review 108 V7: the clock on a work item with Library files or a place from the list."
   }
 }

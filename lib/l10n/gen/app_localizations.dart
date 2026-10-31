@@ -10183,6 +10183,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'try again.'**
   String get plReasonOther;
+
+  /// Review 108 V4: the 21st reminder for someone in a day.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve set the most reminders for today.'**
+  String get rmDailyMost;
+
+  /// Review 108 V7: the clock on a work item with Library files or a place from the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Items with files or a place can\'t be scheduled yet.'**
+  String get plCantYet;
 }
 
 class _AppLocalizationsDelegate

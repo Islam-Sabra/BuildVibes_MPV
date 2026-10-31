@@ -74,6 +74,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.postReady = true,
     this.laterLabel,
     this.onLater,
+    this.laterReady = true,
   }) : tools = null,
        field = null,
        categories = null,
@@ -92,6 +93,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.postReady = true,
     this.laterLabel,
     this.onLater,
+    this.laterReady = true,
   }) : cameraLabel = null,
        onCamera = null,
        attachLabel = null,
@@ -139,6 +141,9 @@ class BvWritingToolbar extends StatelessWidget {
   /// [laterLabel] is given; off while [onLater] is null.
   final String? laterLabel;
   final VoidCallback? onLater;
+
+  /// Review 108 V7: grey but still tappable (a tap says why it can't).
+  final bool laterReady;
 
   @override
   Widget build(BuildContext context) {
@@ -210,6 +215,7 @@ class BvWritingToolbar extends StatelessWidget {
         icon: BvIcons.clock,
         label: label,
         onTap: onLater,
+        dim: !laterReady,
       ),
   ];
 
@@ -237,6 +243,7 @@ class _Tool extends StatelessWidget {
     this.onHoldStart,
     this.onHoldMove,
     this.onHoldEnd,
+    this.dim = false,
   });
 
   final IconData icon;
@@ -250,9 +257,12 @@ class _Tool extends StatelessWidget {
   final VoidCallback? onHoldEnd;
   final Key? dot;
 
+  /// Grey though it still answers a tap.
+  final bool dim;
+
   @override
   Widget build(BuildContext context) {
-    final enabled = onTap != null || onHoldStart != null;
+    final enabled = (onTap != null || onHoldStart != null) && !dim;
     final start = onHoldStart;
     final move = onHoldMove;
     final end = onHoldEnd;
