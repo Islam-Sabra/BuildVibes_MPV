@@ -25,7 +25,7 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
 - profile with proof from closed work;
 - shared project records;
 - Spaces: join requests confirmed by the admin, Lead / Crew / Viewer passes, Teams, Chat, work items (Open → Done → Checked), Library;
-- Work in the Daybook design: writing in place with drafts; work item, checklist, announcement, scheduled activity, check-in (review 109) and file posts; opening a post in place (blocks, /, turn into, tables); work items under one work item; walk mode; templates; daily report; meeting notes into work items; management report (see `docs/product/daybook.md`);
+- Work in the Daybook design: writing in place with drafts; work item, checklist, announcement, scheduled activity and file posts; opening a post in place (blocks, /, turn into, tables); work items under one work item; walk mode; templates; daily report; meeting notes into work items; management report (see `docs/product/daybook.md`);
 - Planning: the personal notebook and My calendar across all Spaces;
 - Direct messages between two people;
 - Home feed and the Spaces tab;
