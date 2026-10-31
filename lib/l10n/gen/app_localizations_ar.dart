@@ -6355,4 +6355,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String profileThanksFrom(String name) {
     return 'من $name';
   }
+
+  @override
+  String get notebookShareSpacesLoading => 'جارٍ تحميل مساحاتك…';
+
+  @override
+  String get notebookShareSpacesError => 'تعذّر تحميل مساحاتك. حاول مرة أخرى.';
 }

@@ -6302,4 +6302,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileThanksFrom(String name) {
     return 'From $name';
   }
+
+  @override
+  String get notebookShareSpacesLoading => 'Loading your Spaces…';
+
+  @override
+  String get notebookShareSpacesError =>
+      'Couldn\'t load your Spaces. Try again.';
 }

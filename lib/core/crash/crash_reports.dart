@@ -65,3 +65,27 @@ void reportNoPushToken() {
     ),
   );
 }
+
+/// Review 110 A: an error the app shows rather than crashes on (the share
+/// card's Space list), as one non-fatal report with its stack; its words
+/// are scrubbed to the error's type. Release builds only.
+void reportNonFatal(Object error, StackTrace? stack) {
+  if (Firebase.apps.isEmpty || !kReleaseMode) return;
+  unawaited(
+    FirebaseCrashlytics.instance.recordError(
+      ScrubbedError(crashSummary(error)),
+      stack,
+      fatal: false,
+      printDetails: false,
+    ),
+  );
+}
+
+/// Review 110 A: a short diagnostic for the screen: the error's type and
+/// the first line of what it says, at most [most] characters.
+String errorDiagnostic(Object error, {int most = 120}) {
+  final first = '$error'.split('\n').first.trim();
+  final type = '${error.runtimeType}';
+  final line = first.startsWith(type) ? first : '$type: $first';
+  return line.length <= most ? line : '${line.substring(0, most - 1)}…';
+}

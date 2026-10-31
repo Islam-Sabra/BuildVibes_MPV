@@ -128,9 +128,17 @@ class _CreateChoice extends StatelessWidget {
 /// The Spaces where you may write work items (a Viewer's never show),
 /// the one you opened last first, then as My Spaces orders them. The
 /// server decides each Space's rights (custom passes too).
-final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>((
-  ref,
-) async {
+final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>(
+  // Review 110 A: a load that never ends is said, as an error.
+  (ref) => _workItemSpaces(ref).timeout(spacesLoadMost),
+  // Said, not retried out of sight: opening the list again tries again.
+  retry: (_, _) => null,
+);
+
+/// Review 110 A: how long the Space list may load before it says so.
+const spacesLoadMost = Duration(seconds: 15);
+
+Future<List<SpaceSummary>> _workItemSpaces(Ref ref) async {
   final spaces = await ref.watch(mySpacesProvider.future);
   final last = ref.watch(lastSpaceProvider);
   Future<bool> canWrite(SpaceSummary s) async {
@@ -151,7 +159,7 @@ final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>((
     ...mine.where((s) => s.id == last),
     ...mine.where((s) => s.id != last),
   ];
-});
+}
 
 /// "Which Space?": picking one opens its daybook with the card open. With
 /// none, how to get one: an invite code or a new Space.

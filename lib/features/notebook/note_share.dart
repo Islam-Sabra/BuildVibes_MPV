@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/crash/crash_reports.dart'
+    show errorDiagnostic, reportNonFatal;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
@@ -294,6 +296,9 @@ class _ShareCard extends ConsumerStatefulWidget {
 class _ShareCardState extends ConsumerState<_ShareCard> {
   late _ShareTo? _level = widget.start;
 
+  /// The Space list's error already reported (once each).
+  Object? _reported;
+
   void _back() =>
       widget.start == null ? setState(() => _level = null) : widget.onPicked();
   var _q = '';
@@ -338,13 +343,26 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
       case _ShareTo.space:
         final spaces = ref.watch(workItemSpacesProvider);
         final list = spaces.value ?? const <SpaceSummary>[];
+        // Review 110 A: loading and an error are said, never an empty card
+        // with no title; an error shows its type and first line, small,
+        // and goes to Crashlytics once.
+        final error = spaces.hasValue ? null : spaces.error;
+        if (error != null && !identical(error, _reported)) {
+          _reported = error;
+          reportNonFatal(error, spaces.stackTrace);
+        }
         return BvPopoverMenu<SpaceSummary>.line(
           key: const Key('share-menu'),
           back: l10n.notebookShareSpace,
           onBack: _back,
-          title: spaces.hasValue && list.isEmpty
+          title: error != null
+              ? l10n.notebookShareSpacesError
+              : !spaces.hasValue
+              ? l10n.notebookShareSpacesLoading
+              : list.isEmpty
               ? l10n.notebookShareNoSpace
               : null,
+          hint: error == null ? null : errorDiagnostic(error),
           scrolls: true,
           tiles: false,
           items: [

@@ -8986,5 +8986,13 @@
         "type": "String"
       }
     }
+  },
+  "notebookShareSpacesLoading": "Loading your Spaces…",
+  "@notebookShareSpacesLoading": {
+    "description": "Review 110 A: the share card while the Spaces load."
+  },
+  "notebookShareSpacesError": "Couldn't load your Spaces. Try again.",
+  "@notebookShareSpacesError": {
+    "description": "Review 110 A: the share card when the Spaces can't be read."
   }
 }

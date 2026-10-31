@@ -1728,5 +1728,7 @@
   "thanksHide": "أزِل من ملفي",
   "thanksOnlyYou": "أنت فقط ترى هذا الزر. لا يُبلَّغ أحد.",
   "profileThanks": "رسائل الشكر",
-  "profileThanksFrom": "من {name}"
+  "profileThanksFrom": "من {name}",
+  "notebookShareSpacesLoading": "جارٍ تحميل مساحاتك…",
+  "notebookShareSpacesError": "تعذّر تحميل مساحاتك. حاول مرة أخرى."
 }

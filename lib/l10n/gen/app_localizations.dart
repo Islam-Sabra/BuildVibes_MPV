@@ -10471,6 +10471,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From {name}'**
   String profileThanksFrom(String name);
+
+  /// Review 110 A: the share card while the Spaces load.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your Spaces…'**
+  String get notebookShareSpacesLoading;
+
+  /// Review 110 A: the share card when the Spaces can't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your Spaces. Try again.'**
+  String get notebookShareSpacesError;
 }
 
 class _AppLocalizationsDelegate
