@@ -424,6 +424,10 @@ abstract final class BvIcons {
   // Phosphor: shield-check
   static const shieldCheck = IconData(0xe40c, fontFamily: _family);
 
+  // Review 108: a time to come (Tomorrow 7:00, Post later, Scheduled).
+  // Phosphor: clock
+  static const clock = IconData(0xe19a, fontFamily: _family);
+
   /// A trade's tile (OB5), by the market pack's trade id; a trade the app
   /// doesn't know yet shows the hard hat.
   static IconData forTrade(String id) => switch (id) {

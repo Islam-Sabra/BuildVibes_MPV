@@ -5991,4 +5991,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obSkip => 'Skip';
+
+  @override
+  String get rmMe => 'Me';
+
+  @override
+  String get rmSomeone => 'Someone';
+
+  @override
+  String get rmWho => 'Who';
+
+  @override
+  String get rmWhen => 'When';
+
+  @override
+  String rmTomorrowAt(String time) {
+    return 'Tomorrow $time';
+  }
+
+  @override
+  String get rmBeforeDue => '1 h before due';
+
+  @override
+  String get rmPick => 'Pick…';
+
+  @override
+  String get rmNote => 'Note (optional)';
+
+  @override
+  String get rmSet => 'Set reminder';
+
+  @override
+  String get rmSetDone => 'Reminder set';
+
+  @override
+  String get rmRemoveMine => 'Remove reminder';
+
+  @override
+  String get rmChooseWho => 'Choose who';
+
+  @override
+  String get rmDone => 'Done';
+
+  @override
+  String rmWhoMore(String name, String more) {
+    return '$name + $more';
+  }
+
+  @override
+  String get rmReminders => 'Reminders';
+
+  @override
+  String rmLine(String name, String when) {
+    return '$name · $when';
+  }
+
+  @override
+  String rmRemoveFor(String name) {
+    return 'Remove the reminder for $name';
+  }
+
+  @override
+  String get rmSeparator => ', ';
 }

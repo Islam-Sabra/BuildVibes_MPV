@@ -6038,4 +6038,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get obSkip => 'تخطَّ';
+
+  @override
+  String get rmMe => 'أنا';
+
+  @override
+  String get rmSomeone => 'شخص آخر';
+
+  @override
+  String get rmWho => 'لمن';
+
+  @override
+  String get rmWhen => 'متى';
+
+  @override
+  String rmTomorrowAt(String time) {
+    return 'غدًا $time';
+  }
+
+  @override
+  String get rmBeforeDue => 'قبل الموعد بساعة';
+
+  @override
+  String get rmPick => 'اختر…';
+
+  @override
+  String get rmNote => 'ملاحظة (اختيارية)';
+
+  @override
+  String get rmSet => 'ضبط التذكير';
+
+  @override
+  String get rmSetDone => 'ضُبط التذكير';
+
+  @override
+  String get rmRemoveMine => 'إزالة التذكير';
+
+  @override
+  String get rmChooseWho => 'اختر من';
+
+  @override
+  String get rmDone => 'تم';
+
+  @override
+  String rmWhoMore(String name, String more) {
+    return '$name + $more';
+  }
+
+  @override
+  String get rmReminders => 'التذكيرات';
+
+  @override
+  String rmLine(String name, String when) {
+    return '$name · $when';
+  }
+
+  @override
+  String rmRemoveFor(String name) {
+    return 'إزالة التذكير لـ $name';
+  }
+
+  @override
+  String get rmSeparator => '، ';
 }

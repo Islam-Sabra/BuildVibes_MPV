@@ -81,6 +81,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import 'reminder_sheet.dart';
 import 'first_run_tips.dart';
 import 'daybook_attach.dart';
 import 'daybook_card.dart';
@@ -98,7 +99,6 @@ import 'daybook_writing.dart';
 import 'work_gestures.dart';
 import 'work_outbox.dart';
 import 'work_places.dart';
-import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
 /// one line at the top, and under it the announcements pinned now (K1
@@ -2185,43 +2185,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// Reminder (SP5): the phone's own notification for me, at the time I
-  /// pick; Remove takes it off. It never goes to the server.
+  /// Reminder (SP5; review 108 RM1): the Reminder sheet, Me · Someone. Me
+  /// is the phone's own notification; Someone, the server's, for the
+  /// item's creator, its owner or a Lead.
   Future<void> _remind(DaybookPost post) async {
-    final l10n = AppLocalizations.of(context);
-    final words = DaybookWords(
-      l10n,
-      Localizations.localeOf(context).toLanguageTag(),
-      use24: MediaQuery.alwaysUse24HourFormatOf(context),
-    );
-    final reminders = ref.read(spaceRemindersProvider.notifier);
-    final kept = reminders.of(_spaceId, post.id);
-    final now = ref.read(clockProvider)();
-    final picked = await ref.read(pickReminderProvider)(
+    final message = await showReminderSheet(
       context,
-      now: now,
-      day: kept == null ? null : dayOf(kept),
-      at: kept,
+      space: widget.space,
+      post: post,
     );
-    if (!mounted || picked == null) return;
-    final day = picked.day;
-    final at = day == null
-        ? null
-        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
-    if (at != null && !at.isAfter(now)) {
-      showSpaceMessage(context, l10n.workRemindPast);
-      return;
-    }
-    await reminders.set(_spaceId, post, at: at, body: widget.space.name);
-    if (!mounted || at == null) return;
-    showSpaceMessage(
-      context,
-      l10n.workReminderLine(reminderWhen(l10n, words, at, now)),
-    );
+    if (!mounted || message == null) return;
+    showSpaceMessage(context, message);
   }
-
-  /// A reminder picked with no time: that morning (as a note's).
-  static const _morningHour = 9;
 
   /// The announcements pinned now (K1 v13): what daybook_extras says, and
   /// any pinned card on the page (it may be newer), newest first.
