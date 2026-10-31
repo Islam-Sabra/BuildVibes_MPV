@@ -85,8 +85,10 @@ select is(
 select is(
   (select count(*) from public.market_trades
    where market_id = 'kw' and popular_sort is not null),
-  7::bigint,
-  'seven popular trades in Kuwait');
+  -- Seven from the E9b design, and Carpenter and Mason for OB5's nine
+  -- tiles (review 107, the lead's check Q6).
+  9::bigint,
+  'nine popular trades in Kuwait');
 select is(
   (select count(*) from public.market_trades
    where market_id = 'eg' and popular_sort is not null and not needs_review),

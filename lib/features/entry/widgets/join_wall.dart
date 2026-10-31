@@ -21,7 +21,8 @@ Future<void> showJoinWall(BuildContext context) {
   );
 }
 
-/// Create account and Sign in, which leave guest mode for the join screen.
+/// Create account and Sign in, which leave guest mode for the email code
+/// (review 107: the two are the same), over the welcome.
 class JoinButtons extends ConsumerWidget {
   const JoinButtons({super.key});
 
@@ -32,7 +33,9 @@ class JoinButtons extends ConsumerWidget {
       ref.read(guestModeProvider.notifier).leave();
       final router = GoRouter.of(context);
       Navigator.of(context).popUntil((route) => route is! PopupRoute);
-      router.go(AppRoutes.join);
+      router
+        ..go(AppRoutes.welcome)
+        ..push(AppRoutes.joinEmail);
     }
 
     return Column(

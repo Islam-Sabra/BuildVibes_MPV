@@ -22,14 +22,15 @@ import '../../features/dev/components_gallery_screen.dart';
 import '../../features/entry/code_screen.dart';
 import '../../features/entry/email_screen.dart';
 import '../../features/entry/entry_state.dart';
-import '../../features/entry/join_screen.dart';
 import '../../features/entry/loading_screen.dart';
 import '../../features/entry/phone_screen.dart';
 import '../../features/entry/welcome_screen.dart';
 import '../../features/explore/explore_screen.dart';
 import '../../features/home/home_screen.dart';
-import '../../features/onboarding/about_you_screen.dart';
-import '../../features/onboarding/people_screen.dart';
+import '../../features/onboarding/join_space_screen.dart';
+import '../../features/onboarding/name_screen.dart';
+import '../../features/onboarding/onboarding_state.dart';
+import '../../features/onboarding/work_screen.dart';
 import '../../features/onboarding/role_picker_screen.dart';
 import '../../data/models/profile.dart';
 import '../../features/profile/delivered_work.dart';
@@ -74,8 +75,13 @@ import 'app_routes.dart';
 export 'app_routes.dart';
 
 /// Where [gate] allows the app to be. Returns the path to go to instead of
-/// [location], or null when [location] is fine.
-String? redirectForGate(AppGate gate, String location) {
+/// [location], or null when [location] is fine. [finishing]: your work
+/// (OB5) is saving and moving on (review 107 Q5).
+String? redirectForGate(
+  AppGate gate,
+  String location, {
+  bool finishing = false,
+}) {
   bool under(String path) => location == path || location.startsWith('$path/');
   final inEntry = under(AppRoutes.welcome) || under(AppRoutes.join);
   final inOnboarding = under(AppRoutes.onboarding);
@@ -104,15 +110,27 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
           : null,
-    // Step 1 must be done before anything else; step 2 needs step 1.
+    // Review 107: your name and your work before anything else.
     AppGate.onboarding =>
-      under(AppRoutes.onboardingAbout) || under(AppRoutes.onboardingRole)
+      under(AppRoutes.onboardingName) ||
+              under(AppRoutes.onboardingWork) ||
+              under(AppRoutes.onboardingRole)
           ? null
-          : AppRoutes.onboardingAbout,
-    // Done with onboarding: step 2 and the role picker (used by Edit
-    // profile) stay open; step 1 sends Home.
+          : AppRoutes.onboardingName,
+    // With a name and a work: your Space (OB6) and the role picker (used
+    // by Edit profile) stay open. Your name and your work are Edit
+    // profile's now (your work stays while it moves on after its save);
+    // the old steps go Home (the lead's check Q5).
     AppGate.ready =>
-      inEntry || atLoading || atScheduled || under(AppRoutes.onboardingAbout)
+      under(AppRoutes.onboardingName) ||
+              (under(AppRoutes.onboardingWork) && !finishing)
+          ? AppRoutes.profileEditBasics
+          : inEntry ||
+                atLoading ||
+                atScheduled ||
+                location == AppRoutes.onboarding ||
+                under('${AppRoutes.onboarding}/about') ||
+                under('${AppRoutes.onboarding}/people')
           ? AppRoutes.home
           : null,
   };
@@ -157,7 +175,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.loading,
     refreshListenable: gate,
     redirect: (context, state) =>
-        redirectForGate(gate.value, state.matchedLocation),
+        // The full path: an old step has no route of its own (Q5).
+        redirectForGate(
+          gate.value,
+          state.uri.path,
+          finishing: ref.read(onboardingFinishingProvider),
+        ),
     routes: [
       _Screen(
         path: AppRoutes.loading,
@@ -171,9 +194,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.scheduled,
         builder: (context, state) => const DeletionScheduledScreen(),
       ),
+      // Review 107: one welcome; joining is the email code.
       _Screen(
         path: AppRoutes.join,
-        builder: (context, state) => const JoinScreen(),
+        redirect: (context, state) =>
+            // Its own path only: the steps under it pass this too.
+            state.uri.path == AppRoutes.join ? AppRoutes.joinEmail : null,
         routes: [
           _Screen(
             path: 'phone',
@@ -192,17 +218,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       _Screen(
-        path: AppRoutes.onboardingAbout,
-        builder: (context, state) => const AboutYouScreen(),
+        path: AppRoutes.onboardingName,
+        builder: (context, state) => const NameScreen(),
+      ),
+      _Screen(
+        path: AppRoutes.onboardingWork,
+        builder: (context, state) => const WorkScreen(),
+      ),
+      _Screen(
+        path: AppRoutes.onboardingSpace,
+        builder: (context, state) => const JoinSpaceScreen(),
       ),
       _Screen(
         path: AppRoutes.onboardingRole,
         builder: (context, state) =>
             RolePickerScreen(args: state.extra! as RolePickerArgs),
-      ),
-      _Screen(
-        path: AppRoutes.onboardingPeople,
-        builder: (context, state) => const PeopleScreen(),
       ),
       // Before ":id" (F78).
       _Screen(

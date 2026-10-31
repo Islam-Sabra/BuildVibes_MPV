@@ -9,6 +9,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bidi.dart' show ltrRun;
+import '../../data/models/first_run_tip.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_quote_block.dart';
@@ -277,6 +278,7 @@ class DaybookCardView extends StatelessWidget {
   /// what a tap does (filters Work to it). An older post has none and
   /// keeps its typed place as a fact.
   final ({String name, VoidCallback? onTap})? site;
+
   /// A work item's tables of tasks (review 105 SP3), under its facts, and
   /// their rows ticked of all ("1 of 3 ticked" on the For line).
   final Widget? taskTables;
@@ -941,10 +943,13 @@ class DaybookCardView extends StatelessWidget {
     final giveTo = actions.onGiveTo;
     final check = actions.onCheck;
     return switch (card.need) {
+      // Review 107 OB7: the third tip points here, the first time an item
+      // is given to me.
       DaybookNeed.toSign when signDone != null => BvSlipPill.action(
         label: l10n.daybookSignAsDone,
         icon: BvIcons.camera,
         onTap: signDone,
+        tipAnchor: FirstRunTip.signDone,
       ),
       // Checking locks the item: held, never a tap (review 94).
       DaybookNeed.toCheck when check != null => BvHoldButton(

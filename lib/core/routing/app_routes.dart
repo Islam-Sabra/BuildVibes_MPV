@@ -200,9 +200,11 @@ abstract final class AppRoutes {
   static const joinEmail = '/join/email';
   static const joinCode = '/join/code';
 
-  // Onboarding (signed in, profile not finished)
+  // Onboarding (review 107): your name (OB4), your work (OB5), then your
+  // Space (OB6). The role picker stays for Edit profile.
   static const onboarding = '/onboarding';
-  static const onboardingAbout = '/onboarding/about';
+  static const onboardingName = '/onboarding/name';
+  static const onboardingWork = '/onboarding/work';
+  static const onboardingSpace = '/onboarding/space';
   static const onboardingRole = '/onboarding/role';
-  static const onboardingPeople = '/onboarding/people';
 }

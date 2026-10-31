@@ -156,6 +156,14 @@ class EntryDraftNotifier extends Notifier<EntryDraft?> {
   void clear() => state = null;
 }
 
+/// [email] as OB3 shows it (review 107): the first letter, then •••, then
+/// the domain ("s•••@gulfbuild.co"). Contact details stay masked.
+String maskedEmail(String email) {
+  final at = email.indexOf('@');
+  if (at < 1) return email;
+  return '${email.substring(0, 1)}•••${email.substring(at)}';
+}
+
 /// What sign-up stores on the new user (read by handle_new_user).
 Map<String, dynamic> signUpData({
   required String locale,

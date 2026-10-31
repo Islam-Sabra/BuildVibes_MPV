@@ -7,6 +7,7 @@ import '../../core/design/bv_specs.dart' show BvStroke;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bv_time.dart';
+import 'bv_tip.dart';
 import 'bv_avatar.dart';
 import 'bv_marked_text.dart';
 import 'bv_paper_clip.dart';
@@ -708,18 +709,23 @@ class BvSlipQuiet extends StatelessWidget {
 class BvSlipPill extends StatelessWidget {
   const BvSlipPill.hint({super.key, required this.label})
     : icon = null,
-      onTap = null;
+      onTap = null,
+      tipAnchor = null;
 
   const BvSlipPill.action({
     super.key,
     required this.label,
     required this.icon,
     required this.onTap,
+    this.tipAnchor,
   });
 
   final String label;
   final IconData? icon;
   final VoidCallback? onTap;
+
+  /// The pill as a first-run tip's anchor, by this id ([BvTipAnchor]).
+  final Object? tipAnchor;
 
   @override
   Widget build(BuildContext context) {
@@ -776,7 +782,7 @@ class BvSlipPill extends StatelessWidget {
             key: const Key('slip-pill-action'),
             behavior: HitTestBehavior.opaque,
             onTap: onTap,
-            child: pill,
+            child: BvTipAnchor(id: tipAnchor, child: pill),
           ),
         ),
       ),

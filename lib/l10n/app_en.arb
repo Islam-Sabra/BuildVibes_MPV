@@ -88,84 +88,6 @@
   "@componentsGallery": {
     "description": "Debug-only screen that shows every BV component."
   },
-  "entryStartingIn": "Starting in {country}",
-  "@entryStartingIn": {
-    "description": "Welcome pill. Country from the market pack.",
-    "placeholders": {
-      "country": {
-        "type": "String"
-      }
-    }
-  },
-  "entryWelcomeTitle": "The construction community around you.",
-  "@entryWelcomeTitle": {
-    "description": "E1 headline."
-  },
-  "entryWelcomeBody": "Meet engineers, foremen, trades and suppliers. Set up your presence when you're ready.",
-  "@entryWelcomeBody": {
-    "description": "E1 body."
-  },
-  "entryBuiltFor": "Built for {country} construction",
-  "@entryBuiltFor": {
-    "description": "E1 audience card header.",
-    "placeholders": {
-      "country": {
-        "type": "String"
-      }
-    }
-  },
-  "entryAudience1Title": "Engineers",
-  "@entryAudience1Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience1Body": "Share your projects. Get your work confirmed.",
-  "@entryAudience1Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryAudience2Title": "Site crews and trades",
-  "@entryAudience2Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience2Body": "Show your work. Get it confirmed by your team.",
-  "@entryAudience2Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryAudience3Title": "Foremen and supervisors",
-  "@entryAudience3Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience3Body": "Run the day's work from your phone.",
-  "@entryAudience3Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryAudience4Title": "Subcontractors",
-  "@entryAudience4Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience4Body": "Get work checked and signed off on time.",
-  "@entryAudience4Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryAudience5Title": "Suppliers and traders",
-  "@entryAudience5Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience5Body": "Be found by the people who build.",
-  "@entryAudience5Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryAudience6Title": "BIM and design",
-  "@entryAudience6Title": {
-    "description": "E1 rotating audience card title."
-  },
-  "entryAudience6Body": "Connect the model to the work on site.",
-  "@entryAudience6Body": {
-    "description": "E1 rotating audience card text."
-  },
-  "entryBrowseFirstNote": "Browse first. Set up your presence when you're ready.",
-  "@entryBrowseFirstNote": {
-    "description": "E1 card footer."
-  },
   "entryCreateAccount": "Create account",
   "@entryCreateAccount": {
     "description": "E1 button."
@@ -173,66 +95,6 @@
   "entrySignIn": "Sign in",
   "@entrySignIn": {
     "description": "E1 button."
-  },
-  "entrySkipToHome": "Skip to Home",
-  "@entrySkipToHome": {
-    "description": "E1 link: browse as a guest."
-  },
-  "entryJoinTitle": "Your work, confirmed by the people who built it.",
-  "@entryJoinTitle": {
-    "description": "E2 headline."
-  },
-  "entryJoinBody": "Join with the number you already use. It takes about a minute.",
-  "@entryJoinBody": {
-    "description": "E2 body."
-  },
-  "entrySampleName": "Sami Al-Mansour",
-  "@entrySampleName": {
-    "description": "E2 illustration: sample person."
-  },
-  "entrySampleRole": "BIM Manager · Harbour Tower",
-  "@entrySampleRole": {
-    "description": "E2 illustration: sample role and project."
-  },
-  "entrySampleBadge": "Confirmed by teammates",
-  "@entrySampleBadge": {
-    "description": "E2 illustration badge."
-  },
-  "entryContinuePhone": "Continue with phone number",
-  "@entryContinuePhone": {
-    "description": "E2 main button."
-  },
-  "entryOrContinueWith": "or continue with",
-  "@entryOrContinueWith": {
-    "description": "E2 divider above Google / Apple."
-  },
-  "entryGoogle": "Google",
-  "@entryGoogle": {
-    "description": "Brand name."
-  },
-  "entryApple": "Apple",
-  "@entryApple": {
-    "description": "Brand name."
-  },
-  "entryLinkedIn": "LinkedIn",
-  "@entryLinkedIn": {
-    "description": "Brand name."
-  },
-  "entryUseEmail": "Use email instead",
-  "@entryUseEmail": {
-    "description": "E2 link."
-  },
-  "entryNoPassword": "No password. We never post for you or read your contacts.",
-  "@entryNoPassword": {
-    "description": "E2 reassurance."
-  },
-  "entryTerms": "By continuing you agree to the Terms and Privacy Policy.",
-  "@entryTerms": {
-    "description": "E2 legal line."
-  },
-  "entryJustLooking": "Just looking? Browse first",
-  "@entryJustLooking": {
-    "description": "E2 guest link."
   },
   "phoneTitle": "Your phone number",
   "@phoneTitle": {
@@ -328,10 +190,6 @@
   "@emailLabel": {
     "description": "Email field label."
   },
-  "emailHelp": "We send a 6-digit code. No password needed.",
-  "@emailHelp": {
-    "description": "Email helper."
-  },
   "emailError": "Check the email address.",
   "@emailError": {
     "description": "Email validation."
@@ -364,15 +222,6 @@
   "codeSentSms": "We sent a 6-digit code to {destination} by SMS. It works for 10 minutes.",
   "@codeSentSms": {
     "description": "E3 text.",
-    "placeholders": {
-      "destination": {
-        "type": "String"
-      }
-    }
-  },
-  "codeSentEmail": "We sent a 6-digit code to {destination}. It works for 10 minutes. Check spam if you don't see it.",
-  "@codeSentEmail": {
-    "description": "E3e text.",
     "placeholders": {
       "destination": {
         "type": "String"
@@ -432,14 +281,6 @@
   "@commonRetry": {
     "description": "Button."
   },
-  "aboutTitle": "About you",
-  "@aboutTitle": {
-    "description": "E9 title."
-  },
-  "aboutIntro": "Step 1 of 2. This is how people will find you. You can change it later.",
-  "@aboutIntro": {
-    "description": "E9 intro."
-  },
   "firstName": "First name",
   "@firstName": {
     "description": "Field label."
@@ -478,14 +319,6 @@
   },
   "lastNameRequired": "Write your last name.",
   "@lastNameRequired": {
-    "description": "Validation."
-  },
-  "roleRequired": "Choose your role.",
-  "@roleRequired": {
-    "description": "Validation."
-  },
-  "countryRequired": "Choose your country.",
-  "@countryRequired": {
     "description": "Validation."
   },
   "companySheetTitle": "Your company",
@@ -551,10 +384,6 @@
   "@save": {
     "description": "Footer button."
   },
-  "peopleTitle": "People to follow",
-  "@peopleTitle": {
-    "description": "E10 title."
-  },
   "skip": "Skip",
   "@skip": {
     "description": "App bar action."
@@ -571,57 +400,6 @@
       }
     }
   },
-  "peopleHeadline": "Start with people you'd work with",
-  "@peopleHeadline": {
-    "description": "E10 headline."
-  },
-  "peopleBody": "Picked for a {role} in {country}. You can change this any time.",
-  "@peopleBody": {
-    "description": "E10 body.",
-    "placeholders": {
-      "role": {
-        "type": "String"
-      },
-      "country": {
-        "type": "String"
-      }
-    }
-  },
-  "peopleFromCompany": "FROM {company}",
-  "@peopleFromCompany": {
-    "description": "E10 section. Capitals in English.",
-    "placeholders": {
-      "company": {
-        "type": "String"
-      }
-    }
-  },
-  "peopleNearYou": "WORKING NEAR YOU",
-  "@peopleNearYou": {
-    "description": "E10 section."
-  },
-  "reasonCompany": "Your company",
-  "@reasonCompany": {
-    "description": "E10 reason."
-  },
-  "reasonNear": "Near you · {place}",
-  "@reasonNear": {
-    "description": "E10 reason.",
-    "placeholders": {
-      "place": {
-        "type": "String"
-      }
-    }
-  },
-  "reasonSameCountry": "Works in {country}",
-  "@reasonSameCountry": {
-    "description": "E10 reason.",
-    "placeholders": {
-      "country": {
-        "type": "String"
-      }
-    }
-  },
   "follow": "Follow",
   "@follow": {
     "description": "Button."
@@ -629,10 +407,6 @@
   "following": "Following",
   "@following": {
     "description": "Button state."
-  },
-  "peopleEmpty": "No suggestions yet. As your team joins BuildVibes, you'll see them here.",
-  "@peopleEmpty": {
-    "description": "E10 empty state."
   },
   "joinWallTitle": "Join BuildVibes to do this",
   "@joinWallTitle": {
@@ -1160,22 +934,6 @@
   "entryContinueEmail": "Continue with email",
   "@entryContinueEmail": {
     "description": "E2 main button (decision 04: email code only)."
-  },
-  "entryJoinBodyEmail": "Join with your email. It takes about a minute.",
-  "@entryJoinBodyEmail": {
-    "description": "E2 body when sign-in is by email."
-  },
-  "countryChangeLater": "You can change it in Settings.",
-  "@countryChangeLater": {
-    "description": "E9 country helper."
-  },
-  "mobileOptional": "Mobile number (optional)",
-  "@mobileOptional": {
-    "description": "E9 field label."
-  },
-  "mobileHelp": "Private: only you see it. It's never shown on your profile.",
-  "@mobileHelp": {
-    "description": "E9 field helper."
   },
   "homeFeed": "Feed",
   "@homeFeed": {
@@ -8590,5 +8348,205 @@
         "type": "int"
       }
     }
+  },
+  "obWelcomeTitle": "The community for the whole AECO industry.",
+  "@obWelcomeTitle": {
+    "description": "Review 107 OB1: the welcome line (founder, 30 Oct)."
+  },
+  "obWelcomeLine": "Architects, engineers, managers, suppliers and site teams.",
+  "@obWelcomeLine": {
+    "description": "Review 107 OB1: under the welcome line."
+  },
+  "obCardArchitect": "Architect",
+  "@obCardArchitect": {
+    "description": "Review 107 OB1: a role card on the welcome."
+  },
+  "obCardArchitectWork": "A-501 Rev D issued",
+  "@obCardArchitectWork": {
+    "description": "Review 107 OB1: the architect's piece of work."
+  },
+  "obCardProjectManager": "Project manager",
+  "@obCardProjectManager": {
+    "description": "Review 107 OB1: a role card on the welcome."
+  },
+  "obCardProjectManagerWork": "Programme, week 12",
+  "@obCardProjectManagerWork": {
+    "description": "Review 107 OB1: the project manager's piece of work."
+  },
+  "obCardSupplier": "Supplier",
+  "@obCardSupplier": {
+    "description": "Review 107 OB1: a role card on the welcome."
+  },
+  "obCardSupplierWork": "40 sleeves delivered",
+  "@obCardSupplierWork": {
+    "description": "Review 107 OB1: the supplier's piece of work."
+  },
+  "obCardSiteEngineer": "Site engineer",
+  "@obCardSiteEngineer": {
+    "description": "Review 107 OB1: a role card on the welcome."
+  },
+  "obCardSiteEngineerWork": "Pour checked",
+  "@obCardSiteEngineerWork": {
+    "description": "Review 107 OB1: the site engineer's piece of work."
+  },
+  "obHaveInvite": "I have an invite code",
+  "@obHaveInvite": {
+    "description": "Review 107 OB1: the second button."
+  },
+  "obJustLooking": "Just looking",
+  "@obJustLooking": {
+    "description": "Review 107 OB1: browse Home without an account."
+  },
+  "obInviteTitle": "Your invite code",
+  "@obInviteTitle": {
+    "description": "Review 107 OB1: the invite code sheet's title."
+  },
+  "obInviteSub": "Enter the code you were given. You'll join after your email.",
+  "@obInviteSub": {
+    "description": "Review 107 OB1: under the invite code sheet's title."
+  },
+  "obInviteKept": "Invite code {code}",
+  "@obInviteKept": {
+    "description": "Review 107 OB1: under the welcome once an invite code is in.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "obEmailSub": "We send a 6-digit code. No password.",
+  "@obEmailSub": {
+    "description": "Review 107 OB2: under \"Your email\"."
+  },
+  "obSending": "Sending…",
+  "@obSending": {
+    "description": "Review 107: a button while the code is sent."
+  },
+  "obCodeSent": "We sent a 6-digit code to {destination}",
+  "@obCodeSent": {
+    "description": "Review 107 OB3: the email, masked (s•••@gulfbuild.co).",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "obChecking": "Checking…",
+  "@obChecking": {
+    "description": "Review 107 OB3: while the code is checked."
+  },
+  "obTryAnotherWay": "Try another way",
+  "@obTryAnotherWay": {
+    "description": "Review 107 OB3: a different email, or a new code."
+  },
+  "obNameTitle": "What's your name?",
+  "@obNameTitle": {
+    "description": "Review 107 OB4: the title."
+  },
+  "obNameSub": "As people at work know you.",
+  "@obNameSub": {
+    "description": "Review 107 OB4: under the title (founder, 30 Oct)."
+  },
+  "obWorkTitle": "What's your work?",
+  "@obWorkTitle": {
+    "description": "Review 107 OB5: the title."
+  },
+  "obWorkSub": "Pick the closest. You can change it later.",
+  "@obWorkSub": {
+    "description": "Review 107 OB5: under the title."
+  },
+  "obWorkSearch": "Search all trades",
+  "@obWorkSearch": {
+    "description": "Review 107 OB5: the search under the tiles."
+  },
+  "obWorkNotListed": "Not listed? Type it",
+  "@obWorkNotListed": {
+    "description": "Review 107 OB5: type your own words."
+  },
+  "obWorkOwn": "Your work, in your words",
+  "@obWorkOwn": {
+    "description": "Review 107 OB5: the field for your own words."
+  },
+  "obWorkChoose": "Pick your work, or type it.",
+  "@obWorkChoose": {
+    "description": "Review 107 OB5: Continue with nothing picked."
+  },
+  "obSaving": "Saving…",
+  "@obSaving": {
+    "description": "Review 107: a button while your profile is saved."
+  },
+  "obSpaceTitle": "Join your Space",
+  "@obSpaceTitle": {
+    "description": "Review 107 OB6: the title (founder: Space, not site)."
+  },
+  "obSpaceSub": "Enter the invite code you were given.",
+  "@obSpaceSub": {
+    "description": "Review 107 OB6: under the title (founder, 30 Oct)."
+  },
+  "obSpaceLetsIn": "Private work · {name} lets people in",
+  "@obSpaceLetsIn": {
+    "description": "Review 107 OB6: under the Space the code opens.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "obSkipForNow": "Skip for now",
+  "@obSkipForNow": {
+    "description": "Review 107 OB6: go Home without a Space."
+  },
+  "obTipOf": "Tip {n} of {total}",
+  "@obTipOf": {
+    "description": "Review 107 OB7: above a first-run tip.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "obTipCamera": "Tap the camera to post a photo of your work.",
+  "@obTipCamera": {
+    "description": "Review 107 OB7: tip 1, on the camera."
+  },
+  "obTipHold": "Hold a card to share or delete it.",
+  "@obTipHold": {
+    "description": "Review 107 OB7: tip 2, on a card."
+  },
+  "obTipSignDone": "Sign as done when your work is finished.",
+  "@obTipSignDone": {
+    "description": "Review 107 OB7: tip 3, on Sign as done, the first time an item is given to me."
+  },
+  "obTipSkip": "Skip tips",
+  "@obTipSkip": {
+    "description": "Review 107 OB7: none of the tips again."
+  },
+  "obTipNext": "Next",
+  "@obTipNext": {
+    "description": "Review 107 OB7: the next tip, or done after the last."
+  },
+  "obJoining": "Joining {space}",
+  "@obJoining": {
+    "description": "Review 107 Q1: under OB4's title, the Space the kept invite code opens.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "obInviteFailed": "This code didn't work. Check it or skip.",
+  "@obInviteFailed": {
+    "description": "Review 107 Q1: on OB4, a kept invite code that is wrong, expired or refused."
+  },
+  "obChangeCode": "Change code",
+  "@obChangeCode": {
+    "description": "Review 107 Q1: type another invite code."
+  },
+  "obSkip": "Skip",
+  "@obSkip": {
+    "description": "Review 107 Q1: go on without the invite code."
   }
 }

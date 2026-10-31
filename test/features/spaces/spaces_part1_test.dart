@@ -354,7 +354,7 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester, language: lang, signedIn: false);
-      await _tap(tester, 'welcome-skip');
+      await _tap(tester, 'welcome-look');
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');
       expect(find.text(l10n.joinWallTitle), findsOneWidget);

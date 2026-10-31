@@ -9,16 +9,21 @@ import '../../core/l10n/bidi.dart';
 import '../../data/models/market.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../core/design/bv_icons.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_code_field.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import 'entry_errors.dart';
 import 'entry_state.dart';
 import 'phone_rules.dart';
-import 'widgets/entry_scaffold.dart';
+import '../../shared/widgets/bv_sheet.dart';
+import 'widgets/onboarding_scaffold.dart';
 
-/// E3 · Check WhatsApp (or messages) and E3e · Check your email. The code is
-/// checked as soon as the sixth digit is in. After that the router moves on
-/// by itself: to onboarding for a new account, to Home otherwise.
+/// OB3 · Check your email (review 107, 2698:39057), and E3 · Check
+/// WhatsApp (or messages) while phone sign-in is on. The code is checked as
+/// soon as the sixth digit is in, with "Checking…" under the boxes. After
+/// that the router moves on by itself: to your name for a new account, to
+/// Home otherwise. Try another way: a different email, or a new code.
 class CodeScreen extends ConsumerStatefulWidget {
   const CodeScreen({super.key});
 
@@ -114,6 +119,55 @@ class _CodeScreenState extends ConsumerState<CodeScreen> {
     }
   }
 
+  /// Try another way: a different email (or number), or a new code once
+  /// the server's minute between codes is over.
+  Future<void> _otherWay(EntryDraft draft) async {
+    final l10n = AppLocalizations.of(context);
+    final byEmail = draft.method == EntryMethod.email;
+    final choice = await showBvSheet<_Other>(
+      context: context,
+      title: l10n.obTryAnotherWay,
+      builder: (sheet) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BvListRow(
+            key: const Key('other-email'),
+            leading: const BvRowIcon(BvIcons.edit),
+            title: byEmail ? l10n.codeDifferentEmail : l10n.codeDifferentNumber,
+            onTap: () => Navigator.of(sheet).pop(_Other.different),
+          ),
+          // Greyed until the server's minute between codes is over.
+          Opacity(
+            opacity: _secondsLeft > 0 ? BvEntrySpec.waitingOpacity : 1,
+            child: BvListRow(
+              key: const Key('other-resend'),
+              leading: const BvRowIcon(BvIcons.send),
+              title: l10n.codeResend,
+              subtitle: _secondsLeft > 0 ? _resendIn(l10n) : null,
+              onTap: _secondsLeft > 0
+                  ? null
+                  : () => Navigator.of(sheet).pop(_Other.resend),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null) return;
+    switch (choice) {
+      case _Other.different:
+        await Navigator.of(context).maybePop();
+      case _Other.resend:
+        await _resend(draft);
+    }
+  }
+
+  String _resendIn(AppLocalizations l10n) {
+    final minutes = _secondsLeft ~/ 60;
+    final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
+    return l10n.codeResendIn('$minutes:$seconds');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -126,35 +180,46 @@ class _CodeScreenState extends ConsumerState<CodeScreen> {
 
     final byEmail = draft.method == EntryMethod.email;
     final sms = draft.channel == CodeChannel.sms;
-    final destination = ltrRun(
-      byEmail
-          ? draft.email!
-          : '${draft.dialCode} '
-                '${PhoneRules.format(draft.national!, example: draft.market?.phoneExample)}',
-    );
     final title = byEmail
         ? l10n.codeTitleEmail
         : sms
         ? l10n.codeTitleSms
         : l10n.codeTitleWhatsapp;
     final sent = byEmail
-        ? l10n.codeSentEmail(destination)
+        // Contact details stay masked (review 107).
+        ? l10n.obCodeSent(ltrRun(maskedEmail(draft.email!)))
         : sms
-        ? l10n.codeSentSms(destination)
-        : l10n.codeSentWhatsapp(destination);
-    final minutes = _secondsLeft ~/ 60;
-    final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
+        ? l10n.codeSentSms(_number(draft))
+        : l10n.codeSentWhatsapp(_number(draft));
 
-    return EntryScaffold(
+    return OnboardingScaffold(
       title: title,
+      subtitle: sent,
+      button: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s12,
+        children: [
+          if (_secondsLeft > 0)
+            Text(
+              _resendIn(l10n),
+              key: const Key('code-timer'),
+              textAlign: TextAlign.center,
+              style: type.metadata.copyWith(color: BvColors.textSecondary),
+            ),
+          BvButton(
+            key: const Key('code-other-way'),
+            label: l10n.obTryAnotherWay,
+            style: BvButtonStyle.secondary,
+            expand: true,
+            // Always active (R1): a different email at once.
+            onPressed: () => _otherWay(draft),
+          ),
+        ],
+      ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvSpace.s16,
         children: [
-          Text(
-            sent,
-            style: type.bodyMd.copyWith(color: BvColors.textSecondary),
-          ),
           BvCodeField(
             key: const Key('code-field'),
             controller: _code,
@@ -164,31 +229,35 @@ class _CodeScreenState extends ConsumerState<CodeScreen> {
             error: _error,
             onCompleted: (code) => _verify(draft, code),
           ),
-          if (_secondsLeft > 0)
-            Text(
-              l10n.codeResendIn('$minutes:$seconds'),
-              key: const Key('code-timer'),
-              style: type.bodySm.copyWith(color: BvColors.textSecondary),
-            )
-          else
-            BvButton(
-              key: const Key('code-resend'),
-              label: l10n.codeResend,
-              style: BvButtonStyle.tertiary,
-              size: BvButtonSize.medium,
-              padded: false,
-              onPressed: () => _resend(draft),
+          if (_checking)
+            Row(
+              key: const Key('code-checking'),
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: BvSpace.s8,
+              children: [
+                const SizedBox.square(
+                  dimension: BvSize.iconMd,
+                  child: CircularProgressIndicator(
+                    strokeWidth: BvStroke.thick,
+                    color: BvColors.iconAction,
+                  ),
+                ),
+                Text(
+                  l10n.obChecking,
+                  style: type.bodyMd.copyWith(color: BvColors.textAction),
+                ),
+              ],
             ),
-          BvButton(
-            key: const Key('code-different'),
-            label: byEmail ? l10n.codeDifferentEmail : l10n.codeDifferentNumber,
-            style: BvButtonStyle.tertiary,
-            size: BvButtonSize.medium,
-            padded: false,
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
         ],
       ),
     );
   }
+
+  /// The phone number as typed, in its own direction.
+  String _number(EntryDraft draft) => ltrRun(
+    '${draft.dialCode} '
+    '${PhoneRules.format(draft.national!, example: draft.market?.phoneExample)}',
+  );
 }
+
+enum _Other { different, resend }

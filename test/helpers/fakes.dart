@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:buildvibes/data/models/first_run_tip.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/people.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
+import 'package:buildvibes/data/repositories/tips_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Market pack fixtures (shaped like migration 1 rows)
@@ -141,6 +143,11 @@ class FakeAuthRepository implements AuthRepository {
   final sent = <SentCode>[];
   String validCode = '123456';
   AuthFailure? sendFailure;
+
+  /// Holds sendEmailCode and verifyEmailCode until each completes, so a
+  /// test sees "Sending…" and "Checking…" (review 107).
+  Future<void>? sendGate;
+  Future<void>? verifyGate;
   var signOuts = 0;
 
   /// The id given to a newly signed-in user.
@@ -221,6 +228,7 @@ class FakeAuthRepository implements AuthRepository {
     required String email,
     required Map<String, dynamic> signUpData,
   }) async {
+    await sendGate;
     if (sendFailure != null) throw AuthFailureException(sendFailure!);
     sent.add((to: email, channel: null, allowSignUp: true, data: signUpData));
   }
@@ -241,6 +249,7 @@ class FakeAuthRepository implements AuthRepository {
     required String email,
     required String code,
   }) async {
+    await verifyGate;
     if (code != validCode) {
       throw const AuthFailureException(AuthFailure.wrongCode);
     }
@@ -272,6 +281,13 @@ class FakeProfileRepository implements ProfileRepository {
   final follows = <String>{};
   AboutYouInput? lastSaved;
 
+  /// Holds saveAboutYou until it completes ("Saving…", review 107).
+  Future<void>? saveGate;
+
+  /// Home markets the server refuses (check_home_market_live, review 107
+  /// Q3).
+  final refusedMarkets = <String>{};
+
   /// How long fetchMine takes, like a real network call.
   Duration fetchDelay = Duration.zero;
 
@@ -288,6 +304,10 @@ class FakeProfileRepository implements ProfileRepository {
 
   @override
   Future<void> saveAboutYou(String userId, AboutYouInput input) async {
+    await saveGate;
+    if (refusedMarkets.contains(input.homeMarketId)) {
+      throw const HomeMarketRefused();
+    }
     lastSaved = input;
     final company = companies.where((c) => c.id == input.companyId).firstOrNull;
     profiles[userId] = MyProfile(
@@ -371,4 +391,25 @@ extension on MyProfile {
     tradeName: tradeName,
     homeMarketId: homeMarketId,
   );
+}
+
+/// The first-run tips seen (review 107 OB7). All of them by default, so
+/// Work opens with no tip; a test that shows them starts with none.
+class FakeTipsRepository implements TipsRepository {
+  FakeTipsRepository({Set<FirstRunTip>? seen})
+    : seenTips = seen ?? FirstRunTip.values.toSet();
+
+  final Set<FirstRunTip> seenTips;
+
+  /// Each mark_tip_seen, in order.
+  final marked = <FirstRunTip>[];
+
+  @override
+  Future<Set<FirstRunTip>> seen() async => Set.of(seenTips);
+
+  @override
+  Future<void> markSeen(FirstRunTip tip) async {
+    marked.add(tip);
+    seenTips.add(tip);
+  }
 }

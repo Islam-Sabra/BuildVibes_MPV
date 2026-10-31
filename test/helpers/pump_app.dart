@@ -25,6 +25,7 @@ import 'package:buildvibes/data/repositories/people_search_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/template_repository.dart';
+import 'package:buildvibes/data/repositories/tips_repository.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 import 'package:buildvibes/data/repositories/week_report_repository.dart';
@@ -128,6 +129,7 @@ class TestApp {
     required this.pushes,
     required this.safety,
     required this.account,
+    required this.tips,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -183,6 +185,9 @@ class TestApp {
   /// Delete account, Download my data, the home market.
   final FakeAccountRepository account;
 
+  /// The first-run tips seen (review 107 OB7); all by default.
+  final FakeTipsRepository tips;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -234,6 +239,7 @@ Future<TestApp> pumpApp(
   FakePushMessaging? push,
   FakeSafetyRepository? safety,
   FakeAccountRepository? account,
+  FakeTipsRepository? tips,
 
   /// What this phone kept from before (an app opened again).
   Map<String, Object> stored = const {},
@@ -325,6 +331,7 @@ Future<TestApp> pumpApp(
   final fakePush = push ?? FakePushMessaging();
   final fakePushes = FakePushRepository();
   final fakeSafety = safety ?? FakeSafetyRepository();
+  final fakeTips = tips ?? FakeTipsRepository();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -380,6 +387,7 @@ Future<TestApp> pumpApp(
         pushRepositoryProvider.overrideWithValue(fakePushes),
         safetyRepositoryProvider.overrideWithValue(fakeSafety),
         accountRepositoryProvider.overrideWithValue(fakeAccount),
+        tipsRepositoryProvider.overrideWithValue(fakeTips),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;
@@ -507,6 +515,7 @@ Future<TestApp> pumpApp(
     pushes: fakePushes,
     safety: fakeSafety,
     account: fakeAccount,
+    tips: fakeTips,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

@@ -5,9 +5,11 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import 'bv_text_field.dart';
 
-/// One-time sign-in code: six boxes (E3, E3e). One hidden text field takes
-/// the input, so the phone's automatic code fill and paste both work.
-/// Always left to right, also in Arabic.
+/// One-time sign-in code: six boxes (E3, E3e, OB3). One hidden text field
+/// takes the input, so the phone's automatic code fill and paste both work.
+/// Always left to right, also in Arabic. With [inputFormatters], it takes
+/// another kind of 6-character code, such as a Space's invite code (OB6):
+/// letters too, and no one-time-code fill.
 class BvCodeField extends StatefulWidget {
   const BvCodeField({
     super.key,
@@ -19,6 +21,7 @@ class BvCodeField extends StatefulWidget {
     this.onChanged,
     this.autofocus = false,
     this.enabled = true,
+    this.inputFormatters,
   });
 
   final String? label;
@@ -31,6 +34,10 @@ class BvCodeField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final bool autofocus;
   final bool enabled;
+
+  /// In place of the sign-in code's (Western digits only); the length is
+  /// still six.
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<BvCodeField> createState() => _BvCodeFieldState();
@@ -66,6 +73,8 @@ class _BvCodeFieldState extends State<BvCodeField> {
     final text = _controller.text;
     final hasError = widget.error != null;
     const length = BvFieldSpec.codeLength;
+    // The sign-in code, or another 6-character code ([inputFormatters]).
+    final code = widget.inputFormatters == null;
 
     Widget box(int i) {
       final filled = i < text.length;
@@ -132,11 +141,23 @@ class _BvCodeFieldState extends State<BvCodeField> {
                       maxLength: length,
                       showCursor: false,
                       enableInteractiveSelection: false,
-                      keyboardType: TextInputType.number,
-                      autofillHints: const [AutofillHints.oneTimeCode],
+                      keyboardType: code
+                          ? TextInputType.number
+                          : TextInputType.visiblePassword,
+                      textCapitalization: code
+                          ? TextCapitalization.none
+                          : TextCapitalization.characters,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: code
+                          ? const [AutofillHints.oneTimeCode]
+                          : null,
                       inputFormatters: [
-                        const BvWesternDigitsFormatter(),
-                        FilteringTextInputFormatter.digitsOnly,
+                        ...?widget.inputFormatters,
+                        if (code) ...[
+                          const BvWesternDigitsFormatter(),
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         LengthLimitingTextInputFormatter(length),
                       ],
                       decoration: const InputDecoration(
