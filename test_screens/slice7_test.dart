@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
@@ -250,11 +251,12 @@ Future<void> _write(
   DaybookKind kind,
 ) async {
   await _tap(tester, _key('post-bar-notepad'));
-  // Review 105 SP2: the kind menu became one row of kind chips.
-  final chip = _key('kind-chip-$kind');
-  await tester.ensureVisible(chip);
-  await tester.pumpAndSettle();
-  await _tap(tester, chip);
+  // Review 110 CP2: the kind from #; a checklist comes as a draft.
+  if (kind == DaybookKind.checklist) {
+    await makeChecklist(tester);
+  } else if (kind != DaybookKind.workItem) {
+    await chooseKind(tester, kind.json);
+  }
 }
 
 void main() {
@@ -302,7 +304,7 @@ void main() {
       // Review 105 SP2: the bar's + holds the template.
       await _tap(tester, _key('writing-add'));
       await _snap(tester, 'T0-more-template', lang);
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _tap(tester, _key('composer-extra-template'));
       await _snap(tester, 'T1-template-picker', lang);
       await _tap(tester, _key('template-$_gateNote'));
       FocusManager.instance.primaryFocus?.unfocus();
@@ -315,7 +317,7 @@ void main() {
       await _write(tester, l10n, DaybookKind.checklist);
       // Review 105 SP2: the bar's + holds the template.
       await _tap(tester, _key('writing-add'));
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _tap(tester, _key('composer-extra-template'));
       await _tap(tester, _key('template-$_pour'));
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();

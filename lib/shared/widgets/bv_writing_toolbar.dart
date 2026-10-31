@@ -20,12 +20,17 @@ class BvWritingTool {
     this.onHoldEnd,
     this.key,
     this.dot,
+    this.outlined = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
   final bool active;
+
+  /// Review 110 CP1–CP3: a brand outline (the composer's #, and + while
+  /// its grid is open); [active] then fills it brand-soft.
+  final bool outlined;
   final VoidCallback? onHoldStart;
 
   /// How far the thumb has moved from where the hold started.
@@ -234,6 +239,7 @@ class BvWritingToolbar extends StatelessWidget {
     onTap: t.onTap,
     active: t.active,
     dot: t.dot,
+    outlined: t.outlined,
     onHoldStart: t.onHoldStart,
     onHoldMove: t.onHoldMove,
     onHoldEnd: t.onHoldEnd,
@@ -251,6 +257,7 @@ class _Tool extends StatelessWidget {
     this.onHoldStart,
     this.onHoldMove,
     this.onHoldEnd,
+    this.outlined = false,
   });
 
   final IconData icon;
@@ -259,6 +266,7 @@ class _Tool extends StatelessWidget {
 
   /// Its card or menu is open: a grey square under it.
   final bool active;
+  final bool outlined;
   final VoidCallback? onHoldStart;
   final ValueChanged<Offset>? onHoldMove;
   final VoidCallback? onHoldEnd;
@@ -286,14 +294,26 @@ class _Tool extends StatelessWidget {
             width: BvWritingToolbarSpec.tool,
             height: BvWritingToolbarSpec.tool,
             decoration: BoxDecoration(
-              color: active ? BvColors.surfaceSubtle : null,
+              color: active
+                  ? (outlined
+                        ? BvColors.surfaceBrandSoft
+                        : BvColors.surfaceSubtle)
+                  : null,
               borderRadius: BvWritingToolbarSpec.toolRadius,
+              border: outlined
+                  ? Border.all(
+                      color: BvColors.borderSelected,
+                      width: BvStroke.thin,
+                    )
+                  : null,
             ),
             child: Icon(
               icon,
               size: BvWritingToolbarSpec.toolIcon,
               color: !enabled
                   ? BvColors.actionDisabledForeground
+                  : outlined
+                  ? BvColors.iconAction
                   : BvColors.iconPrimary,
             ),
           ),

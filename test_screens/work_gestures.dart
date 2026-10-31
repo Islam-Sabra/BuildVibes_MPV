@@ -34,9 +34,9 @@ Future<void> selectCard(WidgetTester tester, String id) async {
   await tester.pumpAndSettle();
 }
 
-/// Review 105 SP2: what the writing card's ⋯ menu set is now a row on the
-/// card (For · Place · Due · When); ⋯ (`writing-add`) keeps the rest (Pin
-/// until, a template). Does what the old ⋯ row [label] did.
+/// Review 105 SP2, as review 110 D left it: what the writing card's ⋯ menu
+/// set is a line on the composer (For · When) or a tile of + (Place, Due,
+/// Pin until, Template). Does what the old ⋯ row [label] did.
 Future<void> writingSet(
   WidgetTester tester,
   AppLocalizations l10n,
@@ -52,9 +52,13 @@ Future<void> writingSet(
   final row = {
     l10n.daybookPeople: 'writing-who',
     l10n.daybookAssign: 'writing-who',
-    l10n.daybookLocation: 'writing-place-row',
-    l10n.daybookDueDateMenu: 'writing-due-row',
     l10n.daybookActivityTime: 'writing-when-row',
+  }[label];
+  final extra = {
+    l10n.daybookLocation: 'place',
+    l10n.daybookDueDateMenu: 'due',
+    l10n.daybookPinUntil: 'pin',
+    l10n.templateMenu: 'template',
   }[label];
   if (row != null && find.byKey(Key(row)).evaluate().isNotEmpty) {
     final rowFinder = find.byKey(Key(row));
@@ -67,7 +71,9 @@ Future<void> writingSet(
     return;
   }
   await tap(find.byKey(const Key('writing-add')));
-  await tap(find.text(label));
+  await tap(
+    extra == null ? find.text(label) : find.byKey(Key('composer-extra-$extra')),
+  );
 }
 
 /// The Space with its Library at the app's own route, for a shot drawn

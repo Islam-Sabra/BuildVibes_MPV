@@ -976,9 +976,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       noteLabel: l10n.taskTableNote,
       tickLabel: l10n.taskTableTick,
       emptyNote: l10n.taskTableNoNote,
-      addLabel: t.rows.length < PageTaskTable.maxRows
-          ? l10n.pageAddRow
-          : null,
+      addLabel: t.rows.length < PageTaskTable.maxRows ? l10n.pageAddRow : null,
       onAdd: () {
         final row = newUuid();
         editTaskTable(

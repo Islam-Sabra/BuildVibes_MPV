@@ -1,14 +1,16 @@
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/daybook_composer.dart'
+    show BvIconGridTile;
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
@@ -82,24 +84,28 @@ void main() {
     final s = DaybookSamples(lang);
 
     group('F58 the Note [$lang]', () {
-      testWidgets('review 105 SP2: Note is the first kind chip; Work item '
-          'is chosen first', (tester) async {
+      testWidgets('review 110 CP2: Note is the first tile of #; the last '
+          'kind posted here (a work item) is chosen', (tester) async {
         await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-        final chips = tester.widget<BvKindChips<Object>>(
-          find.byKey(const Key('writing-kinds')),
+        await _tap(tester, find.byKey(const Key('writing-kind')));
+        final tiles = tester
+            .widgetList<BvIconGridTile>(find.byType(BvIconGridTile))
+            .toList();
+        expect(tiles.first.item.id, DaybookKind.note.json);
+        expect(tiles.first.item.label, l10n.daybookKindNote);
+        expect(tiles.first.item.icon, kindIcon(DaybookKind.note));
+        expect(
+          tiles.singleWhere((t) => t.selected).item.id,
+          DaybookKind.workItem.json,
         );
-        expect(chips.choices.first.value, DaybookKind.note);
-        expect(chips.choices.first.label, l10n.daybookKindNote);
-        expect(chips.choices.first.icon, kindIcon(DaybookKind.note));
-        expect(chips.selected, DaybookKind.workItem);
       });
 
       testWidgets('a note posts with its words only: no who, nothing more '
           'to set', (tester) async {
         final daybook = await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-        await _tap(tester, find.byKey(Key('kind-chip-${DaybookKind.note}')));
+        await chooseKind(tester, 'note');
         await tester.enterText(
           find.byKey(const Key('writing-title')),
           _note(s).title,
@@ -108,9 +114,9 @@ void main() {
         final toolbar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
         );
-        // Nothing more to set: + holds nothing.
-        expect(toolbar.tools!.first.onTap, isNull);
+        // Nothing more to set: Post is ready.
         expect(toolbar.onPost, isNotNull);
+        expect(toolbar.postReady, isTrue);
         await _tap(tester, find.byKey(const Key('writing-post')));
         final sent = daybook.createdPosts.single;
         expect(sent.kind, DaybookPost.noteKind);

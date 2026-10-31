@@ -9,6 +9,7 @@ import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
+import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
@@ -21,6 +22,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -95,7 +97,7 @@ Future<void> _assign(WidgetTester tester, String name) async {
 }
 
 BvWritingRow _row(WidgetTester tester, String key) => tester
-    .widget<BvWritingRows>(find.byType(BvWritingRows))
+    .widget<BvWritingPills>(find.byType(BvWritingPills))
     .rows
     .firstWhere((r) => r.key == Key(key));
 
@@ -118,37 +120,20 @@ void main() {
     final s = DaybookSamples(lang);
     final words = DaybookWords(l10n, lang, use24: false);
 
-    testWidgets('E1: the notepad opens a card at Now; the toolbar takes the '
-        'post bar\'s place [$lang]', (tester) async {
+    testWidgets('E1, review 110 CP1: the notepad opens the composer over '
+        'the page; the toolbar takes the post bar\'s place [$lang]', (
+      tester,
+    ) async {
       await _open(tester, lang);
       await _write(tester);
-      expect(find.byKey(const Key('daybook-now')), findsOneWidget);
-      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.byKey(const Key('composer')), findsOneWidget);
       expect(find.byType(BvWritingToolbar), findsOneWidget);
       expect(find.byType(BvPostBar), findsNothing);
-      // At Now: under the newest card.
-      expect(
-        tester.getTopLeft(find.byKey(const Key('daybook-now'))).dy,
-        greaterThan(
-          tester
-              .getTopLeft(find.byKey(const Key('daybook-card-post-sleeves')))
-              .dy,
-        ),
-      );
-      // The masthead stays on today.
-      final masthead = tester.widget<BvDaybookMasthead>(
-        find.byType(BvDaybookMasthead),
-      );
-      expect(masthead.weekday, l10n.daybookTodayDivider);
-      expect(masthead.onTap, isNull);
-      // Review 105 SP2: a work item first, among the kind chips.
-      expect(
-        tester
-            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
-            .selected,
-        DaybookKind.workItem,
-      );
-      expect(find.byKey(const Key('writing-kind-chip')), findsNothing);
+      // The page, its masthead and its cards are hidden while writing.
+      expect(find.byType(BvDaybookMasthead), findsNothing);
+      expect(find.byKey(const Key('daybook-card-post-sleeves')), findsNothing);
+      // The last kind posted here (a work item).
+      expect(composerDraft(tester)!.kind, DaybookKind.workItem);
       // Post is off with no title.
       expect(_toolbar(tester).onPost, isNull);
     });
@@ -253,12 +238,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(BvGiveToPicker), findsNothing);
       expect(app.daybook.created, isEmpty);
-      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.byKey(const Key('composer')), findsOneWidget);
       expect(_toolbar(tester).postReady, isTrue);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(app.daybook.created.single.ownerId, DaybookSamples.omar);
-      expect(find.byType(BvWritingCard), findsNothing);
+      expect(find.byKey(const Key('composer')), findsNothing);
     });
 
     testWidgets('F56: "Post as a Note" turns a work item with nobody to do it '
@@ -270,12 +255,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10n.daybookPostAsNote));
       await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
-            .selected,
-        DaybookKind.note,
-      );
+      expect(composerDraft(tester)!.kind, DaybookKind.note);
       expect(find.byKey(const Key('writing-who')), findsNothing);
       expect(_toolbar(tester).postReady, isTrue);
     });
@@ -317,23 +297,24 @@ void main() {
       expect(find.byType(BvGiveToPicker), findsOneWidget);
     });
 
-    testWidgets('E2, review 105 SP2: For, Place and Due are rows; + holds '
-        'nothing for a work item with no template [$lang]', (tester) async {
+    testWidgets('E2, review 110 CP1: For and Team are the lines; Place and '
+        'Due are in +, with no Template where the Space has none [$lang]', (
+      tester,
+    ) async {
       await _open(tester, lang);
       await _write(tester);
       expect(
         tester
-            .widget<BvWritingRows>(find.byType(BvWritingRows))
+            .widget<BvWritingPills>(find.byType(BvWritingPills))
             .rows
             .map((r) => r.key),
-        const [
-          Key('writing-who'),
-          Key('writing-place-row'),
-          Key('writing-due-row'),
-          Key('writing-to'),
-        ],
+        const [Key('writing-who'), Key('writing-to')],
       );
-      expect(_toolbar(tester).tools!.first.onTap, isNull);
+      await tester.tap(find.byKey(const Key('writing-add')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('composer-extra-place')), findsOneWidget);
+      expect(find.byKey(const Key('composer-extra-due')), findsOneWidget);
+      expect(find.byKey(const Key('composer-extra-template')), findsNothing);
     });
 
     testWidgets('E3: owner, due date with a time, place and the cover; Post '
@@ -354,31 +335,36 @@ void main() {
         s.traysBody,
       );
       await _assign(tester, s.omarName);
-      // Review 105 SP2: the Due and Place rows.
-      await tester.tap(find.byKey(const Key('writing-due-row')));
-      await tester.pumpAndSettle();
+      // Review 110 CP3: + → Due and + → Place.
+      await addExtra(tester, 'due');
       // Review 105C: one of the Space's places, from the picker.
-      await tester.tap(find.byKey(const Key('writing-place-row')));
-      await tester.pumpAndSettle();
+      await addExtra(tester, 'place');
       await tester.tap(find.byKey(const Key('place-row-$_traysPlaceId')));
       await tester.pumpAndSettle();
       // The cover, from the camera.
-      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.tap(find.byKey(const Key('writing-camera')));
       await tester.pumpAndSettle();
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(
         tester
-            .widget<BvWritingRows>(find.byType(BvWritingRows))
+            .widget<BvWritingPills>(find.byType(BvWritingPills))
             .rows
             .map((r) => r.value),
-        [
-          s.omarName,
-          s.traysPlace,
-          words.dueProperty(_sunday, _twoPm),
-          l10n.daybookWholeSpace,
-        ],
+        [s.omarName, l10n.daybookWholeSpace],
       );
-      expect(card.photos, hasLength(1));
+      // CP4: what was added, as chips.
+      expect(
+        tester
+            .widget<BvFilterChip>(find.byKey(const Key('writing-place-chip')))
+            .label,
+        s.traysPlace,
+      );
+      expect(
+        tester
+            .widget<BvFilterChip>(find.byKey(const Key('writing-due-chip')))
+            .label,
+        words.dueProperty(_sunday, _twoPm),
+      );
+      expect(composerDraft(tester)!.photos, hasLength(1));
 
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
@@ -400,8 +386,8 @@ void main() {
         startsWith('${DaybookSamples.space}/posts/$id/'),
       );
       expect(sent.photoPaths, app.daybook.uploads);
-      // The card is gone, and no draft is left.
-      expect(find.byType(BvWritingCard), findsNothing);
+      // The composer is gone, and no draft is left.
+      expect(find.byKey(const Key('composer')), findsNothing);
       expect(find.byType(BvPostBar), findsOneWidget);
       expect(app.prefs.getString(_draftKey), isNull);
       // The card became a normal slip at the posting time, sent.
@@ -449,7 +435,7 @@ void main() {
       await tester.tap(find.byKey(const Key('daybook-draft')));
       await tester.pumpAndSettle();
       expect(find.byType(BvWritingToolbar), findsOneWidget);
-      expect(find.text(l10n.daybookDraft), findsOneWidget);
+      expect(find.byKey(const Key('composer')), findsOneWidget);
       await _title(tester, '${s.cableTraysTitle}!');
       expect(
         _read(tester, daybookDraftProvider(DaybookSamples.space))!.id,
@@ -489,8 +475,8 @@ void main() {
         'is gone [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester);
-      // Empty: tapping off the card closes it.
-      await tester.tapAt(const Offset(200, 260));
+      // Empty: × closes it (review 110 CP1).
+      await tester.tap(find.byKey(const Key('composer-close')));
       await tester.pumpAndSettle();
       expect(find.byType(BvWritingCard), findsNothing);
       expect(find.byType(BvPostBar), findsOneWidget);
@@ -501,7 +487,7 @@ void main() {
         jsonDecode(app.prefs.getString(_draftKey)!)['title'],
         s.cableTraysTitle,
       );
-      await tester.tapAt(const Offset(200, 260));
+      await tester.tap(find.byKey(const Key('composer-close')));
       await tester.pumpAndSettle();
       expect(find.byType(BvWritingCard), findsOneWidget);
       expect(find.text(l10n.daybookDraft), findsOneWidget);
@@ -522,10 +508,9 @@ void main() {
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
-      // F29: the place, through its row (review 105 SP2).
+      // F29: the place, through + (review 110 CP3).
       // Review 105C: one of the Space's places, from the picker.
-      await tester.tap(find.byKey(const Key('writing-place-row')));
-      await tester.pumpAndSettle();
+      await addExtra(tester, 'place');
       await tester.tap(find.byKey(const Key('place-row-$_traysPlaceId')));
       await tester.pumpAndSettle();
       // No signal from here.
@@ -578,8 +563,8 @@ void main() {
       expect(jsonDecode(app.prefs.getString(_draftKey)!)['photos'], isNotEmpty);
     });
 
-    testWidgets('review 46: tapping the due while writing offers Remove; '
-        'removing takes it off the card [$lang]', (tester) async {
+    testWidgets('review 46, 110 CP4: the due\'s × while writing takes it '
+        'off the card [$lang]', (tester) async {
       final draft = jsonEncode(
         DaybookPostDraft(
           id: 'draft-1',
@@ -590,10 +575,10 @@ void main() {
       await _open(tester, lang, draft: draft, due: (day: null, at: null));
       await tester.tap(find.byKey(const Key('daybook-draft')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(words.dueProperty(_sunday, null)));
+      expect(find.text(words.dueProperty(_sunday, null)), findsOneWidget);
+      await tester.tap(find.byKey(const Key('writing-due-chip-clear')));
       await tester.pumpAndSettle();
-      // The Due row is empty again.
-      expect(_row(tester, 'writing-due-row').empty, isTrue);
+      expect(find.byKey(const Key('writing-due-chip')), findsNothing);
       expect(
         _read(tester, daybookDraftProvider(DaybookSamples.space))!.dueDate,
         isNull,
@@ -646,7 +631,7 @@ void main() {
       await _open(tester, lang, posts: const []);
       await tester.tap(find.text(l10n.daybookFirstPost));
       await tester.pumpAndSettle();
-      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.byKey(const Key('composer')), findsOneWidget);
       expect(find.byType(BvWritingToolbar), findsOneWidget);
     });
   }

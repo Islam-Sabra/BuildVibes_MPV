@@ -454,4 +454,14 @@ abstract final class BvIcons {
     'supplier' => truck,
     _ => trade,
   };
+
+  // Review 110 (CP2, CP3, TG1): the composer's kinds and extras.
+  // Phosphor: megaphone (an announcement)
+  static const announcement = IconData(0xe324, fontFamily: _family);
+  // Phosphor: heart (Thanks)
+  static const thanks = IconData(0xe2a8, fontFamily: _family);
+  // Phosphor: person-simple-walk (Walk)
+  static const walk = IconData(0xe73a, fontFamily: _family);
+  // Phosphor: tag (a work item's tag)
+  static const tag = IconData(0xe478, fontFamily: _family);
 }

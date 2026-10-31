@@ -86,22 +86,19 @@ bool mayHaveItemsUnder(DaybookPost post) =>
 
 /// The block menu's words (N3). In a work item (review 105 SP4) a file
 /// is "File or scan".
-String pageAddName(
-  AppLocalizations l10n,
-  PageAdd a, {
-  bool workItem = false,
-}) => switch (a) {
-  PageAdd.text => l10n.pageText,
-  PageAdd.bullets => l10n.pageBulletPoints,
-  PageAdd.heading => l10n.pageHeading,
-  PageAdd.checklist => l10n.pageChecklist,
-  PageAdd.toggle => l10n.pageToggle,
-  PageAdd.table => l10n.pageTable,
-  PageAdd.taskTable => l10n.pageTaskTable,
-  PageAdd.photo => l10n.pagePhoto,
-  PageAdd.file => workItem ? l10n.pageFileOrScan : l10n.pageFile,
-  PageAdd.item => l10n.pageItemUnder,
-};
+String pageAddName(AppLocalizations l10n, PageAdd a, {bool workItem = false}) =>
+    switch (a) {
+      PageAdd.text => l10n.pageText,
+      PageAdd.bullets => l10n.pageBulletPoints,
+      PageAdd.heading => l10n.pageHeading,
+      PageAdd.checklist => l10n.pageChecklist,
+      PageAdd.toggle => l10n.pageToggle,
+      PageAdd.table => l10n.pageTable,
+      PageAdd.taskTable => l10n.pageTaskTable,
+      PageAdd.photo => l10n.pagePhoto,
+      PageAdd.file => workItem ? l10n.pageFileOrScan : l10n.pageFile,
+      PageAdd.item => l10n.pageItemUnder,
+    };
 
 /// The line under a kind in a work item's + (review 105 SP4): a plain
 /// table has no owners; a table of tasks is ticked by the owner.

@@ -6136,4 +6136,170 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plLater => 'Post later…';
+
+  @override
+  String get cpNewNote => 'New note';
+
+  @override
+  String get cpNewWorkItem => 'New work item';
+
+  @override
+  String get cpNewChecklist => 'New checklist';
+
+  @override
+  String get cpNewAnnouncement => 'New announcement';
+
+  @override
+  String get cpNewActivity => 'New scheduled activity';
+
+  @override
+  String cpEdit(String kind) {
+    return 'Edit · $kind';
+  }
+
+  @override
+  String cpSpaceLine(String space, String line) {
+    return '$space · $line';
+  }
+
+  @override
+  String get cpDrafts => 'Drafts';
+
+  @override
+  String get cpDetails => 'Details (optional)';
+
+  @override
+  String get cpWhatPosting => 'What are you posting?';
+
+  @override
+  String get cpAddNote => 'Add to this note';
+
+  @override
+  String get cpAddWorkItem => 'Add to this work item';
+
+  @override
+  String get cpAddChecklist => 'Add to this checklist';
+
+  @override
+  String get cpAddAnnouncement => 'Add to this announcement';
+
+  @override
+  String get cpAddActivity => 'Add to this activity';
+
+  @override
+  String get cpTag => 'Tag';
+
+  @override
+  String get cpPhotos => 'Photos';
+
+  @override
+  String get cpFile => 'File';
+
+  @override
+  String get cpBullets => 'Bullets';
+
+  @override
+  String get cpPin => 'Pin';
+
+  @override
+  String cpRemoveThe(String what) {
+    return 'Remove $what';
+  }
+
+  @override
+  String cpRemoved(String what, String kind) {
+    return 'Removed: $what. $kind doesn\'t take it.';
+  }
+
+  @override
+  String get cpFiles => 'Files';
+
+  @override
+  String get cpTables => 'Tables';
+
+  @override
+  String cpTableChip(int rows) {
+    return 'Table · $rows rows';
+  }
+
+  @override
+  String cpTaskTableChip(int count) {
+    return 'Table of tasks · $count';
+  }
+
+  @override
+  String get cpAddRow => 'Add a row';
+
+  @override
+  String get cpAddColumn => 'Add a column';
+
+  @override
+  String get cpTaskHint => 'Task';
+
+  @override
+  String get cpAddTask => 'Add a task';
+
+  @override
+  String cardFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTables(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tables',
+      one: '1 table',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tasks',
+      one: '1 task',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cardSeeMore => 'See more';
+
+  @override
+  String cardMorePhotos(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get thanksStamp => 'THANKS';
+
+  @override
+  String get thanksTo => 'To';
+
+  @override
+  String get thanksShow => 'Show on my profile';
+
+  @override
+  String get thanksHide => 'Remove from my profile';
+
+  @override
+  String get thanksOnlyYou => 'Only you see this button. Nobody else is told.';
+
+  @override
+  String get profileThanks => 'Thanks';
+
+  @override
+  String profileThanksFrom(String name) {
+    return 'From $name';
+  }
 }

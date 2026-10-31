@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
@@ -133,11 +134,16 @@ Future<void> _write(
   DaybookKind kind,
 ) async {
   await _tap(tester, _key('post-bar-notepad'));
-  // Review 105 SP2: the kinds are chips, one choice.
-  await _tap(tester, _key('kind-chip-$kind'));
+  // Review 110 CP2: the kind from #; a checklist comes as a draft (it is
+  // no longer a kind to start).
+  if (kind == DaybookKind.checklist) {
+    await makeChecklist(tester);
+  } else if (kind != DaybookKind.workItem) {
+    await chooseKind(tester, kind.json);
+  }
 }
 
-/// The bar's + (review 105 SP2).
+/// The bar's + (review 110 CP3: Template is one of its tiles).
 Future<void> _more(WidgetTester tester, AppLocalizations l10n) =>
     _tap(tester, _key('writing-add'));
 
@@ -255,13 +261,7 @@ void main() {
       await _more(tester, l10n);
       await _tap(tester, find.text(l10n.templateMenu));
       await _tap(tester, _key('template-$_gate'));
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('writing-template'),
-          matching: find.byKey(const Key('writing-property-remove')),
-        ),
-      );
+      await _tap(tester, _key('writing-template-clear'));
       expect(_key('writing-template'), findsNothing);
       expect(find.text('Gate 2 closed'), findsOneWidget);
       await _tap(tester, _key('writing-post'));

@@ -243,7 +243,9 @@ class _HandoverSheetState extends State<HandoverSheet> {
                     ),
                   Expanded(
                     child: Text(
-                      to == null ? l10n.handoverChoose : inOwnDirection(to.name),
+                      to == null
+                          ? l10n.handoverChoose
+                          : inOwnDirection(to.name),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: to == null

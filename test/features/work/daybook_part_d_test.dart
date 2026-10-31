@@ -20,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/activity_fakes.dart';
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -568,9 +569,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('post-bar-notepad')));
       await tester.pumpAndSettle();
-      // Review 105 SP2: the Place row opens it.
-      await tester.tap(find.byKey(const Key('writing-place-row')));
-      await tester.pumpAndSettle();
+      // Review 110 CP3: + → Place opens it.
+      await addExtra(tester, 'place');
       await keyboardUp(tester);
       // Its search field, where the keyboard types.
       aboveKeyboard(tester, find.byKey(const Key('place-search')));

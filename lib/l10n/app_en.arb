@@ -8757,5 +8757,234 @@
   "plLater": "Post later…",
   "@plLater": {
     "description": "Review 110 CP5: the one item on the small menu that holding Send opens."
+  },
+  "cpNewNote": "New note",
+  "@cpNewNote": {
+    "description": "Review 110 CP1: the composer's top line, by kind."
+  },
+  "cpNewWorkItem": "New work item",
+  "@cpNewWorkItem": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewChecklist": "New checklist",
+  "@cpNewChecklist": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewAnnouncement": "New announcement",
+  "@cpNewAnnouncement": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewActivity": "New scheduled activity",
+  "@cpNewActivity": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpEdit": "Edit · {kind}",
+  "@cpEdit": {
+    "description": "Review 110 CP1: the top line while editing a post.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "cpSpaceLine": "{space} · {line}",
+  "@cpSpaceLine": {
+    "description": "Review 110 CP1: under the top line: the Space's name and its line (\"Private work\").",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      },
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "cpDrafts": "Drafts",
+  "@cpDrafts": {
+    "description": "Review 110 CP1: keeps what was written as the Space's draft and goes back to the Space."
+  },
+  "cpDetails": "Details (optional)",
+  "@cpDetails": {
+    "description": "Review 110 CP1: a work item's details box."
+  },
+  "cpWhatPosting": "What are you posting?",
+  "@cpWhatPosting": {
+    "description": "Review 110 CP2: over the grid of kinds."
+  },
+  "cpAddNote": "Add to this note",
+  "@cpAddNote": {
+    "description": "Review 110 CP3: over the grid of extras, by kind."
+  },
+  "cpAddWorkItem": "Add to this work item",
+  "@cpAddWorkItem": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddChecklist": "Add to this checklist",
+  "@cpAddChecklist": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddAnnouncement": "Add to this announcement",
+  "@cpAddAnnouncement": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddActivity": "Add to this activity",
+  "@cpAddActivity": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTag": "Tag",
+  "@cpTag": {
+    "description": "Review 110 CP3: + → Tag."
+  },
+  "cpPhotos": "Photos",
+  "@cpPhotos": {
+    "description": "Review 110 CP3: + → Photos (from the gallery)."
+  },
+  "cpFile": "File",
+  "@cpFile": {
+    "description": "Review 110 CP3: + → File."
+  },
+  "cpBullets": "Bullets",
+  "@cpBullets": {
+    "description": "Review 110 CP3: + → Bullets (a line that starts with •)."
+  },
+  "cpPin": "Pin",
+  "@cpPin": {
+    "description": "Review 110 CP3: an announcement's pin, in +."
+  },
+  "cpRemoveThe": "Remove {what}",
+  "@cpRemoveThe": {
+    "description": "Review 110 CP4: the × on an added chip, said by a screen reader.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "cpRemoved": "Removed: {what}. {kind} doesn't take it.",
+  "@cpRemoved": {
+    "description": "Review 110 CP3: switching the kind dropped something.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "cpFiles": "Files",
+  "@cpFiles": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTables": "Tables",
+  "@cpTables": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTableChip": "Table · {rows} rows",
+  "@cpTableChip": {
+    "description": "Review 110 CP4: a table added from +.",
+    "placeholders": {
+      "rows": {
+        "type": "int"
+      }
+    }
+  },
+  "cpTaskTableChip": "Table of tasks · {count}",
+  "@cpTaskTableChip": {
+    "description": "Review 110 CP4: a table of tasks added from +.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cpAddRow": "Add a row",
+  "@cpAddRow": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddColumn": "Add a column",
+  "@cpAddColumn": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTaskHint": "Task",
+  "@cpTaskHint": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddTask": "Add a task",
+  "@cpAddTask": {
+    "description": "Review 110 D: the composer."
+  },
+  "cardFiles": "{count, plural, =1{1 file} other{{count} files}}",
+  "@cardFiles": {
+    "description": "Review 110 F (HV1): the short card's quiet line.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardTables": "{count, plural, =1{1 table} other{{count} tables}}",
+  "@cardTables": {
+    "description": "Review 110 F: the short card.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardTasks": "{count, plural, =1{1 task} other{{count} tasks}}",
+  "@cardTasks": {
+    "description": "Review 110 F: the short card.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardSeeMore": "See more",
+  "@cardSeeMore": {
+    "description": "Review 110 F (HV1): opens the whole post in place."
+  },
+  "cardMorePhotos": "+{count}",
+  "@cardMorePhotos": {
+    "description": "Review 110 F (HV1): the tile after 3 photos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thanksStamp": "THANKS",
+  "@thanksStamp": {
+    "description": "Review 110 TH2: the green stamp on a Thanks."
+  },
+  "thanksTo": "To",
+  "@thanksTo": {
+    "description": "Review 110 TH1, TH2: who a Thanks is to."
+  },
+  "thanksShow": "Show on my profile",
+  "@thanksShow": {
+    "description": "Review 110 TH2: only the person thanked sees it."
+  },
+  "thanksHide": "Remove from my profile",
+  "@thanksHide": {
+    "description": "Review 110 TH2: a Thanks already on the profile."
+  },
+  "thanksOnlyYou": "Only you see this button. Nobody else is told.",
+  "@thanksOnlyYou": {
+    "description": "Review 110 TH2."
+  },
+  "profileThanks": "Thanks",
+  "@profileThanks": {
+    "description": "Review 110 TH2: the profile section of Thanks its person chose to show."
+  },
+  "profileThanksFrom": "From {name}",
+  "@profileThanksFrom": {
+    "description": "Review 110 TH2: who thanked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

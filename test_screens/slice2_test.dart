@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:buildvibes/features/work/composer_kinds.dart'
+    show composerKindKey;
 import 'package:buildvibes/data/repositories/page_repository.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/chat.dart';
@@ -41,7 +43,6 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/features/spaces/team_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,6 +51,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/page_fakes.dart';
 import '../test/helpers/activity_fakes.dart';
 import '../test/helpers/chat_fakes.dart';
@@ -93,7 +95,11 @@ Future<List<Override>> _overrides(
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
-  SharedPreferences.setMockInitialValues(saved);
+  SharedPreferences.setMockInitialValues({
+    // Review 110 G1: the composer opens on a work item here.
+    composerKindKey(DaybookSamples.space): 'work_item',
+    ...saved,
+  });
   final prefs = await SharedPreferences.getInstance();
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
@@ -199,9 +205,9 @@ Future<void> _type(WidgetTester tester, Finder field, String text) async {
   await tester.pumpAndSettle();
 }
 
-/// Opens a card at Now and picks [kind] from its kind chips (review 105
-/// SP2: the kind menu became one row of chips). A file post starts from
-/// the Library's Add a file, its file chooser open.
+/// Opens the composer and picks [kind] from # (review 110 CP2); a
+/// checklist comes as a draft (no longer a kind to start). A file post
+/// starts from the Library's Add a file, its file chooser open.
 Future<void> _writeKind(
   WidgetTester tester,
   AppLocalizations l10n,
@@ -213,10 +219,11 @@ Future<void> _writeKind(
     return;
   }
   await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-  final chip = find.byKey(Key('kind-chip-$kind'));
-  await tester.ensureVisible(chip);
-  await tester.pumpAndSettle();
-  await _tap(tester, chip);
+  if (kind == DaybookKind.checklist) {
+    await makeChecklist(tester);
+  } else if (kind != DaybookKind.workItem) {
+    await chooseKind(tester, kind.json);
+  }
 }
 
 Future<void> _more(
@@ -443,7 +450,8 @@ void main() {
             find.byKey(const Key('writing-title')),
             s.cableTraysTitle,
           );
-          await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+          // Review 110 CP3: + → File.
+          await addExtra(tester, 'file');
         },
       );
     });
@@ -662,7 +670,8 @@ void main() {
           // Review 105C: one of the Space's places, from the picker.
           await _more(tester, l10n, l10n.daybookLocation);
           await _tap(tester, find.byKey(const Key('place-row-$_gatePlaceId')));
-          await _more(tester, l10n, l10n.daybookPeople);
+          // Review 110: no For line on an activity; Send asks who's coming.
+          await _tap(tester, find.byKey(const Key('writing-post')));
           await _pick(tester, s.omarName);
           await _pick(tester, s.saraName);
           await _tap(tester, find.byKey(const Key('people-done')));
@@ -1149,7 +1158,9 @@ void main() {
             find.byKey(const Key('writing-title')),
             s.cableTraysTitle,
           );
-          ProviderScope.containerOf(tester.element(find.byType(BvWritingCard)))
+          ProviderScope.containerOf(
+                tester.element(find.byKey(const Key('composer'))),
+              )
               .read(
                 photosPreparingProvider(
                   'daybook:${DaybookSamples.space}',

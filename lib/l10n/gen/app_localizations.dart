@@ -10219,6 +10219,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post later…'**
   String get plLater;
+
+  /// Review 110 CP1: the composer's top line, by kind.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get cpNewNote;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New work item'**
+  String get cpNewWorkItem;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New checklist'**
+  String get cpNewChecklist;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New announcement'**
+  String get cpNewAnnouncement;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New scheduled activity'**
+  String get cpNewActivity;
+
+  /// Review 110 CP1: the top line while editing a post.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit · {kind}'**
+  String cpEdit(String kind);
+
+  /// Review 110 CP1: under the top line: the Space's name and its line ("Private work").
+  ///
+  /// In en, this message translates to:
+  /// **'{space} · {line}'**
+  String cpSpaceLine(String space, String line);
+
+  /// Review 110 CP1: keeps what was written as the Space's draft and goes back to the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts'**
+  String get cpDrafts;
+
+  /// Review 110 CP1: a work item's details box.
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get cpDetails;
+
+  /// Review 110 CP2: over the grid of kinds.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you posting?'**
+  String get cpWhatPosting;
+
+  /// Review 110 CP3: over the grid of extras, by kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this note'**
+  String get cpAddNote;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this work item'**
+  String get cpAddWorkItem;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this checklist'**
+  String get cpAddChecklist;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this announcement'**
+  String get cpAddAnnouncement;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this activity'**
+  String get cpAddActivity;
+
+  /// Review 110 CP3: + → Tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get cpTag;
+
+  /// Review 110 CP3: + → Photos (from the gallery).
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get cpPhotos;
+
+  /// Review 110 CP3: + → File.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get cpFile;
+
+  /// Review 110 CP3: + → Bullets (a line that starts with •).
+  ///
+  /// In en, this message translates to:
+  /// **'Bullets'**
+  String get cpBullets;
+
+  /// Review 110 CP3: an announcement's pin, in +.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get cpPin;
+
+  /// Review 110 CP4: the × on an added chip, said by a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {what}'**
+  String cpRemoveThe(String what);
+
+  /// Review 110 CP3: switching the kind dropped something.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed: {what}. {kind} doesn\'t take it.'**
+  String cpRemoved(String what, String kind);
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get cpFiles;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Tables'**
+  String get cpTables;
+
+  /// Review 110 CP4: a table added from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Table · {rows} rows'**
+  String cpTableChip(int rows);
+
+  /// Review 110 CP4: a table of tasks added from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Table of tasks · {count}'**
+  String cpTaskTableChip(int count);
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get cpAddRow;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get cpAddColumn;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get cpTaskHint;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a task'**
+  String get cpAddTask;
+
+  /// Review 110 F (HV1): the short card's quiet line.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file} other{{count} files}}'**
+  String cardFiles(int count);
+
+  /// Review 110 F: the short card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 table} other{{count} tables}}'**
+  String cardTables(int count);
+
+  /// Review 110 F: the short card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 task} other{{count} tasks}}'**
+  String cardTasks(int count);
+
+  /// Review 110 F (HV1): opens the whole post in place.
+  ///
+  /// In en, this message translates to:
+  /// **'See more'**
+  String get cardSeeMore;
+
+  /// Review 110 F (HV1): the tile after 3 photos.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String cardMorePhotos(int count);
+
+  /// Review 110 TH2: the green stamp on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'THANKS'**
+  String get thanksStamp;
+
+  /// Review 110 TH1, TH2: who a Thanks is to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get thanksTo;
+
+  /// Review 110 TH2: only the person thanked sees it.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on my profile'**
+  String get thanksShow;
+
+  /// Review 110 TH2: a Thanks already on the profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from my profile'**
+  String get thanksHide;
+
+  /// Review 110 TH2.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you see this button. Nobody else is told.'**
+  String get thanksOnlyYou;
+
+  /// Review 110 TH2: the profile section of Thanks its person chose to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get profileThanks;
+
+  /// Review 110 TH2: who thanked.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String profileThanksFrom(String name);
 }
 
 class _AppLocalizationsDelegate

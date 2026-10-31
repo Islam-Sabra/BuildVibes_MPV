@@ -28,6 +28,7 @@ import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/composer_steps.dart';
 import '../../helpers/later_fakes.dart';
 import '../../helpers/post_fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -274,7 +275,8 @@ void main() {
       ) async {
         final app = await space(tester);
         await writeItem(tester);
-        await _tap(tester, _key('writing-place-row'));
+        // Review 110 CP3: + → Place.
+        await addExtra(tester, 'place');
         await _tap(tester, _key('place-row-${_place.id}'));
         final bar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),

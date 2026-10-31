@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
@@ -266,11 +267,21 @@ void main() {
       await _startReport(tester, l10n);
       expect(_key('report-writing'), findsOneWidget);
       expect(find.text(words.compactDate(_today)), findsOneWidget);
+      // Review 110 CP1: the Team line, and the kind's name on top.
       expect(
-        find.text(l10n.daybookToAudience(l10n.daybookEveryone)),
+        find.descendant(
+          of: _key('writing-to'),
+          matching: find.text(l10n.daybookEveryone),
+        ),
         findsOneWidget,
       );
-      expect(find.text(l10n.daybookKindReport), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _key('composer-top'),
+          matching: find.text(l10n.daybookKindReport),
+        ),
+        findsOneWidget,
+      );
       // No words box: the report's own sections.
       expect(_key('writing-body'), findsNothing);
       for (final t in [
@@ -338,13 +349,7 @@ void main() {
       final app = await _open(tester, lang);
       await _startReport(tester, l10n);
       expect(app.templates.calls, contains('fill everyone'));
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('writing-to'),
-          matching: find.text(l10n.daybookToAudience(l10n.daybookEveryone)),
-        ),
-      );
+      await _tap(tester, _key('writing-to'));
       await _tap(
         tester,
         find.descendant(
@@ -376,7 +381,9 @@ void main() {
       );
       await _startReport(tester, l10n);
       expect(find.text('Crane on site'), findsOneWidget);
-      expect(find.text(l10n.daybookDraft), findsOneWidget);
+      // The same draft, open in the composer.
+      expect(_key('composer'), findsOneWidget);
+      expect(composerDraft(tester)!.id, 'draft-report');
     });
 
     testWidgets('yesterday\'s draft is put away: a report is for today '

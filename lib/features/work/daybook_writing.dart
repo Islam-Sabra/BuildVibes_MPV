@@ -39,6 +39,7 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError, showSpaceMessage;
+import 'composer_kinds.dart';
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_report.dart' show ReportWriting;
@@ -504,6 +505,47 @@ class DaybookWriter {
           : null,
     ),
   );
+
+  /// Review 110 CP3: another kind keeps the title, the words and the
+  /// photos; what it doesn't take goes, and is said.
+  Future<List<ComposerDrop>> switchKind(DaybookKind kind) async {
+    final d = draft;
+    if (d == null) return const [];
+    final drops = composerDrops(d, kind);
+    await _put((d) {
+      final s = composerSwitched(d, kind, drops);
+      return kind == DaybookKind.announcement && s.pinnedUntil == null
+          ? s.copyWith(
+              pinnedUntil: () => pinToEndOf(dayOf(ref.read(clockProvider)())),
+            )
+          : s;
+    });
+    return drops;
+  }
+
+  /// Review 110 CP3: a table or a table of tasks added from +, changed
+  /// ([putBlock], by its id) or taken off with its ×.
+  Future<void> putBlock(Map<String, dynamic> block) => _put((d) {
+    final had = d.blocks.any((b) => b['id'] == block['id']);
+    return d.copyWith(
+      blocks: had
+          ? [for (final b in d.blocks) b['id'] == block['id'] ? block : b]
+          : [...d.blocks, block],
+    );
+  });
+
+  /// A new id for a block or a row (as a post's, from the app).
+  String newBlockId() => ref.read(newPostIdProvider)();
+
+  Future<void> removeBlock(String id) => _put(
+    (d) => d.copyWith(
+      blocks: [
+        for (final b in d.blocks)
+          if (b['id'] != id) b,
+      ],
+    ),
+  );
+
   Future<void> setTitle(String text) => _put((d) => d.copyWith(title: text));
   Future<void> setBody(String text) => _put((d) => d.copyWith(body: text));
 
@@ -529,6 +571,9 @@ class DaybookWriter {
           : [...d.people, (id: p.id, name: p.name)],
     );
   });
+
+  /// Review 110 CP4: the people chip's ×.
+  Future<void> clearPeople() => _put((d) => d.copyWith(people: const []));
 
   Future<void> setPoints(List<DraftPoint> points) =>
       _put((d) => d.copyWith(points: points));

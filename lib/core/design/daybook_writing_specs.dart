@@ -121,6 +121,74 @@ abstract final class BvWritingToolbarSpec {
   // 40 // 40
 }
 
+/// Review 110 D (CP1, CP4): the composer over the whole screen.
+abstract final class BvComposerSpec {
+  static const topPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s4,
+    BvSpace.s4,
+    BvSpace.s8,
+    BvSpace.s4,
+  );
+  static const bodyPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s8,
+    BvSpace.gutter,
+    BvSpace.s16,
+  );
+
+  /// A photo's thumbnail (CP4).
+  static const thumb = 64.0;
+  static const thumbRadius = BvRadius.controlAll;
+
+  /// A new table starts with this many rows and columns.
+  static const tableRows = 3;
+  static const tableColumns = 2;
+}
+
+/// Review 110 CP1 (2707:39361): the composer's default lines, as pills.
+abstract final class BvWritingPillSpec {
+  static const gap = BvSpace.s8;
+  static const innerGap = BvSpace.s6;
+  static const caret = BvSize.iconSm;
+  static const padding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: BvSpace.s8,
+  );
+}
+
+/// Review 110 CP2, CP3 (2707:39412, 2707:39502): the composer's grids of
+/// round icons. The circle and its icon grow with the phone's text size.
+abstract final class BvIconGridSpec {
+  static const circle = 46.0;
+  static const icon = 22.0;
+  static const labelGap = BvSpace.s6;
+  static const labelLines = 2;
+  static const titleGap = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const padding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s8,
+    BvSpace.s12,
+    BvSpace.s8,
+    BvSpace.s16,
+  );
+  static const tilePadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s2,
+  );
+
+  /// From this text size on, fewer to a row (# 3, + 4), so names never
+  /// break mid-word.
+  static const largeFrom = 1.3;
+
+  /// # holds 4 to a row (7 kinds: a row of 4, a row of 3); + holds 5.
+  static const kindsColumns = 4;
+  static const kindsColumnsLarge = 3;
+  static const extrasColumns = 5;
+  static const extrasColumnsLarge = 4;
+
+  /// Where the keyboard was, before the phone has shown it once.
+  static const panelHeight = 280.0;
+}
+
 /// Review 110 CP5 (2708:39511): the small card over Send while it is held.
 abstract final class BvHoldMenuSpec {
   static const radius = BvRadius.cardAll; // 14

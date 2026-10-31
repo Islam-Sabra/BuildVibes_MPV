@@ -614,7 +614,9 @@ class DaybookDraft extends DaybookWritingNotifier {
   }
 
   /// Opens a new card with [id], or keeps the one being written.
-  void open(String id) => state ??= DaybookPostDraft(id: id);
+  /// A new card is [kind] (review 110 G1: the last one posted here).
+  void open(String id, {DaybookKind kind = DaybookKind.workItem}) =>
+      state ??= DaybookPostDraft(id: id, kind: kind);
 
   /// A message to make a work item from (review 64: DM4–DM5, S8m): the card
   /// being written, or a new one with [id], now quoting it. A Space chat

@@ -97,6 +97,7 @@ class BvFilterChip extends StatelessWidget {
     required this.onClear,
     this.icon,
     this.clearKey,
+    this.onTap,
   });
 
   final String label;
@@ -104,6 +105,9 @@ class BvFilterChip extends StatelessWidget {
   final VoidCallback onClear;
   final IconData? icon;
   final Key? clearKey;
+
+  /// A tap on its words changes it (review 110 CP4: the place, the due).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -121,16 +125,32 @@ class BvFilterChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         spacing: BvChipSpec.gap,
         children: [
-          if (icon != null)
-            Icon(icon, size: BvChipSpec.iconSize, color: BvColors.textPrimary),
           Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: BvType.of(
-                context,
-              ).labelMd.copyWith(color: BvColors.textPrimary),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: BvChipSpec.gap,
+                children: [
+                  if (icon != null)
+                    Icon(
+                      icon,
+                      size: BvChipSpec.iconSize,
+                      color: BvColors.textPrimary,
+                    ),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BvType.of(
+                        context,
+                      ).labelMd.copyWith(color: BvColors.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Semantics(

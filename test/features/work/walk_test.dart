@@ -7,17 +7,18 @@ import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/walk_saved.dart';
 import 'package:buildvibes/features/work/walk_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
+import 'package:buildvibes/features/work/daybook_composer.dart'
+    show BvIconGridTile;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
@@ -155,11 +156,11 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-/// The lead's ruling on H3 (review 105): Walk is the writing card's last
-/// kind chip, for who may post work.
+/// The lead's ruling on H3 (review 105), as review 110 CP2 left it: Walk
+/// is the last tile of #, for who may post work.
 Future<void> _openWalk(WidgetTester tester) async {
   await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('kind-chip-walk'));
+  await chooseKind(tester, 'walk');
 }
 
 Future<void> _owner(WidgetTester tester, String name) async {
@@ -303,32 +304,28 @@ void main() {
       await _tap(tester, _key('post-bar-camera'));
       expect(_key('camera-modes'), findsNothing);
       expect(app.cameraAsks, [true]);
-      expect(_key('daybook-writing-card'), findsOneWidget);
+      expect(_key('composer'), findsOneWidget);
       expect(find.byType(WalkScreen), findsNothing);
     });
 
-    testWidgets('H3: Walk is the last kind chip, "Walk" with the camera '
-        'icon; it starts walk mode [$lang]', (tester) async {
+    testWidgets('H3, review 110 CP2: Walk is the last tile of #, "Walk" '
+        'with its icon; it starts walk mode [$lang]', (tester) async {
       await _open(tester, lang, withWalk: false);
       await _tap(tester, _key('post-bar-notepad'));
-      final chips = tester.widget<BvKindChips<Object>>(_key('writing-kinds'));
-      final last = chips.choices.last;
-      expect(last.value, kindChipWalk);
+      await _tap(tester, _key('writing-kind'));
+      final tiles = tester
+          .widgetList<BvIconGridTile>(find.byType(BvIconGridTile))
+          .toList();
+      final last = tiles.last.item;
+      expect(last.id, kindChipWalk);
       expect(last.label, l10n.daybookKindWalk);
-      expect(last.icon, BvIcons.camera);
+      expect(last.icon, BvIcons.walk);
       expect(l10n.daybookKindWalk, lang == 'ar' ? 'جولة' : 'Walk');
-      // At the end in the reading direction.
-      double x(String k) => tester.getCenter(_key(k)).dx;
-      final note = x('kind-chip-${DaybookKind.note}');
-      await tester.ensureVisible(_key('kind-chip-walk'));
-      await tester.pumpAndSettle();
-      final walk = x('kind-chip-walk');
-      expect(lang == 'ar' ? walk < note : walk > note, isTrue);
-      await _tap(tester, _key('kind-chip-walk'));
+      await _tap(tester, _key('composer-kind-walk'));
       expect(find.byType(WalkScreen), findsOneWidget);
     });
 
-    testWidgets('H3: no Walk chip for who may not post work [$lang]', (
+    testWidgets('H3: no Walk tile for who may not post work [$lang]', (
       tester,
     ) async {
       final s = DaybookSamples(lang);
@@ -359,8 +356,9 @@ void main() {
       ).push('/spaces/${DaybookSamples.space}');
       await tester.pumpAndSettle();
       await _tap(tester, _key('post-bar-notepad'));
-      expect(_key('writing-kinds'), findsOneWidget);
-      expect(_key('kind-chip-walk'), findsNothing);
+      await _tap(tester, _key('writing-kind'));
+      expect(_key('composer-kinds'), findsOneWidget);
+      expect(_key('composer-kind-walk'), findsNothing);
     });
 
     testWidgets('R1b: one card for the walk, a row per work item, N of M '

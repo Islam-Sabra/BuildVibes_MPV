@@ -1,0 +1,1088 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
+import '../../core/l10n/bidi.dart';
+import '../../core/photo_privacy.dart' show photosPreparingProvider;
+import '../../data/models/daybook.dart';
+import '../../data/models/note.dart' show noteBulletMark;
+import '../../data/models/post_page.dart';
+import '../../data/models/space.dart';
+import '../../data/repositories/space_repository.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_chip.dart';
+import '../../shared/widgets/bv_icon_grid.dart';
+import '../../shared/widgets/bv_quote_block.dart';
+import '../../shared/widgets/bv_sheet.dart';
+import '../../shared/widgets/bv_writing_rows.dart';
+import '../entry/entry_state.dart';
+import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../spaces/former_member.dart' show personName;
+import 'composer_kinds.dart';
+import 'daybook_draft.dart';
+import 'daybook_photos.dart';
+import 'daybook_report.dart';
+import 'daybook_words.dart';
+import 'daybook_writing.dart';
+import 'work_places.dart';
+
+export 'composer_kinds.dart';
+export '../../shared/widgets/bv_icon_grid.dart' show BvIconGridTile;
+
+/// Which grid shows in place of the keyboard: # (the kinds) or + (the
+/// extras).
+enum ComposerPanel { kinds, extras }
+
+/// Review 110 D: the composer is open in this Space. The Space screen then
+/// hides its header and Work · Chat (CP1).
+final spaceComposingProvider = NotifierProvider.autoDispose
+    .family<SpaceComposing, bool, String>(SpaceComposing.new);
+
+class SpaceComposing extends Notifier<bool> {
+  SpaceComposing(this.spaceId);
+
+  final String spaceId;
+
+  @override
+  bool build() => false;
+
+  void set(bool on) => state = on;
+}
+
+/// Review 110 D (CP1–CP4, 2707:39361…): writing in a Space, over the whole
+/// screen. On top, × · the kind's name over the Space's · Drafts. Then
+/// the title, the details, the photos, the lines the kind needs (For,
+/// Team, When) and what was added from + as small chips with ×; nothing
+/// else until asked for. [bar] (# · + · camera · Send) sits on the
+/// keyboard; # and + show their grids in its place ([panel]).
+class DaybookComposer extends ConsumerStatefulWidget {
+  const DaybookComposer({
+    super.key,
+    required this.spaceId,
+    required this.spaceName,
+    required this.words,
+    required this.bar,
+    required this.panel,
+    required this.onPanel,
+    required this.onClose,
+    required this.onKind,
+    required this.onExtra,
+    required this.onMenu,
+    required this.onPickPeople,
+    required this.onPickStart,
+    required this.onPickPin,
+    required this.onPickPinTime,
+    required this.onPickPlace,
+    required this.onPickDue,
+    this.overlay,
+    this.editing = false,
+    this.askWho,
+    this.onWalk,
+  });
+
+  final String spaceId;
+  final String spaceName;
+  final DaybookWords words;
+  final Widget bar;
+  final ComposerPanel? panel;
+  final ValueChanged<ComposerPanel?> onPanel;
+
+  /// × and Drafts: back to the Space, what was written kept as its draft.
+  final VoidCallback onClose;
+  final ValueChanged<DaybookKind> onKind;
+  final ValueChanged<ComposerExtra> onExtra;
+  final ValueChanged<DaybookWritingMenu> onMenu;
+  final VoidCallback onPickPeople;
+  final VoidCallback onPickStart;
+  final VoidCallback onPickPin;
+
+  /// "+ Time" on the pin (F82): the time on its last day it ends.
+  final VoidCallback onPickPinTime;
+  final VoidCallback onPickPlace;
+  final VoidCallback onPickDue;
+
+  /// The Give to and Team pickers, over the composer.
+  final Widget? overlay;
+  final bool editing;
+  final Object? askWho;
+
+  /// Walk, the last tile of #; null for who may not post work.
+  final VoidCallback? onWalk;
+
+  @override
+  ConsumerState<DaybookComposer> createState() => DaybookComposerState();
+}
+
+class DaybookComposerState extends ConsumerState<DaybookComposer> {
+  late final DaybookWriter _writer = DaybookWriter(
+    ref,
+    widget.spaceId,
+    editing: widget.editing,
+  );
+  late final TextEditingController _title;
+  late final TextEditingController _body;
+  final _titleFocus = FocusNode();
+  final _bodyFocus = FocusNode();
+
+  /// The keyboard's height, once the phone has shown it: the grids take
+  /// its place.
+  double _keyboard = BvIconGridSpec.panelHeight;
+
+  @override
+  void initState() {
+    super.initState();
+    final draft = _writer.draft;
+    _title = TextEditingController(text: draft?.title);
+    _body = TextEditingController(text: draft?.body);
+    for (final f in [_titleFocus, _bodyFocus]) {
+      // A field in hand brings the keyboard back: the grid goes.
+      f.addListener(() {
+        if (f.hasFocus && widget.panel != null) widget.onPanel(null);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(DaybookComposer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.panel != null && oldWidget.panel == null) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+    if (widget.panel == null && oldWidget.panel == ComposerPanel.kinds) {
+      // A kind picked: the keyboard comes back on the title.
+      _titleFocus.requestFocus();
+    }
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _body.dispose();
+    _titleFocus.dispose();
+    _bodyFocus.dispose();
+    super.dispose();
+  }
+
+  /// Bullets (CP3): a new line in the details that starts with a bullet.
+  void addBullet() {
+    final text = _body.text;
+    final line = '$noteBulletMark ';
+    final next = text.isEmpty || text.endsWith('\n')
+        ? '$text$line'
+        : '$text\n$line';
+    _body.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+    unawaited(_writer.setBody(next));
+    _bodyFocus.requestFocus();
+  }
+
+  String _top(AppLocalizations l10n, DaybookKind kind) => widget.editing
+      ? l10n.cpEdit(kindName(l10n, kind))
+      : switch (kind) {
+          DaybookKind.note => l10n.cpNewNote,
+          DaybookKind.workItem => l10n.cpNewWorkItem,
+          DaybookKind.checklist => l10n.cpNewChecklist,
+          DaybookKind.announcement => l10n.cpNewAnnouncement,
+          DaybookKind.activity => l10n.cpNewActivity,
+          DaybookKind.file || DaybookKind.report => kindName(l10n, kind),
+        };
+
+  String _addTo(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
+    DaybookKind.note => l10n.cpAddNote,
+    DaybookKind.workItem => l10n.cpAddWorkItem,
+    DaybookKind.checklist => l10n.cpAddChecklist,
+    DaybookKind.announcement => l10n.cpAddAnnouncement,
+    DaybookKind.activity => l10n.cpAddActivity,
+    DaybookKind.file || DaybookKind.report => l10n.daybookAttachTitle,
+  };
+
+  String _bodyHint(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
+    DaybookKind.workItem => l10n.cpDetails,
+    DaybookKind.announcement => l10n.daybookBodyAnnouncement,
+    DaybookKind.activity => l10n.daybookBodyActivity,
+    _ => l10n.daybookBodyNote,
+  };
+
+  static String extraName(AppLocalizations l10n, ComposerExtra e) =>
+      switch (e) {
+        ComposerExtra.place => l10n.daybookRowPlace,
+        ComposerExtra.due => l10n.daybookRowDue,
+        ComposerExtra.tag => l10n.cpTag,
+        ComposerExtra.photos => l10n.cpPhotos,
+        ComposerExtra.file => l10n.cpFile,
+        ComposerExtra.checklist => l10n.daybookKindChecklist,
+        ComposerExtra.bullets => l10n.cpBullets,
+        ComposerExtra.table => l10n.pageTable,
+        ComposerExtra.taskTable => l10n.pageTaskTable,
+        ComposerExtra.pin => l10n.cpPin,
+        ComposerExtra.template => l10n.templateMenu,
+      };
+
+  static IconData extraIcon(ComposerExtra e) => switch (e) {
+    ComposerExtra.place => BvIcons.place,
+    ComposerExtra.due => BvIcons.calendar,
+    ComposerExtra.tag => BvIcons.tag,
+    ComposerExtra.photos => BvIcons.image,
+    ComposerExtra.file => BvIcons.document,
+    ComposerExtra.checklist => BvIcons.workItems,
+    ComposerExtra.bullets => BvIcons.bulletList,
+    ComposerExtra.table => BvIcons.tableBlock,
+    ComposerExtra.taskTable => BvIcons.todoList,
+    ComposerExtra.pin => BvIcons.pin,
+    ComposerExtra.template => BvIcons.clipboard,
+  };
+
+  /// # (CP2): the kind's icon on the bar.
+  static IconData composerKindIcon(DaybookKind kind) => switch (kind) {
+    DaybookKind.announcement => BvIcons.announcement,
+    DaybookKind.activity => BvIcons.calendar,
+    _ => kindIcon(kind),
+  };
+
+  /// The kind's own lines (CP1): For and Team for a work item, When and
+  /// Team for an activity, Team for the others.
+  List<BvWritingRow> _lines(
+    AppLocalizations l10n,
+    DaybookPostDraft draft,
+    DateTime now, {
+    required String? me,
+    required List<SpaceTeam> teams,
+  }) {
+    final words = widget.words;
+    final kind = draft.kind;
+    BvWritingRow choose(VoidCallback onTap) => BvWritingRow(
+      key: const Key('writing-who'),
+      label: l10n.daybookRowFor,
+      value: widget.askWho == null
+          ? l10n.daybookRowChoose
+          : l10n.daybookChooseWho,
+      empty: true,
+      ask: widget.askWho,
+      onTap: onTap,
+    );
+    BvWritingRow owner() {
+      final id = draft.ownerId;
+      if (id == null) {
+        return choose(() => widget.onMenu(DaybookWritingMenu.assign));
+      }
+      final name = personName(l10n, draft.ownerName);
+      return BvWritingRow(
+        key: const Key('writing-who'),
+        label: l10n.daybookRowFor,
+        value: id == me ? l10n.daybookYou : name,
+        person: name,
+        tint: BvAvatarTints.forId(id),
+        onTap: widget.editing
+            ? null
+            : () => widget.onMenu(DaybookWritingMenu.assign),
+      );
+    }
+
+    BvWritingRow people() => draft.people.isEmpty
+        ? choose(widget.onPickPeople)
+        : BvWritingRow(
+            key: const Key('writing-who'),
+            label: l10n.daybookRowFor,
+            value: words.peopleFor([
+              for (final p in draft.people)
+                DaybookPerson(id: p.id, name: p.name),
+            ], me: me),
+            onTap: widget.onPickPeople,
+          );
+    final team = BvWritingRow(
+      key: const Key('writing-to'),
+      label: l10n.daybookRowTeam,
+      value: draft.teamName ?? l10n.daybookWholeSpace,
+      onTap: teams.isEmpty || widget.editing
+          ? null
+          : () => widget.onMenu(DaybookWritingMenu.audience),
+    );
+    return switch (kind) {
+      DaybookKind.workItem => [owner(), team],
+      DaybookKind.checklist => [people(), team],
+      DaybookKind.activity => [
+        BvWritingRow(
+          key: const Key('writing-when-row'),
+          label: l10n.daybookRowWhen,
+          value: draft.startsAt == null
+              ? l10n.daybookRowAdd
+              : words.activityWhen(draft.startsAt!, draft.endsAt, now),
+          empty: draft.startsAt == null,
+          onTap: widget.onPickStart,
+        ),
+        team,
+      ],
+      DaybookKind.note || DaybookKind.announcement => [team],
+      DaybookKind.file || DaybookKind.report => [
+        BvWritingRow(
+          key: const Key('writing-to'),
+          label: l10n.daybookRowTeam,
+          value: draft.teamName ?? l10n.daybookEveryone,
+          onTap: teams.isEmpty || widget.editing || kind == DaybookKind.file
+              ? null
+              : () => widget.onMenu(DaybookWritingMenu.audience),
+        ),
+      ],
+    };
+  }
+
+  /// What was added from + (CP4): small chips with ×.
+  List<Widget> _added(
+    AppLocalizations l10n,
+    DaybookPostDraft draft,
+    DateTime now,
+  ) {
+    final words = widget.words;
+    final where =
+        placeName(
+          ref.watch(spacePlacesProvider(widget.spaceId)).value,
+          draft.placeId,
+        ) ??
+        draft.place;
+    return [
+      if (draft.templateName != null && draft.templateId != null)
+        BvFilterChip(
+          key: const Key('writing-template'),
+          clearKey: const Key('writing-template-clear'),
+          icon: BvIcons.clipboard,
+          label: l10n.templateFrom(inOwnDirection(draft.templateName!)),
+          clearLabel: l10n.templateDrop,
+          onClear: () => unawaited(_writer.dropTemplate()),
+        ),
+      if (where != null)
+        BvFilterChip(
+          key: const Key('writing-place-chip'),
+          clearKey: const Key('writing-place-chip-clear'),
+          icon: BvIcons.place,
+          label: where,
+          clearLabel: l10n.cpRemoveThe(l10n.daybookRowPlace),
+          onTap: widget.onPickPlace,
+          onClear: () => unawaited(_writer.pickPlace(null)),
+        ),
+      if (draft.dueDate != null)
+        BvFilterChip(
+          key: const Key('writing-due-chip'),
+          clearKey: const Key('writing-due-chip-clear'),
+          icon: BvIcons.calendar,
+          label: words.dueProperty(draft.dueDate!, draft.dueAt),
+          clearLabel: l10n.cpRemoveThe(l10n.daybookRowDue),
+          onTap: widget.onPickDue,
+          onClear: () => unawaited(_writer.setDue((day: null, at: null))),
+        ),
+      if (draft.kind == DaybookKind.announcement && draft.pinnedUntil != null)
+        ..._pin(l10n, draft.pinnedUntil!, now),
+      // A scheduled activity's people (F56: required), once chosen on the
+      // sheet Send opens; a tap chooses again.
+      if (draft.kind == DaybookKind.activity && draft.people.isNotEmpty)
+        BvFilterChip(
+          key: const Key('writing-people-chip'),
+          clearKey: const Key('writing-people-chip-clear'),
+          icon: BvIcons.team,
+          label: words.peopleFor([
+            for (final p in draft.people) DaybookPerson(id: p.id, name: p.name),
+          ], me: ref.watch(authUserIdProvider).value),
+          clearLabel: l10n.cpRemoveThe(l10n.daybookRowFor),
+          onTap: widget.onPickPeople,
+          onClear: () => unawaited(_writer.clearPeople()),
+        ),
+      for (final (i, f) in draft.files.indexed)
+        BvFilterChip(
+          key: Key('writing-file-$i'),
+          icon: BvIcons.document,
+          label: f.revLabel == null
+              ? f.name
+              : l10n.daybookFileChip(f.name, f.revLabel!),
+          clearLabel: l10n.daybookRemoveFile,
+          onClear: () => unawaited(_writer.removeFile(f)),
+        ),
+      // F71: "Replaces M-201.pdf · Rev C", with × to make it a new file.
+      for (final f in draft.files)
+        if (f.supersedesRev != null && f.local != null)
+          BvFilterChip(
+            key: Key('writing-replaces-${f.libraryId}'),
+            icon: BvIcons.newAbove,
+            label: l10n.daybookReplacesOption(f.supersedesRev!),
+            clearLabel: l10n.daybookNotNewVersion,
+            onClear: () => unawaited(_writer.notReplacing(f)),
+          ),
+      for (final b in draft.blocks)
+        if (b['type'] == PageTable.kind || b['type'] == PageTaskTable.kind)
+          BvFilterChip(
+            key: Key('writing-block-${b['id']}'),
+            icon: b['type'] == PageTable.kind
+                ? BvIcons.tableBlock
+                : BvIcons.todoList,
+            label: b['type'] == PageTable.kind
+                ? l10n.cpTableChip((b['rows'] as List? ?? const []).length)
+                : l10n.cpTaskTableChip((b['rows'] as List? ?? const []).length),
+            clearLabel: l10n.cpRemoveThe(
+              b['type'] == PageTable.kind ? l10n.pageTable : l10n.pageTaskTable,
+            ),
+            onTap: () => unawaited(
+              b['type'] == PageTable.kind
+                  ? editComposerTable(context, _writer, b)
+                  : editComposerTasks(context, _writer, b),
+            ),
+            onClear: () => unawaited(_writer.removeBlock('${b['id']}')),
+          ),
+    ];
+  }
+
+  /// The pin (F82): with no time, × takes the pin off and "+ Time" sets
+  /// the time it ends; with a time, × takes the time away, and the pin
+  /// ends with its day again.
+  List<Widget> _pin(AppLocalizations l10n, DateTime until, DateTime now) {
+    final timed = pinHasTime(until);
+    return [
+      BvFilterChip(
+        key: const Key('writing-pin'),
+        clearKey: const Key('writing-pin-clear'),
+        icon: BvIcons.pin,
+        label: l10n.daybookPinnedProperty(widget.words.pinnedShort(until, now)),
+        clearLabel: timed
+            ? l10n.daybookPinRemoveTime
+            : l10n.cpRemoveThe(l10n.cpPin),
+        onTap: widget.onPickPin,
+        onClear: () => unawaited(
+          _writer.setPin(
+            timed ? pinToEndOf(dayOf(pinnedLastDay(until))) : null,
+          ),
+        ),
+      ),
+      if (!timed)
+        BvChip(
+          key: const Key('pin-add-time'),
+          icon: BvIcons.due,
+          label: l10n.daybookPinAddTime,
+          onTap: widget.onPickPinTime,
+        ),
+    ];
+  }
+
+  Widget _grid(
+    AppLocalizations l10n,
+    DaybookPostDraft draft, {
+    required bool walk,
+  }) => switch (widget.panel!) {
+    ComposerPanel.kinds => BvIconGrid(
+      key: const Key('composer-kinds'),
+      title: l10n.cpWhatPosting,
+      keyPrefix: 'composer-kind',
+      columns: BvIconGridSpec.kindsColumns,
+      largeColumns: BvIconGridSpec.kindsColumnsLarge,
+      items: [
+        for (final k in composerKinds)
+          BvIconGridItem(
+            id: k.json,
+            icon: composerKindIcon(k),
+            label: kindName(l10n, k),
+            selected: draft.kind == k,
+          ),
+        if (walk)
+          BvIconGridItem(
+            id: kindChipWalk,
+            icon: BvIcons.walk,
+            label: l10n.daybookKindWalk,
+          ),
+      ],
+      onSelected: (id) => id == kindChipWalk
+          ? widget.onWalk?.call()
+          : widget.onKind(DaybookKind.fromJson(id)),
+    ),
+    ComposerPanel.extras => BvIconGrid(
+      key: const Key('composer-extras'),
+      title: _addTo(l10n, draft.kind),
+      keyPrefix: 'composer-extra',
+      columns: BvIconGridSpec.extrasColumns,
+      largeColumns: BvIconGridSpec.extrasColumnsLarge,
+      items: [
+        for (final e in composerOffered(draft.kind, editing: widget.editing))
+          if (e != ComposerExtra.template ||
+              writingHasTemplates(
+                ref,
+                widget.spaceId,
+                draft,
+                editing: widget.editing,
+              ))
+            BvIconGridItem(
+              id: e.key,
+              icon: extraIcon(e),
+              label: extraName(l10n, e),
+            ),
+      ],
+      onSelected: (id) {
+        final e = ComposerExtra.values.firstWhere((e) => e.key == id);
+        widget.onPanel(null);
+        e == ComposerExtra.bullets ? addBullet() : widget.onExtra(e);
+      },
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final provider = widget.editing
+        ? daybookEditProvider(widget.spaceId)
+        : daybookDraftProvider(widget.spaceId);
+    // A template filled the card: its boxes show the new words.
+    ref.listen(provider, (was, now) {
+      if (now == null || now.templateId == null) return;
+      if (was?.templateId == now.templateId) return;
+      if (_title.text != now.title) _title.text = now.title;
+      if (_body.text != now.body) _body.text = now.body;
+    });
+    final draft = ref.watch(provider);
+    if (draft == null) return const SizedBox.shrink();
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    if (keyboard > 0) _keyboard = keyboard;
+    final now = ref.watch(clockProvider)();
+    final me = ref.watch(authUserIdProvider).value;
+    final teams = audienceTeams(
+      ref.watch(spacePeopleProvider(widget.spaceId)).value,
+      me: me,
+      admin:
+          ref.watch(spaceDetailProvider(widget.spaceId)).value?.iAmAdmin ??
+          false,
+    );
+    final kind = draft.kind;
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final lines = _lines(l10n, draft, now, me: me, teams: teams);
+    final added = _added(l10n, draft, now);
+    final preparing = ref.watch(
+      photosPreparingProvider('daybook:${widget.spaceId}'),
+    );
+    final field = InputDecoration.collapsed(
+      hintText: '',
+    ).copyWith(hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary));
+    return Column(
+      key: const Key('composer'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // × · the kind's name over the Space's · Drafts.
+        Padding(
+          key: const Key('composer-top'),
+          padding: BvComposerSpec.topPadding,
+          child: Row(
+            spacing: BvSpace.s8,
+            children: [
+              IconButton(
+                key: const Key('composer-close'),
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                icon: const Icon(BvIcons.close, color: BvColors.iconPrimary),
+                onPressed: widget.onClose,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _top(l10n, kind),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.titleMd.copyWith(color: BvColors.textPrimary),
+                    ),
+                    Text(
+                      l10n.cpSpaceLine(
+                        widget.spaceName,
+                        l10n.spacesPrivateWork,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: quiet,
+                    ),
+                  ],
+                ),
+              ),
+              if (!widget.editing)
+                TextButton(
+                  key: const Key('composer-drafts'),
+                  onPressed: widget.onClose,
+                  child: Text(l10n.cpDrafts, style: quiet),
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ListView(
+                  padding: BvComposerSpec.bodyPadding,
+                  children: [
+                    if (kind != DaybookKind.report) ...[
+                      TextField(
+                        key: const Key('writing-title'),
+                        controller: _title,
+                        focusNode: _titleFocus,
+                        autofocus: widget.panel == null,
+                        maxLength: draft.titleLimit,
+                        buildCounter: _noCounter,
+                        textInputAction: TextInputAction.next,
+                        style: type.titleMd.copyWith(
+                          color: BvColors.textPrimary,
+                        ),
+                        decoration: field.copyWith(
+                          hintText: l10n.daybookWritingTitle,
+                          hintStyle: type.titleMd.copyWith(
+                            color: BvColors.textSecondary,
+                          ),
+                        ),
+                        onChanged: _writer.setTitle,
+                      ),
+                      const SizedBox(height: BvSpace.s8),
+                      TextField(
+                        key: const Key('writing-body'),
+                        controller: _body,
+                        focusNode: _bodyFocus,
+                        maxLength: DaybookPostDraft.bodyMax,
+                        buildCounter: _noCounter,
+                        minLines: 1,
+                        maxLines: null,
+                        style: type.bodyMd.copyWith(
+                          color: BvColors.textPrimary,
+                        ),
+                        decoration: field.copyWith(
+                          hintText: _bodyHint(l10n, kind),
+                        ),
+                        onChanged: _writer.setBody,
+                      ),
+                    ],
+                    if (draft.quote case final q?) ...[
+                      const SizedBox(height: BvSpace.s12),
+                      BvQuoteBlock(
+                        key: const Key('writing-quote'),
+                        from: widget.words.quoteFrom(q, now),
+                        text: q.text,
+                        maxLines: BvQuoteSpec.linesWriting,
+                      ),
+                    ],
+                    // A daily report's title is its day, written for it.
+                    if (kind == DaybookKind.report) ...[
+                      Text(
+                        draft.title,
+                        key: const Key('report-title'),
+                        style: type.titleMd.copyWith(
+                          color: BvColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: BvSpace.s8),
+                    ],
+                    if (kind == DaybookKind.report)
+                      ReportWriting(
+                        key: ValueKey('report-${draft.id}'),
+                        writer: _writer,
+                        draft: draft,
+                        words: widget.words,
+                        writing: true,
+                      ),
+                    if (kind == DaybookKind.checklist) ...[
+                      const SizedBox(height: BvSpace.s12),
+                      DaybookPointsEditor(
+                        key: ValueKey('points-${draft.id}-${draft.templateId}'),
+                        points: draft.points,
+                        writing: true,
+                        onChanged: _writer.setPoints,
+                      ),
+                    ],
+                    // CP4: the photos, as thumbnails above the lines.
+                    if (draft.photos.isNotEmpty || preparing > 0) ...[
+                      const SizedBox(height: BvSpace.s12),
+                      Wrap(
+                        spacing: BvSpace.s8,
+                        runSpacing: BvSpace.s8,
+                        children: [
+                          for (final (i, p) in draft.photos.indexed)
+                            _Thumb(
+                              key: Key('writing-photo-$i'),
+                              image: ref.watch(localPhotoProvider(p)),
+                              removeLabel: l10n.daybookRemovePhoto,
+                              onRemove: widget.editing
+                                  ? null
+                                  : () => unawaited(_writer.removePhoto(i)),
+                            ),
+                          for (var i = 0; i < preparing; i++)
+                            const _Thumb(image: null),
+                        ],
+                      ),
+                    ],
+                    if (lines.isNotEmpty) ...[
+                      const SizedBox(height: BvSpace.s12),
+                      BvWritingPills(rows: lines),
+                    ],
+                    if (added.isNotEmpty) ...[
+                      const SizedBox(height: BvSpace.s8),
+                      Wrap(
+                        key: const Key('writing-added'),
+                        spacing: BvSpace.s8,
+                        runSpacing: BvSpace.s8,
+                        children: added,
+                      ),
+                    ],
+                    if (draft.couldNotSend) ...[
+                      const SizedBox(height: BvSpace.s8),
+                      Text(
+                        l10n.daybookCouldNotSend,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textDestructive,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              ?widget.overlay,
+            ],
+          ),
+        ),
+        widget.bar,
+        if (widget.panel != null)
+          SizedBox(
+            height: _keyboard,
+            child: _grid(l10n, draft, walk: widget.onWalk != null),
+          ),
+      ],
+    );
+  }
+
+  static Widget? _noCounter(
+    BuildContext context, {
+    required int currentLength,
+    required bool isFocused,
+    required int? maxLength,
+  }) => null;
+}
+
+/// A photo on the composer (CP4): a small square, × at its corner.
+class _Thumb extends StatelessWidget {
+  const _Thumb({
+    super.key,
+    required this.image,
+    this.removeLabel,
+    this.onRemove,
+  });
+
+  final ImageProvider? image;
+  final String? removeLabel;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final picture = ClipRRect(
+      borderRadius: BvComposerSpec.thumbRadius,
+      child: SizedBox.square(
+        dimension: BvComposerSpec.thumb,
+        child: image == null
+            ? const ColoredBox(
+                color: BvColors.surfaceSubtle,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : Image(image: image!, fit: BoxFit.cover),
+      ),
+    );
+    if (onRemove == null) return picture;
+    return Stack(
+      children: [
+        picture,
+        PositionedDirectional(
+          top: BvSpace.s2,
+          end: BvSpace.s2,
+          child: Semantics(
+            button: true,
+            label: removeLabel,
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsetsDirectional.all(BvSpace.s2),
+                decoration: const BoxDecoration(
+                  color: BvColors.surfaceElevated,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  BvIcons.close,
+                  size: BvSize.iconSm,
+                  color: BvColors.iconPrimary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Table (CP3): a small grid of words, rows by columns; Done puts it on
+/// the post as a table block.
+Future<void> editComposerTable(
+  BuildContext context,
+  DaybookWriter writer, [
+  Map<String, dynamic>? block,
+]) async {
+  final l10n = AppLocalizations.of(context);
+  final start = [
+    for (final r in block?['rows'] as List? ?? const [])
+      [for (final c in r as List) '${c ?? ''}'],
+  ];
+  final rows = await showBvSheet<List<List<String>>>(
+    context: context,
+    title: l10n.pageTable,
+    builder: (sheet) => _TableSheet(
+      rows: start.isEmpty
+          ? [
+              for (var r = 0; r < BvComposerSpec.tableRows; r++)
+                List.filled(BvComposerSpec.tableColumns, ''),
+            ]
+          : start,
+    ),
+  );
+  if (rows == null) return;
+  final kept = [
+    for (final r in rows)
+      if (r.any((c) => c.trim().isNotEmpty)) r,
+  ];
+  if (kept.isEmpty) {
+    if (block != null) await writer.removeBlock('${block['id']}');
+    return;
+  }
+  await writer.putBlock({
+    'id': block?['id'] ?? writer.newBlockId(),
+    'type': PageTable.kind,
+    'rows': kept,
+  });
+}
+
+/// Table of tasks (CP3): one task a line; Done puts it on the work item.
+Future<void> editComposerTasks(
+  BuildContext context,
+  DaybookWriter writer, [
+  Map<String, dynamic>? block,
+]) async {
+  final l10n = AppLocalizations.of(context);
+  final start = [
+    for (final r in block?['rows'] as List? ?? const [])
+      TaskRow.fromJson((r as Map).cast<String, dynamic>()),
+  ];
+  final tasks = await showBvSheet<List<String>>(
+    context: context,
+    title: l10n.pageTaskTable,
+    builder: (sheet) => _LinesSheet(
+      lines: [for (final t in start) t.text],
+      hint: l10n.cpTaskHint,
+      addLabel: l10n.cpAddTask,
+      max: PageTaskTable.maxRows,
+      cellMax: PageTaskTable.cellMax,
+    ),
+  );
+  if (tasks == null) return;
+  final kept = [
+    for (final t in tasks)
+      if (t.trim().isNotEmpty) t.trim(),
+  ];
+  if (kept.isEmpty) {
+    if (block != null) await writer.removeBlock('${block['id']}');
+    return;
+  }
+  await writer.putBlock({
+    'id': block?['id'] ?? writer.newBlockId(),
+    'type': PageTaskTable.kind,
+    'rows': [
+      for (final (i, t) in kept.indexed)
+        TaskRow(
+          i < start.length ? start[i].id : writer.newBlockId(),
+          t,
+        ).toJson(),
+    ],
+  });
+}
+
+class _TableSheet extends StatefulWidget {
+  const _TableSheet({required this.rows});
+
+  final List<List<String>> rows;
+
+  @override
+  State<_TableSheet> createState() => _TableSheetState();
+}
+
+class _TableSheetState extends State<_TableSheet> {
+  late final List<List<TextEditingController>> _cells = [
+    for (final r in widget.rows)
+      [for (final c in r) TextEditingController(text: c)],
+  ];
+
+  int get _columns => _cells.first.length;
+
+  @override
+  void dispose() {
+    for (final r in _cells) {
+      for (final c in r) {
+        c.dispose();
+      }
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Column(
+      key: const Key('composer-table-sheet'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvSpace.s8,
+      children: [
+        for (final (r, row) in _cells.indexed)
+          Row(
+            spacing: BvSpace.s6,
+            children: [
+              for (final (c, cell) in row.indexed)
+                Expanded(
+                  child: TextField(
+                    key: Key('table-cell-$r-$c'),
+                    controller: cell,
+                    maxLength: PageTable.cellMax,
+                    buildCounter: DaybookComposerState._noCounter,
+                    style: (r == 0 ? type.emphasis : type.bodyMd).copyWith(
+                      color: BvColors.textPrimary,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        Row(
+          spacing: BvSpace.s8,
+          children: [
+            if (_cells.length < PageTable.maxRows)
+              BvButton(
+                key: const Key('table-add-row'),
+                label: l10n.cpAddRow,
+                icon: BvIcons.add,
+                style: BvButtonStyle.quiet,
+                size: BvButtonSize.medium,
+                onPressed: () => setState(
+                  () => _cells.add([
+                    for (var c = 0; c < _columns; c++) TextEditingController(),
+                  ]),
+                ),
+              ),
+            if (_columns < PageTable.maxColumns)
+              BvButton(
+                key: const Key('table-add-column'),
+                label: l10n.cpAddColumn,
+                icon: BvIcons.add,
+                style: BvButtonStyle.quiet,
+                size: BvButtonSize.medium,
+                onPressed: () => setState(() {
+                  for (final r in _cells) {
+                    r.add(TextEditingController());
+                  }
+                }),
+              ),
+          ],
+        ),
+        BvButton(
+          key: const Key('table-done'),
+          label: l10n.notebookDone,
+          expand: true,
+          onPressed: () => Navigator.of(context).pop([
+            for (final r in _cells) [for (final c in r) c.text.trim()],
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+/// Lines to fill, one a field, + to add one (a table of tasks).
+class _LinesSheet extends StatefulWidget {
+  const _LinesSheet({
+    required this.lines,
+    required this.hint,
+    required this.addLabel,
+    required this.max,
+    required this.cellMax,
+  });
+
+  final List<String> lines;
+  final String hint;
+  final String addLabel;
+  final int max;
+  final int cellMax;
+
+  @override
+  State<_LinesSheet> createState() => _LinesSheetState();
+}
+
+class _LinesSheetState extends State<_LinesSheet> {
+  late final List<TextEditingController> _lines = [
+    for (final l in widget.lines.isEmpty ? const [''] : widget.lines)
+      TextEditingController(text: l),
+  ];
+
+  @override
+  void dispose() {
+    for (final l in _lines) {
+      l.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Column(
+      key: const Key('composer-lines-sheet'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvSpace.s8,
+      children: [
+        for (final (i, l) in _lines.indexed)
+          TextField(
+            key: Key('line-$i'),
+            controller: l,
+            autofocus: i == _lines.length - 1,
+            maxLength: widget.cellMax,
+            buildCounter: DaybookComposerState._noCounter,
+            style: type.bodyMd.copyWith(color: BvColors.textPrimary),
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: widget.hint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        if (_lines.length < widget.max)
+          BvButton(
+            key: const Key('line-add'),
+            label: widget.addLabel,
+            icon: BvIcons.add,
+            style: BvButtonStyle.quiet,
+            size: BvButtonSize.medium,
+            onPressed: () =>
+                setState(() => _lines.add(TextEditingController())),
+          ),
+        BvButton(
+          key: const Key('lines-done'),
+          label: l10n.notebookDone,
+          expand: true,
+          onPressed: () =>
+              Navigator.of(context).pop([for (final l in _lines) l.text]),
+        ),
+      ],
+    );
+  }
+}
