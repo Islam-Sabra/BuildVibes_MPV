@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 31 Oct 2026 — review 107 S1 and review 108 live: merged into `slice2-app`, migration 57 live, cron started, `push` deployed, build 852 on the emulator (not yet on the phone)
+## PC update: 31 Oct 2026 — review 107 S1 and review 108 live: merged into `slice2-app`, migration 57 live, cron started, `push` deployed, build 852 on the emulator and the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -36,10 +36,13 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
      - The build's line-ending-only changes in `lib/l10n/gen` were reverted.
   7. **Installed on the emulator** (`adb -s emulator-5554`, AVD `Pixel_8`) and opened.
      - It reports versionCode 852, and the installed `base.apk` has the same MD5 as the Desktop copy.
-     - The founder's phone was connected over wireless debugging at the time and was **not** touched. It still has 823.
+     - The founder's phone was connected over wireless debugging at the time and was not touched then.
+  8. **On the founder's phone** (he sent its address, 192.168.8.33:46081):
+     - The model was checked first: 22120RN86G.
+     - It had 823 (first install 17 Oct). `adb install -r` of `BuildVibes-852.apk` succeeded; BuildVibes only, nothing else.
+     - It reports versionCode 852, the installed `base.apk` has the same MD5 as the Desktop copy, the first install is still 17 Oct, and the app opens.
 - **Next:**
-  - the founder's test on the emulator: Reminder for Me and Someone, Post later in a Space, the Feed and a notebook share, and Scheduled (Post now, Edit, Cancel);
-  - build 852 on his phone, with his yes, when he has it with him;
+  - the founder's test on his phone or the emulator: Reminder for Me and Someone, Post later in a Space, the Feed and a notebook share, and Scheduled (Post now, Edit, Cancel);
   - review 109 (Check-in), once the founder agrees to it.
 - **Who has which branch:**
   - PC: `slice2-app` (worktree `BuildVibes-slice1`).

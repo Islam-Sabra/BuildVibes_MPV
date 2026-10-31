@@ -875,7 +875,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 57 (`reminders_and_post_later`) live.
   - The two cron jobs started.
   - `push` deployed.
-  - Build 852 on the emulator and the Desktop; the founder's phone still has 823.
+  - Build 852 on the founder's phone, the emulator and the Desktop.
   - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; 518 shots.
 
 ## Before the pilot (week 11)
