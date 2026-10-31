@@ -5,6 +5,7 @@
 // PL2b the Space's "1 scheduled" line. Run:
 //   flutter test test_screens/r108_test.dart --update-goldens
 import 'package:buildvibes/data/models/daybook.dart';
+import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/data/repositories/work_reminder_repository.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
@@ -198,6 +199,110 @@ void main() {
         schedule: FakeScheduleRepository()..posts.add(two().posts.first),
       );
       await _snap(tester, 'PL2b-space-scheduled-line', lang);
+    });
+
+    // The lead's check (V2, V4, V6, V7).
+    testWidgets('PL2c a failed one: Post now · Cancel [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        schedule: FakeScheduleRepository()
+          ..posts.addAll([
+            ScheduledPost(
+              id: 'sch-3',
+              title: s.t(
+                'Night shift starts 19:00',
+                'الوردية الليلية تبدأ 19:00',
+              ),
+              publishAt: DateTime(2026, 10, 15, 7),
+              state: ScheduledState.failed,
+              error: 'not_allowed',
+              spaceId: DaybookSamples.space,
+              spaceName: s.t('Kuwait City Tower', 'برج مدينة الكويت'),
+            ),
+            two().posts.first,
+          ]),
+        now: _now,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/scheduled-posts');
+      await tester.pumpAndSettle();
+      await _snap(tester, 'PL2c-scheduled-failed', lang);
+    });
+
+    Future<void> someone(WidgetTester tester) async {
+      final card = _key('daybook-card-post-formwork');
+      await scrollToRow(tester, card);
+      await tester.drag(
+        find.descendant(of: card, matching: find.byType(BvSlip)).first,
+        Offset(lang == 'ar' ? -160 : 160, 0),
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('swipe-remind-post-formwork'));
+      await _tap(tester, _key('reminder-someone'));
+    }
+
+    testWidgets('RM1b two people, full names [$lang]', (tester) async {
+      await space(tester);
+      await someone(tester);
+      await _tap(tester, _key('reminder-who'));
+      await _tap(tester, _key('reminder-person-${DaybookSamples.rakesh}'));
+      await _tap(tester, _key('reminder-who-done'));
+      await _snap(tester, 'RM1b-reminder-two-people', lang);
+    });
+
+    testWidgets('RM1c the most for today [$lang]', (tester) async {
+      await space(
+        tester,
+        reminders: FakeWorkReminderRepository()..failure = SpaceFailure.limit,
+      );
+      await someone(tester);
+      await _tap(tester, _key('reminder-set'));
+      await _snap(tester, 'RM1c-reminder-daily-most', lang);
+    });
+
+    testWidgets('PL1b a work item with a place: not yet [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: FakeSpaceRepository()
+          ..details[DaybookSamples.space] = s.detail()
+          ..spacePeople[DaybookSamples.space] = s.people(),
+        daybook: FakeDaybookRepository()
+          ..posts[DaybookSamples.space] = [s.card(formwork())]
+          ..placesBySpace[DaybookSamples.space] = [
+            SpacePlace(
+              id: 'place-l3',
+              name: s.t('Level 3 core', 'لب الطابق 3'),
+            ),
+          ],
+        now: _now,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/spaces/${DaybookSamples.space}');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('post-bar-notepad'));
+      await tester.enterText(
+        _key('writing-title'),
+        s.t('Seal the riser at level 3', 'إغلاق الرايزر في الطابق 3'),
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('writing-who'));
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.byType(BvGiveToPicker),
+          matching: find.text(s.omarName),
+        ),
+      );
+      await _tap(tester, _key('writing-place-row'));
+      await _tap(tester, _key('place-row-place-l3'));
+      await _tap(tester, _key('writing-later'));
+      await _snap(tester, 'PL1b-later-not-yet', lang);
     });
   }
 }
