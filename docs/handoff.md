@@ -56,7 +56,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   3. **Edit on a scheduled post** changes only its time. Editing the text is not built.
   4. **Times:** RM times use the Space's time zone. PL times use the phone's clock.
   5. **No clock on some work items:** a work item with Library files, or with a place from the Space's list, has no clock in the Space. Those are attached after the item is made, so the item goes now.
-  6. **Sent signs wait:** a scheduled post doesn't count as sent until the server makes it. The "posted" chime and the notebook's "Went into a Space" mark wait for that.
+  6. **No "sent" signs for a scheduled post:** no "posted" chime. A note put into a Space from My notebook and then scheduled from the writing card gets **no** "Went into a Space" mark: nothing calls `mark_note_put` when the server makes it later. This is a known gap; a notebook share (share_note_*) is fine. Fix if the lead wants it: `publish_scheduled` marks the note.
   7. **New pill option:** `BvPillButton.grey` (grey with dark words), for PL2's Edit, as in the frame.
 - **Checks (PC, on 74e2979 plus this handoff):**
   - `flutter analyze`: no issues.
