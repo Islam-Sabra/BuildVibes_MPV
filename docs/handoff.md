@@ -2,6 +2,31 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 31 Oct 2026 — review 107 live: merged into `slice2-app`, migration 55 live, build 836 on the emulator (not yet on the phone)
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **The founder's yes (31 Oct), after the lead accepted Q1–Q6 and the 20 OB shots:**
+  1. **R1 on `claude/r107`** (test first, EN and AR): on OB3, Try another way is always active, while the timer runs and while the code is checked. Its sheet offers "Use a different email" at once, and "Send a new code" greyed (`BvEntrySpec.waitingOpacity`) with the time left, until the timer ends. OB3 was redrawn.
+  2. **Goldens:** the 20 OB shots in `docs/screens/r107/`. Only OB3 is new; the other 18 are byte-identical to the accepted images. `docs/reviews/shots-107/` is removed.
+     - Checks on `claude/r107` (7e20944, pushed): `test_screens`, not updating, 500 pass; `supabase db reset --local`, then `supabase test db`, 3,295 checks in 54 files; analyze clean; `flutter test`, 2,878.
+  3. **Merged into `slice2-app`** with `--no-ff` (c308e9d), with no conflicts, and pushed. The same checks pass again: analyze clean, 2,878, 500 and 3,295.
+  4. **Migration 55 is live:** `20261116120000_first_run_tips.sql`, pushed from a throwaway worktree at c308e9d with `supabase/.temp` copied whole. The full output was kept in a log.
+     - The dry run listed only that file. The push exited 0, and `supabase migration list --linked` now ends at 20261116120000, with nothing pending.
+     - The known pg-delta certificate warning followed, which is harmless. The push worktree is removed. **No function deploys.**
+  5. **Build 836** (c308e9d, release, upload key, prod env; versionCode 836, versionName 0.9.0):
+     - Certificate SHA-256 9d02b7db…df9f, the same as 823.
+     - On the Desktop as `BuildVibes-836.apk` (MD5 6d26e85b…24b2).
+     - `google-services.json` and `env/prod.json` were copied in for the build, then deleted.
+  6. **Installed on the emulator** (`adb -e`, AVD `Pixel_8`, emulator-5554) and opened. It reports versionCode 836, and the installed `base.apk` is byte-identical to the Desktop copy.
+     - **Not yet on the founder's phone** (it has build 823); it goes there when he has the phone with him.
+- **Open, for the founder:** the lead's question whether the welcome line alone may be larger (24 / Arabic 26) than the two-size rule.
+- **Next:**
+  - the founder's test of onboarding v2 on the emulator: the welcome, the email code, name, work, joining a Space, and the three tips;
+  - build 836 on his phone (wireless debugging, model 22120RN86G checked first, BuildVibes only);
+  - invite links (deep links), later in the plan.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `claude/r107` is merged; its worktree `BuildVibes-r107` can be removed.
+
 ## PC update: 30 Oct 2026 — review 107, the lead's check (Q1–Q6) and the shots, on `claude/r107`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

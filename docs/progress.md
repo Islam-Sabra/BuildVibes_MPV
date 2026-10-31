@@ -850,6 +850,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Old onboarding routes redirect.
   - Nine popular trades.
   - Checks: 3,295 SQL checks; analyze clean; 2,876 app tests; 480 shots unchanged; 20 new OB shots in `docs/reviews/shots-107/`.
+- **31 Oct (PC): review 107 live** (founder's yes):
+  - R1: Try another way always active.
+  - The 20 OB shots became goldens.
+  - `claude/r107` merged into `slice2-app`.
+  - Migration 55 (`first_run_tips`) live.
+  - Build 836 on the emulator and the Desktop; the founder's phone still has 823.
+  - Checks: 3,295 SQL checks; analyze clean; 2,878 app tests; 500 shots.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
