@@ -34,6 +34,7 @@ import '../../features/onboarding/work_screen.dart';
 import '../../features/onboarding/role_picker_screen.dart';
 import '../../data/models/profile.dart';
 import '../../features/profile/delivered_work.dart';
+import '../../features/profile/scheduled_screen.dart';
 import '../../features/profile/edit/about_screen.dart';
 import '../../features/profile/edit/basics_screen.dart';
 import '../../features/profile/edit/cv_projects_screen.dart';
@@ -279,6 +280,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _Screen(
         path: AppRoutes.spaces,
         builder: (context, state) => const MySpacesScreen(),
+      ),
+      // Review 108 PL2: from Profile, a Space's line and a failed push.
+      _Screen(
+        path: AppRoutes.scheduledPosts,
+        builder: (context, state) => const ScheduledScreen(),
       ),
       _Screen(
         path: AppRoutes.needs,

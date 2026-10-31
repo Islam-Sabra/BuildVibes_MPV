@@ -93,6 +93,11 @@ abstract final class BvWritingCardSpec {
 }
 
 /// The bar on the keyboard while writing (2527:33399).
+/// Review 108 V3: "Tomorrow 7:00" in the Reminder sheet and Post later.
+abstract final class BvLaterSpec {
+  static const morningHour = 7;
+}
+
 abstract final class BvWritingToolbarSpec {
   /// Review 100 Part 5: a tool in use has a dot, 6 wide, 8 in from its
   /// corner.

@@ -12,7 +12,8 @@ import 'package:buildvibes/data/repositories/tips_repository.dart';
 // Market pack fixtures (shaped like migration 1 rows)
 // ---------------------------------------------------------------------------
 
-final kuwait = Market.fromJson({
+/// Kuwait's row, for a market made like it ([marketWith]).
+final kuwaitJson = <String, dynamic>{
   'id': 'kw',
   'status': 'live',
   'name': {'en': 'Kuwait', 'ar': 'الكويت'},
@@ -36,7 +37,13 @@ final kuwait = Market.fromJson({
       'ar': 'https://example.com/ar/terms',
     },
   },
-});
+};
+
+final kuwait = Market.fromJson(kuwaitJson);
+
+/// A market like Kuwait with its own [id] and [weekend] (review 108 V3).
+Market marketWith({required String id, required List<int> weekend}) =>
+    Market.fromJson({...kuwaitJson, 'id': id, 'weekend': weekend});
 
 final egypt = Market.fromJson({
   'id': 'eg',

@@ -731,8 +731,9 @@ class DaybookWriter {
 
   /// Post: into the outbox (it sends now, or when the signal is back), and
   /// the card is gone. [authorName] is the writer's own, for the card while
-  /// it waits.
-  Future<void> post({String? authorName}) async {
+  /// it waits. With [at] (Post later, review 108 PL1) the server makes it
+  /// then.
+  Future<void> post({String? authorName, DateTime? at}) async {
     final kept = draft;
     final now = ref.read(clockProvider)();
     if (kept == null || !kept.canPost(now)) return;
@@ -782,6 +783,7 @@ class DaybookWriter {
                         if (listed.contains(p.id)) p,
                     ]
                   : const [],
+              scheduleAt: at,
             ),
           ),
     );

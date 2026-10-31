@@ -8548,5 +8548,198 @@
   "obSkip": "Skip",
   "@obSkip": {
     "description": "Review 107 Q1: go on without the invite code."
+  },
+  "rmMe": "Me",
+  "@rmMe": {
+    "description": "Review 108 RM1: the Reminder sheet: a notification on my own phone."
+  },
+  "rmSomeone": "Someone",
+  "@rmSomeone": {
+    "description": "Review 108 RM1: the Reminder sheet: the server reminds people (the item's creator, owner or a Lead)."
+  },
+  "rmWho": "Who",
+  "@rmWho": {
+    "description": "Review 108 RM1: the row with the people to remind."
+  },
+  "rmWhen": "When",
+  "@rmWhen": {
+    "description": "Review 108 RM1: above the time choices."
+  },
+  "rmTomorrowAt": "Tomorrow {time}",
+  "@rmTomorrowAt": {
+    "description": "Review 108 RM1: a time choice.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "rmBeforeDue": "1 h before due",
+  "@rmBeforeDue": {
+    "description": "Review 108 RM1: a time choice, only when the item has a time."
+  },
+  "rmPick": "Pick…",
+  "@rmPick": {
+    "description": "Review 108 RM1: opens the day and time pickers."
+  },
+  "rmNote": "Note (optional)",
+  "@rmNote": {
+    "description": "Review 108 RM1: up to 140 characters."
+  },
+  "rmSet": "Set reminder",
+  "@rmSet": {
+    "description": "Review 108 RM1: the sheet's button."
+  },
+  "rmSetDone": "Reminder set",
+  "@rmSetDone": {
+    "description": "Review 108 RM1: after Set reminder for someone."
+  },
+  "rmRemoveMine": "Remove reminder",
+  "@rmRemoveMine": {
+    "description": "Review 108 RM1: Me, a reminder already set."
+  },
+  "rmChooseWho": "Choose who",
+  "@rmChooseWho": {
+    "description": "Review 108 RM1: the people picker's title."
+  },
+  "rmDone": "Done",
+  "@rmDone": {
+    "description": "Review 108 RM1: closes the people picker."
+  },
+  "rmWhoMore": "{name} + {more}",
+  "@rmWhoMore": {
+    "description": "Review 108 RM1: the Who row with more than one person (\"Omar Haddad + Rakesh\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "more": {
+        "type": "String"
+      }
+    }
+  },
+  "rmReminders": "Reminders",
+  "@rmReminders": {
+    "description": "Review 108 RM2: the opened item's line."
+  },
+  "rmLine": "{name} · {when}",
+  "@rmLine": {
+    "description": "Review 108 RM2: who and when.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "rmRemoveFor": "Remove the reminder for {name}",
+  "@rmRemoveFor": {
+    "description": "Review 108 RM2: the ✕, for a screen reader.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rmSeparator": ", ",
+  "@rmSeparator": {
+    "description": "Review 108 RM1: between the first names on the Who row (\"Rakesh, Lina\")."
+  },
+  "plTitle": "Post later",
+  "@plTitle": {
+    "description": "Review 108 PL1: the clock beside Send, and its sheet's title."
+  },
+  "plDayAt": "{day} {time}",
+  "@plDayAt": {
+    "description": "Review 108 PL1: the next working day's choice (\"Sunday 7:00\").",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plGoesOut": "It goes out at that time, even if your phone is off.",
+  "@plGoesOut": {
+    "description": "Review 108 PL1: under the time choices."
+  },
+  "plSchedule": "Schedule",
+  "@plSchedule": {
+    "description": "Review 108 PL1: the sheet's button."
+  },
+  "plScheduledFor": "Scheduled for {when}",
+  "@plScheduledFor": {
+    "description": "Review 108 PL1: after Schedule.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "plScheduled": "Scheduled",
+  "@plScheduled": {
+    "description": "Review 108 PL2: the screen of my posts waiting to go out."
+  },
+  "plPostNow": "Post now",
+  "@plPostNow": {
+    "description": "Review 108 PL2."
+  },
+  "plEdit": "Edit",
+  "@plEdit": {
+    "description": "Review 108 PL2: changes its time."
+  },
+  "plCancel": "Cancel",
+  "@plCancel": {
+    "description": "Review 108 PL2: it never goes out."
+  },
+  "plFeed": "Feed",
+  "@plFeed": {
+    "description": "Review 108 PL2: where it goes, when not a Space."
+  },
+  "plEmpty": "Nothing scheduled.",
+  "@plEmpty": {
+    "description": "Review 108 PL2: an empty list."
+  },
+  "plCount": "{count, plural, =1{1 scheduled} other{{count} scheduled}}",
+  "@plCount": {
+    "description": "Review 108 PL2: the small line in a Space when I have some waiting there.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plFailed": "Couldn't post: {reason}",
+  "@plFailed": {
+    "description": "Review 108 PL2: one that couldn't go.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "plReasonNotAllowed": "you can't post there any more.",
+  "@plReasonNotAllowed": {
+    "description": "Review 108 PL2."
+  },
+  "plReasonNotValid": "something in it isn't valid any more.",
+  "@plReasonNotValid": {
+    "description": "Review 108 PL2."
+  },
+  "plReasonOther": "try again.",
+  "@plReasonOther": {
+    "description": "Review 108 PL2."
+  },
+  "rmDailyMost": "You've set the most reminders for today.",
+  "@rmDailyMost": {
+    "description": "Review 108 V4: the 21st reminder for someone in a day."
+  },
+  "plCantYet": "Items with files or a place can't be scheduled yet.",
+  "@plCantYet": {
+    "description": "Review 108 V7: the clock on a work item with Library files or a place from the list."
   }
 }

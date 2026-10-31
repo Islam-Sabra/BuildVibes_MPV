@@ -10,6 +10,7 @@ import '../../core/sound/sent_chime.dart';
 import '../../data/models/post.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
+import '../../data/repositories/schedule_repository.dart';
 import '../entry/entry_state.dart';
 import '../work/work_outbox.dart'
     show OutboxRetry, outboxRetryDelaysProvider, outboxRetryLaterProvider;
@@ -50,6 +51,7 @@ class PendingPost {
     this.photos = const [],
     this.refused = false,
     this.sent = false,
+    this.scheduleAt,
   });
 
   factory PendingPost.fromJson(Map<String, dynamic> j) => PendingPost(
@@ -66,6 +68,9 @@ class PendingPost {
     ],
     refused: j['refused'] as bool? ?? false,
     sent: j['sent'] as bool? ?? false,
+    scheduleAt: j['schedule_at'] == null
+        ? null
+        : DateTime.parse(j['schedule_at'] as String).toLocal(),
   );
 
   final String id;
@@ -85,6 +90,10 @@ class PendingPost {
   /// card never blinks.
   final bool sent;
 
+  /// Post later (review 108 PL1): the server makes it at this time
+  /// (schedule_post), not now. It is never a card on Home meanwhile.
+  final DateTime? scheduleAt;
+
   PendingPost copyWith({
     List<PendingPostPhoto>? photos,
     bool? refused,
@@ -98,6 +107,7 @@ class PendingPost {
     photos: photos ?? this.photos,
     refused: refused ?? this.refused,
     sent: sent ?? this.sent,
+    scheduleAt: scheduleAt,
   );
 
   Map<String, dynamic> toJson() => {
@@ -109,6 +119,7 @@ class PendingPost {
     'photos': [for (final p in photos) p.toJson()],
     'refused': refused,
     'sent': sent,
+    'schedule_at': ?scheduleAt?.toUtc().toIso8601String(),
   };
 
   /// Only what this version wrote is read back (older ones had no time).
@@ -238,13 +249,36 @@ class PostOutbox extends Notifier<List<PendingPost>> {
           );
           await _put(current);
         }
+        final media = [for (final ph in photos) PostPhoto(path: ph.remote!)];
+        if (current.scheduleAt case final at?) {
+          // Post later: create_post's arguments, made as me at [at].
+          final scheduled = current;
+          await withRetries(
+            () => ref
+                .read(scheduleRepositoryProvider)
+                .schedule(
+                  id: scheduled.id,
+                  call: ScheduledCall.feedPost,
+                  params: createPostParams(
+                    id: scheduled.id,
+                    body: scheduled.body,
+                    lang: scheduled.lang,
+                    projectId: scheduled.project?.id,
+                    photos: media,
+                  ),
+                  at: at,
+                  title: scheduled.body,
+                ),
+          );
+          break;
+        }
         await withRetries(
           () => repo.create(
             id: current.id,
             body: current.body,
             lang: current.lang,
             projectId: current.project?.id,
-            photos: [for (final ph in photos) PostPhoto(path: ph.remote!)],
+            photos: media,
           ),
         );
         break;
@@ -268,6 +302,17 @@ class PostOutbox extends Notifier<List<PendingPost>> {
         }
         return false;
       }
+    }
+
+    // Post later: the server has it; nothing comes on Home now.
+    if (current.scheduleAt != null) {
+      _retry.reached();
+      await _drop(current.id);
+      for (final ph in current.photos) {
+        unawaited(PostDrafts.deleteKept(ph.local));
+      }
+      ref.invalidate(myScheduledProvider);
+      return true;
     }
 
     // "Waiting to send" goes at once (F17); the card stays until the

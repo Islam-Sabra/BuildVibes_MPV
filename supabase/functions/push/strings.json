@@ -28,7 +28,15 @@
     "dm_shown_title": "{name}",
     "chat_shown_title": "{name} in a Space chat",
     "chat_hidden_title": "Message from {name} in a Space chat",
-    "separator": " · "
+    "separator": " · ",
+    "work_reminder_title": "Reminder from {name}",
+    "work_reminder_body": "A work item needs you.",
+    "work_reminder_due": " · due {time}",
+    "work_reminder": "A work item needs you.",
+    "scheduled_failed": "Couldn't post: {reason}",
+    "scheduled_reason_not_allowed": "you can't post there any more.",
+    "scheduled_reason_not_valid": "something in it isn't valid any more.",
+    "scheduled_reason_other": "open Scheduled to try again."
   },
   "ar": {
     "title": "BuildVibes",
@@ -59,6 +67,14 @@
     "dm_shown_title": "{name}",
     "chat_shown_title": "{name} في محادثة مساحة",
     "chat_hidden_title": "رسالة من {name} في محادثة مساحة",
-    "separator": " · "
+    "separator": " · ",
+    "work_reminder_title": "تذكير من {name}",
+    "work_reminder_body": "بند عمل بانتظارك.",
+    "work_reminder_due": " · الموعد {time}",
+    "work_reminder": "بند عمل بانتظارك.",
+    "scheduled_failed": "تعذّر النشر: {reason}",
+    "scheduled_reason_not_allowed": "لم تعد تستطيع النشر هناك.",
+    "scheduled_reason_not_valid": "شيء فيه لم يعد صالحًا.",
+    "scheduled_reason_other": "افتح المجدولة لتحاول مجددًا."
   }
 }

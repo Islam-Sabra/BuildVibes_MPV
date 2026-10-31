@@ -6,6 +6,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/repositories/profile_page_repository.dart';
+import '../../data/repositories/schedule_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_pill_button.dart';
@@ -62,6 +63,14 @@ class ProfileScreen extends ConsumerWidget {
         title: Text(l10n.navProfile),
         backgroundColor: BvColors.surfaceApp,
         actions: [
+          // Review 108 PL2: Scheduled, while I have one waiting.
+          if (ref.watch(myScheduledProvider).value?.isNotEmpty ?? false)
+            IconButton(
+              key: const Key('profile-scheduled'),
+              tooltip: l10n.plScheduled,
+              icon: const Icon(BvIcons.clock),
+              onPressed: () => context.push(AppRoutes.scheduledPosts),
+            ),
           // R1 v3: My Spaces (S1).
           IconButton(
             key: const Key('profile-spaces'),

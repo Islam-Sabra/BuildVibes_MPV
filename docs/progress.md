@@ -858,6 +858,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Build 836 on the emulator and the Desktop; the founder's phone still has 823.
   - Checks: 3,295 SQL checks; analyze clean; 2,878 app tests; 500 shots.
 
+- **31 Oct (PC): review 107 S1 and review 108** on `claude/r108`, for the lead; nothing merged, live or built:
+  - S1: OB1's welcome title in `headingXl`; the large-type guard names OB1. Fresh OB1 shots in `docs/reviews/shots-107b/`.
+  - Migration 20261117120000 (not live): reminders for someone else and Post later, with their cron functions (cron not scheduled).
+  - The app: RM1 Me · Someone, RM2 the item's Reminders, PL1 the clock beside Send (Space, Feed, notebook share), PL2 Scheduled.
+  - Checks: 3,370 SQL checks; analyze clean; 2,927 app tests; push texts 18; shots: 444 unchanged, 54 changed (the clock), 2 OB1 (S1), 10 new, in `docs/reviews/shots-108/`.
+
+- **31 Oct (PC): review 108, the lead's check V1–V10** on `claude/r108`, for the lead; nothing merged, live or built:
+  - Same migration 20261117120000: race-safe Post later, failed posts retried or cleared, the daily reminder cap, the setter check, the note mark, and the tidy-ups.
+  - The app: the Space's clock and calendar, the daily-cap line, full names, the "not yet" line on the clock, and the note sent with a scheduled post.
+  - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; push texts 19; shots: 444 unchanged, 74 differ as expected (54 clock, 2 OB1, 18 r108 with no golden), 8 new in `docs/reviews/shots-108b/`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

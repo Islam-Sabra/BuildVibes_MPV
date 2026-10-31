@@ -267,7 +267,7 @@ class _PushHostState extends ConsumerState<PushHost> {
   }
 
   /// Only the app's own pages: a Space, its item or thread, a post, a
-  /// person, a direct message thread, or your profile.
+  /// person, a direct message thread, your profile, or Scheduled.
   void _open(Map<String, String> data) {
     final sent = data['route'];
     if (!mounted || sent == null) return;
@@ -275,6 +275,9 @@ class _PushHostState extends ConsumerState<PushHost> {
     final router = GoRouter.of(context);
     if (route == AppRoutes.profile) {
       router.go(route);
+    } else if (route == AppRoutes.scheduledPosts) {
+      // Review 108 PL2: "Couldn't post: …".
+      unawaited(router.push(route));
     } else if ([
       AppRoutes.spaces,
       AppRoutes.posts,

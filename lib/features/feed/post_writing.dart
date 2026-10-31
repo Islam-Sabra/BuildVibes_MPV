@@ -81,8 +81,9 @@ class PostWriter {
   }
 
   /// Post: into the outbox (it sends now, or when the signal is back), and
-  /// the card is gone.
-  Future<void> post() async {
+  /// the card is gone. With [at] (Post later, review 108 PL1) the server
+  /// makes it then.
+  Future<void> post({DateTime? at}) async {
     final d = draft;
     if (d == null || !d.canPost) return;
     unawaited(
@@ -96,6 +97,7 @@ class PostWriter {
               madeAt: ref.read(clockProvider)(),
               project: d.project,
               photos: [for (final p in d.photos) PendingPostPhoto(local: p)],
+              scheduleAt: at,
             ),
           ),
     );

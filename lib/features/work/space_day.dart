@@ -26,6 +26,56 @@ DateTime spaceDayEndOf(String? zone, DateTime day, DateTime now) {
   return _endOf(place, day.year, day.month, day.day);
 }
 
+/// [hour]:[minute] on the Space's day [days] after today (review 108 RM1:
+/// "Tomorrow 7:00"), in its [zone]; with none known, the phone's own.
+DateTime spaceTimeOn(
+  String? zone,
+  DateTime now, {
+  int days = 0,
+  required int hour,
+  int minute = 0,
+}) {
+  final place = _place(zone);
+  if (place == null) {
+    return DateTime(now.year, now.month, now.day + days, hour, minute);
+  }
+  final there = tz.TZDateTime.from(now, place);
+  final at = tz.TZDateTime(
+    place,
+    there.year,
+    there.month,
+    there.day + days,
+    hour,
+    minute,
+  );
+  return DateTime.fromMillisecondsSinceEpoch(at.millisecondsSinceEpoch);
+}
+
+/// [wall] (a day and time as written) in the Space's [zone] (review 108
+/// V3: Pick… and Post later in a Space); with none known, the phone's.
+DateTime spaceTimeAt(String? zone, DateTime wall) {
+  final place = _place(zone);
+  if (place == null) return wall;
+  final at = tz.TZDateTime(
+    place,
+    wall.year,
+    wall.month,
+    wall.day,
+    wall.hour,
+    wall.minute,
+  );
+  return DateTime.fromMillisecondsSinceEpoch(at.millisecondsSinceEpoch);
+}
+
+/// The Space's own day and time now in its [zone], as a wall clock; with
+/// none known, the phone's.
+DateTime spaceWallNow(String? zone, DateTime now) {
+  final place = _place(zone);
+  if (place == null) return now;
+  final there = tz.TZDateTime.from(now, place);
+  return DateTime(there.year, there.month, there.day, there.hour, there.minute);
+}
+
 tz.Location? _place(String? zone) {
   if (zone == null) return null;
   try {

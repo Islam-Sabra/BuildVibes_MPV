@@ -5991,4 +5991,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obSkip => 'Skip';
+
+  @override
+  String get rmMe => 'Me';
+
+  @override
+  String get rmSomeone => 'Someone';
+
+  @override
+  String get rmWho => 'Who';
+
+  @override
+  String get rmWhen => 'When';
+
+  @override
+  String rmTomorrowAt(String time) {
+    return 'Tomorrow $time';
+  }
+
+  @override
+  String get rmBeforeDue => '1 h before due';
+
+  @override
+  String get rmPick => 'Pick…';
+
+  @override
+  String get rmNote => 'Note (optional)';
+
+  @override
+  String get rmSet => 'Set reminder';
+
+  @override
+  String get rmSetDone => 'Reminder set';
+
+  @override
+  String get rmRemoveMine => 'Remove reminder';
+
+  @override
+  String get rmChooseWho => 'Choose who';
+
+  @override
+  String get rmDone => 'Done';
+
+  @override
+  String rmWhoMore(String name, String more) {
+    return '$name + $more';
+  }
+
+  @override
+  String get rmReminders => 'Reminders';
+
+  @override
+  String rmLine(String name, String when) {
+    return '$name · $when';
+  }
+
+  @override
+  String rmRemoveFor(String name) {
+    return 'Remove the reminder for $name';
+  }
+
+  @override
+  String get rmSeparator => ', ';
+
+  @override
+  String get plTitle => 'Post later';
+
+  @override
+  String plDayAt(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get plGoesOut =>
+      'It goes out at that time, even if your phone is off.';
+
+  @override
+  String get plSchedule => 'Schedule';
+
+  @override
+  String plScheduledFor(String when) {
+    return 'Scheduled for $when';
+  }
+
+  @override
+  String get plScheduled => 'Scheduled';
+
+  @override
+  String get plPostNow => 'Post now';
+
+  @override
+  String get plEdit => 'Edit';
+
+  @override
+  String get plCancel => 'Cancel';
+
+  @override
+  String get plFeed => 'Feed';
+
+  @override
+  String get plEmpty => 'Nothing scheduled.';
+
+  @override
+  String plCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scheduled',
+      one: '1 scheduled',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plFailed(String reason) {
+    return 'Couldn\'t post: $reason';
+  }
+
+  @override
+  String get plReasonNotAllowed => 'you can\'t post there any more.';
+
+  @override
+  String get plReasonNotValid => 'something in it isn\'t valid any more.';
+
+  @override
+  String get plReasonOther => 'try again.';
+
+  @override
+  String get rmDailyMost => 'You\'ve set the most reminders for today.';
+
+  @override
+  String get plCantYet =>
+      'Items with files or a place can\'t be scheduled yet.';
 }

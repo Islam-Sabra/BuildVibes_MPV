@@ -10,6 +10,24 @@ import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 import 'work_repository.dart' show newUuid;
 
+/// What create_post takes (review 108: Post later keeps it too).
+Map<String, Object?> createPostParams({
+  required String id,
+  required String body,
+  required String lang,
+  String? projectId,
+  List<PostPhoto> photos = const [],
+}) => {
+  'p_id': id,
+  'p_body': body,
+  'p_lang': lang,
+  'p_project': projectId,
+  'p_media': [
+    for (final p in photos)
+      {'path': p.path, 'width': ?p.width, 'height': ?p.height},
+  ],
+};
+
 /// Posts, replies, Useful and mute (migration 12). Writes are function
 /// calls; the server decides who may see what.
 abstract class PostRepository {
@@ -235,16 +253,13 @@ class SupabasePostRepository implements PostRepository {
   }) => _guard(
     () => _client.rpc(
       'create_post',
-      params: {
-        'p_id': id,
-        'p_body': body,
-        'p_lang': lang,
-        'p_project': projectId,
-        'p_media': [
-          for (final p in photos)
-            {'path': p.path, 'width': ?p.width, 'height': ?p.height},
-        ],
-      },
+      params: createPostParams(
+        id: id,
+        body: body,
+        lang: lang,
+        projectId: projectId,
+        photos: photos,
+      ),
     ),
   );
 

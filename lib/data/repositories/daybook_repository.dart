@@ -401,6 +401,30 @@ class NewWorkItem {
 
   /// Library files to put on it once it is made (attach_library_file).
   final List<String> libraryFileIds;
+
+  /// What create_work_item takes (review 108: Post later keeps it too).
+  Map<String, Object?> toParams() => {
+    'p_id': id,
+    'p_space': spaceId,
+    'p_title': title.trim(),
+    'p_owner': ownerId,
+    'p_team': ?teamId,
+    'p_body': body?.trim(),
+    'p_place': place?.trim(),
+    'p_due': dueDate == null ? null : _date(dueDate!),
+    'p_due_at': dueAt == null ? null : _instant(dueAt!),
+    'p_files': [
+      for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+    ],
+    'p_quote': ?quote?.toJson(),
+    'p_source_message': ?sourceMessageId,
+    'p_template': ?templateId,
+    'p_blocks': ?blocks,
+    if (points.isNotEmpty)
+      'p_points': [
+        for (final p in points) {'id': p.id, 'text': p.text.trim()},
+      ],
+  };
 }
 
 String _date(DateTime d) =>
@@ -569,31 +593,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
 
   @override
   Future<void> createWorkItem(NewWorkItem item) => _guard(
-    () => _client.rpc<String>(
-      'create_work_item',
-      params: {
-        'p_id': item.id,
-        'p_space': item.spaceId,
-        'p_title': item.title.trim(),
-        'p_owner': item.ownerId,
-        'p_team': ?item.teamId,
-        'p_body': item.body?.trim(),
-        'p_place': item.place?.trim(),
-        'p_due': item.dueDate == null ? null : _date(item.dueDate!),
-        'p_due_at': item.dueAt == null ? null : _instant(item.dueAt!),
-        'p_files': [
-          for (final path in item.photoPaths) {'path': path, 'mime': _jpeg},
-        ],
-        'p_quote': ?item.quote?.toJson(),
-        'p_source_message': ?item.sourceMessageId,
-        'p_template': ?item.templateId,
-        'p_blocks': ?item.blocks,
-        if (item.points.isNotEmpty)
-          'p_points': [
-            for (final p in item.points) {'id': p.id, 'text': p.text.trim()},
-          ],
-      },
-    ),
+    () => _client.rpc<String>('create_work_item', params: item.toParams()),
   );
 
   @override

@@ -28,6 +28,9 @@ abstract final class AppRoutes {
   static const profileEditProjects = '/profile/edit/projects';
   static const profileDelivered = '/profile/delivered';
 
+  /// Review 108 PL2: my posts waiting to go out.
+  static const scheduledPosts = '/scheduled-posts';
+
   /// Debug builds only.
   static const components = '/profile/settings/components';
 

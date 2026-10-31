@@ -25,10 +25,13 @@ import 'package:buildvibes/data/repositories/people_search_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/template_repository.dart';
+import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/data/repositories/tips_repository.dart';
+import 'package:buildvibes/data/repositories/work_reminder_repository.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 import 'package:buildvibes/data/repositories/week_report_repository.dart';
+import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -55,6 +58,7 @@ import 'chat_fakes.dart';
 import 'daybook_fakes.dart';
 import 'dm_fakes.dart';
 import 'fakes.dart';
+import 'later_fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
@@ -130,6 +134,8 @@ class TestApp {
     required this.safety,
     required this.account,
     required this.tips,
+    required this.workReminders,
+    required this.schedule,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -188,6 +194,10 @@ class TestApp {
   /// The first-run tips seen (review 107 OB7); all by default.
   final FakeTipsRepository tips;
 
+  /// Review 108: reminders for someone, and Post later.
+  final FakeWorkReminderRepository workReminders;
+  final FakeScheduleRepository schedule;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -240,6 +250,11 @@ Future<TestApp> pumpApp(
   FakeSafetyRepository? safety,
   FakeAccountRepository? account,
   FakeTipsRepository? tips,
+  FakeWorkReminderRepository? workReminders,
+  FakeScheduleRepository? schedule,
+
+  /// The market pack; [testMarkets] by default.
+  List<Market>? markets,
 
   /// What this phone kept from before (an app opened again).
   Map<String, Object> stored = const {},
@@ -332,6 +347,8 @@ Future<TestApp> pumpApp(
   final fakePushes = FakePushRepository();
   final fakeSafety = safety ?? FakeSafetyRepository();
   final fakeTips = tips ?? FakeTipsRepository();
+  final fakeWorkReminders = workReminders ?? FakeWorkReminderRepository();
+  final fakeSchedule = schedule ?? FakeScheduleRepository();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -349,7 +366,7 @@ Future<TestApp> pumpApp(
         referenceRepositoryProvider.overrideWithValue(
           FakeReferenceRepository(),
         ),
-        marketsProvider.overrideWith((ref) async => testMarkets),
+        marketsProvider.overrideWith((ref) async => markets ?? testMarkets),
         deviceRegionProvider.overrideWithValue(region),
         phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),
@@ -388,6 +405,8 @@ Future<TestApp> pumpApp(
         safetyRepositoryProvider.overrideWithValue(fakeSafety),
         accountRepositoryProvider.overrideWithValue(fakeAccount),
         tipsRepositoryProvider.overrideWithValue(fakeTips),
+        workReminderRepositoryProvider.overrideWithValue(fakeWorkReminders),
+        scheduleRepositoryProvider.overrideWithValue(fakeSchedule),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;
@@ -516,6 +535,8 @@ Future<TestApp> pumpApp(
     safety: fakeSafety,
     account: fakeAccount,
     tips: fakeTips,
+    workReminders: fakeWorkReminders,
+    schedule: fakeSchedule,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

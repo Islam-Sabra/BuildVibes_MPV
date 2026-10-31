@@ -9979,6 +9979,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get obSkip;
+
+  /// Review 108 RM1: the Reminder sheet: a notification on my own phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get rmMe;
+
+  /// Review 108 RM1: the Reminder sheet: the server reminds people (the item's creator, owner or a Lead).
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get rmSomeone;
+
+  /// Review 108 RM1: the row with the people to remind.
+  ///
+  /// In en, this message translates to:
+  /// **'Who'**
+  String get rmWho;
+
+  /// Review 108 RM1: above the time choices.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get rmWhen;
+
+  /// Review 108 RM1: a time choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow {time}'**
+  String rmTomorrowAt(String time);
+
+  /// Review 108 RM1: a time choice, only when the item has a time.
+  ///
+  /// In en, this message translates to:
+  /// **'1 h before due'**
+  String get rmBeforeDue;
+
+  /// Review 108 RM1: opens the day and time pickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick…'**
+  String get rmPick;
+
+  /// Review 108 RM1: up to 140 characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get rmNote;
+
+  /// Review 108 RM1: the sheet's button.
+  ///
+  /// In en, this message translates to:
+  /// **'Set reminder'**
+  String get rmSet;
+
+  /// Review 108 RM1: after Set reminder for someone.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set'**
+  String get rmSetDone;
+
+  /// Review 108 RM1: Me, a reminder already set.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder'**
+  String get rmRemoveMine;
+
+  /// Review 108 RM1: the people picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who'**
+  String get rmChooseWho;
+
+  /// Review 108 RM1: closes the people picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get rmDone;
+
+  /// Review 108 RM1: the Who row with more than one person ("Omar Haddad + Rakesh").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} + {more}'**
+  String rmWhoMore(String name, String more);
+
+  /// Review 108 RM2: the opened item's line.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get rmReminders;
+
+  /// Review 108 RM2: who and when.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {when}'**
+  String rmLine(String name, String when);
+
+  /// Review 108 RM2: the ✕, for a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the reminder for {name}'**
+  String rmRemoveFor(String name);
+
+  /// Review 108 RM1: between the first names on the Who row ("Rakesh, Lina").
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get rmSeparator;
+
+  /// Review 108 PL1: the clock beside Send, and its sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post later'**
+  String get plTitle;
+
+  /// Review 108 PL1: the next working day's choice ("Sunday 7:00").
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String plDayAt(String day, String time);
+
+  /// Review 108 PL1: under the time choices.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes out at that time, even if your phone is off.'**
+  String get plGoesOut;
+
+  /// Review 108 PL1: the sheet's button.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get plSchedule;
+
+  /// Review 108 PL1: after Schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled for {when}'**
+  String plScheduledFor(String when);
+
+  /// Review 108 PL2: the screen of my posts waiting to go out.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get plScheduled;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'Post now'**
+  String get plPostNow;
+
+  /// Review 108 PL2: changes its time.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get plEdit;
+
+  /// Review 108 PL2: it never goes out.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get plCancel;
+
+  /// Review 108 PL2: where it goes, when not a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get plFeed;
+
+  /// Review 108 PL2: an empty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled.'**
+  String get plEmpty;
+
+  /// Review 108 PL2: the small line in a Space when I have some waiting there.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 scheduled} other{{count} scheduled}}'**
+  String plCount(int count);
+
+  /// Review 108 PL2: one that couldn't go.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t post: {reason}'**
+  String plFailed(String reason);
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'you can\'t post there any more.'**
+  String get plReasonNotAllowed;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'something in it isn\'t valid any more.'**
+  String get plReasonNotValid;
+
+  /// Review 108 PL2.
+  ///
+  /// In en, this message translates to:
+  /// **'try again.'**
+  String get plReasonOther;
+
+  /// Review 108 V4: the 21st reminder for someone in a day.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve set the most reminders for today.'**
+  String get rmDailyMost;
+
+  /// Review 108 V7: the clock on a work item with Library files or a place from the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Items with files or a place can\'t be scheduled yet.'**
+  String get plCantYet;
 }
 
 class _AppLocalizationsDelegate

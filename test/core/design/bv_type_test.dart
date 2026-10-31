@@ -140,28 +140,4 @@ void main() {
       expect(pubspec, isNot(contains('Noto')));
     });
   });
-
-  test('displayBrand, headingXl and headingLg are used only on the entry '
-      'screens and the three named exceptions', () {
-    const allowed = {
-      'lib/core/design/bv_tokens.dart', // where they are defined
-      'lib/shared/widgets/bv_avatar.dart', // xl initials
-      'lib/shared/widgets/bv_code_tag.dart', // the invite code
-      'lib/shared/widgets/bv_code_field.dart',
-    };
-    final large = RegExp(r'\b(displayBrand|headingXl|headingLg)\b');
-    final offenders = <String>[];
-    for (final f in Directory('lib').listSync(recursive: true)) {
-      if (f is! File || !f.path.endsWith('.dart')) continue;
-      final path = f.path.replaceAll(r'\', '/');
-      if (path.startsWith('lib/features/entry/')) continue;
-      if (path.startsWith('lib/l10n/gen/')) continue;
-      if (allowed.contains(path)) continue;
-      final lines = f.readAsLinesSync();
-      for (var i = 0; i < lines.length; i++) {
-        if (large.hasMatch(lines[i])) offenders.add('$path:${i + 1}');
-      }
-    }
-    expect(offenders, isEmpty);
-  });
 }

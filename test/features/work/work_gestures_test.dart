@@ -386,6 +386,10 @@ void main() {
         );
         await _swipe(tester, 'post-rebar', lang, toEnd: true);
         await _tap(tester, _key('swipe-remind-post-rebar'));
+        // Review 108 RM1: the Reminder sheet, Me first; Pick… then Set.
+        expect(_key('reminder-sheet'), findsOneWidget);
+        await _tap(tester, _key('reminder-pick'));
+        await _tap(tester, _key('reminder-set'));
         final id = spaceReminderId(DaybookSamples.space, 'post-rebar');
         expect(app.reminders.onPhone[id]?.at, at);
         expect(app.reminders.onPhone[id]?.title, s.rebar().post.title);

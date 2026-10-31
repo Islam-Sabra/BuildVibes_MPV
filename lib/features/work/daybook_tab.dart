@@ -44,6 +44,7 @@ import '../../data/repositories/daybook_repository.dart'
 import '../../data/models/template.dart';
 import '../../data/models/post_page.dart' show PageTaskTable, taskCount;
 import '../../data/repositories/page_repository.dart' show taskTablesProvider;
+import '../../data/repositories/schedule_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -81,6 +82,11 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import '../notebook/notebook_page_screen.dart' show reminderWhen;
+import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'post_later_sheet.dart';
+import 'reminder_sheet.dart';
+import 'space_day.dart' show spaceWallNow;
 import 'first_run_tips.dart';
 import 'daybook_attach.dart';
 import 'daybook_card.dart';
@@ -98,7 +104,6 @@ import 'daybook_writing.dart';
 import 'work_gestures.dart';
 import 'work_outbox.dart';
 import 'work_places.dart';
-import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
 /// one line at the top, and under it the announcements pinned now (K1
@@ -1283,14 +1288,40 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   void _assigned() => _setMenu(null);
 
-  Future<void> _post(String? myName) async {
+  /// Post later (review 108 PL1): the time, then the post goes to the
+  /// server to be made then; "Scheduled for …". On the Space's clock and
+  /// its market's calendar (V3).
+  Future<void> _postLater(String? myName) async {
+    final space = widget.space;
+    final later = await showPostLaterSheet(
+      context,
+      zone: space.timeZone,
+      marketId: space.marketId,
+    );
+    if (later == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final now = spaceWallNow(space.timeZone, ref.read(clockProvider)());
+    await _post(myName, at: later.at);
+    if (!mounted) return;
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    showSpaceMessage(
+      context,
+      l10n.plScheduledFor(reminderWhen(l10n, words, later.wall, now)),
+    );
+  }
+
+  Future<void> _post(String? myName, {DateTime? at}) async {
     // A daily report goes with its page, made now in the writer's words.
     final draft = _writer.draft;
     if (draft != null && draft.kind == DaybookKind.report) {
       await _writer.setPage(reportPage(AppLocalizations.of(context), draft));
       if (!mounted) return;
     }
-    await _writer.post(authorName: myName);
+    await _writer.post(authorName: myName, at: at);
     if (!mounted) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -1439,10 +1470,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         const <CalendarWorkItem>[];
     final draft = ref.watch(daybookDraftProvider(_spaceId));
     final edit = ref.watch(daybookEditProvider(_spaceId));
+    // Post later's go to the server, never to the page (review 108 PL1).
     final pending = [
       for (final i in ref.watch(workOutboxProvider))
-        if (i.spaceId == _spaceId) i,
+        if (i.spaceId == _spaceId && i.scheduleAt == null) i,
     ];
+    // Review 108 PL2: "{n} scheduled", mine waiting to go out here.
+    final scheduledHere = [
+      for (final p in ref.watch(myScheduledProvider).value ?? const [])
+        if (p.spaceId == _spaceId && p.state == ScheduledState.waiting) p,
+    ].length;
     final myName = ref
         .watch(spacePeopleProvider(_spaceId))
         .value
@@ -1538,6 +1575,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     };
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final cardDraft = _editing ? edit : draft;
+    final laterBlocked =
+        cardDraft != null &&
+        cardDraft.kind == DaybookKind.workItem &&
+        (cardDraft.files.isNotEmpty || cardDraft.placeId != null);
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
     final atToday = _writing || !_wasAway || shown == today;
@@ -1787,10 +1828,27 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   postReady:
                       _editing ||
                       (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
+                  // Review 108 PL1: Post later, once the post could go now.
+                  // A work item's Library files and a place from the list
+                  // are added after it is made, so it goes now.
+                  laterLabel: _editing ? null : l10n.plTitle,
+                  // V7: not yet for one with Library files or a place from
+                  // the list (they are added after it is made); grey, and
+                  // a tap says so.
+                  laterReady: !laterBlocked,
+                  onLater:
+                      !_editing &&
+                          (cardDraft?.canPost(ref.watch(clockProvider)()) ??
+                              false)
+                      ? (laterBlocked
+                            ? () => showSpaceMessage(context, l10n.plCantYet)
+                            : () => unawaited(_postLater(myName)))
+                      : null,
                 )
               // A Draft on the page takes the post bar's place until it is
               // posted or emptied (E4).
-              else if (!card)
+              else if (!card) ...[
+                if (scheduledHere > 0) ScheduledLine(count: scheduledHere),
                 BvPostBar(
                   // Review 105 J4 (SP1).
                   placeholder: l10n.daybookWriteInSpace,
@@ -1803,6 +1861,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   // the work item (H1).
                   onCamera: () => unawaited(_camera()),
                 ),
+              ],
             ],
           ),
         ),
@@ -2185,43 +2244,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// Reminder (SP5): the phone's own notification for me, at the time I
-  /// pick; Remove takes it off. It never goes to the server.
+  /// Reminder (SP5; review 108 RM1): the Reminder sheet, Me · Someone. Me
+  /// is the phone's own notification; Someone, the server's, for the
+  /// item's creator, its owner or a Lead.
   Future<void> _remind(DaybookPost post) async {
-    final l10n = AppLocalizations.of(context);
-    final words = DaybookWords(
-      l10n,
-      Localizations.localeOf(context).toLanguageTag(),
-      use24: MediaQuery.alwaysUse24HourFormatOf(context),
-    );
-    final reminders = ref.read(spaceRemindersProvider.notifier);
-    final kept = reminders.of(_spaceId, post.id);
-    final now = ref.read(clockProvider)();
-    final picked = await ref.read(pickReminderProvider)(
+    final message = await showReminderSheet(
       context,
-      now: now,
-      day: kept == null ? null : dayOf(kept),
-      at: kept,
+      space: widget.space,
+      post: post,
     );
-    if (!mounted || picked == null) return;
-    final day = picked.day;
-    final at = day == null
-        ? null
-        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
-    if (at != null && !at.isAfter(now)) {
-      showSpaceMessage(context, l10n.workRemindPast);
-      return;
-    }
-    await reminders.set(_spaceId, post, at: at, body: widget.space.name);
-    if (!mounted || at == null) return;
-    showSpaceMessage(
-      context,
-      l10n.workReminderLine(reminderWhen(l10n, words, at, now)),
-    );
+    if (!mounted || message == null) return;
+    showSpaceMessage(context, message);
   }
-
-  /// A reminder picked with no time: that morning (as a note's).
-  static const _morningHour = 9;
 
   /// The announcements pinned now (K1 v13): what daybook_extras says, and
   /// any pinned card on the page (it may be newer), newest first.

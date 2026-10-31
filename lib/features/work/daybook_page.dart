@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -14,6 +15,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/work_reminder_repository.dart';
 import '../../data/repositories/page_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
@@ -548,6 +550,8 @@ List<Widget> pageTop(
           ],
         ),
       ),
+    // Review 108 RM2: the reminders for someone still waiting.
+    if (post.isWorkItem) _PostReminders(postId: post.id),
     // F91: the quote where the card has it, opening its message (F87).
     if (quote != null)
       Padding(
@@ -1342,6 +1346,95 @@ class PageUnderRow extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// RM2 (2701:39185): the opened item's "Reminders": who and when, each with
+/// ✕ for whoever may take it off (who set it, the creator or a Lead).
+/// Nothing while there are none; a "Me" reminder is never here.
+class _PostReminders extends ConsumerWidget {
+  const _PostReminders({required this.postId});
+
+  final String postId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reminders = ref.watch(postRemindersProvider(postId)).value;
+    if (reminders == null || reminders.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final words = _words(context);
+    final now = ref.watch(clockProvider)();
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: BvPageSpec.blockGap),
+      child: Container(
+        key: const Key('page-reminders'),
+        padding: const EdgeInsetsDirectional.all(BvSpace.s12),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceBrandSoft,
+          borderRadius: BvRadius.controlAll,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: BvSpace.s6,
+          children: [
+            Row(
+              spacing: BvSpace.s6,
+              children: [
+                const Icon(
+                  BvIcons.remind,
+                  size: BvSize.iconSm,
+                  color: BvColors.iconAction,
+                ),
+                Text(
+                  l10n.rmReminders,
+                  style: type.labelSm.copyWith(color: BvColors.textAction),
+                ),
+              ],
+            ),
+            for (final r in reminders)
+              Row(
+                key: Key('reminder-row-${r.id}'),
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.rmLine(
+                        [
+                          for (final p in r.people) inOwnDirection(p.name),
+                        ].join(l10n.rmSeparator),
+                        reminderWhen(l10n, words, r.remindAt, now),
+                      ),
+                      style: type.bodyMd,
+                    ),
+                  ),
+                  if (r.canRemove)
+                    IconButton(
+                      key: Key('reminder-remove-${r.id}'),
+                      tooltip: l10n.rmRemoveFor(
+                        inOwnDirection(r.people.firstOrNull?.name ?? ''),
+                      ),
+                      icon: const Icon(
+                        BvIcons.close,
+                        size: BvSize.iconSm,
+                        color: BvColors.iconSecondary,
+                      ),
+                      onPressed: () async {
+                        try {
+                          await ref
+                              .read(workReminderRepositoryProvider)
+                              .remove(r.id);
+                          ref.invalidate(postRemindersProvider(postId));
+                        } on SpaceException catch (e) {
+                          if (context.mounted) showSpaceError(context, e);
+                        }
+                      },
+                    ),
+                ],
+              ),
+          ],
         ),
       ),
     );

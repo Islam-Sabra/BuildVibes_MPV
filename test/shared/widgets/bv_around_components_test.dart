@@ -309,6 +309,29 @@ void main() {
       await tester.tap(find.byKey(const Key('pill')));
       expect(taps, 1);
     });
+
+    testBoth('review 108 PL2: a grey one has dark words (Edit)', (
+      tester,
+      lang,
+    ) async {
+      await pumpComponent(
+        tester,
+        Center(
+          child: BvPillButton(label: 'Edit', onTap: () {}, grey: true),
+        ),
+        lang: lang,
+      );
+      final box = tester.widget<Container>(
+        find
+            .ancestor(of: find.text('Edit'), matching: find.byType(Container))
+            .first,
+      );
+      expect((box.decoration! as BoxDecoration).color, BvColors.surfaceSubtle);
+      expect(
+        tester.widget<Text>(find.text('Edit')).style!.color,
+        BvColors.textPrimary,
+      );
+    });
   });
 
   group('BvTabs.small', () {
