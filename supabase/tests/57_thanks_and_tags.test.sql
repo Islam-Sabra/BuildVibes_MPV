@@ -5,19 +5,22 @@
 -- (b2) and Tariq (c3) are Crew in the Team "Steel fixers"; Lina (d4) is Crew
 -- outside it. Vera (e5) is a Viewer. Eve (f6) is not in the Space; she has
 -- her own Space, with a Team and a work item. Omar also has a Space with no
--- project.
+-- project. Gus (a7) is a Lead who is moved down to Viewer; Hana (a8) is Crew
+-- whose account is scheduled for deletion (hidden); Ian (a9) was Crew and
+-- left.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(116);
+select plan(130);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000057' || x.id)::uuid, 'authenticated', 'authenticated',
        x.id || '@th57.example.com', '{"home_market_id": "kw"}'::jsonb
-from (values ('a1'), ('b2'), ('c3'), ('d4'), ('e5'), ('f6')) x(id);
+from (values ('a1'), ('b2'), ('c3'), ('d4'), ('e5'), ('f6'), ('a7'), ('a8'), ('a9')) x(id);
 update public.profiles p set first_name = n.f, last_name = n.l
 from (values ('a1', 'Omar', 'Haddad'), ('b2', 'Rakesh', 'Nair'), ('c3', 'Tariq', 'Aziz'),
-             ('d4', 'Lina', 'Saad'), ('e5', 'Vera', 'Lane'), ('f6', 'Eve', 'Out')) n(id, f, l)
+             ('d4', 'Lina', 'Saad'), ('e5', 'Vera', 'Lane'), ('f6', 'Eve', 'Out'),
+             ('a7', 'Gus', 'Lead'), ('a8', 'Hana', 'Hidden'), ('a9', 'Ian', 'Left')) n(id, f, l)
 where p.id = ('00000000-0000-0000-0000-0000000057' || n.id)::uuid;
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
@@ -94,7 +97,11 @@ reset role;
 update public.spaces set project_id = pg_temp.id('c001') where id = pg_temp.sp();
 insert into public.space_members (space_id, profile_id, pass, confirmed_by)
 select pg_temp.sp(), pg_temp.uid(x.id), x.pass, pg_temp.uid('a1')
-from (values ('b2', 'crew'), ('c3', 'crew'), ('d4', 'crew'), ('e5', 'viewer')) x(id, pass);
+from (values ('b2', 'crew'), ('c3', 'crew'), ('d4', 'crew'), ('e5', 'viewer'),
+             ('a7', 'lead'), ('a8', 'crew'), ('a9', 'crew')) x(id, pass);
+update public.space_members set left_at = now()
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a9');
+update public.profiles set deletion_scheduled_at = now() where id = pg_temp.uid('a8');
 insert into public.space_members (space_id, profile_id, pass, confirmed_by)
 values (pg_temp.sp3(), pg_temp.uid('b2'), 'crew', pg_temp.uid('a1'));
 select pg_temp.as_user('a1');
@@ -218,12 +225,41 @@ select throws_ok(format($q$select public.create_thanks(%L, %L, 'Hidden', p_to_pe
   pg_temp.id('b004'), pg_temp.sp(), pg_temp.uid('b2'), pg_temp.id('a003')), '22023',
   'only a work item of this Space', 'not For a work item the author can''t see');
 reset role;
+-- The founder (1 Nov): a Viewer may thank.
 select pg_temp.as_user('e5');
 set local role authenticated;
-select throws_ok(format($q$select public.create_thanks(%L, %L, 'Viewer', p_to_person => %L)$q$,
-  pg_temp.id('b005'), pg_temp.sp(), pg_temp.uid('b2')), '42501', 'not allowed',
-  'a Viewer reads only');
+select lives_ok(format($q$select public.create_thanks(%L, %L, 'Viewer', p_to_person => %L)$q$,
+  pg_temp.id('b005'), pg_temp.sp(), pg_temp.uid('b2')), 'a Viewer thanks a member');
 reset role;
+select pg_temp.as_user('a9');
+set local role authenticated;
+select throws_ok(format($q$select public.create_thanks(%L, %L, 'Left', p_to_person => %L)$q$,
+  pg_temp.id('b006'), pg_temp.sp(), pg_temp.uid('b2')), '42501', 'not allowed',
+  'not someone who left the Space');
+reset role;
+-- Review 110 W3: not a hidden account, nor someone blocked either way.
+select pg_temp.as_user('c3');
+set local role authenticated;
+select throws_ok(format($q$select public.create_thanks(%L, %L, 'Hidden', p_to_person => %L)$q$,
+  pg_temp.id('b006'), pg_temp.sp(), pg_temp.uid('a8')), '42501', 'not allowed',
+  'not a member whose account is hidden');
+reset role;
+insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('c3'), pg_temp.uid('d4'));
+select pg_temp.as_user('c3');
+set local role authenticated;
+select throws_ok(format($q$select public.create_thanks(%L, %L, 'Blocked', p_to_person => %L)$q$,
+  pg_temp.id('b006'), pg_temp.sp(), pg_temp.uid('d4')), '42501', 'not allowed',
+  'not someone the author blocked');
+reset role;
+delete from public.blocks where blocker_id = pg_temp.uid('c3');
+insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('d4'), pg_temp.uid('c3'));
+select pg_temp.as_user('c3');
+set local role authenticated;
+select throws_ok(format($q$select public.create_thanks(%L, %L, 'Blocked', p_to_person => %L)$q$,
+  pg_temp.id('b006'), pg_temp.sp(), pg_temp.uid('d4')), '42501', 'not allowed',
+  'nor someone who blocked the author');
+reset role;
+delete from public.blocks where blocker_id = pg_temp.uid('d4');
 select pg_temp.as_user('f6');
 set local role authenticated;
 select throws_ok(format($q$select public.create_thanks(%L, %L, 'Outsider', p_to_person => %L)$q$,
@@ -251,8 +287,8 @@ select ok(not exists (select 1 from public.work_item_events where work_item_id =
   'and has no sign-off');
 
 -- Who reads its facts.
-select is(pg_temp.thanks_read('e5', pg_temp.sp()), 3, 'a Viewer reads them all');
-select is(pg_temp.thanks_read('d4', pg_temp.sp()), 3, 'Lina too: a Thanks is for the whole Space');
+select is(pg_temp.thanks_read('e5', pg_temp.sp()), 4, 'a Viewer reads them all');
+select is(pg_temp.thanks_read('d4', pg_temp.sp()), 4, 'Lina too: a Thanks is for the whole Space');
 select is(pg_temp.thanks_read('f6', pg_temp.sp()), 0, 'someone outside the Space reads none');
 
 -- 4. The card -----------------------------------------------------------------------------------------
@@ -324,6 +360,17 @@ select is((select proargnames[2:] from pg_proc where oid = 'public.profile_thank
   'nothing else: no Space, no work item, no photos');
 select ok(not has_function_privilege('anon', 'public.profile_thanks(uuid)', 'execute'),
   'not for anyone signed out');
+
+-- Review 110 W3: a hidden account's Thanks, or a hidden profile, shows to
+-- nobody, not even to that person.
+update public.profiles set deletion_scheduled_at = now() where id = pg_temp.uid('c3');
+select is(pg_temp.on_profile('f6', 'b2'), 0, 'a hidden thanker''s Thanks leaves the profile');
+select is(pg_temp.on_profile('c3', 'b2'), 0, 'even for the hidden thanker');
+update public.profiles set deletion_scheduled_at = null where id = pg_temp.uid('c3');
+update public.profiles set deletion_scheduled_at = now() where id = pg_temp.uid('b2');
+select is(pg_temp.on_profile('f6', 'b2'), 0, 'a hidden profile shows no Thanks');
+select is(pg_temp.on_profile('b2', 'b2'), 0, 'not even to its own person');
+update public.profiles set deletion_scheduled_at = null where id = pg_temp.uid('b2');
 
 insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('f6'), pg_temp.uid('c3'));
 select is(pg_temp.on_profile('f6', 'b2'), 0, 'hidden from someone who blocked the thanker');
@@ -437,6 +484,22 @@ set local role authenticated;
 select throws_ok(format($q$select public.set_work_item_tag(%L, 'admin')$q$, pg_temp.id('a002')),
   '42501', 'not allowed', 'nor someone outside the Space');
 reset role;
+-- Review 110 W4: Gus, a Lead, made a work item; moved down to Viewer, he
+-- can't change its tag.
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.create_work_item(pg_temp.sp(), 'Scaffold tags, block B', pg_temp.uid('b2'),
+  p_id => pg_temp.id('a007'));
+select lives_ok(format($q$select public.set_work_item_tag(%L, 'safety')$q$, pg_temp.id('a007')),
+  'a Lead tags his work item');
+reset role;
+update public.space_members set pass = 'viewer'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select throws_ok(format($q$select public.set_work_item_tag(%L, 'quality')$q$, pg_temp.id('a007')),
+  '42501', 'not allowed', 'moved down to Viewer, he can''t change it');
+reset role;
 select pg_temp.as_user('c3');
 set local role authenticated;
 select throws_ok(format($q$select public.set_work_item_tag(%L, 'admin')$q$, pg_temp.id('b002')),
@@ -493,6 +556,28 @@ reset role;
 select is(public.publish_scheduled(s), true, 'it goes out at its time')
 from public.scheduled_posts s where s.id = pg_temp.id('a006');
 select is((select tag from public.work_items where id = pg_temp.id('a006')), 'safety', 'with its tag');
+
+-- Review 110 W7: a Thanks can be scheduled too.
+select isnt(public.scheduled_call_sql('create_thanks',
+  jsonb_build_object('p_id', pg_temp.id('b008'), 'p_space', pg_temp.sp(), 'p_body', 'Thanks',
+                     'p_to_person', pg_temp.uid('d4'))), null,
+  'scheduled_call_sql knows create_thanks');
+select pg_temp.as_user('c3');
+set local role authenticated;
+select lives_ok(format($q$select public.schedule_post(%L, 'create_thanks',
+  jsonb_build_object('p_id', %L, 'p_space', %L, 'p_body', 'Thanks for the clean site, Lina',
+                     'p_to_person', %L),
+  now() + interval '1 hour', 'Thanks for the clean site, Lina')$q$,
+  pg_temp.id('b008'), pg_temp.id('b008'), pg_temp.sp(), pg_temp.uid('d4')),
+  'Crew schedules a Thanks');
+reset role;
+select is(public.publish_scheduled(s), true, 'it goes out at its time')
+from public.scheduled_posts s where s.id = pg_temp.id('b008');
+select is((select p.kind || '|' || p.author_id::text || '|' || p.body || '|' || th.to_profile::text
+           from public.space_posts p join public.space_thanks th on th.post_id = p.id
+           where p.id = pg_temp.id('b008')),
+  'thanks|' || pg_temp.uid('c3') || '|Thanks for the clean site, Lina|' || pg_temp.uid('d4'),
+  'the Thanks is there, as its author''s');
 
 -- 9. The functions ----------------------------------------------------------------------------------
 

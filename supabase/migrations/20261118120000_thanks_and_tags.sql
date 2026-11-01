@@ -7,16 +7,17 @@
 --    to 5000 characters, as any post); a Thanks has no title (''), since
 --    its card shows To, For and the words. It goes to the whole Space (no
 --    Team line): a Team is thanked in front of everyone.
---    Who may thank: a member who may post in the Space (Lead or Crew, the
---    create_items right); a Viewer is read-only (the lead's decision,
---    review 110 E: "any member" means any member who may post).
+--    Who may thank: any current member of the Space, a Viewer too (the
+--    founder, 1 Nov, review 110). Never a hidden account, and never to one,
+--    nor to someone blocked either way (W3).
 --    Its facts are in space_thanks, read by whoever can see the post and
 --    written only by the functions. Only the person thanked chooses Show on
 --    my profile (set_thanks_on_profile); a Team's Thanks has no profile.
 --    profile_thanks gives a profile's shown ones: who thanked, the words,
 --    the date and the project's name (as shown work gives it), never the
 --    Space's name, the For item or its photos (rule 8: work stays in
---    Spaces). No counts and no rankings (rule 3).
+--    Spaces). No counts and no rankings (rule 3). A hidden account's
+--    Thanks, and a hidden profile's, show to nobody (W3).
 --    A Thanks needs nobody: no needs-you, no sign-off, no reminder, no
 --    notification (card_needs_me and every kind switch already leave it out).
 -- 2. Tags on work items (TG1): a market-pack list, market_work_tags
@@ -26,12 +27,14 @@
 --    any id that is on some market's list. A trigger checks it on every
 --    write. create_work_item takes p_tag (one function: the old signature is
 --    dropped, and scheduled_call_sql pins the new one, so Post later keeps
---    working); set_work_item_tag changes it while the item is Open. Cards
+--    working); set_work_item_tag changes it while the item is Open, for a
+--    caller who may still make work items (W4: not one moved to Viewer). Cards
 --    carry the tag with its name and danger; space_work_tags gives the
 --    picker its list. The Work filter is the app's, on the cards it reads
 --    (as the place filter, migration 53).
 -- 3. delete_team also keeps a Team that was thanked ("it stays in the
 --    record").
+-- 4. Post later takes create_thanks too (W7), pinned to its signature.
 
 -- ---------------------------------------------------------------------------
 -- 1. The kind
@@ -124,8 +127,8 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
 
-  -- A member who may post: Lead or Crew. A Viewer reads only.
-  if not public.can(p_space, 'create_items') or public.is_hidden_account(v_me) then
+  -- Any current member, a Viewer too (the founder, 1 Nov).
+  if not public.is_member(p_space) or public.is_hidden_account(v_me) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if public.folder_has_others_files_in(p_space::text || '/posts/' || p_id::text || '/') then
@@ -137,6 +140,12 @@ begin
   end if;
   if p_to_person = v_me then
     raise exception 'thank someone else' using errcode = '22023';
+  end if;
+  -- Never to a hidden account, nor to someone blocked either way (W3), as
+  -- a direct message.
+  if p_to_person is not null and (public.is_hidden_account(p_to_person)
+                                  or public.is_blocked_with(p_to_person)) then
+    raise exception 'not allowed' using errcode = '42501';
   end if;
   if p_to_person is not null and not exists (
        select 1 from public.space_members m
@@ -206,6 +215,8 @@ $$;
 -- posts in Spaces that are not deleted. Who thanked (left out when the
 -- reader and that person have blocked each other, as is the whole row),
 -- the words, the date and the project's name. Signed-in readers only.
+-- None from a hidden thanker, and none on a hidden profile (W3), even to
+-- that person (is_blocked_with leaves out the reader's own account).
 create or replace function public.profile_thanks(p_profile uuid)
 returns table (post_id uuid, from_id uuid, from_name text, words text,
                created_at timestamptz, project_name text)
@@ -222,8 +233,10 @@ as $$
   left join public.projects pr on pr.id = s.project_id
   where auth.uid() is not null
     and th.to_profile = p_profile and th.to_kind = 'person' and th.show_on_profile
+    and not public.is_hidden_account(p_profile)
     and not public.is_blocked_with(p_profile)
-    and (p.author_id is null or not public.is_blocked_with(p.author_id))
+    and (p.author_id is null or (not public.is_hidden_account(p.author_id)
+                                 and not public.is_blocked_with(p.author_id)))
   order by p.created_at desc, th.post_id desc
   limit 200;
 $$;
@@ -398,7 +411,8 @@ end;
 $$;
 
 -- TG1: the tag of the work item [p_post], or none (null). Its creator,
--- its owner or a Lead, while it is Open.
+-- its owner or a Lead, while it is Open, and only while they may make work
+-- items (W4): someone moved down to Viewer can't.
 create or replace function public.set_work_item_tag(p_post uuid, p_tag text)
 returns void
 language plpgsql
@@ -415,6 +429,7 @@ begin
   if v_me is null or v_post.id is null or v_post.kind <> 'work_item'
      or v_post.status <> 'live' or v_post.deleted_at is not null
      or not public.is_member(v_post.space_id) or not public.can_see_space_post(p_post)
+     or not public.can(v_post.space_id, 'create_items')
      or public.is_hidden_account(v_me) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
@@ -895,12 +910,18 @@ AS $function$
   )) end;
 $function$;
 -- ---------------------------------------------------------------------------
--- 6. Post later: create_work_item's new signature
+-- 6. Post later: create_work_item's new signature, and create_thanks
 -- ---------------------------------------------------------------------------
 
+-- W7: a Thanks can be scheduled.
+alter table public.scheduled_posts drop constraint scheduled_posts_fn_check;
+alter table public.scheduled_posts add constraint scheduled_posts_fn_check
+  check (fn in ('create_space_post', 'create_work_item', 'create_post',
+                'share_note_to_feed', 'share_note_to_space', 'create_thanks'));
+
 -- scheduled_call_sql (migration 57), as it was, with create_work_item's
--- signature now ending in p_tag text. Waiting rows made before keep
--- working: an argument they don't name takes its default.
+-- signature now ending in p_tag text, and create_thanks (W7). Waiting rows
+-- made before keep working: an argument they don't name takes its default.
 create or replace function public.scheduled_call_sql(p_fn text, p_params jsonb)
 returns text
 language sql
@@ -915,6 +936,7 @@ as $$
       when 'create_post' then 'public.create_post(uuid, text, text, uuid, jsonb)'
       when 'share_note_to_feed' then 'public.share_note_to_feed(uuid, uuid, text, text[], uuid, boolean, jsonb)'
       when 'share_note_to_space' then 'public.share_note_to_space(uuid, uuid, uuid, text, text[], uuid, uuid, boolean, jsonb, uuid[])'
+      when 'create_thanks' then 'public.create_thanks(uuid, uuid, text, uuid, uuid, uuid, jsonb)'
     end) as oid
   ),
   args as (
@@ -939,6 +961,67 @@ as $$
   end;
 $$;
 
+-- schedule_post (migration 57), as it was, and create_thanks (W7).
+create or replace function public.schedule_post(
+  p_id uuid,
+  p_fn text,
+  p_params jsonb,
+  p_at timestamptz,
+  p_title text,
+  p_note uuid default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_space uuid;
+begin
+  if v_me is null then
+    raise exception 'sign in first' using errcode = '42501';
+  end if;
+  if exists (select 1 from public.scheduled_posts where id = p_id and author_id = v_me) then
+    return p_id;
+  end if;
+  if exists (select 1 from public.scheduled_posts where id = p_id) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if p_note is not null and not exists (select 1 from public.notes n
+                                        where n.id = p_note and n.owner_id = v_me) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if p_fn is null or p_fn not in ('create_space_post', 'create_work_item', 'create_post',
+                                  'share_note_to_feed', 'share_note_to_space', 'create_thanks')
+     or p_params is null or jsonb_typeof(p_params) <> 'object'
+     or public.scheduled_call_sql(p_fn, p_params) is null then
+    raise exception 'only a post can be scheduled' using errcode = '22023';
+  end if;
+  if coalesce(p_params ->> case when p_fn like 'share_note_%' then 'p_post' else 'p_id' end, '')
+     <> p_id::text then
+    raise exception 'its id is the post''s' using errcode = '22023';
+  end if;
+  if p_at is null or p_at <= now() or p_at > now() + interval '1 year' then
+    raise exception 'a time to come' using errcode = '22023';
+  end if;
+  if length(trim(coalesce(p_title, ''))) not between 1 and 200 then
+    raise exception 'what it says' using errcode = '22023';
+  end if;
+  v_space := nullif(p_params ->> 'p_space', '')::uuid;
+  if v_space is not null and not public.is_member(v_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if (select count(*) from public.scheduled_posts
+      where author_id = v_me and state = 'waiting') >= 100 then
+    raise exception 'at most 100 waiting' using errcode = '22023';
+  end if;
+  insert into public.scheduled_posts (id, author_id, fn, params, space_id, title, publish_at, note_id)
+  values (p_id, v_me, p_fn, p_params, v_space, trim(p_title), p_at, p_note);
+  return p_id;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
@@ -949,6 +1032,7 @@ revoke all on function public.create_thanks(uuid, uuid, text, uuid, uuid, uuid, 
 revoke all on function public.set_thanks_on_profile(uuid, boolean) from public, anon;
 revoke all on function public.profile_thanks(uuid) from public, anon;
 revoke all on function public.delete_team(uuid) from public, anon;
+revoke all on function public.schedule_post(uuid, text, jsonb, timestamptz, text, uuid) from public, anon;
 revoke all on function public.space_tag_market(uuid) from public, anon, authenticated;
 revoke all on function public.is_work_tag(uuid, text) from public, anon, authenticated;
 revoke all on function public.check_work_tag() from public, anon, authenticated;
@@ -963,6 +1047,7 @@ grant execute on function public.create_thanks(uuid, uuid, text, uuid, uuid, uui
 grant execute on function public.set_thanks_on_profile(uuid, boolean) to authenticated;
 grant execute on function public.profile_thanks(uuid) to authenticated;
 grant execute on function public.delete_team(uuid) to authenticated;
+grant execute on function public.schedule_post(uuid, text, jsonb, timestamptz, text, uuid) to authenticated;
 grant execute on function public.space_work_tags(uuid) to authenticated;
 grant execute on function public.set_work_item_tag(uuid, text) to authenticated;
 grant execute on function public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid,
