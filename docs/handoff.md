@@ -2,6 +2,34 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 110 on `claude/r110` (pushed, in progress); nothing merged, live or built
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r110` from `slice2-app` (worktree `BuildVibes-r110`), pushed at eefcc12f.
+- **Done and committed:**
+  - **A, the notebook share's Space list (bug, cause still to read on his phone):**
+    - The founder's recording on 852: the card opens at "‹ Space" with nothing under it, every try. `workItemSpacesProvider` never reaches data on his phone (loading or error), and the card drew neither.
+    - Not reproduced on the emulator: debug and profile builds against the live project as Islam (read only, signed out by clearing the app's data), at his screen size (360 × 825 dp), his notes and Spaces; the list loads every time. Stylish Text notes (surrogate pairs) are not the cause either.
+    - eefcc12f: the list says "Loading your Spaces…"; after 15 s, or on any error, "Couldn't load your Spaces. Try again." with the error's type and first line small under it; the error goes to Crashlytics as a non-fatal with its stack (release only); Riverpod's automatic retry is off for it (a failure used to refetch out of sight, as the repeated my_spaces / member_rights loads in his live log show). **Next: the next build on his phone shows the error; read it there.**
+    - Also: the bottom bar fits 360 dp (16 px overflowed on his phone).
+  - **B** (77b76e7a): Reminder → Someone only on an open work item (the server refused the rest: his two 403s at 08:24 UTC); each refusal has its own plain line.
+  - **C** (34db47ff): RM1d, a picked time alone with ×, in Reminder and Post later.
+  - **CP5** (92a4ddaa): hold Send = Post later on every writing bar; no clock; V7's line on the held menu.
+  - **E server** (2960f7bb, 9ec84b4e, merged 5747ac3e): migration `20261118120000_thanks_and_tags.sql` (**not live**): Thanks (`create_thanks`, `set_thanks_on_profile`, `profile_thanks`, `space_thanks`), tags (`market_work_tags` for kw and eg, `work_items.tag`, `space_work_tags`, `set_work_item_tag`, `create_work_item(…, p_tag)` with `scheduled_call_sql` updated), `table_count` on the card JSON; pgTAP 57 (113 checks).
+  - **D** (3f52ac62): the full-screen composer: × · kind · Space · Drafts; # · + · camera · Send; round-icon grids sized by the phone's text size; default lines per kind; extras as chips with ×; kind switch drops with one line; opens on the last kind posted here (Note the first time); Checklist off #.
+  - **F and E on the cards** (490197e6): the short card (title and details 2 lines, one info line, 3 photos then +N, the quiet line with See more); the Thanks card with Show on my profile only for the person thanked; the tag on a work item (Safety red); the profile's shown Thanks.
+- **Left (in progress):**
+  - Thanks (TH1) and Tag (TG1) in the composer, the Work filter by tag, + → Checklist on a work item (an agent is on these; uncommitted work in the worktree).
+  - The shots into `docs/reviews/shots-110/` with a README (`test_screens/r110_test.dart` written, not committed).
+  - The five checks, push, and this handoff again.
+- **For the founder (product questions):**
+  - An activity's people now show as a chip so it can be posted (the frames have no For line for an activity; the server still needs people).
+  - "Drafts" on the composer keeps what was written as the Space's draft and closes (there is one draft per Space); × does the same.
+- **Not done, on purpose:** no merge, no database push, no build. Migration `20261118120000` is local only.
+- **Clean-up still due:** `integration_test/r110_debug_test.dart` (temporary repro, never committed), `android/app/google-services.json` and `env/local.json` copies in the worktree, the second emulator (`Pixel_8_B`, size override 720 × 1650 at 320 dpi).
+- **Who has which branch:** PC has `claude/r110` (worktree `BuildVibes-r110`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 31 Oct 2026 — review 107 S1 and review 108 live: merged into `slice2-app`, migration 57 live, cron started, `push` deployed, build 852 on the emulator and the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
