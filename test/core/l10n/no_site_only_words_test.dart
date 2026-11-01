@@ -58,6 +58,21 @@ void main() {
       // The daily report's first heading, as R2 and the built-in Daily
       // report (key on_site) name it (slice 7).
       'dailyReportOnSite',
+      // Review 109: a Check-in is about one site, and its glossary says
+      // On site / Not at site; موقع also means the phone's location.
+      'checkInAway',
+      'checkInNoLocation',
+      'checkInNotShared',
+      'checkInOnSite',
+      'checkInPlaceFailed',
+      'checkInPlaceRefused',
+      'checkInReading',
+      'checkInReadingOnce',
+      'checkInSheetNote',
+      'checkInWarnBody',
+      'checkInWarnTitle',
+      'checkInWithout',
+      'checkOutWithout',
     };
     final en = strings('en');
     final ar = strings('ar');

@@ -464,3 +464,8 @@ verify_jwt = false
 
 [functions.notebook-purge]
 verify_jwt = false
+
+# The day's check-in report (review 109). Called by cron with a shared
+# secret, not by a signed-in user.
+[functions.check-in-report]
+verify_jwt = false

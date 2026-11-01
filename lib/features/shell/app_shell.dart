@@ -14,6 +14,7 @@ import '../feed/post_draft.dart';
 import '../messages/dm_live.dart';
 import '../notebook/note_reminders.dart';
 import '../settings/push_host.dart';
+import '../work/check_in_phone.dart' show CheckInHost;
 import '../work/outbox_host.dart';
 import '../work/work_gestures.dart' show SpaceReminderHost;
 
@@ -39,9 +40,12 @@ class AppShell extends ConsumerWidget {
       // phone (slice 10), and a Space post's (review 105 Part 2).
       body: OutboxHost(
         child: PushHost(
-          child: DmLiveHost(
-            child: SpaceReminderHost(
-              child: ReminderHost(child: navigationShell),
+          // Review 109 CI2: check-in notifications and their taps.
+          child: CheckInHost(
+            child: DmLiveHost(
+              child: SpaceReminderHost(
+                child: ReminderHost(child: navigationShell),
+              ),
             ),
           ),
         ),

@@ -134,6 +134,23 @@ int reminderId(String noteId) {
   return h & 0x7fffffff;
 }
 
+/// The phone's notifications have one plugin and one start: other
+/// notifications of the app (review 109's check-ins) add their iOS
+/// categories, their handler for actions taken without opening the app,
+/// and a claim on their own taps here, before the start.
+abstract final class PhoneNotificationHooks {
+  /// iOS categories (buttons on a notification), registered at start.
+  static List<DarwinNotificationCategory> Function()? categories;
+
+  /// Runs in a background isolate for an action that doesn't open the
+  /// app. Must be a top-level function marked `@pragma('vm:entry-point')`.
+  static DidReceiveBackgroundNotificationResponseCallback? background;
+
+  /// A tap (or an action that opened the app) on a notification of
+  /// another kind: true when it took it.
+  static bool Function(NotificationResponse response)? claim;
+}
+
 class LocalReminders implements PhoneReminders {
   final _plugin = FlutterLocalNotificationsPlugin();
   var _channel = '';
@@ -152,8 +169,8 @@ class LocalReminders implements PhoneReminders {
     try {
       tz_data.initializeTimeZones();
       await _plugin.initialize(
-        settings: const InitializationSettings(
-          android: AndroidInitializationSettings(
+        settings: InitializationSettings(
+          android: const AndroidInitializationSettings(
             '@drawable/ic_stat_buildvibes',
           ),
           // Push already asked for notifications.
@@ -161,12 +178,17 @@ class LocalReminders implements PhoneReminders {
             requestAlertPermission: false,
             requestBadgePermission: false,
             requestSoundPermission: false,
+            notificationCategories:
+                PhoneNotificationHooks.categories?.call() ?? const [],
           ),
         ),
         onDidReceiveNotificationResponse: (r) {
+          if (PhoneNotificationHooks.claim?.call(r) ?? false) return;
           final id = r.payload;
           if (id != null) onTap(id);
         },
+        onDidReceiveBackgroundNotificationResponse:
+            PhoneNotificationHooks.background,
       );
     } on Object catch (e) {
       // No reminders on this phone; the notes still work.
@@ -179,7 +201,12 @@ class LocalReminders implements PhoneReminders {
     try {
       final details = await _plugin.getNotificationAppLaunchDetails();
       if (!(details?.didNotificationLaunchApp ?? false)) return null;
-      return details?.notificationResponse?.payload;
+      final response = details?.notificationResponse;
+      if (response != null &&
+          (PhoneNotificationHooks.claim?.call(response) ?? false)) {
+        return null;
+      }
+      return response?.payload;
     } on Object catch (e) {
       debugPrint('reminders: $e');
       return null;

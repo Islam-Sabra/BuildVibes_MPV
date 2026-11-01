@@ -25,3 +25,16 @@ test("an account with no files is still purged", () => {
 test("nothing due, nothing to do", () => {
   assert.deepEqual(groupDue([]), []);
 });
+
+test("review 109: an account's only-me check-in reports in space-files are removed with its other files", () => {
+  const [a] = groupDue([
+    { profile_id: "p1", bucket: "avatars", name: "p1/me.jpg" },
+    { profile_id: "p1", bucket: "space-files", name: "s1/library/f1/check-in-2026-12-01.xlsx" },
+    { profile_id: "p1", bucket: "space-files", name: "s1/library/f2/check-in-2026-12-02.xlsx" },
+  ]);
+  assert.deepEqual(a.files.get("space-files"), [
+    "s1/library/f1/check-in-2026-12-01.xlsx",
+    "s1/library/f2/check-in-2026-12-02.xlsx",
+  ]);
+  assert.deepEqual(a.files.get("avatars"), ["p1/me.jpg"]);
+});

@@ -30,7 +30,7 @@ test("every kind has its text in English and Arabic", () => {
     "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
     "activity_invited", "activity_starting", "file_new_version",
     "dm_message", "dm_request", "dm_follow_up",
-    "work_reminder", "scheduled_failed",
+    "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -277,4 +277,144 @@ test("review 108 PL: a scheduled post that couldn't go says why and opens Schedu
     "ar", null, strings,
   );
   assert.equal(ar.body, "تعذّر النشر: افتح المجدولة لتحاول مجددًا.");
+});
+
+const checkIn = (mark: string): QueueRow =>
+  row("check_in_open", {
+    actor_id: null,
+    data: {
+      post_id: "p1", space_id: "s1", mark, title: "Morning, Block B", space_name: "Tower 3",
+      until: mark === "in" ? "2026-12-01T04:15:00+00:00" : "2026-12-01T11:15:00+00:00",
+      tz: "Asia/Kuwait",
+    },
+  });
+
+// Lock-screen text off (migration 14's rule): the queue has no title, no
+// Space and no counts; only the ids and the window.
+const checkInPlain = (mark: string): QueueRow =>
+  row("check_in_open", {
+    actor_id: null,
+    data: { post_id: "p1", space_id: "s1", mark, until: "2026-12-01T04:15:00+00:00", tz: "Asia/Kuwait" },
+  });
+
+test("review 109 CI2: check-in opens: the title over the Space and the on-time limit, in the Space's zone", () => {
+  const p = buildPush(checkIn("in"), "en", null, strings);
+  assert.equal(p.title, "⁨Morning, Block B⁩");
+  assert.equal(p.body, "⁨Tower 3⁩ · by 07:15");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(p.data.mark, "in");
+  assert.equal(p.data.push_title, p.title);
+  assert.equal(p.data.push_body, p.body);
+  const ar = buildPush(checkIn("out"), "ar", null, strings);
+  assert.equal(ar.body, "⁨Tower 3⁩ · حتى 14:15", "Western digits in Arabic");
+});
+
+type CheckInFcm = {
+  notification: { title: string; body: string };
+  data: Record<string, string>;
+  android: {
+    priority: string;
+    notification: { channel_id: string; tag: string; default_sound: boolean };
+  };
+  apns: {
+    headers: Record<string, string>;
+    payload: { aps: Record<string, unknown> & { alert: { title: string; body: string } } };
+  };
+};
+
+test("review 109 (option C): Android gets a notification on the check_in channel, tagged per post and kind, with the data part", () => {
+  for (const [label, push, title, body] of [
+    ["text on", buildPush(checkIn("in"), "en", null, strings), "⁨Morning, Block B⁩", "⁨Tower 3⁩ · by 07:15"],
+    ["text off", buildPush(checkInPlain("in"), "en", null, strings), "BuildVibes", "Time to check in"],
+  ] as const) {
+    const m = fcmMessage("tok", push) as CheckInFcm;
+    assert.deepEqual(m.notification, { title, body }, `${label}: a notification Android draws`);
+    assert.equal(m.android.priority, "high", label);
+    assert.equal(m.android.notification.channel_id, "check_in", label);
+    assert.equal(m.android.notification.default_sound, true, label);
+    assert.equal(m.android.notification.tag, "checkin:p1:in", `${label}: one tag per post and kind`);
+    assert.equal(m.data.tag, "checkin:p1:in", `${label}: the same tag in the data`);
+    assert.equal(m.data.post_id, "p1", label);
+    assert.equal(m.data.mark, "in", label);
+    assert.equal(m.data.until, "2026-12-01T04:15:00+00:00", label);
+    assert.equal(m.data.push_title, title, label);
+    assert.equal(m.data.push_body, body, label);
+    assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+  }
+  const on = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as CheckInFcm;
+  assert.equal(on.data.title, "Morning, Block B");
+  assert.equal(on.data.space_name, "Tower 3");
+  const off = fcmMessage("tok", buildPush(checkInPlain("in"), "en", null, strings)) as CheckInFcm;
+  assert.equal(off.data.title, undefined, "text off: no title in the data");
+  assert.equal(off.data.space_name, undefined, "nor the Space");
+  assert.ok(!JSON.stringify(off).includes("Tower"), "anywhere");
+  const out = fcmMessage("tok", buildPush(checkIn("out"), "en", null, strings)) as CheckInFcm;
+  assert.equal(out.android.notification.tag, "checkin:p1:out");
+  assert.equal(out.data.tag, "checkin:p1:out");
+});
+
+test("review 109 CI2: iOS a time-sensitive alert with its category", () => {
+  const m = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as CheckInFcm;
+  assert.equal(m.data.kind, "check_in_open");
+  assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+  assert.equal(m.apns.headers["apns-priority"], "10");
+  assert.equal(m.apns.payload.aps.category, "CHECK_IN_IN");
+  assert.equal(m.apns.payload.aps["interruption-level"], "time-sensitive");
+  assert.equal(m.apns.payload.aps.alert.title, "⁨Morning, Block B⁩");
+  const out = fcmMessage("tok", buildPush(checkIn("out"), "en", null, strings)) as {
+    apns: { payload: { aps: { category: string } } };
+  };
+  assert.equal(out.apns.payload.aps.category, "CHECK_IN_OUT");
+});
+
+test("review 109 CI5: the creator's summary is a normal notification with what there is to see", () => {
+  const summary = row("check_in_summary", {
+    actor_id: null,
+    data: { post_id: "p1", space_id: "s1", title: "Morning, Block B", late: "2", away: "1", missed: "0" },
+  });
+  const p = buildPush(summary, "en", null, strings);
+  assert.equal(p.title, "⁨Morning, Block B⁩");
+  assert.equal(p.body, "2 late · 1 not at site");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(summary, "ar", null, strings).body, "متأخر 2 · خارج الموقع 1");
+  const m = fcmMessage("tok", p) as {
+    notification: { title: string; body: string };
+    android: { notification: { channel_id: string } };
+    apns?: unknown;
+  };
+  assert.equal(m.notification.body, "2 late · 1 not at site");
+  assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
+  assert.equal(m.apns, undefined);
+});
+
+test("review 109, lock-screen text off: only Time to check in / out, in the person's language, actions kept", () => {
+  const p = buildPush(checkInPlain("in"), "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Time to check in");
+  assert.ok(!p.body.includes("07:15"), "not even the time");
+  assert.equal(p.data.push_title, "BuildVibes");
+  assert.equal(p.data.push_body, "Time to check in");
+  assert.equal(p.data.post_id, "p1", "the ids stay, so Check in works");
+  assert.equal(p.data.mark, "in");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(checkInPlain("out"), "en", null, strings).body, "Time to check out");
+  assert.equal(buildPush(checkInPlain("in"), "ar", null, strings).body, "حان وقت تسجيل الحضور");
+  assert.equal(buildPush(checkInPlain("out"), "ar", null, strings).body, "حان وقت تسجيل الخروج");
+  const m = fcmMessage("tok", p) as {
+    android: { notification: { channel_id: string } };
+    apns: { payload: { aps: { category: string; alert: { title: string; body: string } } } };
+  };
+  assert.equal(m.apns.payload.aps.category, "CHECK_IN_IN", "the actions stay on iOS");
+  assert.equal(m.apns.payload.aps.alert.body, "Time to check in");
+  assert.equal(m.android.notification.channel_id, "check_in");
+  assert.ok(!JSON.stringify(m).includes("Morning"), "no title anywhere in what FCM gets");
+});
+
+test("review 109, lock-screen text off: the summary says only that it is ready", () => {
+  const summary = row("check_in_summary", { actor_id: null, data: { post_id: "p1", space_id: "s1" } });
+  const p = buildPush(summary, "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Check-in summary ready");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(summary, "ar", null, strings).body, "ملخص الحضور جاهز");
 });

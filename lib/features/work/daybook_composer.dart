@@ -8,6 +8,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
+import '../../data/models/check_in.dart' show checkInFitsDay;
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
@@ -25,6 +26,7 @@ import '../../shared/widgets/bv_writing_rows.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart' show personName;
+import 'composer_check_in.dart';
 import 'composer_kinds.dart';
 import 'composer_thanks.dart' show thanksRefusalText;
 import 'daybook_draft.dart';
@@ -92,6 +94,7 @@ class DaybookComposer extends ConsumerStatefulWidget {
     this.editing = false,
     this.askWho,
     this.onWalk,
+    this.onCheckIn,
   });
 
   final String spaceId;
@@ -133,6 +136,9 @@ class DaybookComposer extends ConsumerStatefulWidget {
 
   /// Walk, the last tile of #; null for who may not post work.
   final VoidCallback? onWalk;
+
+  /// A Check-in's lines (review 109 CI1): For, Check-in and Place.
+  final ValueChanged<CheckInPick>? onCheckIn;
 
   @override
   ConsumerState<DaybookComposer> createState() => DaybookComposerState();
@@ -212,6 +218,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
           DaybookKind.announcement => l10n.cpNewAnnouncement,
           DaybookKind.activity => l10n.cpNewActivity,
           DaybookKind.thanks => l10n.cpNewThanks,
+          DaybookKind.checkIn => l10n.cpNewCheckIn,
           DaybookKind.file || DaybookKind.report => kindName(l10n, kind),
         };
 
@@ -222,12 +229,15 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     DaybookKind.announcement => l10n.cpAddAnnouncement,
     DaybookKind.activity => l10n.cpAddActivity,
     DaybookKind.thanks => l10n.cpAddThanks,
+    DaybookKind.checkIn => l10n.cpAddCheckIn,
     DaybookKind.file || DaybookKind.report => l10n.daybookAttachTitle,
   };
 
   String _bodyHint(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
     // W6: a Thanks has Details (optional) under its words (TH1).
-    DaybookKind.workItem || DaybookKind.thanks => l10n.cpDetails,
+    DaybookKind.workItem ||
+    DaybookKind.thanks ||
+    DaybookKind.checkIn => l10n.cpDetails,
     DaybookKind.announcement => l10n.daybookBodyAnnouncement,
     DaybookKind.activity => l10n.daybookBodyActivity,
     _ => l10n.daybookBodyNote,
@@ -246,6 +256,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         ComposerExtra.table => l10n.pageTable,
         ComposerExtra.taskTable => l10n.pageTaskTable,
         ComposerExtra.pin => l10n.cpPin,
+        ComposerExtra.checkOut => l10n.checkInExtraOut,
+        ComposerExtra.everyDay => l10n.checkInEveryDay,
       };
 
   static IconData extraIcon(ComposerExtra e) => switch (e) {
@@ -260,6 +272,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     ComposerExtra.table => BvIcons.tableBlock,
     ComposerExtra.taskTable => BvIcons.todoList,
     ComposerExtra.pin => BvIcons.pin,
+    ComposerExtra.checkOut => BvIcons.checkOut,
+    ComposerExtra.everyDay => BvIcons.repeat,
   };
 
   /// # (CP2): the kind's icon on the bar.
@@ -320,6 +334,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
             onTap: widget.onPickPeople,
           );
     if (kind == DaybookKind.thanks) return _thanksLines(l10n, draft);
+    // Review 109 CI1: For · Check-in · Place.
+    if (kind == DaybookKind.checkIn) {
+      return checkInLines(
+        l10n,
+        words,
+        draft,
+        reading: ref.watch(checkInPlaceReadingProvider(widget.spaceId)),
+        ask: widget.askWho,
+        onPick: (p) => widget.onCheckIn?.call(p),
+      );
+    }
     final team = BvWritingRow(
       key: const Key('writing-to'),
       label: l10n.daybookRowTeam,
@@ -344,8 +369,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         team,
       ],
       DaybookKind.note || DaybookKind.announcement => [team],
-      // Answered above (_thanksLines).
-      DaybookKind.thanks => const [],
+      // Answered above (_thanksLines, checkInLines).
+      DaybookKind.thanks || DaybookKind.checkIn => const [],
       DaybookKind.file || DaybookKind.report => [
         BvWritingRow(
           key: const Key('writing-to'),
@@ -418,6 +443,28 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         .where((b) => b['type'] == PageChecklist.kind)
         .firstOrNull;
     return [
+      // Review 109 CI1: Check-out and Every day, from +.
+      if (draft.kind == DaybookKind.checkIn)
+        for (final c in checkInChips(l10n, words, draft))
+          BvFilterChip(
+            key: c.key,
+            clearKey: c.clearKey,
+            icon: c.icon,
+            label: c.label,
+            clearLabel: l10n.cpRemoveThe(
+              c.chip == CheckInChip.checkOut
+                  ? l10n.checkInExtraOut
+                  : l10n.checkInEveryDay,
+            ),
+            onTap: c.chip == CheckInChip.checkOut
+                ? () => widget.onExtra(ComposerExtra.checkOut)
+                : null,
+            onClear: () => unawaited(
+              c.chip == CheckInChip.checkOut
+                  ? _writer.setCheckOut(null)
+                  : _writer.setDaily(false),
+            ),
+          ),
       // TG1: the one tag, red when it is a danger tag (Safety).
       if (draft.tag case final tag?)
         BvFilterChip(
@@ -856,6 +903,21 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         spacing: BvSpace.s8,
                         runSpacing: BvSpace.s8,
                         children: added,
+                      ),
+                    ],
+                    // Review 109: the server's time rules, said before Send
+                    // can hit them (Send stays off).
+                    if (kind == DaybookKind.checkIn &&
+                        !draft.checkInTimesFit) ...[
+                      const SizedBox(height: BvSpace.s8),
+                      Text(
+                        checkInFitsDay(draft.inTime!, draft.inAllow)
+                            ? l10n.checkInOutTooEarly
+                            : l10n.checkInDayFit,
+                        key: const Key('writing-check-in-times-clash'),
+                        style: type.metadata.copyWith(
+                          color: BvColors.textDestructive,
+                        ),
                       ),
                     ],
                     if (draft.couldNotSend) ...[

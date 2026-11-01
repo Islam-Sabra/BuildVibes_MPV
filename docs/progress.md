@@ -895,6 +895,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checks: analyze clean; 3,113 app tests; 3,572 SQL checks; shots 556 pass, 12 expected, in `docs/reviews/shots-112/`.
 - **1 Nov (PC): review 112 accepted and live:** goldens from shots-112; merged into `slice2-app` (8562677b); migration 20261119120000 live; build 889, same certificate as 852, installed on the founder's phone as an update.
   - Checks: analyze clean; 3,113 app tests; 568 shots, all pass; 3,572 SQL checks.
+- **1 Nov (PC): review 109 (Check-in) on `claude/r109`**, for the lead; nothing merged, live, deployed or built:
+  - Server: migration 20261120120000 (not live), the check-in report and push functions (not deployed), the cron file (not run). App: composer, card, warning, creator's list, notifications (option C).
+  - Checks: analyze clean; 3,232 app tests; 3,781 SQL checks; shots 566 pass, 38 expected, in `docs/reviews/shots-109/`.
+- **1 Nov (PC): review 109, the lead's check Y1–Y12 on `claude/r109`**, for the lead; nothing merged, live, deployed or built:
+  - Server Y1–Y9 (the phone's time zone when the Space has none, past days, report names, 10 tries and reading quality, out without in, one recipient, no superseding, safe spreadsheet text, stuck jobs); app Y1, Y4, Y5, Y10–Y12.
+  - Checks: analyze clean; 3,252 app tests; 3,808 SQL checks; shots 566 pass, 44 expected, in `docs/reviews/shots-109b/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

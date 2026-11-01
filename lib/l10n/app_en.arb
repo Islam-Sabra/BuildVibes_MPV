@@ -9140,5 +9140,417 @@
   "workItemForSomeoneElse": "A work item is for someone else. For yourself, use My notebook.",
   "@workItemForSomeoneElse": {
     "description": "Review 112: the server refused a work item for its own author."
+  },
+  "daybookKindCheckIn": "Check-in",
+  "@daybookKindCheckIn": {
+    "description": "Review 109: the Check-in kind (glossary)."
+  },
+  "cpNewCheckIn": "New check-in",
+  "@cpNewCheckIn": {
+    "description": "Review 109 CI1: the composer top line for a Check-in."
+  },
+  "cpAddCheckIn": "Add to this check-in",
+  "@cpAddCheckIn": {
+    "description": "Review 109 CI1b: + on a Check-in."
+  },
+  "checkInFor": "For",
+  "@checkInFor": {
+    "description": "Review 109 CI1: who a Check-in asks (Teams or the whole Space)."
+  },
+  "checkInTeamsJoin": "{first} + {rest}",
+  "@checkInTeamsJoin": {
+    "description": "Review 109 CI1: two or more Teams on the For line.",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "rest": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInRowIn": "Check-in",
+  "@checkInRowIn": {
+    "description": "Review 109 CI1: the Check-in line: its time and allowance."
+  },
+  "checkInTimeAllow": "{time} · {minutes, plural, =0{no allowance} other{{minutes} min allowance}}",
+  "@checkInTimeAllow": {
+    "description": "Review 109 CI1: a check-in time and its allowance.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "checkInRowPlace": "Place",
+  "@checkInRowPlace": {
+    "description": "Review 109 CI1: the Place line."
+  },
+  "checkInSetPlace": "Set place here",
+  "@checkInSetPlace": {
+    "description": "Review 109 CI1: reads the Lead's location once; that point is the site."
+  },
+  "checkInPlaceSet": "Set here",
+  "@checkInPlaceSet": {
+    "description": "Review 109 CI1: the site is set where the Lead stood."
+  },
+  "checkInReading": "Reading your location…",
+  "@checkInReading": {
+    "description": "Review 109: while the location is read once."
+  },
+  "checkInPlaceRefused": "Location is off for BuildVibes. Allow it in the phone settings, then tap Set place here.",
+  "@checkInPlaceRefused": {
+    "description": "Review 109 CI1: the phone refused the location."
+  },
+  "checkInPlaceFailed": "Couldn't read where you are. Turn location on and try again.",
+  "@checkInPlaceFailed": {
+    "description": "Review 109 CI1: the location is off or too weak."
+  },
+  "checkInExtraOut": "Check-out",
+  "@checkInExtraOut": {
+    "description": "Review 109 CI1b: + adds a check-out time and allowance."
+  },
+  "checkInEveryDay": "Every day",
+  "@checkInEveryDay": {
+    "description": "Review 109 CI1b: the market pack's working days."
+  },
+  "checkInOnce": "Once",
+  "@checkInOnce": {
+    "description": "Review 109: a check-in that is not every day."
+  },
+  "checkInOutChip": "Out {time} · {minutes, plural, =0{no allowance} other{{minutes} min}}",
+  "@checkInOutChip": {
+    "description": "Review 109 CI1: the Check-out chip.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "checkInAllowance": "Allowance",
+  "@checkInAllowance": {
+    "description": "Review 109: minutes before and after the time that count as on time."
+  },
+  "checkInMinutes": "{minutes} min",
+  "@checkInMinutes": {
+    "description": "Review 109: one allowance choice.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "checkInTimeLabel": "Time",
+  "@checkInTimeLabel": {
+    "description": "Review 109: the time row of the Check-in and Check-out sheets."
+  },
+  "checkInTimeHelp": "Check-in time",
+  "@checkInTimeHelp": {
+    "description": "Review 109: the time picker's title."
+  },
+  "checkOutTimeHelp": "Check-out time",
+  "@checkOutTimeHelp": {
+    "description": "Review 109: the time picker's title."
+  },
+  "checkInSheetNote": "It opens {minutes} min before and is on time up to {minutes} min after. On site means within {metres} m of the place.",
+  "@checkInSheetNote": {
+    "description": "Review 109: what the allowance means; the distance is fixed.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "checkInDropWhat": "Its times and place",
+  "@checkInDropWhat": {
+    "description": "Review 109: what a kind switch takes from a Check-in."
+  },
+  "checkInIn": "In {time}",
+  "@checkInIn": {
+    "description": "Review 109 CI4, CI5: the In stamp.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInOut": "Out {time}",
+  "@checkInOut": {
+    "description": "Review 109 CI4, CI5: the Out stamp.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInOnTime": "on time",
+  "@checkInOnTime": {
+    "description": "Review 109 glossary: On time."
+  },
+  "checkInLate": "late",
+  "@checkInLate": {
+    "description": "Review 109 glossary: Late."
+  },
+  "checkInOnSite": "on site",
+  "@checkInOnSite": {
+    "description": "Review 109 glossary: On site."
+  },
+  "checkInAway": "not at site",
+  "@checkInAway": {
+    "description": "Review 109 glossary: Not at site."
+  },
+  "checkInNotShared": "location not shared",
+  "@checkInNotShared": {
+    "description": "Review 109 glossary: Location not shared."
+  },
+  "checkInNoLocation": "no location",
+  "@checkInNoLocation": {
+    "description": "Review 109 CI5: the list's short word for location not shared."
+  },
+  "checkInMissed": "Missed",
+  "@checkInMissed": {
+    "description": "Review 109 glossary: Missed."
+  },
+  "checkInTimes": "In {inTime} · Out {outTime}",
+  "@checkInTimes": {
+    "description": "Review 109 CI4: the card's times.",
+    "placeholders": {
+      "inTime": {
+        "type": "String"
+      },
+      "outTime": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInTimesIn": "In {inTime}",
+  "@checkInTimesIn": {
+    "description": "Review 109 CI4: the card's time with no check-out.",
+    "placeholders": {
+      "inTime": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInButton": "Check in",
+  "@checkInButton": {
+    "description": "Review 109 glossary: Check in (button)."
+  },
+  "checkOutButton": "Check out",
+  "@checkOutButton": {
+    "description": "Review 109 glossary: Check out (button)."
+  },
+  "checkInBy": "Check in · by {time}",
+  "@checkInBy": {
+    "description": "Review 109 CI4: Check in while open, with its on-time limit.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInFrom": "Check in · from {time}",
+  "@checkInFrom": {
+    "description": "Review 109 CI4: Check in, not open yet.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkOutFrom": "Check out · from {time}",
+  "@checkOutFrom": {
+    "description": "Review 109 CI4: Check out, not open yet.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInTryAgain": "Try again",
+  "@checkInTryAgain": {
+    "description": "Review 109 CI4: Not at site, while check-in is open."
+  },
+  "checkInStopped": "Stopped",
+  "@checkInStopped": {
+    "description": "Review 109: a repeating check-in its creator stopped."
+  },
+  "checkInNotToday": "No check-in today",
+  "@checkInNotToday": {
+    "description": "Review 109: a day off of an Every day check-in."
+  },
+  "checkInSeeList": "Who checked in",
+  "@checkInSeeList": {
+    "description": "Review 109 CI5: the creator's list, from the card."
+  },
+  "checkInResultIn": "Checked in {time} · {how}",
+  "@checkInResultIn": {
+    "description": "Review 109 CI2: the result, as a notification and a line.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInResultOut": "Checked out {time} · {how}",
+  "@checkInResultOut": {
+    "description": "Review 109: the check-out result.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInRefusedNotAllowed": "You aren't asked to check in here.",
+  "@checkInRefusedNotAllowed": {
+    "description": "Review 109: mark_check_in said not allowed."
+  },
+  "checkInRefusedNotOpen": "Check-in isn't open yet.",
+  "@checkInRefusedNotOpen": {
+    "description": "Review 109: mark_check_in said not open yet."
+  },
+  "checkInRefusedClosed": "Check-in is closed for today.",
+  "@checkInRefusedClosed": {
+    "description": "Review 109: mark_check_in said closed."
+  },
+  "checkInRefusedNotToday": "There's no check-in today.",
+  "@checkInRefusedNotToday": {
+    "description": "Review 109: mark_check_in said not a check-in day."
+  },
+  "checkInRefusedStopped": "This check-in was stopped.",
+  "@checkInRefusedStopped": {
+    "description": "Review 109: mark_check_in said stopped."
+  },
+  "checkInRefusedAlready": "You already checked in today.",
+  "@checkInRefusedAlready": {
+    "description": "Review 109: mark_check_in said already checked in."
+  },
+  "checkInRefusedNetwork": "No signal. Try again when you're back online.",
+  "@checkInRefusedNetwork": {
+    "description": "Review 109: no connection."
+  },
+  "checkInWarnTitle": "Checking in shares your location",
+  "@checkInWarnTitle": {
+    "description": "Review 109 CI3: the first-time warning."
+  },
+  "checkInWarnBody": "The app reads where you are once, now, and tells the creator if you are at the site. It does not follow you after that.",
+  "@checkInWarnBody": {
+    "description": "Review 109 CI3: the warning, word for word."
+  },
+  "checkInAccept": "Accept",
+  "@checkInAccept": {
+    "description": "Review 109 CI3: Accept: the phone asks its permission, once."
+  },
+  "checkInWithout": "Check in without location",
+  "@checkInWithout": {
+    "description": "Review 109 CI3: checked in as location not shared."
+  },
+  "checkOutWithout": "Check out without location",
+  "@checkOutWithout": {
+    "description": "Review 109 CI3: the same warning for a check-out."
+  },
+  "checkInListSub": "{day} · only you see this",
+  "@checkInListSub": {
+    "description": "Review 109 CI5: under the title.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInListToday": "Today",
+  "@checkInListToday": {
+    "description": "Review 109 CI5: the day picker's today."
+  },
+  "checkInListLibrary": "Saved to the Library every evening. Only you can open it.",
+  "@checkInListLibrary": {
+    "description": "Review 109 CI5: the evening spreadsheet."
+  },
+  "checkInListEmpty": "Nobody is asked to check in.",
+  "@checkInListEmpty": {
+    "description": "Review 109 CI5: no lines."
+  },
+  "checkInDayPicker": "Choose a day",
+  "@checkInDayPicker": {
+    "description": "Review 109 CI5: the day picker's title."
+  },
+  "checkInStop": "Stop",
+  "@checkInStop": {
+    "description": "Review 109: ⋯ → Stop on a repeating check-in (creator only)."
+  },
+  "checkInStopTitle": "Stop this check-in?",
+  "@checkInStopTitle": {
+    "description": "Review 109: the Stop confirmation."
+  },
+  "checkInStopBody": "Nobody is asked to check in from now on. Earlier days stay in the Library.",
+  "@checkInStopBody": {
+    "description": "Review 109: the Stop confirmation."
+  },
+  "checkInKeep": "Keep it",
+  "@checkInKeep": {
+    "description": "Review 109: cancel on the Stop confirmation."
+  },
+  "checkInStoppedDone": "Stopped. Earlier days stay in the Library.",
+  "@checkInStoppedDone": {
+    "description": "Review 109: after Stop."
+  },
+  "checkInChannel": "Check-in",
+  "@checkInChannel": {
+    "description": "Review 109 CI2: the Android notification channel."
+  },
+  "checkInChannelAbout": "When a check-in opens, with a button to check in.",
+  "@checkInChannelAbout": {
+    "description": "Review 109 CI2: the channel's description."
+  },
+  "checkInActionOpen": "Open",
+  "@checkInActionOpen": {
+    "description": "Review 109 CI2: the notification's Open."
+  },
+  "checkInRefusedNoCheckOut": "This check-in has no check-out.",
+  "@checkInRefusedNoCheckOut": {
+    "description": "Review 109: mark_check_in said no check-out."
+  },
+  "checkInOutTooEarly": "Check-out has to open after check-in’s on-time limit. Choose a later check-out or a shorter allowance.",
+  "@checkInOutTooEarly": {
+    "description": "Review 109: post_check_in's rule, checked before Send."
+  },
+  "checkInDayFit": "The check-in time and its allowance have to fit in the day.",
+  "@checkInDayFit": {
+    "description": "Review 109: post_check_in's rule, checked before Send."
+  },
+  "checkInTimeIn": "Time to check in",
+  "@checkInTimeIn": {
+    "description": "Review 109 CI2: a check-in notification's plain title when the push carries none."
+  },
+  "checkInTimeOut": "Time to check out",
+  "@checkInTimeOut": {
+    "description": "Review 109 CI2: a check-out notification's plain title when the push carries none."
+  },
+  "checkInReadingOnce": "Reading your location once to check in.",
+  "@checkInReadingOnce": {
+    "description": "Review 109 CI2: the short Android foreground notice while the Check in action reads the location."
+  },
+  "checkInRefusedTooMany": "Too many tries today. Ask your Lead.",
+  "@checkInRefusedTooMany": {
+    "description": "Review 109 Y4: mark_check_in said too many tries (10 a day per kind)."
+  },
+  "checkInInMissed": "In: missed",
+  "@checkInInMissed": {
+    "description": "Review 109 Y5: a check-out with no check-in that day."
   }
 }

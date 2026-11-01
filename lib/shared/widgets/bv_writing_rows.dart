@@ -106,6 +106,8 @@ class BvWritingRow {
     this.onClear,
     this.clearLabel,
     this.clearKey,
+    this.icon,
+    this.call = false,
   });
 
   final Key key;
@@ -129,6 +131,14 @@ class BvWritingRow {
   final VoidCallback? onClear;
   final String? clearLabel;
   final Key? clearKey;
+
+  /// Review 109 CI1: a small icon before the value (a Team, a clock, the
+  /// map pin).
+  final IconData? icon;
+
+  /// Review 109 CI1: a line still to do, said in the action colour on a
+  /// soft brand pill ("Set place here").
+  final bool call;
 }
 
 /// For · Place · Due · Team (review 105 SP2, review 104 N10): each a row
@@ -243,10 +253,11 @@ class BvWritingPills extends StatelessWidget {
 
   Widget _pill(BvTypeSet type, BvWritingRow r) {
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final valueColor = r.call ? BvColors.textAction : BvColors.textPrimary;
     return Semantics(
       button: r.onTap != null,
       child: Material(
-        color: BvColors.surfaceSubtle,
+        color: r.call ? BvColors.surfaceBrandSoft : BvColors.surfaceSubtle,
         shape: const StadiumBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -267,16 +278,20 @@ class BvWritingPills extends StatelessWidget {
                       size: BvAvatarSize.xs,
                       tint: r.tint,
                     ),
+                  if (r.icon case final icon?)
+                    Icon(
+                      icon,
+                      size: BvWritingPillSpec.caret,
+                      color: r.call ? BvColors.iconAction : valueColor,
+                    ),
                   Flexible(
                     child: Text(
                       r.value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: r.empty
+                      style: r.empty && !r.call
                           ? quiet
-                          : type.emphasisSm.copyWith(
-                              color: BvColors.textPrimary,
-                            ),
+                          : type.emphasisSm.copyWith(color: valueColor),
                     ),
                   ),
                   if (r.onTap != null && r.onClear == null)

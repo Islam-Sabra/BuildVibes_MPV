@@ -16,6 +16,8 @@ import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../core/l10n/phone_zone.dart';
+import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
@@ -1066,6 +1068,30 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           return _schedule(item, ScheduledCall.thanks, made.toParams(), at);
         }
         await daybook.createThanks(made);
+      // Review 109: a Check-in, with its site, times and Teams.
+      case PendingKind.post when item.draft?.kind == DaybookKind.checkIn:
+        final d = item.draft!;
+        final made = NewCheckIn(
+          id: item.id,
+          spaceId: item.spaceId,
+          title: d.title,
+          body: d.body,
+          teamIds: [for (final t in d.checkInTeams) t.id],
+          siteLat: d.siteLat!,
+          siteLng: d.siteLng!,
+          inTime: d.inTime!,
+          inAllow: d.inAllow,
+          outTime: d.outTime,
+          outAllow: d.outAllow,
+          daily: d.daily,
+          // Y1: always sent; the server keeps it when the Space has none.
+          timeZone: await ref.read(phoneTimeZoneProvider)(),
+        );
+        // Hold Send = Post later, as for every kind.
+        if (item.scheduleAt case final at?) {
+          return _schedule(item, ScheduledCall.checkIn, made.toParams(), at);
+        }
+        await ref.read(checkInRepositoryProvider).post(made);
       case PendingKind.post:
         final d = item.draft!;
         final made = NewSpacePost(

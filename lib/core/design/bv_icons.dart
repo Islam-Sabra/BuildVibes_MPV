@@ -464,4 +464,10 @@ abstract final class BvIcons {
   static const walk = IconData(0xe73a, fontFamily: _family);
   // Phosphor: tag (a work item's tag)
   static const tag = IconData(0xe478, fontFamily: _family);
+
+  // Review 109 (CI1b, CI4): Check-in's extras. A check-in is the map pin
+  // ([place]). Phosphor: repeat (Every day)
+  static const repeat = IconData(0xe3f6, fontFamily: _family);
+  // Phosphor: sign-out (Check-out). An arrow leaving, so it mirrors.
+  static const checkOut = signOut;
 }

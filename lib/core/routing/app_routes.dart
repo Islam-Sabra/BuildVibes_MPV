@@ -177,6 +177,10 @@ abstract final class AppRoutes {
   /// R1 · Walk mode (slice 6).
   static String spaceWalk(String id) => '/spaces/$id/walk';
 
+  /// Review 109 CI5: a Check-in's list, for its creator only.
+  static String spaceCheckIn(String id, String postId) =>
+      '/spaces/$id/check-ins/$postId';
+
   /// S · Search inside a Space.
   static String spaceSearch(String id) => '/spaces/$id/search';
 

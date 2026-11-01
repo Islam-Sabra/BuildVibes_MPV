@@ -12,6 +12,12 @@
     <!-- F107 (NBX4): a note's GPS position, asked the first time. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Review 109 CI2: Check in from a notification reads the location
+         once in a short foreground service of type location (geolocator's
+         GeolocatorLocationService). No background location permission:
+         the service runs only while the person's tap is being answered. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <!-- Review 100 B6: Android's predictive back (the screen under shows
          while swiping back). -->
     <application
@@ -60,6 +66,9 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+        <!-- Review 109 CI2: a notification's Check in action, answered
+             without opening the app. -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
         <!-- Push (FCM): the channel MainActivity creates. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"

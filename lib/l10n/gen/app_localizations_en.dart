@@ -6423,4 +6423,292 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get workItemForSomeoneElse =>
       'A work item is for someone else. For yourself, use My notebook.';
+
+  @override
+  String get daybookKindCheckIn => 'Check-in';
+
+  @override
+  String get cpNewCheckIn => 'New check-in';
+
+  @override
+  String get cpAddCheckIn => 'Add to this check-in';
+
+  @override
+  String get checkInFor => 'For';
+
+  @override
+  String checkInTeamsJoin(String first, String rest) {
+    return '$first + $rest';
+  }
+
+  @override
+  String get checkInRowIn => 'Check-in';
+
+  @override
+  String checkInTimeAllow(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min allowance',
+      zero: 'no allowance',
+    );
+    return '$time · $_temp0';
+  }
+
+  @override
+  String get checkInRowPlace => 'Place';
+
+  @override
+  String get checkInSetPlace => 'Set place here';
+
+  @override
+  String get checkInPlaceSet => 'Set here';
+
+  @override
+  String get checkInReading => 'Reading your location…';
+
+  @override
+  String get checkInPlaceRefused =>
+      'Location is off for BuildVibes. Allow it in the phone settings, then tap Set place here.';
+
+  @override
+  String get checkInPlaceFailed =>
+      'Couldn\'t read where you are. Turn location on and try again.';
+
+  @override
+  String get checkInExtraOut => 'Check-out';
+
+  @override
+  String get checkInEveryDay => 'Every day';
+
+  @override
+  String get checkInOnce => 'Once';
+
+  @override
+  String checkInOutChip(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      zero: 'no allowance',
+    );
+    return 'Out $time · $_temp0';
+  }
+
+  @override
+  String get checkInAllowance => 'Allowance';
+
+  @override
+  String checkInMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get checkInTimeLabel => 'Time';
+
+  @override
+  String get checkInTimeHelp => 'Check-in time';
+
+  @override
+  String get checkOutTimeHelp => 'Check-out time';
+
+  @override
+  String checkInSheetNote(int minutes, int metres) {
+    return 'It opens $minutes min before and is on time up to $minutes min after. On site means within $metres m of the place.';
+  }
+
+  @override
+  String get checkInDropWhat => 'Its times and place';
+
+  @override
+  String checkInIn(String time) {
+    return 'In $time';
+  }
+
+  @override
+  String checkInOut(String time) {
+    return 'Out $time';
+  }
+
+  @override
+  String get checkInOnTime => 'on time';
+
+  @override
+  String get checkInLate => 'late';
+
+  @override
+  String get checkInOnSite => 'on site';
+
+  @override
+  String get checkInAway => 'not at site';
+
+  @override
+  String get checkInNotShared => 'location not shared';
+
+  @override
+  String get checkInNoLocation => 'no location';
+
+  @override
+  String get checkInMissed => 'Missed';
+
+  @override
+  String checkInTimes(String inTime, String outTime) {
+    return 'In $inTime · Out $outTime';
+  }
+
+  @override
+  String checkInTimesIn(String inTime) {
+    return 'In $inTime';
+  }
+
+  @override
+  String get checkInButton => 'Check in';
+
+  @override
+  String get checkOutButton => 'Check out';
+
+  @override
+  String checkInBy(String time) {
+    return 'Check in · by $time';
+  }
+
+  @override
+  String checkInFrom(String time) {
+    return 'Check in · from $time';
+  }
+
+  @override
+  String checkOutFrom(String time) {
+    return 'Check out · from $time';
+  }
+
+  @override
+  String get checkInTryAgain => 'Try again';
+
+  @override
+  String get checkInStopped => 'Stopped';
+
+  @override
+  String get checkInNotToday => 'No check-in today';
+
+  @override
+  String get checkInSeeList => 'Who checked in';
+
+  @override
+  String checkInResultIn(String time, String how) {
+    return 'Checked in $time · $how';
+  }
+
+  @override
+  String checkInResultOut(String time, String how) {
+    return 'Checked out $time · $how';
+  }
+
+  @override
+  String get checkInRefusedNotAllowed => 'You aren\'t asked to check in here.';
+
+  @override
+  String get checkInRefusedNotOpen => 'Check-in isn\'t open yet.';
+
+  @override
+  String get checkInRefusedClosed => 'Check-in is closed for today.';
+
+  @override
+  String get checkInRefusedNotToday => 'There\'s no check-in today.';
+
+  @override
+  String get checkInRefusedStopped => 'This check-in was stopped.';
+
+  @override
+  String get checkInRefusedAlready => 'You already checked in today.';
+
+  @override
+  String get checkInRefusedNetwork =>
+      'No signal. Try again when you\'re back online.';
+
+  @override
+  String get checkInWarnTitle => 'Checking in shares your location';
+
+  @override
+  String get checkInWarnBody =>
+      'The app reads where you are once, now, and tells the creator if you are at the site. It does not follow you after that.';
+
+  @override
+  String get checkInAccept => 'Accept';
+
+  @override
+  String get checkInWithout => 'Check in without location';
+
+  @override
+  String get checkOutWithout => 'Check out without location';
+
+  @override
+  String checkInListSub(String day) {
+    return '$day · only you see this';
+  }
+
+  @override
+  String get checkInListToday => 'Today';
+
+  @override
+  String get checkInListLibrary =>
+      'Saved to the Library every evening. Only you can open it.';
+
+  @override
+  String get checkInListEmpty => 'Nobody is asked to check in.';
+
+  @override
+  String get checkInDayPicker => 'Choose a day';
+
+  @override
+  String get checkInStop => 'Stop';
+
+  @override
+  String get checkInStopTitle => 'Stop this check-in?';
+
+  @override
+  String get checkInStopBody =>
+      'Nobody is asked to check in from now on. Earlier days stay in the Library.';
+
+  @override
+  String get checkInKeep => 'Keep it';
+
+  @override
+  String get checkInStoppedDone => 'Stopped. Earlier days stay in the Library.';
+
+  @override
+  String get checkInChannel => 'Check-in';
+
+  @override
+  String get checkInChannelAbout =>
+      'When a check-in opens, with a button to check in.';
+
+  @override
+  String get checkInActionOpen => 'Open';
+
+  @override
+  String get checkInRefusedNoCheckOut => 'This check-in has no check-out.';
+
+  @override
+  String get checkInOutTooEarly =>
+      'Check-out has to open after check-in’s on-time limit. Choose a later check-out or a shorter allowance.';
+
+  @override
+  String get checkInDayFit =>
+      'The check-in time and its allowance have to fit in the day.';
+
+  @override
+  String get checkInTimeIn => 'Time to check in';
+
+  @override
+  String get checkInTimeOut => 'Time to check out';
+
+  @override
+  String get checkInReadingOnce => 'Reading your location once to check in.';
+
+  @override
+  String get checkInRefusedTooMany => 'Too many tries today. Ask your Lead.';
+
+  @override
+  String get checkInInMissed => 'In: missed';
 }

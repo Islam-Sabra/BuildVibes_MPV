@@ -155,3 +155,24 @@ abstract final class BvPhotoStripSpec {
   static const ring = BvSize.iconLg + BvSpace.s8; // 32
   static const mark = BvSize.iconSm;
 }
+
+/// Review 109 (CI4 2706:39534, CI5 2706:39604): a check-in's stamps, a
+/// small rounded label with its icon, and the creator's list rows.
+abstract final class BvCheckInSpec {
+  static const stampPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s8,
+    vertical: BvSpace.s4,
+  );
+  static const stampRadius = BvRadius.smallAll;
+  static const stampIcon = BvSize.iconSm;
+  static const stampGap = BvSpace.s4;
+  static const gap = BvSpace.s8;
+
+  /// A list line's name and stamps share its width, 2 : 3.
+  static const nameFlex = 2;
+  static const stampsFlex = 3;
+  static const rowPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.gutter,
+    vertical: BvSpace.s12,
+  );
+}

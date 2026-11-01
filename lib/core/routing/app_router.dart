@@ -67,6 +67,7 @@ import '../../features/feed/post_screen.dart';
 import '../../features/library/library_file_screen.dart';
 import '../../features/spaces/space_search_screen.dart';
 import '../../features/spaces/space_templates_screen.dart';
+import '../../features/work/check_in_list_screen.dart';
 import '../../features/work/walk_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
@@ -465,6 +466,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'walk',
             builder: (context, state) =>
                 WalkScreen(spaceId: state.pathParameters['id']!),
+          ),
+          // Review 109 CI5: the creator's Check-in list.
+          _Screen(
+            path: 'check-ins/:postId',
+            builder: (context, state) => CheckInListScreen(
+              spaceId: state.pathParameters['id']!,
+              postId: state.pathParameters['postId']!,
+            ),
           ),
           _Screen(
             path: 'search',
