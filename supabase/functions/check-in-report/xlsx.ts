@@ -30,6 +30,13 @@ export function xmlText(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
+// Y8 (the lead's check): text starting with = + - or @ gets an apostrophe
+// first, so no spreadsheet program, and no copy into a CSV, ever reads it
+// as a formula.
+export function cellText(s: string): string {
+  return /^[=+\-@]/.test(s) ? `'${s}` : s;
+}
+
 // 0 → A, 25 → Z, 26 → AA.
 export function columnName(i: number): string {
   let n = i + 1;
@@ -57,7 +64,7 @@ function sheetXml(rows: string[][], rightToLeft: boolean): string {
     const style = r === 0 ? ' s="1"' : "";
     const cs = cells.map((v, c) =>
       `<c r="${columnName(c)}${r + 1}" t="inlineStr"${style}><is><t xml:space="preserve">${
-        xmlText(v ?? "")
+        xmlText(cellText(v ?? ""))
       }</t></is></c>`
     ).join("");
     return `<row r="${r + 1}">${cs}</row>`;

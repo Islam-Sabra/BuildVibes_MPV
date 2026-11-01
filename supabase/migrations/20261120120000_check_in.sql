@@ -70,9 +70,9 @@ create table public.check_in_posts (
   repeat text not null check (repeat in ('once', 'daily')),
   -- Its first day (once: its only day), in the Space's time zone.
   start_day date not null,
-  -- The market whose time zone and working days it keeps when the Space
-  -- has no project: the creator's when posting.
-  market_id text references public.markets (id),
+  -- Y1 (the lead's check): the creator's phone time zone when it was
+  -- posted (an IANA name), used when the Space has no project's zone.
+  time_zone text not null,
   stopped_at timestamptz,
   created_at timestamptz not null default now(),
   check ((out_time is null) = (out_allow_min is null))
@@ -89,6 +89,8 @@ create table public.check_in_marks (
   at timestamptz not null,
   on_time boolean not null,
   place text not null check (place in ('on_site', 'away', 'not_shared')),
+  -- Y4: how many times it was marked (an 'away' is tried again), at most 10.
+  tries smallint not null default 1 check (tries between 1 and 10),
   primary key (post_id, user_id, day, kind)
 );
 create index check_in_marks_day_idx on public.check_in_marks (post_id, day);
@@ -189,8 +191,35 @@ $$;
 -- 3. The times
 -- ---------------------------------------------------------------------------
 
--- The market a check-in keeps: its Space's project's, else the one kept
--- when it was posted.
+-- The Space's project's time zone, as space_time_zone gives it (its
+-- project's market), for the server's jobs too, which have no member.
+create or replace function public.check_in_space_zone(p_space uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select m.time_zone from public.spaces s
+  join public.projects pr on pr.id = s.project_id
+  join public.markets m on m.id = pr.market_id
+  where s.id = p_space;
+$$;
+
+-- Y1: a check-in's clock: the Space's time zone, else the creator's phone
+-- time zone kept when it was posted. Never a home market, never UTC.
+create or replace function public.check_in_zone(p_c public.check_in_posts)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(public.check_in_space_zone(p_c.space_id), p_c.time_zone);
+$$;
+
+-- The market whose working days Every day keeps: the Space's project's;
+-- with no project, the market pack whose time zone is the check-in's.
 create or replace function public.check_in_market(p_c public.check_in_posts)
 returns public.markets
 language sql
@@ -199,19 +228,12 @@ security definer
 set search_path = ''
 as $$
   select m.* from public.markets m
-  where m.id = coalesce((select pr.market_id from public.spaces s
-                         join public.projects pr on pr.id = s.project_id
-                         where s.id = p_c.space_id), p_c.market_id);
-$$;
-
-create or replace function public.check_in_zone(p_c public.check_in_posts)
-returns text
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select coalesce((public.check_in_market(p_c)).time_zone, 'UTC');
+  where m.id = coalesce(
+    (select pr.market_id from public.spaces s
+     join public.projects pr on pr.id = s.project_id
+     where s.id = p_c.space_id),
+    (select mk.id from public.markets mk where mk.time_zone = p_c.time_zone
+     order by mk.sort, mk.id limit 1));
 $$;
 
 -- [p_day] is one of its days by its schedule: on or after its first day;
@@ -360,7 +382,9 @@ grant all on public.check_in_posts, public.check_in_marks, public.check_in_sends
 -- CI1: [p_title] (and [p_body]) for [p_teams] (null: the whole Space), at
 -- the site [p_site_lat], [p_site_lng]; check-in at [p_in_time] with
 -- [p_in_allow] minutes; check-out at [p_out_time] with [p_out_allow]
--- (15 when not given); [p_daily]: every working day, else once. The same
+-- (15 when not given); [p_daily]: every working day, else once;
+-- [p_time_zone]: the phone's (IANA), needed when the Space has no project's
+-- zone. The same
 -- [p_id] again is the same check-in. Its first day is today if check-in
 -- hasn't closed yet today (and today is one of its days), else its next day.
 create or replace function public.post_check_in(
@@ -375,7 +399,8 @@ create or replace function public.post_check_in(
   p_in_allow integer default 15,
   p_out_time time default null,
   p_out_allow integer default null,
-  p_daily boolean default false
+  p_daily boolean default false,
+  p_time_zone text default null
 )
 returns uuid
 language plpgsql
@@ -395,6 +420,7 @@ declare
   v_day date;
   v_in_min numeric;
   v_out_min numeric;
+  v_zone text := nullif(trim(coalesce(p_time_zone, '')), '');
 begin
   if v_me is null then
     raise exception 'sign in first' using errcode = '42501';
@@ -455,6 +481,16 @@ begin
     end if;
   end if;
 
+  -- Y1: a real zone name; required when the Space has no zone of its own.
+  if v_zone is not null
+     and not exists (select 1 from pg_catalog.pg_timezone_names z where z.name = v_zone) then
+    raise exception 'a time zone' using errcode = '22023';
+  end if;
+  v_zone := coalesce(public.check_in_space_zone(p_space), v_zone);
+  if v_zone is null then
+    raise exception 'a time zone' using errcode = '22023';
+  end if;
+
   v_teams := (select array_agg(distinct t) from unnest(p_teams) t where t is not null);
   if v_teams is not null and exists (
        select 1 from unnest(v_teams) t
@@ -477,11 +513,7 @@ begin
   v_c.out_time := p_out_time;
   v_c.out_allow_min := v_out_allow;
   v_c.repeat := case when coalesce(p_daily, false) then 'daily' else 'once' end;
-  -- With no project, the creator's market keeps its zone and working days.
-  v_c.market_id := coalesce(
-    (select pr.market_id from public.spaces s join public.projects pr on pr.id = s.project_id
-     where s.id = p_space),
-    (select p.home_market_id from public.profiles p where p.id = v_me));
+  v_c.time_zone := v_zone;
   v_today := (now() at time zone public.check_in_zone(v_c))::date;
   v_c.start_day := v_today;
   if not public.check_in_runs_on(v_c, v_today)
@@ -507,8 +539,12 @@ $$;
 
 -- The caller's In or Out on [p_post] at [p_now]; [p_lat], [p_lng] (both or
 -- neither) where the phone is, used for the 100 m test and never kept.
+-- Y4: a reading Android flags as mocked ([p_mocked]), or one whose
+-- [p_accuracy] is worse than 100 m, counts as not shared; neither is kept.
+-- At most 10 marks per person, post, day and kind.
 create or replace function public.check_in_mark_at(
-  p_post uuid, p_kind text, p_lat double precision, p_lng double precision, p_now timestamptz)
+  p_post uuid, p_kind text, p_lat double precision, p_lng double precision,
+  p_accuracy double precision, p_mocked boolean, p_now timestamptz)
 returns jsonb
 language plpgsql
 volatile
@@ -567,11 +603,7 @@ begin
     if p_now >= v_t.day_ends_at then
       raise exception 'closed' using errcode = '22023';
     end if;
-    if not exists (select 1 from public.check_in_marks k
-                   where k.post_id = p_post and k.user_id = v_me and k.day = v_day
-                     and k.kind = 'in') then
-      raise exception 'check in first' using errcode = '22023';
-    end if;
+    -- Y5: check-out without check-in is allowed; the day shows In missed.
     v_on_time := p_now <= v_t.out_until;
   end if;
 
@@ -581,10 +613,14 @@ begin
   if v_old.post_id is not null and v_old.place <> 'away' then
     raise exception 'already checked in' using errcode = '22023';
   end if;
+  if v_old.tries >= 10 then
+    raise exception 'too many tries' using errcode = '22023';
+  end if;
 
   v_place := case
     when p_lat is null or p_lng is null
-         or p_lat not between -90 and 90 or p_lng not between -180 and 180 then 'not_shared'
+         or p_lat not between -90 and 90 or p_lng not between -180 and 180
+         or coalesce(p_mocked, false) or p_accuracy > 100 then 'not_shared'
     when public.check_in_distance_m(v_c.site_lat, v_c.site_lng, p_lat, p_lng) <= 100 then 'on_site'
     else 'away'
   end;
@@ -592,8 +628,9 @@ begin
   insert into public.check_in_marks as k (post_id, user_id, day, kind, at, on_time, place)
   values (p_post, v_me, v_day, p_kind, p_now, v_on_time, v_place)
   on conflict (post_id, user_id, day, kind) do update
-    set at = excluded.at, on_time = excluded.on_time, place = excluded.place
-    where k.place = 'away';
+    set at = excluded.at, on_time = excluded.on_time, place = excluded.place,
+        tries = k.tries + 1
+    where k.place = 'away' and k.tries < 10;
   if not found then
     raise exception 'already checked in' using errcode = '22023';
   end if;
@@ -604,14 +641,15 @@ $$;
 
 -- CI2–CI4: the caller's In or Out, now.
 create or replace function public.mark_check_in(
-  p_post uuid, p_kind text, p_lat double precision default null, p_lng double precision default null)
+  p_post uuid, p_kind text, p_lat double precision default null, p_lng double precision default null,
+  p_accuracy double precision default null, p_mocked boolean default false)
 returns jsonb
 language sql
 volatile
 security definer
 set search_path = ''
 as $$
-  select public.check_in_mark_at(p_post, p_kind, p_lat, p_lng, now());
+  select public.check_in_mark_at(p_post, p_kind, p_lat, p_lng, p_accuracy, p_mocked, now());
 $$;
 
 -- Stop (⋯): its creator; a Space admin once the creator has left the
@@ -636,9 +674,12 @@ $$;
 -- 6. The list (CI5)
 -- ---------------------------------------------------------------------------
 
--- [p_post]'s lines for [p_day] at [p_now]: everyone asked, and anyone who
--- marked that day (so a day's list keeps who has since left), A–Z.
--- Missed: it ran that day, check-in has closed, and no In.
+-- [p_post]'s lines for [p_day] at [p_now]: everyone who was asked ON that
+-- day (Y2: a member, not a Viewer, not its creator, joined by the day's end
+-- and not gone before its start, in an asked Team by its end), and anyone
+-- who marked that day, A–Z. Names as the list's reader may see them
+-- (space_person_name: blocked and hidden people have none). Missed: it ran
+-- that day, check-in has closed, and no In (an Out may still be there, Y5).
 create or replace function public.check_in_rows(p_post uuid, p_day date, p_now timestamptz)
 returns table (user_id uuid, name text, team text, in_at timestamptz, in_on_time boolean,
                in_place text, out_at timestamptz, out_on_time boolean, out_place text,
@@ -660,8 +701,22 @@ as $$
            and p_now >= (public.check_in_times(c, p_day)).in_closes_at
   from public.check_in_posts c
   cross join lateral (
-    select m.profile_id as uid from public.space_members m
-    where m.space_id = c.space_id and public.check_in_asked(c, m.profile_id)
+    select m.profile_id as uid
+    from public.space_members m
+    join public.space_posts p on p.id = c.post_id
+    cross join lateral (
+      select p_day::timestamp at time zone public.check_in_zone(c) as starts,
+             (p_day + 1)::timestamp at time zone public.check_in_zone(c) as ends) w
+    where m.space_id = c.space_id and m.pass <> 'viewer'
+      and m.profile_id is distinct from p.author_id
+      and m.confirmed_at < w.ends
+      and (m.left_at is null or m.left_at >= w.starts)
+      and not public.is_hidden_account(m.profile_id)
+      and (c.team_ids is null
+           or exists (select 1 from public.team_members tm
+                      join public.teams t on t.id = tm.team_id and t.space_id = c.space_id
+                      where tm.profile_id = m.profile_id and tm.team_id = any (c.team_ids)
+                        and tm.created_at < w.ends))
     union
     select k.user_id from public.check_in_marks k where k.post_id = c.post_id and k.day = p_day
   ) pe
@@ -787,6 +842,8 @@ begin
               from public.teams t where t.id = any (v_c.team_ids)),
     'stopped', v_stopped,
     'site_set', true,
+    -- Y1: the zone its times are in, for the app to show them in.
+    'tz', public.check_in_zone(v_c),
     'sees_list', public.check_in_sees_list(v_c.post_id),
     -- Stop in ⋯: an every-day check-in not yet stopped, for whoever may
     -- stop it (stop_check_in).
@@ -1112,8 +1169,9 @@ $function$;
 -- 8. Pushes (every minute)
 -- ---------------------------------------------------------------------------
 
--- Who gets [p_c]'s summary: its creator while in the Space, else every
--- active admin.
+-- Who gets [p_c]'s summary and report: its creator while in the Space;
+-- else (Y6) the one active admin who joined first. Seeing the list and
+-- Stop stay open to any admin then; the push and the file go to one.
 create or replace function public.check_in_owners(p_c public.check_in_posts)
 returns setof uuid
 language sql
@@ -1126,13 +1184,15 @@ as $$
     and public.is_active_member(p_c.space_id, p.author_id)
     and not public.is_hidden_account(p.author_id)
   union all
-  select m.profile_id from public.space_members m
-  where m.space_id = p_c.space_id and m.is_admin and m.left_at is null
-    and not public.is_hidden_account(m.profile_id)
-    and not exists (select 1 from public.space_posts p
-                    where p.id = p_c.post_id and p.author_id is not null
-                      and public.is_active_member(p_c.space_id, p.author_id)
-                      and not public.is_hidden_account(p.author_id));
+  (select m.profile_id from public.space_members m
+   where m.space_id = p_c.space_id and m.is_admin and m.left_at is null
+     and not public.is_hidden_account(m.profile_id)
+     and not exists (select 1 from public.space_posts p
+                     where p.id = p_c.post_id and p.author_id is not null
+                       and public.is_active_member(p_c.space_id, p.author_id)
+                       and not public.is_hidden_account(p.author_id))
+   order by m.confirmed_at, m.profile_id
+   limit 1);
 $$;
 
 -- The lock-screen rule (migration 14, push_settings.message_text, off
@@ -1217,7 +1277,8 @@ begin
           v_queued := v_queued + v_rows;
         end if;
       end if;
-      -- Check-out opens: each asked person who checked in and hasn't out.
+      -- Check-out opens: each asked person who hasn't checked out (Y5:
+      -- check-out without check-in is allowed).
       if v_c.out_time is not null and p_now >= v_t.out_opens_at and p_now < v_t.day_ends_at then
         v_new := null;
         insert into public.check_in_sends (post_id, day, what) values (v_c.post_id, v_today, 'out')
@@ -1233,9 +1294,6 @@ begin
                          else '{}'::jsonb end
           from public.space_members m
           where m.space_id = v_c.space_id and public.check_in_asked(v_c, m.profile_id)
-            and exists (select 1 from public.check_in_marks k
-                        where k.post_id = v_c.post_id and k.user_id = m.profile_id
-                          and k.day = v_today and k.kind = 'in')
             and not exists (select 1 from public.check_in_marks k
                             where k.post_id = v_c.post_id and k.user_id = m.profile_id
                               and k.day = v_today and k.kind = 'out')
@@ -1350,7 +1408,8 @@ begin
 end;
 $$;
 
--- The function takes up to [p_limit] jobs (a claim lasts 10 minutes).
+-- The function takes up to [p_limit] jobs (a claim lasts 10 minutes). Y9:
+-- a job still claimed after its fifth try has failed for good.
 create or replace function public.claim_check_in_reports(p_limit integer default 20)
 returns table (post_id uuid, day date, space_id uuid, recipient_id uuid, file_id uuid,
                file_name text, storage_path text, title text, locale text, time_zone text)
@@ -1359,7 +1418,13 @@ volatile
 security definer
 set search_path = ''
 as $$
-  with due as (
+  with stuck as (
+    update public.check_in_reports r
+    set state = 'failed', error = coalesce(r.error, 'no answer after five tries')
+    where r.state = 'claimed' and r.attempts >= 5 and r.claimed_at < now() - interval '10 minutes'
+    returning r.post_id
+  ),
+  due as (
     select r.post_id, r.day from public.check_in_reports r
     where r.attempts < 5
       and (r.state = 'waiting'
@@ -1383,29 +1448,48 @@ as $$
 $$;
 
 -- The report's lines for [p_day], as the spreadsheet shows them: the
--- name, the Team, In and Out in the Space's time zone, late, and the
--- place result of the In ('missed' with no In).
+-- name, the Team, In and Out in the check-in's time zone, late, and the
+-- place result of the In ('missed' with no In; its Out may be there, Y5).
+-- Y3: named as the list names them for the report's reader (its job's
+-- recipient): someone blocked either way, or hidden, has no name ("—").
 create or replace function public.check_in_report_rows(p_post uuid, p_day date)
 returns table (name text, team text, in_time text, out_time text, in_late boolean,
                out_late boolean, place text)
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = ''
 as $$
-  select coalesce(nullif(trim(coalesce(pr.first_name, '') || ' ' || coalesce(pr.last_name, '')), ''), '—'),
-         r.team,
-         to_char(r.in_at at time zone z.zone, 'HH24:MI'),
-         to_char(r.out_at at time zone z.zone, 'HH24:MI'),
-         coalesce(not r.in_on_time, false),
-         coalesce(not r.out_on_time, false),
-         case when r.missed then 'missed' else r.in_place end
-  from public.check_in_rows(p_post, p_day, 'infinity'::timestamptz) r
-  left join public.profiles pr on pr.id = r.user_id
-  cross join (select public.check_in_zone(c) as zone from public.check_in_posts c
-              where c.post_id = p_post) z
-  order by lower(coalesce(nullif(trim(coalesce(pr.first_name, '') || ' ' || coalesce(pr.last_name, '')), ''), '')),
-           r.user_id;
+declare
+  v_c public.check_in_posts;
+  v_reader uuid;
+  v_zone text;
+  v_claims text := coalesce(current_setting('request.jwt.claims', true), '');
+  v_sub text := coalesce(current_setting('request.jwt.claim.sub', true), '');
+begin
+  select * into v_c from public.check_in_posts c where c.post_id = p_post;
+  if v_c.post_id is null then
+    return;
+  end if;
+  v_zone := public.check_in_zone(v_c);
+  v_reader := coalesce(
+    (select r.recipient_id from public.check_in_reports r where r.post_id = p_post and r.day = p_day),
+    (select o.id from public.check_in_owners(v_c) o(id) limit 1));
+  perform set_config('request.jwt.claims',
+    jsonb_build_object('sub', v_reader, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', coalesce(v_reader::text, ''), true);
+  return query
+    select coalesce(r.name, '—'),
+           r.team,
+           to_char(r.in_at at time zone v_zone, 'HH24:MI'),
+           to_char(r.out_at at time zone v_zone, 'HH24:MI'),
+           coalesce(not r.in_on_time, false),
+           coalesce(not r.out_on_time, false),
+           case when r.missed then 'missed' else r.in_place end
+    from public.check_in_rows(p_post, p_day, 'infinity'::timestamptz) r;
+  perform set_config('request.jwt.claims', v_claims, true);
+  perform set_config('request.jwt.claim.sub', v_sub, true);
+end;
 $$;
 
 -- The function stored the file ([p_bytes]): it goes into the Library,
@@ -1471,7 +1555,7 @@ as $$
       when 'share_note_to_feed' then 'public.share_note_to_feed(uuid, uuid, text, text[], uuid, boolean, jsonb)'
       when 'share_note_to_space' then 'public.share_note_to_space(uuid, uuid, uuid, text, text[], uuid, uuid, boolean, jsonb, uuid[])'
       when 'create_thanks' then 'public.create_thanks(uuid, uuid, text, uuid, uuid, uuid, jsonb)'
-      when 'post_check_in' then 'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean)'
+      when 'post_check_in' then 'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean, text)'
     end) as oid
   ),
   args as (
@@ -1800,10 +1884,38 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 12. A check-in report has no versions (Y7), as a model view's come only
+--     from BuildVibes 360: every way a file is added goes through here.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.check_in_report_no_versions()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.supersedes_id is not null
+     and (new.source = 'check_in_report'
+          or exists (select 1 from public.library_files f
+                     where f.id = new.supersedes_id and f.source = 'check_in_report')) then
+    raise exception 'a check-in report has no newer versions' using errcode = '22023';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger library_files_check_in_report_no_versions
+  before insert or update of supersedes_id on public.library_files
+  for each row execute function public.check_in_report_no_versions();
+
+-- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
 
 revoke all on function public.check_in_market(public.check_in_posts) from public, anon, authenticated;
+revoke all on function public.check_in_space_zone(uuid) from public, anon, authenticated;
+revoke all on function public.check_in_report_no_versions() from public, anon, authenticated;
 revoke all on function public.check_in_zone(public.check_in_posts) from public, anon, authenticated;
 revoke all on function public.check_in_runs_on(public.check_in_posts, date) from public, anon, authenticated;
 revoke all on function public.check_in_ran_on(public.check_in_posts, date) from public, anon, authenticated;
@@ -1815,11 +1927,12 @@ revoke all on function public.check_in_asked(public.check_in_posts, uuid) from p
 -- sees the list.
 revoke all on function public.check_in_sees_list(uuid) from public, anon;
 revoke all on function public.post_check_in(uuid, uuid, text, text, uuid[], double precision,
-                                            double precision, time, integer, time, integer, boolean)
+                                            double precision, time, integer, time, integer, boolean, text)
   from public, anon;
-revoke all on function public.check_in_mark_at(uuid, text, double precision, double precision, timestamptz)
+revoke all on function public.check_in_mark_at(uuid, text, double precision, double precision,
+                                                double precision, boolean, timestamptz)
   from public, anon, authenticated;
-revoke all on function public.mark_check_in(uuid, text, double precision, double precision) from public, anon;
+revoke all on function public.mark_check_in(uuid, text, double precision, double precision, double precision, boolean) from public, anon;
 revoke all on function public.stop_check_in(uuid) from public, anon;
 revoke all on function public.check_in_rows(uuid, date, timestamptz) from public, anon, authenticated;
 revoke all on function public.check_in_list(uuid, date) from public, anon;
@@ -1841,9 +1954,9 @@ revoke all on function public.schedule_post(uuid, text, jsonb, timestamptz, text
 
 grant execute on function public.check_in_sees_list(uuid) to authenticated;
 grant execute on function public.post_check_in(uuid, uuid, text, text, uuid[], double precision,
-                                               double precision, time, integer, time, integer, boolean)
+                                               double precision, time, integer, time, integer, boolean, text)
   to authenticated;
-grant execute on function public.mark_check_in(uuid, text, double precision, double precision) to authenticated;
+grant execute on function public.mark_check_in(uuid, text, double precision, double precision, double precision, boolean) to authenticated;
 grant execute on function public.stop_check_in(uuid) to authenticated;
 grant execute on function public.check_in_list(uuid, date) to authenticated;
 grant execute on function public.check_in_days(uuid) to authenticated;

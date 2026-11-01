@@ -16,7 +16,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(209);
+select plan(236);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000059' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -70,12 +70,14 @@ $$;
 -- [p_id] marks [p_kind] on [p_post] at [p_at], [p_dlat] degrees north of the
 -- site (null: the place isn't shared).
 create function pg_temp.mark(p_id text, p_post text, p_kind text, p_at timestamptz,
-                             p_dlat double precision default 0) returns jsonb language plpgsql as $$
+                             p_dlat double precision default 0,
+                             p_accuracy double precision default null,
+                             p_mocked boolean default false) returns jsonb language plpgsql as $$
 begin
   perform pg_temp.as_user(p_id);
   return public.check_in_mark_at(pg_temp.id(p_post), p_kind,
     case when p_dlat is not null then 29.3759 + p_dlat end,
-    case when p_dlat is not null then 47.9774 end, p_at);
+    case when p_dlat is not null then 47.9774 end, p_accuracy, p_mocked, p_at);
 end;
 $$;
 -- Marks on [p_post] that [p_id] reads through RLS; [p_others]: only other people's.
@@ -184,7 +186,7 @@ select is((select count(*)::int from information_schema.columns
   0, 'no person coordinates in any check-in table');
 select is((select array_agg(column_name::text order by column_name) from information_schema.columns
            where table_schema = 'public' and table_name = 'check_in_marks'),
-  array['at', 'day', 'kind', 'on_time', 'place', 'post_id', 'user_id'],
+  array['at', 'day', 'kind', 'on_time', 'place', 'post_id', 'tries', 'user_id'],
   'a mark keeps the time and the result only');
 select is((select count(*)::int from pg_proc
            where pronamespace = 'public'::regnamespace
@@ -192,7 +194,7 @@ select is((select count(*)::int from pg_proc
              and not (prosecdef and coalesce(proconfig, '{}') @> array['search_path=""'])),
   0, 'every check-in function is security definer with an empty search_path');
 select ok(not has_function_privilege('authenticated',
-            'public.check_in_mark_at(uuid, text, double precision, double precision, timestamptz)', 'execute')
+            'public.check_in_mark_at(uuid, text, double precision, double precision, double precision, boolean, timestamptz)', 'execute')
           and not has_function_privilege('authenticated', 'public.check_in_rows(uuid, date, timestamptz)', 'execute')
           and not has_function_privilege('authenticated', 'public.check_in_notify(timestamptz)', 'execute')
           and not has_function_privilege('authenticated', 'public.check_in_daily_report(timestamptz)', 'execute')
@@ -201,12 +203,12 @@ select ok(not has_function_privilege('authenticated',
           and not has_function_privilege('authenticated', 'public.finish_check_in_report(uuid, date, bigint, text)', 'execute'),
   'the clock''s twins, the cron jobs and the report''s calls are never the app''s');
 select ok(has_function_privilege('authenticated',
-            'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean)', 'execute')
-          and has_function_privilege('authenticated', 'public.mark_check_in(uuid, text, double precision, double precision)', 'execute')
+            'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean, text)', 'execute')
+          and has_function_privilege('authenticated', 'public.mark_check_in(uuid, text, double precision, double precision, double precision, boolean)', 'execute')
           and has_function_privilege('authenticated', 'public.stop_check_in(uuid)', 'execute')
           and has_function_privilege('authenticated', 'public.check_in_list(uuid, date)', 'execute')
           and has_function_privilege('authenticated', 'public.check_in_days(uuid)', 'execute')
-          and not has_function_privilege('anon', 'public.mark_check_in(uuid, text, double precision, double precision)', 'execute'),
+          and not has_function_privilege('anon', 'public.mark_check_in(uuid, text, double precision, double precision, double precision, boolean)', 'execute'),
   'the app''s five calls, signed in only');
 
 -- Posting (CI1) -------------------------------------------------------------------------------------
@@ -249,6 +251,9 @@ select throws_ok($$select public.post_check_in(pg_temp.id('c1f1'), pg_temp.sp(),
 select throws_ok($$select public.post_check_in(pg_temp.id('c1f1'), pg_temp.sp(), 'Their team',
   null, array[pg_temp.team2()], 29.3759, 47.9774, '07:00', 15)$$, '22023', null,
   'only Teams of this Space');
+select throws_ok($$select public.post_check_in(pg_temp.id('c1f1'), pg_temp.sp(), 'Odd zone',
+  null, null, 29.3759, 47.9774, '07:00', 15, p_time_zone => 'Not/AZone')$$, '22023', 'a time zone',
+  'Y1: a time zone that isn''t one is refused');
 select throws_ok($$select public.post_check_in(pg_temp.id('c1f1'), pg_temp.sp(), 'Far away',
   null, null, 91, 47.9774, '07:00', 15)$$, '22023', null, 'a site on the earth');
 reset role;
@@ -305,6 +310,25 @@ select is((select count(*)::int from public.work_items
            where id in (pg_temp.id('c101'), pg_temp.id('c102'))), 0,
   'a check-in is never a work item, so never proof on a profile');
 
+-- Y1: a Space with no project keeps the creator's phone time zone.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select set_config('test.yard', public.create_space('No project yard')::text, true);
+select throws_ok($$select public.post_check_in(pg_temp.id('c107'), current_setting('test.yard')::uuid,
+  'Yard roll', null, null, 29.3759, 47.9774, '07:00', 15)$$, '22023', 'a time zone',
+  'Y1: no project and no phone time zone: refused (never the home market, never UTC)');
+select is(public.post_check_in(pg_temp.id('c107'), current_setting('test.yard')::uuid,
+  'Yard roll', null, null, 29.3759, 47.9774, '07:00', 15, p_daily => true,
+  p_time_zone => 'Africa/Cairo'), pg_temp.id('c107'), 'with the phone''s time zone');
+reset role;
+select is((select time_zone from public.check_in_posts where post_id = pg_temp.id('c107')),
+  'Africa/Cairo', 'kept on the check-in');
+select is(pg_temp.card('a1', 'c107') -> 'check_in' ->> 'tz', 'Africa/Cairo', 'the card says which zone');
+select is((pg_temp.card('a1', 'c107') -> 'check_in' -> 'today' ->> 'in_opens_at')::timestamptz,
+  ((pg_temp.card('a1', 'c107') -> 'check_in' -> 'today' ->> 'day')::date + time '06:45')
+    at time zone 'Africa/Cairo',
+  'and its times are in that zone');
+
 -- The days the tests run on.
 update public.check_in_posts set start_day = pg_temp.d()
 where post_id in (pg_temp.id('c101'), pg_temp.id('c102'), pg_temp.id('c104'), pg_temp.id('c105'));
@@ -312,6 +336,8 @@ where post_id in (pg_temp.id('c101'), pg_temp.id('c102'), pg_temp.id('c104'), pg
 -- The card (CI4) ------------------------------------------------------------------------------------
 
 select is(pg_temp.card('b2', 'c101') -> 'check_in' ->> 'in_time', '07:00', 'the card: its time');
+select is(pg_temp.card('b2', 'c101') -> 'check_in' ->> 'tz', 'Asia/Kuwait',
+  'Y1: in the Space''s time zone');
 select is((pg_temp.card('b2', 'c101') -> 'check_in' ->> 'in_allow')::int, 15, 'its allowance');
 select is(pg_temp.card('b2', 'c101') -> 'check_in' ->> 'out_time', '14:00', 'its check-out');
 select is((pg_temp.card('b2', 'c101') -> 'check_in' ->> 'out_allow')::int, 15, 'and allowance');
@@ -425,8 +451,8 @@ select throws_ok($$select pg_temp.mark('b2', 'c101', 'in', pg_temp.at(-7, '07:00
 
 select throws_ok($$select pg_temp.mark('b2', 'c101', 'out', pg_temp.at(0, '13:44:59'))$$,
   '22023', 'not open yet', 'out before its window is refused');
-select throws_ok($$select pg_temp.mark('b4', 'c101', 'out', pg_temp.at(0, '14:00'))$$,
-  '22023', 'check in first', 'out with no in that day');
+select is(pg_temp.mark('b4', 'c101', 'out', pg_temp.at(0, '14:00'), 0) ->> 'on_time', 'true',
+  'Y5: check-out without check-in is allowed');
 select is(pg_temp.mark('b2', 'c101', 'out', pg_temp.at(0, '14:15'), 0) ->> 'on_time', 'true',
   'out at its time plus the allowance: on time');
 select is(pg_temp.mark('c3', 'c101', 'out', pg_temp.at(0, '14:15:01'), null),
@@ -453,6 +479,21 @@ select throws_ok($$select pg_temp.mark('b2', 'c102', 'out', pg_temp.at(0, '15:00
   '22023', null, 'no check-out to mark');
 select is((select count(*)::int from public.check_in_marks where user_id = pg_temp.uid('d4')), 1,
   'the refused tries left nothing');
+
+-- Y4: a mocked reading, or one worse than 100 m, is not shared; 10 tries at most.
+select is(pg_temp.mark('b2', 'c102', 'in', pg_temp.at(0, '08:00'), 0, null, true) ->> 'place',
+  'not_shared', 'Y4: a mocked reading counts as not shared');
+select is(pg_temp.mark('c3', 'c102', 'in', pg_temp.at(0, '08:00'), 0, 150) ->> 'place',
+  'not_shared', 'accuracy worse than 100 m too');
+select is(pg_temp.mark('b3', 'c102', 'in', pg_temp.at(0, '08:00'), 0, 50) ->> 'place',
+  'on_site', 'a good reading is tested');
+select is((select count(*)::int from (
+             select pg_temp.mark('b4', 'c102', 'in', pg_temp.at(0, '08:00') + make_interval(mins => i), 0.002)
+             from generate_series(0, 9) i) x), 10, 'ten tries, each not at the site');
+select throws_ok($$select pg_temp.mark('b4', 'c102', 'in', pg_temp.at(0, '08:30'), 0)$$,
+  '22023', 'too many tries', 'Y4: the eleventh is refused');
+select is((select tries from public.check_in_marks where post_id = pg_temp.id('c102')
+           and user_id = pg_temp.uid('b4')), 10::smallint, 'counted on the mark');
 
 -- The public call, on the real clock (C103: open now, today)
 select pg_temp.as_user('a7');
@@ -484,7 +525,7 @@ reset role;
 
 select is(pg_temp.marks_read('b2', 'c101'), 2, 'Rakesh reads his own In and Out');
 select is(pg_temp.marks_read('b2', 'c101', true), 0, 'Crew can''t read another''s marks');
-select is(pg_temp.marks_read('a7', 'c101'), 5, 'the creator reads them all');
+select is(pg_temp.marks_read('a7', 'c101'), 6, 'the creator reads them all');
 select is(pg_temp.marks_read('a8', 'c101'), 0, 'another Lead reads none');
 select is(pg_temp.marks_read('a1', 'c101'), 0, 'nor the admin, while the creator is in the Space');
 select is(pg_temp.marks_read('f6', 'c101'), 0, 'nor someone outside');
@@ -536,6 +577,46 @@ select is((select missed from public.check_in_rows(pg_temp.id('c101'), pg_temp.d
            where user_id = pg_temp.uid('b4')), true, 'as it closes with no In: missed');
 select is((select count(*)::int from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(0, '13:45'))
            where missed), 1, 'only the one who never checked in');
+select is((select row(missed, in_at, out_at, out_on_time)::text
+           from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))
+           where user_id = pg_temp.uid('b4')),
+  row(true, null::timestamptz, pg_temp.at(0, '14:00'), true)::text,
+  'Y5: In missed, with the Out stamp');
+-- Y5 on Noor's own card (the card's clock twin, check_in_card, at D's times).
+create function pg_temp.my_card(p_id text, p_post text, p_at timestamptz) returns jsonb language plpgsql as $$
+begin
+  perform pg_temp.as_user(p_id);
+  return (select public.check_in_card(p, p_at) from public.space_posts p where p.id = pg_temp.id(p_post));
+end;
+$$;
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'my_in', 'null'::jsonb,
+  'Y5 card: no In stamp');
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'my_out',
+  jsonb_build_object('at', pg_temp.at(0, '14:00'), 'on_time', true, 'place', 'on_site'),
+  'Y5 card: the Out stamp');
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'missed', 'true'::jsonb,
+  'Y5 card: In missed, once check-in has closed');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:00')) -> 'missed', 'false'::jsonb,
+  'before check-in closes: not missed');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:00')) -> 'my_out', 'null'::jsonb,
+  'and no Out stamp');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:45')) -> 'missed', 'true'::jsonb,
+  'as it closes with no In: missed');
+-- Y2: an earlier day lists those asked that day.
+update public.space_members set confirmed_at = pg_temp.at(1, '01:00')
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('c3');
+update public.space_members set left_at = now()
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('b4');
+select is((select array_agg(name order by name)
+           from public.check_in_rows(pg_temp.id('c104'), pg_temp.d(), pg_temp.at(1, '00:00'))),
+  array['Rakesh Nair', 'Sami Fares'],
+  'Y2: not who joined after the day ended, nor who left before it began');
+select is((select array_agg(name order by name)
+           from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))),
+  array['Noor Ali', 'Rakesh Nair', 'Sami Fares', 'Tariq Aziz'],
+  'but anyone who marked that day stays on it');
+update public.space_members set confirmed_at = now(), left_at = null
+where space_id = pg_temp.sp() and profile_id in (pg_temp.uid('c3'), pg_temp.uid('b4'));
 select is((select in_on_time from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))
            where user_id = pg_temp.uid('b3')), false, 'Sami was late');
 select is((select row(in_at, in_place, out_at)::text from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))
@@ -546,7 +627,7 @@ select is((select row(in_at, in_place, out_at)::text from public.check_in_rows(p
 -- The creator leaves: the admin sees the list.
 update public.space_members set left_at = now()
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
-select is(pg_temp.marks_read('a1', 'c101'), 5, 'the creator left: the admin reads the marks');
+select is(pg_temp.marks_read('a1', 'c101'), 6, 'the creator left: the admin reads the marks');
 select pg_temp.as_user('a1');
 set local role authenticated;
 select is((select count(*)::int from public.check_in_list(pg_temp.id('c101'), pg_temp.d())), 4,
@@ -593,8 +674,8 @@ select pg_temp.mark('b2', 'c104', 'in', pg_temp.at(0, '07:00'), 0);
 select pg_temp.mark('c3', 'c104', 'in', pg_temp.at(0, '07:20'), 0.002);
 select ok(public.check_in_notify(pg_temp.at(0, '13:45')) >= 1, 'as check-in closes and check-out opens');
 select is((select count(*)::int from public.push_queue where kind = 'check_in_open'
-           and data ->> 'post_id' = pg_temp.id('c104')::text and data ->> 'mark' = 'out'), 2,
-  'check-out opens: only to those who checked in');
+           and data ->> 'post_id' = pg_temp.id('c104')::text and data ->> 'mark' = 'out'), 4,
+  'check-out opens: to everyone asked (Y5: check-out without check-in is allowed)');
 select is((select data ->> 'until' from public.push_queue where kind = 'check_in_open'
            and data ->> 'post_id' = pg_temp.id('c104')::text and data ->> 'mark' = 'out' limit 1)::timestamptz,
   pg_temp.at(0, '14:15'), 'by its on-time limit');
@@ -614,17 +695,22 @@ select pg_temp.mark('d4', 'c105', 'in', pg_temp.at(0, '07:55'), 0);
 select is(public.check_in_notify(pg_temp.at(1, '00:00')) >= 0, true, 'at the end of the day');
 select is(pg_temp.pushes('c105', 'check_in_summary'), 0,
   'everyone on time and on site: no summary');
--- The next day Lina misses it, and Gus has left: the admin gets the summary.
+-- The next day Lina misses it, and Gus has left: the first-joined admin gets
+-- the summary (Hana is made an admin who joined earlier than Omar).
 update public.space_members set left_at = now()
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
+update public.space_members set is_admin = true, confirmed_at = now() - interval '1 day'
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a8');
 select is(public.check_in_notify(pg_temp.at(2, '00:00')) >= 1, true, 'the next day ends');
 select is((select array_agg(profile_id) from public.push_queue
            where kind = 'check_in_summary' and data ->> 'post_id' = pg_temp.id('c105')::text),
-  array[pg_temp.uid('a1')], 'the creator left: the summary goes to the admin');
+  array[pg_temp.uid('a8')], 'Y6: the creator left: one summary, to the first-joined admin');
 select is((select data from public.push_queue
            where kind = 'check_in_summary' and data ->> 'post_id' = pg_temp.id('c105')::text),
   jsonb_build_object('post_id', pg_temp.id('c105'), 'space_id', pg_temp.sp()),
   'lock-screen text off: the summary says only that it is ready');
+update public.space_members set is_admin = false, confirmed_at = now()
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a8');
 update public.space_members set left_at = null
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
 
@@ -657,6 +743,17 @@ select is((select row(team, in_time, out_time, in_late, out_late, place)::text
   'times in the Space''s zone, late and the place');
 select is((select place from public.check_in_report_rows(pg_temp.id('c101'), pg_temp.d())
            where name = 'Noor Ali'), 'missed', 'missed');
+select is((select out_time from public.check_in_report_rows(pg_temp.id('c101'), pg_temp.d())
+           where name = 'Noor Ali'), '14:00', 'Y5: with her Out');
+reset role;
+insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('a7'), pg_temp.uid('b3'));
+set local role service_role;
+select is((select array_agg(name order by name collate "C") from public.check_in_report_rows(pg_temp.id('c101'), pg_temp.d())),
+  array['Noor Ali', 'Rakesh Nair', 'Tariq Aziz', '—'],
+  'Y3: named as the list names them for its reader: someone he blocked has no name');
+reset role;
+delete from public.blocks where blocker_id = pg_temp.uid('a7') and blocked_id = pg_temp.uid('b3');
+set local role service_role;
 select lives_ok($$select public.finish_check_in_report(pg_temp.id('c101'), pg_temp.d(), 4096, null)$$,
   'stored');
 reset role;
@@ -695,6 +792,19 @@ select throws_ok($$insert into public.library_files (id, space_id, name, storage
   values (pg_temp.id('f001'), pg_temp.sp(), 'Mine', pg_temp.sp()::text || '/library/x/y.pdf',
           'application/pdf', pg_temp.uid('b2'))$$, '23514', null,
   'only me is for check-in reports only');
+select throws_ok($$insert into public.library_files (id, space_id, name, storage_path, mime, supersedes_id)
+  values (pg_temp.id('f002'), pg_temp.sp(), 'Newer', pg_temp.sp()::text || '/library/' || pg_temp.id('f002') || '/y.pdf',
+          'application/pdf', current_setting('test.file')::uuid)$$, '22023', null,
+  'Y7: a check-in report has no newer versions');
+-- Y9: a job still claimed after its fifth try fails.
+update public.check_in_reports set state = 'claimed', attempts = 5, claimed_at = now() - interval '1 hour'
+where post_id = pg_temp.id('c102') and day = pg_temp.d();
+set local role service_role;
+select is((select count(*)::int from public.claim_check_in_reports(50)
+           where post_id = pg_temp.id('c102')), 0, 'Y9: not claimed a sixth time');
+reset role;
+select is((select state from public.check_in_reports
+           where post_id = pg_temp.id('c102') and day = pg_temp.d()), 'failed', 'Y9: failed');
 
 -- Post later ----------------------------------------------------------------------------------------
 
@@ -763,7 +873,7 @@ select throws_ok($$select pg_temp.mark('b4', 'c101', 'in', pg_temp.at(7, '07:00'
 select is(pg_temp.card('b2', 'c101') -> 'check_in' -> 'stopped', 'true'::jsonb, 'its card says so');
 select is(pg_temp.card('b2', 'c101') -> 'check_in' -> 'today' -> 'runs', 'false'::jsonb,
   'and it doesn''t run');
-select is((select count(*)::int from public.check_in_marks where post_id = pg_temp.id('c101')), 5,
+select is((select count(*)::int from public.check_in_marks where post_id = pg_temp.id('c101')), 6,
   'its earlier days stay');
 select is(public.check_in_notify(pg_temp.at(7, '06:50')) >= 0, true, 'a week later');
 select is((select count(*)::int from public.push_queue where kind = 'check_in_open'
