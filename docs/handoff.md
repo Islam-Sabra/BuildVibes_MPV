@@ -2,6 +2,35 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 109 (Check-in) built on `claude/r109` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branches:** `claude/r109` (app, worktree `BuildVibes-r109`) from `slice2-app` (7d58b17b); the server was built on `claude/r109-server` (worktree `BuildVibes-r109s`) and merged into `claude/r109` (5fa34cde). Both pushed. Test first: pgTAP for the server, EN and AR for the app.
+- **Server** (migration `20261120120000_check_in.sql`, **not live**; pgTAP 59, 209 checks):
+  - post kind `check_in`; `check_in_posts` (the site's point only, not readable by the app) and `check_in_marks` (result and time only: **no person coordinates anywhere**), RLS, writes only through functions.
+  - `post_check_in` (Leads and the admin), `mark_check_in` (the 100 m haversine test in SQL; on time / late at the exact edges; an 'away' mark replaced while open), `stop_check_in` (the creator, or an admin once the creator has left), `check_in_list` and `check_in_days` (the creator, or the admin once the creator has left); times in the Space's time zone, working days from the market pack's weekend; Post later accepts `post_check_in`; the card JSON `check_in` (with `can_stop`).
+  - `check_in_notify()` (opening pushes once per window; one summary to the creator only when something is late, away or missed) and `check_in_daily_report()`; `supabase/ops/check_in_cron.sql` written, **not run**.
+  - Library "only me" (`library_files.only_profile_id`, folder "Check-in reports"), enforced in `can_read_library_file`.
+  - Edge function `check-in-report` (the day's .xlsx: name, team, In, Out, late, place) and the `push` function's check-in kinds: written and tested (Deno 6/6, push 25/25, purge plan 4/4), **not deployed**.
+  - Lead's decisions (recorded at the end of the review): pushes follow the lock-screen rule (off: "Time to check in" / "Time to check out" / "Check-in summary ready", «حان وقت تسجيل الحضور» / «حان وقت تسجيل الخروج» / «ملخص الحضور جاهز»); one asked Team = a Team post; an admin can Stop once the creator has left; "Export my data" includes the person's own marks; deleting an account deletes its only-me reports (Library rows and the .xlsx files, through the purge function).
+  - **The check-in push is option C (lead, 1 Nov):** on Android always a normal notification on the high-priority "check_in" channel with tag `checkin:<post>:<in|out>`, plus the data part (with the same `tag`); the app posts its own notification with the same tag and id 0, which replaces it and adds Check in / Open. Never two. iPhone: an alert, category CHECK_IN_IN / CHECK_IN_OUT, time-sensitive.
+- **App** (70f4a71e, 95c37161, d6f37ecc): the # tile for Leads and the admin only; the composer (For Teams or Whole Space; Check-in time + allowance 0·10·15·30 as one choice; Set place here, read once; + Check-out and Every day as chips with ×; no camera; Hold Send = Post later); `LocationReader` over geolocator, foreground only (weak signal retried once, then not shared); the first-time warning (Accept / Check in without location, which brings it back next time); the person's card with only their own stamp and Check out at its time; the creator's list with a day picker and ⋯ → Stop (from `can_stop`); the check-in notification channel, actions and result notification ("Checked in 6:58 · on site", under the lock-screen rule). No new packages (geolocator 14.1.1 and flutter_local_notifications 22.3.2 were there). Android manifest: FOREGROUND_SERVICE, FOREGROUND_SERVICE_LOCATION and the plugin's action receiver; no background location anywhere. Info.plist: only the when-in-use text.
+- **Not proven by tests, only on a phone:**
+  - Android: Check in from the notification without opening the app (a background isolate, Supabase, geolocator's location foreground service; Android 14's while-in-use rule for a service started from a notification action).
+  - iPhone: the Check in action opens the app on the card, but the person taps Check in there (firebase_messaging doesn't pass the action id; a native AppDelegate hook would be needed). The **Time Sensitive capability must be added in Xcode**.
+- **Add to the next install on the founder's phone:** close the app, trigger one test check-in push, and confirm exactly one notification arrives (with or without buttons). If it ever doubles, switch to option B (a normal notification only).
+- **Shots:** `docs/reviews/shots-109/` (18 new screens in EN and AR; CP2-kinds changed because a Lead now sees the Check-in tile; README with the differences from the frames).
+- **Checks on `claude/r109` (5fa34cde):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,232 pass.
+  - `flutter test test_screens`, not updating: 566 pass, 38 fail, all expected: 36 are r109's new shots with no golden yet, 2 are CP2-kinds (in shots-109/changed).
+  - `supabase db reset --local`: all migrations apply, through 20261120120000.
+  - `supabase test db`: 58 files, 3,781 checks, PASS.
+- **Not in this branch:** the store forms and the privacy sentence (review section 8), for the founder with the legal pages.
+- **Next, after the lead's check, and only with the founder's yes:** goldens from shots-109; merge into `slice2-app`; migration 20261120120000 live; deploy `check-in-report` and `push`; the Vault secret `check_in_report_secret` and `CHECK_IN_REPORT_SECRET`; run `check_in_cron.sql` with the project ref; a build, then the one-notification test above.
+- **Who has which branch:** PC has `claude/r109` (worktree `BuildVibes-r109`), `claude/r109-server` (merged into it; worktree `BuildVibes-r109s`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 1 Nov 2026 — review 112 accepted: goldens, merged into `slice2-app`, migration 20261119120000 live, build 889 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
