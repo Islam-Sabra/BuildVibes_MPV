@@ -58,11 +58,11 @@ import 'notebook_state.dart';
 enum _ShareTo { feed, space, message }
 
 /// What a Space share goes in as (review 104 N9): the Space's own kinds,
-/// with its words and icons.
+/// with its words and icons. No Checklist (review 110 W8): a note's to-do
+/// lines put in as a work item are its checklist.
 enum ShareKind {
   note('note', DaybookKind.note),
-  workItem('work_item', DaybookKind.workItem),
-  checklist('checklist', DaybookKind.checklist);
+  workItem('work_item', DaybookKind.workItem);
 
   const ShareKind(this.json, this.space);
   final String json;
@@ -560,7 +560,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   }
 
   /// For (N10): a work item takes exactly one person, and a pick closes
-  /// the picker; a checklist several, picked and unpicked until Done.
+  /// the picker.
   Future<void> _pickFor(
     SpacePeople people,
     String? me,
@@ -568,58 +568,21 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   ) async {
     final l10n = AppLocalizations.of(context);
     final list = _forList(people, me);
-    if (_kind == ShareKind.workItem) {
-      final picked = await showBvSheet<BvGiveToPerson>(
-        context: context,
-        title: l10n.notebookShareFor,
-        builder: (sheet) => BvGiveToPicker(
-          key: const Key('share-for-picker'),
-          people: list,
-          currentOwnerId: forWhom.firstOrNull,
-          meId: me,
-          meLabel: l10n.daybookYou,
-          searchPlaceholder: l10n.daybookAssignSearch,
-          inSheet: true,
-          onPick: (p) => Navigator.of(sheet).pop(p),
-        ),
-      );
-      if (picked != null && mounted) setState(() => _people = {picked.id});
-      return;
-    }
-    var chosen = {...forWhom};
-    await showBvSheet<void>(
+    final picked = await showBvSheet<BvGiveToPerson>(
       context: context,
       title: l10n.notebookShareFor,
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, setSheet) => BvGiveToPicker(
-          key: const Key('share-for-picker'),
-          people: list,
-          currentOwnerId: null,
-          chosenIds: chosen,
-          meId: me,
-          meLabel: l10n.daybookYou,
-          searchPlaceholder: l10n.daybookPeopleSearch,
-          inSheet: true,
-          onPick: (p) {
-            final next = chosen.contains(p.id)
-                ? ({...chosen}..remove(p.id))
-                : {...chosen, p.id};
-            // It is for someone: the last one stays.
-            if (next.isEmpty) return;
-            chosen = next;
-            setSheet(() {});
-            setState(() => _people = next);
-          },
-        ),
-      ),
-      foot: (sheet) => BvButton(
-        key: const Key('share-for-done'),
-        label: l10n.notebookDone,
-        size: BvButtonSize.medium,
-        expand: true,
-        onPressed: () => Navigator.of(sheet).pop(),
+      builder: (sheet) => BvGiveToPicker(
+        key: const Key('share-for-picker'),
+        people: list,
+        currentOwnerId: forWhom.firstOrNull,
+        meId: me,
+        meLabel: l10n.daybookYou,
+        searchPlaceholder: l10n.daybookAssignSearch,
+        inSheet: true,
+        onPick: (p) => Navigator.of(sheet).pop(p),
       ),
     );
+    if (picked != null && mounted) setState(() => _people = {picked.id});
   }
 
   /// The For row's words: me as You, a member by name; "Omar Haddad + 2"
@@ -703,8 +666,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     final people = space == null
         ? null
         : ref.watch(spacePeopleProvider(space.id)).value;
-    // A work item is mine by default; a checklist is for me and whoever is
-    // picked.
+    // A work item is mine by default.
     final forWhom = _people ?? {?me};
     // What Send (or Post later, with its time) carries.
     _Sent sent({DateTime? at}) => _Sent(
@@ -1052,9 +1014,7 @@ Future<void> _send(
       final owner = sent.kind == ShareKind.workItem
           ? sent.people.firstOrNull
           : null;
-      final people = sent.kind == ShareKind.checklist
-          ? [...sent.people]
-          : const <String>[];
+      const people = <String>[];
       if (sent.at case final at?) {
         await _schedule(
           ref,

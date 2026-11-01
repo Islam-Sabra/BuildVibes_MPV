@@ -1053,3 +1053,92 @@ grant execute on function public.set_work_item_tag(uuid, text) to authenticated;
 grant execute on function public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid,
                                                   uuid, jsonb, jsonb, uuid, jsonb, jsonb, timestamptz, text)
   to authenticated;
+
+-- Review 110 W8 (the lead's check): the app's notebook share no longer
+-- offers Checklist as a kind; a note's to-do lines put in as a work item
+-- become that item's checklist. 'checklist' is still taken here, for the
+-- builds already on phones.
+create or replace function public.share_note_to_space(
+  p_note uuid, p_post uuid, p_space uuid, p_kind text,
+  p_lines text[] default null, p_team uuid default null, p_owner uuid default null,
+  p_include_location boolean default false, p_files jsonb default '[]'::jsonb,
+  p_people uuid[] default '{}'
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_note public.notes;
+  v_title text;
+  v_body text;
+  v_place text;
+  v_points jsonb := '[]';
+  v_block jsonb;
+  v_id uuid;
+  v_loc text;
+begin
+  perform public.notebook_writer();
+  v_note := public.my_live_note(p_note);
+  if p_kind is null or p_kind not in ('note', 'checklist', 'work_item') then
+    raise exception 'a post, a work item or a checklist' using errcode = '22023';
+  end if;
+  v_title := nullif(trim(coalesce(case when p_lines is null then v_note.title end, '')), '');
+  v_body := public.note_words(v_note, p_lines, false);
+  if v_title is not null then
+    v_body := nullif(substr(v_body, char_length(v_title) + 2), '');
+  else
+    v_title := split_part(v_body, E'\n', 1);
+    v_body := nullif(substr(v_body, char_length(v_title) + 2), '');
+  end if;
+  v_title := left(regexp_replace(v_title, '^(\[ \]|\[x\]|•) ', ''), 200);
+  if p_include_location and p_kind = 'work_item' then
+    v_place := v_note.location_text;
+  end if;
+  if p_include_location and (v_note.location_text is not null or v_note.location_lat is not null) then
+    v_loc := '📍 ' || concat_ws(' · ', v_note.location_text,
+      case when v_note.location_lat is not null
+           then v_note.location_lat::text || ', ' || v_note.location_lng::text end);
+  end if;
+  if p_kind = 'checklist' then
+    for v_block in
+      select b from jsonb_array_elements(coalesce(v_note.blocks, '[]')) b
+      where b ->> 'type' = 'todo' and (p_lines is null or (b ->> 'id') = any (p_lines))
+    loop
+      v_points := v_points || jsonb_build_object('text', v_block ->> 'text');
+    end loop;
+    if jsonb_array_length(v_points) = 0 then
+      raise exception 'a checklist needs a to-do' using errcode = '22023';
+    end if;
+    v_id := public.create_space_post(p_post, p_space, 'checklist', v_title, v_loc, p_team,
+                                     p_people => p_people, p_points => v_points,
+                                     p_files => p_files);
+  elsif p_kind = 'work_item' then
+    -- Review 110 W8: the note's to-do lines (of the lines chosen) become
+    -- the work item's checklist, and leave its words.
+    for v_block in
+      select b from jsonb_array_elements(coalesce(v_note.blocks, '[]')) b
+      where b ->> 'type' = 'todo' and (p_lines is null or (b ->> 'id') = any (p_lines))
+    loop
+      v_points := v_points || jsonb_build_object('text', v_block ->> 'text');
+    end loop;
+    if jsonb_array_length(v_points) > 0 then
+      v_body := nullif(trim(both E'\n' from regexp_replace(coalesce(v_body, ''),
+                       '(^|\n)\s*\[( |x)\] [^\n]*', '', 'g')), '');
+    end if;
+    v_id := public.create_work_item(p_space, v_title, p_owner, p_team => p_team, p_place => v_place,
+                                    p_id => p_post, p_body => nullif(concat_ws(E'\n', v_body, v_loc), ''),
+                                    p_files => p_files, p_points => v_points);
+  else
+    v_id := public.create_space_post(p_post, p_space, 'note', v_title,
+                                     nullif(concat_ws(E'
+', v_body, v_loc), ''), p_team,
+                                     p_files => p_files);
+  end if;
+  insert into public.note_shares (note_id, owner_id, target, space_post_id, target_name)
+  select p_note, v_note.owner_id, 'space', v_id, s.name from public.spaces s where s.id = p_space;
+  update public.notes n set put_in_post_id = v_id where n.id = p_note;
+  return v_id;
+end;
+$$;

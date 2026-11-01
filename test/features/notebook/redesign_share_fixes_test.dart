@@ -214,24 +214,6 @@ void main() {
         await _tap(tester, _key('share-send'));
         expect(repo.spaceShares.last['team'], 't-site');
         expect(repo.spaceShares.last['owner'], DaybookSamples.islam);
-        // A checklist: who it's for.
-        await _share(tester, 'space');
-        await _tap(tester, _key('share-space-${DaybookSamples.space}'));
-        await _tap(tester, _key('share-kind-checklist'));
-        await _tap(tester, _key('share-for'));
-        await _tap(
-          tester,
-          find.descendant(
-            of: _key('share-for-picker'),
-            matching: find.text(DaybookSamples(lang).omarName),
-          ),
-        );
-        await _tap(tester, _key('share-for-done'));
-        await _tap(tester, _key('share-send'));
-        expect(
-          repo.spaceShares.last['people'],
-          containsAll([DaybookSamples.islam, DaybookSamples.omar]),
-        );
       });
     });
 

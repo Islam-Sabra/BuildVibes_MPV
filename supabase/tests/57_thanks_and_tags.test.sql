@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(130);
+select plan(133);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000057' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -618,6 +618,23 @@ select lives_ok(format($q$select public.create_space_post(%L, %L, 'activity', 'C
   pg_temp.id('f002'), pg_temp.sp(), pg_temp.uid('b2')),
   'one with people named still takes them');
 reset role;
+
+-- Review 110 W8: a note's to-do lines put in as a work item are its checklist.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.save_entry(pg_temp.id('e110'), 'text', p_title => 'Pour check',
+  p_blocks => jsonb_build_array(
+    jsonb_build_object('id', pg_temp.id('e111'), 'type', 'text', 'text', 'Before the pour'),
+    jsonb_build_object('id', pg_temp.id('e112'), 'type', 'todo', 'text', 'Formwork', 'done', false),
+    jsonb_build_object('id', pg_temp.id('e113'), 'type', 'todo', 'text', 'Rebar', 'done', true)));
+select lives_ok(format($q$select public.share_note_to_space(%L, %L, %L, 'work_item', p_owner => %L)$q$,
+  pg_temp.id('e110'), pg_temp.id('e120'), pg_temp.sp(), pg_temp.uid('b2')),
+  'W8: a note with to-do lines goes in as a work item');
+reset role;
+select is((select array_agg(text order by sort) from public.checklist_points where post_id = pg_temp.id('e120')),
+  array['Formwork', 'Rebar'], 'W8: its to-do lines are its checklist');
+select is((select body from public.space_posts where id = pg_temp.id('e120')), 'Before the pour',
+  'W8: and leave its words');
 
 select * from finish();
 rollback;
