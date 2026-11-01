@@ -66,7 +66,13 @@ class SpaceScreen extends ConsumerStatefulWidget {
 }
 
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
-  late var _tab = widget.onChat && widget.target == null
+  /// Review 113 (5): a thread or a card it was opened at says which tab;
+  /// otherwise the tab this Space was last left on, Work the first time.
+  late var _tab = widget.target != null || widget.open != null
+      ? SpaceScreen.workTab
+      : widget.onChat
+      ? SpaceScreen.chatTab
+      : ref.read(spaceLastTabProvider(widget.spaceId)) == SpaceLastTab.chat
       ? SpaceScreen.chatTab
       : SpaceScreen.workTab;
 
@@ -252,12 +258,22 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     context.go(AppRoutes.home);
   }
 
-  void _show(int tab) => setState(() {
-    ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
-    _tab = tab;
-    _fileStart = null;
-    _reportStart = null;
-  });
+  void _show(int tab) {
+    setState(() {
+      ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
+      _tab = tab;
+      _fileStart = null;
+      _reportStart = null;
+    });
+    // Review 113 (5): the Space remembers the tab last used in it.
+    unawaited(
+      ref
+          .read(spaceLastTabProvider(widget.spaceId).notifier)
+          .show(
+            tab == SpaceScreen.chatTab ? SpaceLastTab.chat : SpaceLastTab.work,
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

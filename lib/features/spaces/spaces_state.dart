@@ -52,3 +52,39 @@ class LastSpace extends Notifier<String?> {
     await ref.read(sharedPreferencesProvider).setString(key, spaceId);
   }
 }
+
+/// Review 113 (5): the tab each Space was last left on (Work or Chat), on
+/// this phone and for this account; null before it was ever opened, so
+/// the first open is Work.
+final spaceLastTabProvider =
+    NotifierProvider.family<SpaceLastTab, String?, String>(SpaceLastTab.new);
+
+class SpaceLastTab extends Notifier<String?> {
+  SpaceLastTab(this.spaceId);
+
+  final String spaceId;
+
+  /// What [show] keeps.
+  static const work = 'work';
+  static const chat = 'chat';
+
+  String? get _key {
+    final me = ref.watch(authUserIdProvider).value;
+    return me == null ? null : 'space_tab:$me:$spaceId';
+  }
+
+  @override
+  String? build() {
+    final key = _key;
+    return key == null
+        ? null
+        : ref.watch(sharedPreferencesProvider).getString(key);
+  }
+
+  Future<void> show(String tab) async {
+    final key = _key;
+    if (key == null || state == tab) return;
+    state = tab;
+    await ref.read(sharedPreferencesProvider).setString(key, tab);
+  }
+}
