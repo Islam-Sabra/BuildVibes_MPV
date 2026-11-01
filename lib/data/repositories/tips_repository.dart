@@ -22,9 +22,7 @@ class SupabaseTipsRepository implements TipsRepository {
   @override
   Future<Set<FirstRunTip>> seen() async {
     final rows = await _client.from('profile_tips_seen').select('tip');
-    return {
-      for (final r in rows) ?FirstRunTip.fromJson(r['tip']),
-    };
+    return {for (final r in rows) ?FirstRunTip.fromJson(r['tip'])};
   }
 
   @override

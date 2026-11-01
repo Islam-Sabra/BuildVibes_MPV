@@ -22,6 +22,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../home/home_screen.dart' show HomeScreen, homeTabProvider;
 import '../work/work_places.dart' show workPlaceFilterProvider;
+import '../work/daybook_composer.dart' show spaceComposingProvider;
 import '../work/daybook_tab.dart';
 import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
@@ -289,55 +290,74 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     final selected = _tab == SpaceScreen.workTab
         ? ref.watch(workSelectionProvider(widget.spaceId))
         : const <String>{};
+    // Review 110 CP1: writing takes the whole screen. The tree stays the
+    // same, so the Work tab keeps what is being written.
+    final composing =
+        _tab == SpaceScreen.workTab &&
+        ref.watch(spaceComposingProvider(widget.spaceId));
     return Scaffold(
-      appBar: BvSpaceHeader(
-        selected: selected.isEmpty ? null : l10n.workSelected(selected.length),
-        closeSelectionLabel: l10n.workCloseSelection,
-        onCloseSelection: () =>
-            ref.read(workSelectionProvider(widget.spaceId).notifier).clear(),
-        name: detail.name,
-        // As in the v13 frames, linked to a project or not (review 54 A4).
-        line: l10n.spacesPrivateWork,
-        backLabel: MaterialLocalizations.of(context).backButtonTooltip,
-        onBack: _back,
-        onOpen: () => unawaited(_openInfo()),
-        searchLabel: l10n.searchMenu,
-        onSearch: () => unawaited(_openSearch()),
-        libraryLabel: l10n.spacesTabLibrary,
-        onLibrary: () => unawaited(_openLibrary()),
-        peopleLabel: l10n.spacesTabPeople,
-        onPeople: () =>
-            unawaited(context.push(AppRoutes.spacePeople(widget.spaceId))),
-        peopleWaiting: waiting,
-        waitingLabel: l10n.spacesPeopleWaiting,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: BvSpaceHeaderSpec.switchPadding,
-            child: BvSegmented<int>(
-              key: const Key('space-switch'),
-              value: _tab,
-              onChanged: _show,
-              segments: [
-                BvSegment(
-                  key: const Key('space-switch-work'),
-                  value: SpaceScreen.workTab,
-                  label: l10n.spacesTabWork,
-                ),
-                BvSegment(
-                  key: const Key('space-switch-chat'),
-                  value: SpaceScreen.chatTab,
-                  label: l10n.spacesTabChat,
-                  badge: unread,
-                  badgeKey: const Key('space-chat-unread'),
-                ),
-              ],
+      backgroundColor: composing ? BvColors.surfaceElevated : null,
+      appBar: composing
+          ? null
+          : BvSpaceHeader(
+              selected: selected.isEmpty
+                  ? null
+                  : l10n.workSelected(selected.length),
+              closeSelectionLabel: l10n.workCloseSelection,
+              onCloseSelection: () => ref
+                  .read(workSelectionProvider(widget.spaceId).notifier)
+                  .clear(),
+              name: detail.name,
+              // As in the v13 frames, linked to a project or not (review 54 A4).
+              line: l10n.spacesPrivateWork,
+              backLabel: MaterialLocalizations.of(context).backButtonTooltip,
+              onBack: _back,
+              onOpen: () => unawaited(_openInfo()),
+              searchLabel: l10n.searchMenu,
+              onSearch: () => unawaited(_openSearch()),
+              libraryLabel: l10n.spacesTabLibrary,
+              onLibrary: () => unawaited(_openLibrary()),
+              peopleLabel: l10n.spacesTabPeople,
+              onPeople: () => unawaited(
+                context.push(AppRoutes.spacePeople(widget.spaceId)),
+              ),
+              peopleWaiting: waiting,
+              waitingLabel: l10n.spacesPeopleWaiting,
             ),
-          ),
-          Expanded(child: _body(detail)),
-        ],
+      body: SafeArea(
+        top: composing,
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Visibility(
+              visible: !composing,
+              child: Padding(
+                padding: BvSpaceHeaderSpec.switchPadding,
+                child: BvSegmented<int>(
+                  key: const Key('space-switch'),
+                  value: _tab,
+                  onChanged: _show,
+                  segments: [
+                    BvSegment(
+                      key: const Key('space-switch-work'),
+                      value: SpaceScreen.workTab,
+                      label: l10n.spacesTabWork,
+                    ),
+                    BvSegment(
+                      key: const Key('space-switch-chat'),
+                      value: SpaceScreen.chatTab,
+                      label: l10n.spacesTabChat,
+                      badge: unread,
+                      badgeKey: const Key('space-chat-unread'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(child: _body(detail)),
+          ],
+        ),
       ),
     );
   }

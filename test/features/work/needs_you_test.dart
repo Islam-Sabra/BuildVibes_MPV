@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -155,7 +156,7 @@ void main() {
         await _tap(tester, _key('post-bar-notepad'));
         await tester.enterText(_key('writing-title'), 'Pour at 10:00');
         await tester.pumpAndSettle();
-        await _tap(tester, _key('kind-chip-${DaybookKind.announcement}'));
+        await chooseKind(tester, 'announcement');
         final draft = ProviderScope.containerOf(
           tester.element(find.byType(Scaffold).first),
         ).read(daybookDraftProvider(DaybookSamples.space));

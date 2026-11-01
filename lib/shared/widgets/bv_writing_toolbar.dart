@@ -4,6 +4,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import 'bv_hold_menu.dart';
 
 /// One tool on [BvWritingToolbar.tools]: its icon, the words read out for
 /// it, and a tap, or a hold (a voice note: hold to record, as the post
@@ -19,12 +20,17 @@ class BvWritingTool {
     this.onHoldEnd,
     this.key,
     this.dot,
+    this.outlined = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
   final bool active;
+
+  /// Review 110 CP1–CP3: a brand outline (the composer's #, and + while
+  /// its grid is open); [active] then fills it brand-soft.
+  final bool outlined;
   final VoidCallback? onHoldStart;
 
   /// How far the thumb has moved from where the hold started.
@@ -75,6 +81,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.laterLabel,
     this.onLater,
     this.laterReady = true,
+    this.laterNote,
   }) : tools = null,
        field = null,
        categories = null,
@@ -94,6 +101,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.laterLabel,
     this.onLater,
     this.laterReady = true,
+    this.laterNote,
   }) : cameraLabel = null,
        onCamera = null,
        attachLabel = null,
@@ -137,13 +145,16 @@ class BvWritingToolbar extends StatelessWidget {
   /// On the More button, so the screen can place the More menu over it.
   final Key? moreKey;
 
-  /// Review 108 PL1: the clock beside Send (Post later), shown when
-  /// [laterLabel] is given; off while [onLater] is null.
+  /// Review 110 CP5: Post later, on the small menu that holding Send
+  /// opens ([laterLabel], "Post later…"); none while [onLater] is null.
+  /// No clock sits on the bar.
   final String? laterLabel;
   final VoidCallback? onLater;
 
-  /// Review 108 V7: grey but still tappable (a tap says why it can't).
+  /// Review 108 V7: grey but still tappable, with [laterNote] (why) under
+  /// it on the menu.
   final bool laterReady;
+  final String? laterNote;
 
   @override
   Widget build(BuildContext context) {
@@ -183,8 +194,7 @@ class BvWritingToolbar extends StatelessWidget {
                   active: moreActive,
                 ),
                 const Spacer(),
-                ..._later(),
-                _Post(label: postLabel, onTap: onPost, ready: postReady),
+                _send(),
               ]
             : [
                 if (field != null) ...[
@@ -201,23 +211,26 @@ class BvWritingToolbar extends StatelessWidget {
                   for (final t in tools!)
                     if (t.holds) _tool(t),
                 ],
-                ..._later(),
-                _Post(label: postLabel, onTap: onPost, ready: postReady),
+                _send(),
               ],
       ),
     );
   }
 
-  List<Widget> _later() => [
-    if (laterLabel case final label?)
-      _Tool(
+  Widget _send() => BvHoldMenu(
+    action: switch ((laterLabel, onLater)) {
+      (final label?, final later?) => BvHoldAction(
         key: const Key('writing-later'),
         icon: BvIcons.clock,
         label: label,
-        onTap: onLater,
-        dim: !laterReady,
+        onTap: later,
+        ready: laterReady,
+        note: laterNote,
       ),
-  ];
+      _ => null,
+    },
+    child: _Post(label: postLabel, onTap: onPost, ready: postReady),
+  );
 
   Widget _tool(BvWritingTool t) => _Tool(
     key: t.key,
@@ -226,6 +239,7 @@ class BvWritingToolbar extends StatelessWidget {
     onTap: t.onTap,
     active: t.active,
     dot: t.dot,
+    outlined: t.outlined,
     onHoldStart: t.onHoldStart,
     onHoldMove: t.onHoldMove,
     onHoldEnd: t.onHoldEnd,
@@ -243,7 +257,7 @@ class _Tool extends StatelessWidget {
     this.onHoldStart,
     this.onHoldMove,
     this.onHoldEnd,
-    this.dim = false,
+    this.outlined = false,
   });
 
   final IconData icon;
@@ -252,17 +266,15 @@ class _Tool extends StatelessWidget {
 
   /// Its card or menu is open: a grey square under it.
   final bool active;
+  final bool outlined;
   final VoidCallback? onHoldStart;
   final ValueChanged<Offset>? onHoldMove;
   final VoidCallback? onHoldEnd;
   final Key? dot;
 
-  /// Grey though it still answers a tap.
-  final bool dim;
-
   @override
   Widget build(BuildContext context) {
-    final enabled = (onTap != null || onHoldStart != null) && !dim;
+    final enabled = onTap != null || onHoldStart != null;
     final start = onHoldStart;
     final move = onHoldMove;
     final end = onHoldEnd;
@@ -282,14 +294,26 @@ class _Tool extends StatelessWidget {
             width: BvWritingToolbarSpec.tool,
             height: BvWritingToolbarSpec.tool,
             decoration: BoxDecoration(
-              color: active ? BvColors.surfaceSubtle : null,
+              color: active
+                  ? (outlined
+                        ? BvColors.surfaceBrandSoft
+                        : BvColors.surfaceSubtle)
+                  : null,
               borderRadius: BvWritingToolbarSpec.toolRadius,
+              border: outlined
+                  ? Border.all(
+                      color: BvColors.borderSelected,
+                      width: BvStroke.thin,
+                    )
+                  : null,
             ),
             child: Icon(
               icon,
               size: BvWritingToolbarSpec.toolIcon,
               color: !enabled
                   ? BvColors.actionDisabledForeground
+                  : outlined
+                  ? BvColors.iconAction
                   : BvColors.iconPrimary,
             ),
           ),

@@ -6123,4 +6123,297 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plCantYet =>
       'Items with files or a place can\'t be scheduled yet.';
+
+  @override
+  String get rmOnlyWhoMay =>
+      'Only the person who made it, the person it\'s for, or a Lead can remind someone.';
+
+  @override
+  String get rmOnlyOpen => 'Reminders are only for open work items.';
+
+  @override
+  String get rmClearTime => 'Clear this time';
+
+  @override
+  String get plLater => 'Post later…';
+
+  @override
+  String get cpNewNote => 'New note';
+
+  @override
+  String get cpNewWorkItem => 'New work item';
+
+  @override
+  String get cpNewChecklist => 'New checklist';
+
+  @override
+  String get cpNewAnnouncement => 'New announcement';
+
+  @override
+  String get cpNewActivity => 'New scheduled activity';
+
+  @override
+  String cpEdit(String kind) {
+    return 'Edit · $kind';
+  }
+
+  @override
+  String cpSpaceLine(String space, String line) {
+    return '$space · $line';
+  }
+
+  @override
+  String get cpTemplates => 'Templates';
+
+  @override
+  String get cpDetails => 'Details (optional)';
+
+  @override
+  String get cpWhatPosting => 'What are you posting?';
+
+  @override
+  String get cpAddNote => 'Add to this note';
+
+  @override
+  String get cpAddWorkItem => 'Add to this work item';
+
+  @override
+  String get cpAddChecklist => 'Add to this checklist';
+
+  @override
+  String get cpAddAnnouncement => 'Add to this announcement';
+
+  @override
+  String get cpAddActivity => 'Add to this activity';
+
+  @override
+  String get cpTag => 'Tag';
+
+  @override
+  String get cpPhotos => 'Photos';
+
+  @override
+  String get cpFile => 'File';
+
+  @override
+  String get cpBullets => 'Bullets';
+
+  @override
+  String get cpPin => 'Pin';
+
+  @override
+  String cpRemoveThe(String what) {
+    return 'Remove $what';
+  }
+
+  @override
+  String cpRemoved(String what, String kind) {
+    return 'Removed: $what. $kind doesn\'t take it.';
+  }
+
+  @override
+  String get cpFiles => 'Files';
+
+  @override
+  String get cpTables => 'Tables';
+
+  @override
+  String cpTableChip(int rows) {
+    return 'Table · $rows rows';
+  }
+
+  @override
+  String cpTaskTableChip(int count) {
+    return 'Table of tasks · $count';
+  }
+
+  @override
+  String get cpAddRow => 'Add a row';
+
+  @override
+  String get cpAddColumn => 'Add a column';
+
+  @override
+  String get cpTaskHint => 'Task';
+
+  @override
+  String get cpAddTask => 'Add a task';
+
+  @override
+  String cardFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTables(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tables',
+      one: '1 table',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tasks',
+      one: '1 task',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cardSeeMore => 'See more';
+
+  @override
+  String cardMorePhotos(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get thanksStamp => 'THANKS';
+
+  @override
+  String get thanksTo => 'To';
+
+  @override
+  String get thanksShow => 'Show on my profile';
+
+  @override
+  String get thanksHide => 'Remove from my profile';
+
+  @override
+  String get thanksOnlyYou => 'Only you see this button. Nobody else is told.';
+
+  @override
+  String get profileThanks => 'Thanks';
+
+  @override
+  String profileThanksFrom(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get notebookShareSpacesLoading => 'Loading your Spaces…';
+
+  @override
+  String get notebookShareSpacesError =>
+      'Couldn\'t load your Spaces. Try again.';
+
+  @override
+  String get daybookKindThanks => 'Thanks';
+
+  @override
+  String get cpNewThanks => 'Thanks';
+
+  @override
+  String get cpAddThanks => 'Add to this Thanks';
+
+  @override
+  String get thanksWordsHint => 'Thank you for…';
+
+  @override
+  String get thanksFor => 'For';
+
+  @override
+  String get thanksForOptional => 'Optional';
+
+  @override
+  String get thanksToTitle => 'Thank who?';
+
+  @override
+  String get thanksTeams => 'Teams';
+
+  @override
+  String get thanksForTitle => 'For which work item?';
+
+  @override
+  String get thanksForNone => 'No open work items in this Space.';
+
+  @override
+  String get thanksSomeone => 'Thank someone';
+
+  @override
+  String get thanksProfileNote => 'They can show this on their profile.';
+
+  @override
+  String get thanksRefusedNotAllowed =>
+      'You can\'t post a Thanks in this Space.';
+
+  @override
+  String get thanksRefusedSignIn => 'Sign in again, then send it.';
+
+  @override
+  String get thanksRefusedIdTaken =>
+      'This Thanks couldn\'t be saved. Send it again.';
+
+  @override
+  String get thanksRefusedNoOne => 'Choose a person or a Team to thank.';
+
+  @override
+  String get thanksRefusedSelf => 'Thank someone else.';
+
+  @override
+  String get thanksRefusedNotMember =>
+      'They\'re no longer in this Space. Choose someone else.';
+
+  @override
+  String get thanksRefusedTeam =>
+      'That Team isn\'t in this Space. Choose again.';
+
+  @override
+  String get thanksRefusedFor =>
+      'That work item can\'t be chosen. Choose another or remove it.';
+
+  @override
+  String get thanksRefusedTooLong => 'Keep it under 5000 characters.';
+
+  @override
+  String get cpTagPanel => 'Tag (one)';
+
+  @override
+  String get cpTagNote =>
+      'The list comes from your market. Tap again to remove.';
+
+  @override
+  String get cpTagsError => 'Couldn\'t load the tags. Try again.';
+
+  @override
+  String get daybookTagFilterClear => 'Show all tags';
+
+  @override
+  String get cpPointHint => 'A point to tick';
+
+  @override
+  String get cpAddPoint => 'Add a point';
+
+  @override
+  String cpChecklistChip(int count) {
+    return 'Checklist · $count';
+  }
+
+  @override
+  String get cpPeople => 'People';
+
+  @override
+  String notebookShareSpacesCode(String code) {
+    return 'Code: $code';
+  }
+
+  @override
+  String get rmFiveWaiting => 'This item already has 5 reminders waiting.';
+
+  @override
+  String get rmOnlyWhoSees =>
+      'Only people who can see this item can be reminded.';
 }

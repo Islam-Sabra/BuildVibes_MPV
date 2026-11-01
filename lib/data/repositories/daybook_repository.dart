@@ -95,6 +95,14 @@ abstract class DaybookRepository {
   /// is the same post.
   Future<void> createWorkItem(NewWorkItem item);
 
+  /// create_thanks (review 110 TH1): a Thanks with the id the app chose,
+  /// so sending it again is the same post.
+  Future<void> createThanks(NewThanks thanks);
+
+  /// space_work_tags (review 110 TG1): the tags a work item here may take,
+  /// from its market's list, in order.
+  Future<List<DaybookTag>> workTags(String spaceId);
+
   /// create_walk (slice 6): the walk's work item, owned by its author, and
   /// one work item per photo under it, all or nothing. The app chose every
   /// id, so sending it again is the same walk.
@@ -114,6 +122,9 @@ abstract class DaybookRepository {
 
   /// pin_space_post / unpin_space_post (review 105B): for me only.
   Future<void> pinPost(String postId, {required bool on});
+
+  /// Review 110 TH2: set_thanks_on_profile, for the person thanked only.
+  Future<void> showThanks(String postId, {required bool on});
 
   /// archive_space_post (review 105B): a Lead, a Checked work item. It
   /// leaves Work; Search still finds it.
@@ -371,12 +382,16 @@ class NewWorkItem {
     this.blocks,
     this.points = const [],
     this.teamId,
+    this.tagId,
   });
 
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
+
+  /// Its one tag from the market's list (review 110 TG1), or none.
+  final String? tagId;
 
   /// Its Team (review 105 Part 3); null is the whole Space.
   final String? teamId;
@@ -424,6 +439,44 @@ class NewWorkItem {
       'p_points': [
         for (final p in points) {'id': p.id, 'text': p.text.trim()},
       ],
+    'p_tag': ?tagId,
+  };
+}
+
+/// A Thanks (review 110 TH1) as create_thanks takes it: its [words], to a
+/// person or a Team, for an optional work item, with its photos.
+@immutable
+class NewThanks {
+  const NewThanks({
+    required this.id,
+    required this.spaceId,
+    required this.words,
+    this.toPersonId,
+    this.toTeamId,
+    this.forId,
+    this.photoPaths = const [],
+  });
+
+  final String id;
+  final String spaceId;
+  final String words;
+  final String? toPersonId;
+  final String? toTeamId;
+  final String? forId;
+
+  /// Uploaded photos, in the post's folder.
+  final List<String> photoPaths;
+
+  Map<String, Object?> toParams() => {
+    'p_id': id,
+    'p_space': spaceId,
+    'p_body': words.trim(),
+    'p_to_person': toPersonId,
+    'p_to_team': toTeamId,
+    'p_for': forId,
+    'p_files': [
+      for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+    ],
   };
 }
 
@@ -597,6 +650,22 @@ class SupabaseDaybookRepository implements DaybookRepository {
   );
 
   @override
+  Future<void> createThanks(NewThanks thanks) => _guard(
+    () => _client.rpc<String>('create_thanks', params: thanks.toParams()),
+  );
+
+  @override
+  Future<List<DaybookTag>> workTags(String spaceId) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'space_work_tags',
+        params: {'p_space': spaceId},
+      ),
+    );
+    return [for (final r in rows) ?DaybookTag.fromJson(r)];
+  });
+
+  @override
   Future<DaybookExtras> extras(String spaceId, DateTime day) =>
       _guard(() async {
         final start = DateTime(day.year, day.month, day.day);
@@ -708,6 +777,14 @@ class SupabaseDaybookRepository implements DaybookRepository {
   );
 
   @override
+  Future<void> showThanks(String postId, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      'set_thanks_on_profile',
+      params: {'p_post': postId, 'p_show': on},
+    ),
+  );
+
+  @override
   Future<void> archivePost(String postId) => _guard(
     () => _client.rpc<void>('archive_space_post', params: {'p_post': postId}),
   );
@@ -782,6 +859,12 @@ class SupabaseDaybookRepository implements DaybookRepository {
 final daybookRepositoryProvider = Provider<DaybookRepository>(
   (ref) => SupabaseDaybookRepository(ref.watch(supabaseClientProvider)),
 );
+
+/// The tags a work item in this Space may take (review 110 TG1).
+final spaceWorkTagsProvider = FutureProvider.autoDispose
+    .family<List<DaybookTag>, String>(
+      (ref, spaceId) => ref.watch(daybookRepositoryProvider).workTags(spaceId),
+    );
 
 /// One card by id (daybook_card): a target's work item, opened from its
 /// row.

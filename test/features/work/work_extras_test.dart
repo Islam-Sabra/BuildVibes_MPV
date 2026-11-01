@@ -21,7 +21,6 @@ import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/features/spaces/space_errors.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_loop.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -33,6 +32,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../helpers/chat_fakes.dart';
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -149,7 +149,7 @@ Future<NewSpacePost> _postAnnouncement(WidgetTester tester, TestApp app) async {
   await _tap(tester, _key('post-bar-notepad'));
   await tester.enterText(_key('writing-title'), 'Pour at 10:00');
   await tester.pumpAndSettle();
-  await _tap(tester, _key('kind-chip-${DaybookKind.announcement}'));
+  await chooseKind(tester, 'announcement');
   await _tap(tester, _key('writing-post'));
   return app.daybook.createdPosts.single;
 }

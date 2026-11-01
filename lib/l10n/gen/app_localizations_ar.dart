@@ -6170,4 +6170,297 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plCantYet => 'لا يمكن جدولة بند فيه ملفات أو مكان حاليًا.';
+
+  @override
+  String get rmOnlyWhoMay =>
+      'يذكّر الآخرين صاحب البند أو المكلّف أو المسؤول فقط.';
+
+  @override
+  String get rmOnlyOpen => 'التذكير للبنود المفتوحة فقط.';
+
+  @override
+  String get rmClearTime => 'إلغاء هذا الوقت';
+
+  @override
+  String get plLater => 'النشر لاحقًا…';
+
+  @override
+  String get cpNewNote => 'ملاحظة جديدة';
+
+  @override
+  String get cpNewWorkItem => 'بند عمل جديد';
+
+  @override
+  String get cpNewChecklist => 'قائمة تحقق جديدة';
+
+  @override
+  String get cpNewAnnouncement => 'إعلان جديد';
+
+  @override
+  String get cpNewActivity => 'نشاط مجدول جديد';
+
+  @override
+  String cpEdit(String kind) {
+    return 'تعديل · $kind';
+  }
+
+  @override
+  String cpSpaceLine(String space, String line) {
+    return '$space · $line';
+  }
+
+  @override
+  String get cpTemplates => 'القوالب';
+
+  @override
+  String get cpDetails => 'التفاصيل (اختياري)';
+
+  @override
+  String get cpWhatPosting => 'ماذا تنشر؟';
+
+  @override
+  String get cpAddNote => 'أضف إلى هذه الملاحظة';
+
+  @override
+  String get cpAddWorkItem => 'أضف إلى بند العمل هذا';
+
+  @override
+  String get cpAddChecklist => 'أضف إلى قائمة التحقق هذه';
+
+  @override
+  String get cpAddAnnouncement => 'أضف إلى هذا الإعلان';
+
+  @override
+  String get cpAddActivity => 'أضف إلى هذا النشاط';
+
+  @override
+  String get cpTag => 'وسم';
+
+  @override
+  String get cpPhotos => 'صور';
+
+  @override
+  String get cpFile => 'ملف';
+
+  @override
+  String get cpBullets => 'نقاط';
+
+  @override
+  String get cpPin => 'تثبيت';
+
+  @override
+  String cpRemoveThe(String what) {
+    return 'إزالة $what';
+  }
+
+  @override
+  String cpRemoved(String what, String kind) {
+    return 'أُزيل: $what. $kind لا يأخذه.';
+  }
+
+  @override
+  String get cpFiles => 'الملفات';
+
+  @override
+  String get cpTables => 'الجداول';
+
+  @override
+  String cpTableChip(int rows) {
+    return 'جدول · $rows صفوف';
+  }
+
+  @override
+  String cpTaskTableChip(int count) {
+    return 'جدول مهام · $count';
+  }
+
+  @override
+  String get cpAddRow => 'إضافة صف';
+
+  @override
+  String get cpAddColumn => 'إضافة عمود';
+
+  @override
+  String get cpTaskHint => 'مهمة';
+
+  @override
+  String get cpAddTask => 'إضافة مهمة';
+
+  @override
+  String cardFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفًا',
+      few: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTables(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جدولًا',
+      few: '$count جداول',
+      two: 'جدولان',
+      one: 'جدول واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cardTasks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهمة',
+      few: '$count مهام',
+      two: 'مهمتان',
+      one: 'مهمة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cardSeeMore => 'عرض المزيد';
+
+  @override
+  String cardMorePhotos(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get thanksStamp => 'شكر';
+
+  @override
+  String get thanksTo => 'إلى';
+
+  @override
+  String get thanksShow => 'أظهِر في ملفي';
+
+  @override
+  String get thanksHide => 'أزِل من ملفي';
+
+  @override
+  String get thanksOnlyYou => 'أنت فقط ترى هذا الزر. لا يُبلَّغ أحد.';
+
+  @override
+  String get profileThanks => 'رسائل الشكر';
+
+  @override
+  String profileThanksFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get notebookShareSpacesLoading => 'جارٍ تحميل مساحاتك…';
+
+  @override
+  String get notebookShareSpacesError => 'تعذّر تحميل مساحاتك. حاول مرة أخرى.';
+
+  @override
+  String get daybookKindThanks => 'شكر';
+
+  @override
+  String get cpNewThanks => 'شكر';
+
+  @override
+  String get cpAddThanks => 'أضف إلى الشكر';
+
+  @override
+  String get thanksWordsHint => 'شكرًا على…';
+
+  @override
+  String get thanksFor => 'على';
+
+  @override
+  String get thanksForOptional => 'اختياري';
+
+  @override
+  String get thanksToTitle => 'اشكر من؟';
+
+  @override
+  String get thanksTeams => 'الفرق';
+
+  @override
+  String get thanksForTitle => 'على أي بند عمل؟';
+
+  @override
+  String get thanksForNone => 'لا بنود عمل مفتوحة في هذه المساحة.';
+
+  @override
+  String get thanksSomeone => 'اشكر شخصًا';
+
+  @override
+  String get thanksProfileNote => 'يمكنه عرض هذا في ملفه.';
+
+  @override
+  String get thanksRefusedNotAllowed => 'لا يمكنك نشر شكر في هذه المساحة.';
+
+  @override
+  String get thanksRefusedSignIn => 'سجّل الدخول مرة أخرى ثم أرسله.';
+
+  @override
+  String get thanksRefusedIdTaken => 'تعذّر حفظ هذا الشكر. أرسله مرة أخرى.';
+
+  @override
+  String get thanksRefusedNoOne => 'اختر شخصًا أو فريقًا لتشكره.';
+
+  @override
+  String get thanksRefusedSelf => 'اشكر شخصًا آخر.';
+
+  @override
+  String get thanksRefusedNotMember => 'لم يعد في هذه المساحة. اختر شخصًا آخر.';
+
+  @override
+  String get thanksRefusedTeam =>
+      'هذا الفريق ليس في هذه المساحة. اختر مرة أخرى.';
+
+  @override
+  String get thanksRefusedFor =>
+      'لا يمكن اختيار بند العمل هذا. اختر غيره أو أزِله.';
+
+  @override
+  String get thanksRefusedTooLong => 'اجعله أقل من 5000 حرف.';
+
+  @override
+  String get cpTagPanel => 'وسم (واحد)';
+
+  @override
+  String get cpTagNote => 'القائمة من سوقك. اضغط مرة أخرى للإزالة.';
+
+  @override
+  String get cpTagsError => 'تعذّر تحميل الوسوم. حاول مرة أخرى.';
+
+  @override
+  String get daybookTagFilterClear => 'إظهار كل الوسوم';
+
+  @override
+  String get cpPointHint => 'بند للتأشير';
+
+  @override
+  String get cpAddPoint => 'إضافة بند';
+
+  @override
+  String cpChecklistChip(int count) {
+    return 'قائمة تحقق · $count';
+  }
+
+  @override
+  String get cpPeople => 'الأشخاص';
+
+  @override
+  String notebookShareSpacesCode(String code) {
+    return 'الرمز: $code';
+  }
+
+  @override
+  String get rmFiveWaiting => 'على هذا البند 5 تذكيرات بالانتظار.';
+
+  @override
+  String get rmOnlyWhoSees => 'يمكن تذكير من يرى هذا البند فقط.';
 }

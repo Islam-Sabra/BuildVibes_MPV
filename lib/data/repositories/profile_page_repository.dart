@@ -7,6 +7,31 @@ import '../models/market.dart';
 import '../models/profile.dart';
 import '../supabase/supabase_provider.dart';
 
+/// Review 110 TH2: one Thanks shown on a profile. No counts (rule 3).
+class ProfileThanks {
+  const ProfileThanks({
+    required this.postId,
+    required this.fromName,
+    required this.words,
+    required this.at,
+    this.projectName,
+  });
+
+  factory ProfileThanks.fromJson(Map<String, dynamic> json) => ProfileThanks(
+    postId: json['post_id'] as String,
+    fromName: json['from_name'] as String? ?? '',
+    words: json['words'] as String? ?? '',
+    at: DateTime.parse(json['created_at'] as String),
+    projectName: json['project_name'] as String?,
+  );
+
+  final String postId;
+  final String fromName;
+  final String words;
+  final DateTime at;
+  final String? projectName;
+}
+
 /// Profile pages (R1, R5) and the edit screens (R8). What a viewer may see
 /// is decided by RLS: hidden parts simply come back empty.
 abstract class ProfilePageRepository {
@@ -36,6 +61,10 @@ abstract class ProfilePageRepository {
   Future<void> setCvVisibility(String cvProjectId, bool show);
 
   Future<void> block(String me, String other);
+
+  /// Review 110 TH2: the Thanks this person chose to show (profile_thanks),
+  /// newest first: who thanked, the words, the date, the project.
+  Future<List<ProfileThanks>> thanks(String profileId);
 
   /// Places of a market, cities first, for the "City or area" select.
   Future<List<({String id, LocalizedText name, bool isCity})>> places(
@@ -210,6 +239,17 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
       _client.from('blocks').insert({'blocker_id': me, 'blocked_id': other});
 
   @override
+  Future<List<ProfileThanks>> thanks(String profileId) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'profile_thanks',
+      params: {'p_profile': profileId},
+    );
+    return [
+      for (final r in rows) ProfileThanks.fromJson(r as Map<String, dynamic>),
+    ];
+  }
+
+  @override
   Future<List<({String id, LocalizedText name, bool isCity})>> places(
     String marketId,
   ) async {
@@ -261,4 +301,10 @@ final profilePageRepositoryProvider = Provider<ProfilePageRepository>(
 final profileViewProvider = FutureProvider.autoDispose
     .family<ProfileView?, String>(
       (ref, id) => ref.watch(profilePageRepositoryProvider).fetch(id),
+    );
+
+/// Review 110 TH2: a profile's shown Thanks.
+final profileThanksProvider = FutureProvider.autoDispose
+    .family<List<ProfileThanks>, String>(
+      (ref, id) => ref.watch(profilePageRepositoryProvider).thanks(id),
     );

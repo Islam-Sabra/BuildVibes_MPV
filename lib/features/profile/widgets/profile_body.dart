@@ -14,6 +14,13 @@ import '../../../shared/widgets/bv_tabs.dart';
 import '../../feed/post_list.dart';
 import '../delivered_work.dart';
 import 'profile_parts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
+import '../../../data/repositories/profile_page_repository.dart'
+    show ProfileThanks, profileThanksProvider;
+import '../../../shared/widgets/bv_stamp.dart';
+import '../../../shared/widgets/bv_text_field.dart'
+    show BvWesternDigitsFormatter;
 
 /// Tabs and their content under a profile header: Overview, Posts,
 /// Projects, Experience. [own] adds the proof card, "Finish your profile"
@@ -70,7 +77,7 @@ class _ProfileBodyState extends State<ProfileBody> {
   }
 }
 
-class _Overview extends StatelessWidget {
+class _Overview extends ConsumerWidget {
   const _Overview({
     required this.profile,
     required this.own,
@@ -82,10 +89,14 @@ class _Overview extends StatelessWidget {
   final VoidCallback onSeeAllProjects;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final (done, total) = profile.completion;
+    // Review 110 TH2: only what its person chose to show; with none, no
+    // section and no gap for it.
+    final thanks =
+        ref.watch(profileThanksProvider(profile.id)).value ?? const [];
     final projects = profile.projects
         .where((p) => own || p.showOnProfile)
         .toList();
@@ -99,6 +110,8 @@ class _Overview extends StatelessWidget {
           profileId: profile.id,
           own: own,
         ),
+        // Review 110 TH2: only what its person chose to show.
+        if (thanks.isNotEmpty) ProfileThanksSection(thanks: thanks),
         if (own || projects.isNotEmpty)
           Column(
             key: Key(own ? 'proof-card' : 'profile-projects'),
@@ -229,6 +242,70 @@ class _Experience extends StatelessWidget {
             style: BvButtonStyle.secondary,
             expand: true,
             onPressed: () => context.push(AppRoutes.profileEditExperienceForm),
+          ),
+      ],
+    );
+  }
+}
+
+/// Review 110 TH2: the Thanks this person chose to show, newest first:
+/// who thanked, the words, the project and the day. Nothing when there
+/// are none; no counts and no rankings.
+class ProfileThanksSection extends StatelessWidget {
+  const ProfileThanksSection({super.key, required this.thanks});
+
+  final List<ProfileThanks> thanks;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final day = DateFormat(
+      'd MMM y',
+      Localizations.localeOf(context).toLanguageTag(),
+    );
+    return Column(
+      key: const Key('profile-thanks'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s12,
+      children: [
+        SectionTitle(l10n.profileThanks),
+        for (final t in thanks)
+          Container(
+            key: Key('profile-thanks-${t.postId}'),
+            padding: const EdgeInsetsDirectional.all(BvSpace.s12),
+            decoration: BoxDecoration(
+              color: BvColors.surfaceElevated,
+              borderRadius: BvRadius.cardAll,
+              border: Border.all(
+                color: BvColors.borderSubtle,
+                width: BvStroke.thin,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: BvSpace.s6,
+              children: [
+                BvInkStamp(
+                  label: l10n.thanksStamp,
+                  size: BvInkStampSize.sm,
+                  tone: BvInkStampTone.positive,
+                ),
+                if (t.words.trim().isNotEmpty)
+                  UserText(t.words.trim(), style: type.bodyMd),
+                Text(
+                  [
+                    l10n.profileThanksFrom(t.fromName),
+                    ?t.projectName,
+                    BvWesternDigitsFormatter.normalise(
+                      day.format(t.at.toLocal()),
+                    ),
+                  ].join(' · '),
+                  style: quiet,
+                ),
+              ],
+            ),
           ),
       ],
     );

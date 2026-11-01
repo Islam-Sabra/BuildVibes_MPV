@@ -84,12 +84,14 @@ import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'composer_thanks.dart';
 import 'post_later_sheet.dart';
 import 'reminder_sheet.dart';
 import 'space_day.dart' show spaceWallNow;
 import 'first_run_tips.dart';
 import 'daybook_attach.dart';
 import 'daybook_card.dart';
+import 'daybook_composer.dart';
 import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
@@ -251,6 +253,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   var _editing = false;
   DaybookWritingMenu? _menu;
 
+  /// Review 110 CP2, CP3: # or +'s grid, in place of the keyboard.
+  ComposerPanel? _panel;
+
   /// Post was tapped with nobody to do it, or nobody it is for: each new
   /// value pulses the card's "who" row (F56). Choosing someone never posts.
   Object? _askWho;
@@ -298,6 +303,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     ref.listenManual(workPlaceFilterProvider(_spaceId), (_, place) {
       if (place != null) unawaited(_readAllPages());
     }, fireImmediately: true);
+    // Review 110 TG1: Work for one tag, the same way.
+    ref.listenManual(workTagFilterProvider(_spaceId), (_, tag) {
+      if (tag != null) unawaited(_readAllPages());
+    });
     // A card that only quotes a message just put in this Space (review
     // 64, DM5), or one just made from a note, is new, not a Draft from
     // before. F88: any other kept card,
@@ -341,7 +350,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.startWriting && widget.space.myRights.createItems) {
-        _startWriting();
+        // "Work item in a Space" (Create, a message): a new card is a work
+        // item, whatever kind was posted here last.
+        _startWriting(kind: DaybookKind.workItem);
       }
       if (mounted && widget.startFile != null) {
         unawaited(_startFile(widget.startFile!));
@@ -787,17 +798,25 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   /// The cards to show: those of [place] when Work is filtered to one,
   /// and of [waiting] when it shows what waits on me; both, together.
+  /// Review 110 TG1: and of [tag] when Work is filtered to one tag.
   static Set<String>? _shownOnly(
     List<DaybookCard> cards,
     SpacePlace? place,
-    Set<String>? waiting,
-  ) {
-    if (place == null) return waiting;
-    final there = {
-      for (final c in cards)
-        if (c.post.placeId == place.id) c.id,
-    };
-    return waiting == null ? there : there.intersection(waiting);
+    Set<String>? waiting, {
+    DaybookTag? tag,
+  }) {
+    Set<String>? only = waiting;
+    Set<String> and(bool Function(DaybookPost p) keep) {
+      final these = {
+        for (final c in cards)
+          if (keep(c.post)) c.id,
+      };
+      return only == null ? these : these.intersection(only);
+    }
+
+    if (place != null) only = and((p) => p.placeId == place.id);
+    if (tag != null) only = and((p) => p.tag?.id == tag.id);
+    return only;
   }
 
   /// Every page of Work, oldest last (a place's filter, review 105C).
@@ -937,15 +956,36 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     await context.push(AppRoutes.spaceWalk(_spaceId));
   }
 
-  /// Opens the card at "Now", with a new post id (or the Draft's).
-  void _startWriting() {
+  /// Opens the card at "Now", with a new post id (or the Draft's). A new
+  /// one is [kind], else the last kind posted here (review 110 G1; Note
+  /// the first time), if this person may post it (W11). Who may only
+  /// thank (a Viewer) gets a Thanks, a Draft kept as another kind too.
+  void _startWriting({DaybookKind? kind}) {
+    final kinds = composerKindsFor(widget.space);
     ref
         .read(daybookDraftProvider(_spaceId).notifier)
-        .open(ref.read(newPostIdProvider)());
+        .open(
+          ref.read(newPostIdProvider)(),
+          kind:
+              kind ??
+              composerStartKind(
+                ref.read(sharedPreferencesProvider),
+                _spaceId,
+                kinds,
+              ),
+        );
+    final opened = ref.read(daybookDraftProvider(_spaceId))?.kind;
+    if (!widget.space.myRights.createItems &&
+        opened != null &&
+        !kinds.contains(opened)) {
+      unawaited(_writer.switchKind(kinds.first));
+    }
+    _composing(true);
     setState(() {
       _writing = true;
       _editing = false;
       _menu = null;
+      _panel = null;
       _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1010,10 +1050,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Edit a posted work item: its card opens at "Now", filled (X1 Edit).
   void _startEdit(DaybookPost post) {
     ref.read(daybookEditProvider(_spaceId).notifier).start(post);
+    _composing(true);
     setState(() {
       _writing = true;
       _editing = true;
       _menu = null;
+      _panel = null;
       _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1032,12 +1074,84 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       unawaited(ref.read(daybookDraftProvider(_spaceId).notifier).close());
       if (draft != null && !draft.isEmpty) _fromBefore = true;
     }
+    _composing(false);
     setState(() {
       _writing = false;
       _editing = false;
       _menu = null;
+      _panel = null;
       _askWho = null;
     });
+  }
+
+  /// Review 110 CP1: the Space screen hides its header while writing.
+  void _composing(bool on) =>
+      ref.read(spaceComposingProvider(_spaceId).notifier).set(on);
+
+  /// # or + (CP2, CP3): its grid in place of the keyboard, or back.
+  void _setPanel(ComposerPanel? panel) => setState(() {
+    _panel = panel;
+    _menu = null;
+  });
+
+  /// A kind from # (CP2): what it doesn't take goes, in one line. Only a
+  /// kind this person may post (W11).
+  Future<void> _switchKind(DaybookKind kind) async {
+    _setPanel(null);
+    if (!composerKindsFor(widget.space).contains(kind)) return;
+    final l10n = AppLocalizations.of(context);
+    final drops = await _card.switchKind(kind);
+    if (!mounted || drops.isEmpty) return;
+    String name(ComposerDrop d) => switch (d) {
+      ComposerDrop.owner || ComposerDrop.people => l10n.daybookRowFor,
+      ComposerDrop.place => l10n.daybookRowPlace,
+      ComposerDrop.due => l10n.daybookRowDue,
+      ComposerDrop.start => l10n.daybookRowWhen,
+      ComposerDrop.pin => l10n.cpPin,
+      ComposerDrop.files => l10n.cpFiles,
+      ComposerDrop.tables => l10n.cpTables,
+      ComposerDrop.thanks => l10n.thanksTo,
+      ComposerDrop.tag => l10n.cpTag,
+      ComposerDrop.checklist => l10n.daybookKindChecklist,
+    };
+    showSpaceMessage(
+      context,
+      l10n.cpRemoved(
+        {for (final d in drops) name(d)}.join(' · '),
+        kindName(l10n, kind),
+      ),
+    );
+  }
+
+  /// An extra from + (CP3): each opens its own picker, as before.
+  Future<void> _extra(ComposerExtra extra) async {
+    switch (extra) {
+      case ComposerExtra.place:
+        await _pickPlace();
+      case ComposerExtra.people:
+        await _pickPeople();
+      case ComposerExtra.due:
+        await _pickDue();
+      case ComposerExtra.photos:
+        await _photos(_card.addPhotos());
+      case ComposerExtra.file:
+        await _attach();
+      case ComposerExtra.pin:
+        await _pickPin();
+      case ComposerExtra.table:
+        await editComposerTable(context, _card);
+      case ComposerExtra.taskTable:
+        await editComposerTasks(context, _card);
+      // Review 110 step 5: the points to tick, on a sheet.
+      case ComposerExtra.checklist:
+        await editComposerChecklist(context, _card);
+      // TG1: Tag's list in place of the keyboard.
+      case ComposerExtra.tag:
+        _setPanel(ComposerPanel.tags);
+      // Bullets is the composer's own (a line in the details).
+      case ComposerExtra.bullets:
+        break;
+    }
   }
 
   void _setMenu(DaybookWritingMenu? menu) => setState(() {
@@ -1065,6 +1179,37 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
+  /// A Thanks's To (review 110 TH1): Teams, then people.
+  Future<void> _pickThanksTo() async {
+    _setMenu(null);
+    final picked = await pickThanksTo(
+      context,
+      ref,
+      spaceId: _spaceId,
+      me: ref.read(authUserIdProvider).value,
+      currentId: _card.draft?.thanksToId,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _askWho = null);
+    await _card.setThanksTo(
+      id: picked.id,
+      name: picked.name,
+      team: picked.team,
+    );
+  }
+
+  /// A Thanks's For: one of this Space's open work items.
+  Future<void> _pickThanksFor() async {
+    _setMenu(null);
+    final picked = await pickThanksFor(
+      context,
+      ref,
+      spaceId: _spaceId,
+      currentId: _card.draft?.thanksForId,
+    );
+    if (picked != null) await _card.setThanksFor(picked);
+  }
+
   /// The Place row, or More → Location (review 105C; the lead's check
   /// O1): the Space's places on a sheet, like Give to's.
   Future<void> _pickPlace() async {
@@ -1076,8 +1221,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// More → Template (slice 7): this kind's templates for this audience;
-  /// one fills the card.
+  /// Templates (slice 7; review 110 W9: on the composer's top bar): this
+  /// kind's templates for this audience; one fills the card.
   Future<void> _pickTemplate() async {
     _setMenu(null);
     final draft = _card.draft;
@@ -1274,7 +1419,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final draft = _writer.draft;
     if (draft == null || !draft.readyToTry) return;
     switch (draft.missing(ref.read(clockProvider)())) {
-      case DaybookMissing.owner || DaybookMissing.people:
+      // Review 110 CP1: an activity's lines are When and Team, so who's
+      // coming (still required, F56) is asked on the people sheet.
+      case DaybookMissing.people when draft.kind == DaybookKind.activity:
+        await _pickPeople();
+      case DaybookMissing.owner || DaybookMissing.people || DaybookMissing.to:
         setState(() {
           _menu = null;
           _askWho = Object();
@@ -1321,12 +1470,25 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       await _writer.setPage(reportPage(AppLocalizations.of(context), draft));
       if (!mounted) return;
     }
+    final kind = draft?.kind;
     await _writer.post(authorName: myName, at: at);
     if (!mounted) return;
+    if (kind != null) {
+      // Review 110 G1: the next one here opens on it.
+      unawaited(
+        rememberComposerKind(
+          ref.read(sharedPreferencesProvider),
+          _spaceId,
+          kind,
+        ),
+      );
+    }
     FocusManager.instance.primaryFocus?.unfocus();
+    _composing(false);
     setState(() {
       _writing = false;
       _menu = null;
+      _panel = null;
       _askWho = null;
       _fromBefore = false;
     });
@@ -1420,6 +1582,179 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   static const _farFuture = 9999;
 
+  /// Review 110 D: writing, over the whole screen (CP1–CP5).
+  Widget _composer(
+    AppLocalizations l10n,
+    DaybookWords words,
+    DaybookPostDraft? cardDraft, {
+    required bool laterBlocked,
+    required String? myName,
+    required String? me,
+  }) {
+    final kind = cardDraft?.kind ?? DaybookKind.note;
+    final postReady =
+        _editing || (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false);
+    final extras = composerOffered(kind, editing: _editing);
+    // W11: what # offers is what this person may post; who may only thank
+    // (a Viewer) has no # at all.
+    final kinds = composerKindsFor(widget.space);
+    final laterNote = l10n.plCantYet;
+    final bar = BvWritingToolbar.tools(
+      tools: [
+        // # (CP2): the kind's icon; its grid of kinds.
+        if (kinds.length > 1)
+          BvWritingTool(
+            key: const Key('writing-kind'),
+            icon: DaybookComposerState.composerKindIcon(kind),
+            label: l10n.cpWhatPosting,
+            outlined: true,
+            active: _panel == ComposerPanel.kinds,
+            onTap: _editing || !kinds.contains(kind)
+                ? null
+                : () => _setPanel(
+                    _panel == ComposerPanel.kinds ? null : ComposerPanel.kinds,
+                  ),
+          ),
+        // + (CP3): what this kind can take.
+        BvWritingTool(
+          key: const Key('writing-add'),
+          icon: BvIcons.add,
+          label: l10n.daybookMore,
+          outlined:
+              _panel == ComposerPanel.extras || _panel == ComposerPanel.tags,
+          active:
+              _panel == ComposerPanel.extras || _panel == ComposerPanel.tags,
+          onTap: extras.isEmpty
+              ? null
+              : () => _setPanel(
+                  _panel == ComposerPanel.extras ? null : ComposerPanel.extras,
+                ),
+        ),
+        BvWritingTool(
+          key: const Key('writing-camera'),
+          icon: BvIcons.camera,
+          label: l10n.daybookCamera,
+          // An edit keeps its photos (slice 5 opens a post in place).
+          onTap: _editing ? null : () => unawaited(_photos(_writer.addPhoto())),
+        ),
+      ],
+      postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
+      // Post turns on with what the kind can't go without (review 46);
+      // what it still needs opens first.
+      onPost: _editing
+          ? (cardDraft?.titleFits ?? false ? _save : null)
+          : (cardDraft?.readyToTry ?? false
+                ? () => unawaited(_postOrAsk(myName))
+                : null),
+      // F56: grey until the "who" is chosen too; a tap asks.
+      postReady: postReady,
+      // CP5: hold Send for Post later, once the post could go now. V7:
+      // not yet for one with Library files or a place from the list.
+      laterLabel: _editing ? null : l10n.plLater,
+      laterReady: !laterBlocked,
+      laterNote: laterNote,
+      onLater: !_editing && postReady
+          ? (laterBlocked
+                ? () => showSpaceMessage(context, laterNote)
+                : () => unawaited(_postLater(myName)))
+          : null,
+    );
+    final menu = _menu;
+    return BvBackSwipe(
+      holding: true,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          if (_panel != null) {
+            _setPanel(null);
+          } else if (_menu != null) {
+            _setMenu(null);
+          } else {
+            _stopWriting();
+          }
+        },
+        child: DaybookComposer(
+          key: ValueKey(('composer', _editing)),
+          spaceId: _spaceId,
+          spaceName: widget.space.name,
+          words: words,
+          editing: _editing,
+          askWho: _askWho,
+          bar: bar,
+          panel: _panel,
+          onPanel: _setPanel,
+          kinds: kinds,
+          onTemplates: _editing ? null : () => unawaited(_pickTemplate()),
+          onClose: _stopWriting,
+          onKind: (k) => unawaited(_switchKind(k)),
+          onExtra: (e) => unawaited(_extra(e)),
+          onMenu: _setMenu,
+          onPickPeople: () => unawaited(_pickPeople()),
+          onPickStart: () => unawaited(_pickStart()),
+          onPickPin: () => unawaited(_pickPin()),
+          onPickPinTime: () => unawaited(_pickPinTime()),
+          onPickPlace: () => unawaited(_pickPlace()),
+          onPickDue: () => unawaited(_pickDue()),
+          onPickThanksTo: () => unawaited(_pickThanksTo()),
+          onPickThanksFor: () => unawaited(_pickThanksFor()),
+          // H3: Walk is for who may post work (a Lead or Crew).
+          onWalk: _editing || !widget.space.mayPostWork
+              ? null
+              : () => unawaited(_walk()),
+          overlay: menu == null
+              ? null
+              : Positioned.fill(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Stack(
+                      children: [
+                        // No dim: a tap anywhere else closes it (E2).
+                        Positioned.fill(
+                          child: GestureDetector(
+                            key: const Key('writing-menu-away'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _setMenu(null),
+                          ),
+                        ),
+                        PositionedDirectional(
+                          start: BvPopoverMenuSpec.writingStart,
+                          bottom: BvPopoverMenuSpec.writingGap,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: math.max(
+                                0,
+                                constraints.maxHeight -
+                                    2 * BvPopoverMenuSpec.writingGap,
+                              ),
+                            ),
+                            child: DaybookWritingPopover(
+                              key: ValueKey((menu, _editing)),
+                              spaceId: _spaceId,
+                              menu: menu,
+                              me: me,
+                              editing: _editing,
+                              onMenu: _setMenu,
+                              onPickDue: _pickDue,
+                              onPickPin: () => unawaited(_pickPin()),
+                              onPickStart: () => unawaited(_pickStart()),
+                              onPickFile: () => unawaited(_pickFile()),
+                              onClose: () => _setMenu(null),
+                              onAssigned: _assigned,
+                              onPickPeople: () => unawaited(_pickPeople()),
+                              onPickPlace: () => unawaited(_pickPlace()),
+                              onPickTemplate: () => unawaited(_pickTemplate()),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1464,6 +1799,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       });
     });
     final canPost = space.myRights.createItems;
+    // Founder, 1 Nov: who may not post work may still thank, so may write.
+    final canWrite = composerKindsFor(space).isNotEmpty;
     final page = ref.watch(daybookCardsProvider(_spaceId));
     final dueToday =
         ref.watch(daybookDueTodayProvider(_spaceId)).value ??
@@ -1487,7 +1824,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ?.person
         .fullName;
     final card =
-        canPost && (_writing || _editing || (draft != null && !draft.isEmpty));
+        canWrite && (_writing || _editing || (draft != null && !draft.isEmpty));
     final signing = {
       for (final i in pending)
         if (i.kind == PendingKind.signOff) i.id,
@@ -1534,6 +1871,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
     // Review 105C: Work for one place, said by a chip with ✕.
     final place = ref.watch(workPlaceFilterProvider(_spaceId));
+    final tag = ref.watch(workTagFilterProvider(_spaceId));
     final shown = _shownDay ?? today;
     // Any new post waiting to send keeps the first page away: a work
     // item, another kind, a walk.
@@ -1561,7 +1899,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
         signing: signing,
-        only: _shownOnly(cards, place, _needsMine ? waiting : null),
+        only: _shownOnly(cards, place, _needsMine ? waiting : null, tag: tag),
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -1575,6 +1913,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     };
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final cardDraft = _editing ? edit : draft;
+    // W7: a Thanks can be scheduled too.
     final laterBlocked =
         cardDraft != null &&
         cardDraft.kind == DaybookKind.workItem &&
@@ -1583,6 +1922,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // Now it follows the day at the top of the page (F23).
     final atToday = _writing || !_wasAway || shown == today;
     final day = atToday ? today : shown;
+
+    if (_writing && canWrite) {
+      return _composer(
+        l10n,
+        words,
+        cardDraft,
+        laterBlocked: laterBlocked,
+        myName: myName,
+        me: me,
+      );
+    }
 
     // Review 100 B6: an iPhone's swipe from the edge does what ← does,
     // also while this screen holds Back for itself.
@@ -1618,6 +1968,27 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                       clearKey: const Key('place-filter-clear'),
                       onClear: ref
                           .read(workPlaceFilterProvider(_spaceId).notifier)
+                          .clear,
+                    ),
+                  ),
+                ),
+              // Review 110 TG1: Work for one tag, said the same way.
+              if (tag != null && !_writing)
+                Padding(
+                  padding: BvPlaceFilterSpec.outer,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: BvFilterChip(
+                      key: const Key('tag-filter'),
+                      icon: BvIcons.tag,
+                      label: tag.nameIn(
+                        Localizations.localeOf(context).languageCode,
+                      ),
+                      danger: tag.danger,
+                      clearLabel: l10n.daybookTagFilterClear,
+                      clearKey: const Key('tag-filter-clear'),
+                      onClear: ref
+                          .read(workTagFilterProvider(_spaceId).notifier)
                           .clear,
                     ),
                   ),
@@ -1772,78 +2143,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   readOnly: space.myPass == SpacePass.viewer
                       ? l10n.daybookReadOnly
                       : null,
-                )
-              else if (_writing)
-                // Review 105 SP2: the notebook's bar, + · camera · attach,
-                // then Send; no mic until posts hold voice notes (ruling
-                // Q4). + holds what the rows don't (a template, the pin).
-                BvWritingToolbar.tools(
-                  tools: [
-                    BvWritingTool(
-                      key: const Key('writing-add'),
-                      icon: BvIcons.add,
-                      label: l10n.daybookMore,
-                      onTap:
-                          writingHasMore(
-                            ref,
-                            _spaceId,
-                            cardDraft,
-                            editing: _editing,
-                          )
-                          ? () => _setMenu(
-                              _menu == DaybookWritingMenu.more
-                                  ? null
-                                  : DaybookWritingMenu.more,
-                            )
-                          : null,
-                      active: _menu == DaybookWritingMenu.more,
-                    ),
-                    BvWritingTool(
-                      key: const Key('writing-camera'),
-                      icon: BvIcons.camera,
-                      label: l10n.daybookCamera,
-                      // An edit keeps its photos (slice 5 opens a post in
-                      // place).
-                      onTap: _editing
-                          ? null
-                          : () => unawaited(_photos(_writer.addPhoto())),
-                    ),
-                    BvWritingTool(
-                      key: const Key('writing-attach'),
-                      icon: BvIcons.attach,
-                      label: l10n.daybookAttachTitle,
-                      onTap: _editing ? null : () => unawaited(_attach()),
-                    ),
-                  ],
-                  postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
-                  // Post turns on with what the kind can't go without (a
-                  // title, a checklist's points, a file; review 46); what it
-                  // still needs opens first.
-                  onPost: _editing
-                      ? (cardDraft?.titleFits ?? false ? _save : null)
-                      : (cardDraft?.readyToTry ?? false
-                            ? () => unawaited(_postOrAsk(myName))
-                            : null),
-                  // F56: grey until the "who" is chosen too; a tap asks.
-                  postReady:
-                      _editing ||
-                      (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
-                  // Review 108 PL1: Post later, once the post could go now.
-                  // A work item's Library files and a place from the list
-                  // are added after it is made, so it goes now.
-                  laterLabel: _editing ? null : l10n.plTitle,
-                  // V7: not yet for one with Library files or a place from
-                  // the list (they are added after it is made); grey, and
-                  // a tap says so.
-                  laterReady: !laterBlocked,
-                  onLater:
-                      !_editing &&
-                          (cardDraft?.canPost(ref.watch(clockProvider)()) ??
-                              false)
-                      ? (laterBlocked
-                            ? () => showSpaceMessage(context, l10n.plCantYet)
-                            : () => unawaited(_postLater(myName)))
-                      : null,
+                  // Founder, 1 Nov: they may thank, and only thank.
+                  thankLabel: l10n.thanksSomeone,
+                  onThank: () => _startWriting(kind: DaybookKind.thanks),
                 )
               // A Draft on the page takes the post bar's place until it is
               // posted or emptied (E4).
@@ -3137,6 +3439,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             names?.member(id)?.person.fullName ??
             c.history.where((e) => e.byId == id).firstOrNull?.byName,
         site: _siteOf(c.post, places),
+        onTag: switch (c.post.tag) {
+          final tag? when !_writing =>
+            () => ref.read(workTagFilterProvider(_spaceId).notifier).show(tag),
+          _ => null,
+        },
         selected: selected.contains(c.id),
         // While writing, a tap on a card puts the card down, as anywhere
         // off it; while selecting it adds or takes off this one; a refused

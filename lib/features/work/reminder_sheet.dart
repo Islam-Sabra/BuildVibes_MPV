@@ -83,9 +83,12 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
 
   String get _spaceId => widget.space.id;
 
-  /// The item's creator, its owner or a Lead may remind someone else.
+  /// The item's creator, its owner or a Lead may remind someone else, of
+  /// an open work item only (review 110 B: the server takes nothing else).
   bool _maySomeone(String? me) =>
       me != null &&
+      widget.post.isWorkItem &&
+      widget.post.isOpen &&
       (widget.post.authorId == me ||
           widget.post.item?.ownerId == me ||
           widget.space.myPass == SpacePass.lead);
@@ -232,12 +235,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       navigator.pop(l10n.rmSetDone);
     } on SpaceException catch (e) {
       if (mounted) {
-        setState(
-          () => _error = e.failure == SpaceFailure.limit
-              // Review 108 V4: 20 a day.
-              ? l10n.rmDailyMost
-              : spaceErrorText(l10n, e),
-        );
+        setState(() => _error = reminderErrorText(l10n, e));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -325,36 +323,49 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         Wrap(
           spacing: BvSpace.s8,
           runSpacing: BvSpace.s8,
+          // RM1d: a picked time stands alone, × back to the suggestions.
           children: [
-            BvChip(
-              key: const Key('reminder-tomorrow'),
-              label: l10n.rmTomorrowAt(clock),
-              icon: BvIcons.clock,
-              selected: _when == _When.tomorrow,
-              onTap: () => setState(() {
-                _when = _When.tomorrow;
-                _error = null;
-              }),
-            ),
-            if (widget.post.dueAt != null)
+            if (_when == _When.picked && _picked != null)
+              BvFilterChip(
+                key: const Key('reminder-picked'),
+                clearKey: const Key('reminder-picked-clear'),
+                label: _whenWords(l10n, _picked!, now),
+                icon: BvIcons.clock,
+                clearLabel: l10n.rmClearTime,
+                onClear: () => setState(() {
+                  _picked = null;
+                  _when = _When.tomorrow;
+                  _error = null;
+                }),
+              )
+            else ...[
               BvChip(
-                key: const Key('reminder-before-due'),
-                label: l10n.rmBeforeDue,
-                selected: _when == _When.beforeDue,
+                key: const Key('reminder-tomorrow'),
+                label: l10n.rmTomorrowAt(clock),
+                icon: BvIcons.clock,
+                selected: _when == _When.tomorrow,
                 onTap: () => setState(() {
-                  _when = _When.beforeDue;
+                  _when = _When.tomorrow;
                   _error = null;
                 }),
               ),
-            BvChip(
-              key: const Key('reminder-pick'),
-              label: _picked == null
-                  ? l10n.rmPick
-                  : _whenWords(l10n, _picked!, now),
-              icon: BvIcons.calendar,
-              selected: _when == _When.picked,
-              onTap: () => unawaited(_pick(now)),
-            ),
+              if (widget.post.dueAt != null)
+                BvChip(
+                  key: const Key('reminder-before-due'),
+                  label: l10n.rmBeforeDue,
+                  selected: _when == _When.beforeDue,
+                  onTap: () => setState(() {
+                    _when = _When.beforeDue;
+                    _error = null;
+                  }),
+                ),
+              BvChip(
+                key: const Key('reminder-pick'),
+                label: l10n.rmPick,
+                icon: BvIcons.calendar,
+                onTap: () => unawaited(_pick(now)),
+              ),
+            ],
           ],
         ),
         if (someone)
@@ -398,3 +409,18 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     );
   }
 }
+
+/// Review 110 B: each refusal of set_work_reminder in plain words; the
+/// generic line only for what the server doesn't say.
+String reminderErrorText(AppLocalizations l10n, SpaceException e) =>
+    switch (e.message) {
+      'not allowed' => l10n.rmOnlyWhoMay,
+      'only an open work item' => l10n.rmOnlyOpen,
+      // Review 110 W5.
+      'at most 5 reminders wait on an item' => l10n.rmFiveWaiting,
+      'only people in the Space who can see it' => l10n.rmOnlyWhoSees,
+      // Review 108 V4: 20 a day.
+      'the most reminders for today' => l10n.rmDailyMost,
+      _ when e.failure == SpaceFailure.limit => l10n.rmDailyMost,
+      _ => spaceErrorText(l10n, e),
+    };

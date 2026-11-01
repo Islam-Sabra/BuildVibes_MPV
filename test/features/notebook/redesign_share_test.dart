@@ -227,14 +227,15 @@ void main() {
         expect(find.text(l10n.notebookSentTo('Ahmed Saleh')), findsOneWidget);
       });
 
-      testWidgets('Space: the Space, then post, work item or checklist; the '
+      testWidgets('Space: the Space, then post or work item; the '
           'Space\'s own rules are the server\'s', (tester) async {
         final repo = await _open(tester, lang);
         await _share(tester, 'space');
         await _tap(tester, _key('share-space-${DaybookSamples.space}'));
         expect(_key('share-kind-note'), findsOneWidget);
         expect(_key('share-kind-work_item'), findsOneWidget);
-        expect(_key('share-kind-checklist'), findsOneWidget);
+        // Review 110 W8: no Checklist; to-do lines go in as a work item's.
+        expect(_key('share-kind-checklist'), findsNothing);
         await _tap(tester, _key('share-kind-work_item'));
         await _tap(tester, _key('share-send'));
         expect(

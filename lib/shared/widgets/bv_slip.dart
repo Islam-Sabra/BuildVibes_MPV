@@ -287,14 +287,24 @@ class BvSlipHeader extends StatelessWidget {
 
 /// §2b: the work item's title; struck through when [cancelled].
 class BvSlipTitle extends StatelessWidget {
-  const BvSlipTitle(this.text, {super.key, this.cancelled = false});
+  const BvSlipTitle(
+    this.text, {
+    super.key,
+    this.cancelled = false,
+    this.maxLines,
+  });
 
   final String text;
   final bool cancelled;
 
+  /// Review 110 F (HV1): on a short card, 2 lines, then ….
+  final int? maxLines;
+
   @override
   Widget build(BuildContext context) => Text(
     text,
+    maxLines: maxLines,
+    overflow: maxLines == null ? null : TextOverflow.ellipsis,
     style: BvType.of(context).titleLg.copyWith(
       color: BvColors.textPrimary,
       decoration: cancelled ? TextDecoration.lineThrough : null,
@@ -312,11 +322,15 @@ class BvSlipFact extends StatelessWidget {
     required this.icon,
     required this.text,
     this.marks = const [],
+    this.maxLines,
   });
 
   final IconData icon;
   final String text;
   final List<BvMark> marks;
+
+  /// Review 110 F (HV1): the short card's info, on one line.
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -338,9 +352,16 @@ class BvSlipFact extends StatelessWidget {
         ),
         Expanded(
           child: marks.isEmpty
-              ? Text(text, style: style)
+              ? Text(
+                  text,
+                  style: style,
+                  maxLines: maxLines,
+                  overflow: maxLines == null ? null : TextOverflow.ellipsis,
+                )
               : Text.rich(
                   TextSpan(children: bvMarkedSpans(text, style, marks)),
+                  maxLines: maxLines,
+                  overflow: maxLines == null ? null : TextOverflow.ellipsis,
                 ),
         ),
       ],
@@ -623,43 +644,59 @@ class BvSlipBeforeAfter extends StatelessWidget {
 /// A post's place on its card (review 105 Part 5, SP1): sand, a pin and
 /// the place's name. A tap filters Work to that place.
 class BvSiteTag extends StatelessWidget {
-  const BvSiteTag({super.key, required this.name, this.onTap});
+  const BvSiteTag({
+    super.key,
+    required this.name,
+    this.onTap,
+    this.icon = BvIcons.place,
+    this.danger = false,
+  });
 
   final String name;
   final VoidCallback? onTap;
+
+  /// Review 110 TG1: a work item's tag has the tag icon; [danger] (Safety)
+  /// shows red.
+  final IconData icon;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
     final tag = Container(
       padding: BvSlipSpec.tagPadding,
-      decoration: const BoxDecoration(
-        color: BvColors.surfaceSiteTag,
+      decoration: BoxDecoration(
+        color: danger
+            ? BvColors.surfaceDestructiveSoft
+            : BvColors.surfaceSiteTag,
         borderRadius: BvSlipSpec.tagRadius,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: BvSlipSpec.tagGap,
         children: [
-          const Icon(
-            BvIcons.place,
+          Icon(
+            icon,
             size: BvSlipSpec.tagIcon,
-            color: BvColors.iconPrimary,
+            color: danger ? BvColors.textDestructive : BvColors.iconPrimary,
           ),
           Flexible(
             child: Text(
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: BvType.of(
-                context,
-              ).labelSm.copyWith(color: BvColors.textPrimary),
+              style: BvType.of(context).labelSm.copyWith(
+                color: danger ? BvColors.textDestructive : BvColors.textPrimary,
+              ),
             ),
           ),
         ],
       ),
     );
+    // As wide as the tag, so the place and the tag share a line (review
+    // 110 HV1) and a tap anywhere on it is on it.
     return Align(
       alignment: AlignmentDirectional.centerStart,
+      widthFactor: 1,
       child: Semantics(
         button: onTap != null,
         child: onTap == null
@@ -678,15 +715,96 @@ class BvSiteTag extends StatelessWidget {
 
 /// §2h: the note under a proof photo.
 class BvSlipNote extends StatelessWidget {
-  const BvSlipNote(this.text, {super.key});
+  const BvSlipNote(this.text, {super.key, this.maxLines});
 
   final String text;
+
+  /// Review 110 F (HV1): a short card's details, 2 lines, then ….
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) => Text(
     text,
-    style: BvType.of(context).bodyMd.copyWith(color: BvColors.textPrimary),
+    maxLines: maxLines,
+    overflow: maxLines == null ? null : TextOverflow.ellipsis,
+    style: BvType.of(context).bodyMd.copyWith(
+      color: maxLines == null ? BvColors.textPrimary : BvColors.textSecondary,
+    ),
   );
+}
+
+/// Review 110 F (HV1): the rest of a short card in one quiet line ("2
+/// files · 1 table · 6 tasks"), with See more › at its end, which opens
+/// the whole post in place (HV2).
+class BvSlipRest extends StatelessWidget {
+  const BvSlipRest({
+    super.key,
+    required this.text,
+    required this.seeMore,
+    this.onSeeMore,
+    this.seeMoreKey,
+  });
+
+  final String text;
+  final String seeMore;
+  final VoidCallback? onSeeMore;
+  final Key? seeMoreKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Row(
+      spacing: BvSpace.s8,
+      children: [
+        if (text.isNotEmpty) ...[
+          const Icon(
+            BvIcons.document,
+            size: BvSlipSpec.factIconSize,
+            color: BvColors.iconSecondary,
+          ),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: type.metadata.copyWith(color: BvColors.textSecondary),
+            ),
+          ),
+        ] else
+          const Spacer(),
+        if (onSeeMore != null)
+          Semantics(
+            button: true,
+            child: InkWell(
+              key: seeMoreKey,
+              onTap: onSeeMore,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  vertical: BvSpace.s4,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: BvSpace.s2,
+                  children: [
+                    Text(
+                      seeMore,
+                      style: type.emphasisSm.copyWith(
+                        color: BvColors.textAction,
+                      ),
+                    ),
+                    const Icon(
+                      BvIcons.caretForward,
+                      size: BvSlipSpec.factIconSize,
+                      color: BvColors.iconAction,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 /// A quiet small line on a slip ("Waiting to send").

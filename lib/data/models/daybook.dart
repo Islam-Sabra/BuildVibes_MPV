@@ -109,6 +109,89 @@ class DaybookNewDue {
 
 /// A Library file on a work item's card ("M-201 Rev C").
 @immutable
+/// Review 110 TG1: a work item's one tag, from its market's list (Safety ·
+/// Quality · Design · Material · Admin). [danger] shows red (Safety).
+class DaybookTag {
+  const DaybookTag({
+    required this.id,
+    this.name = const {},
+    this.danger = false,
+  });
+
+  static DaybookTag? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final id = json['id'] as String?;
+    if (id == null) return null;
+    return DaybookTag(
+      id: id,
+      name: {
+        for (final e
+            in (json['name'] as Map<String, dynamic>? ?? const {}).entries)
+          if (e.value is String) e.key: e.value as String,
+      },
+      danger: json['danger'] == true,
+    );
+  }
+
+  final String id;
+
+  /// By language ("en", "ar").
+  final Map<String, String> name;
+  final bool danger;
+
+  /// Its name in [lang], else English, else its id.
+  String nameIn(String lang) => name[lang] ?? name['en'] ?? id;
+
+  /// As the card JSON has it, for a draft and the outbox.
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'danger': danger};
+}
+
+/// Review 110 TH1, TH2: a Thanks, to a person or a Team, for an optional
+/// work item. Only the person thanked ([mine]) may show it on their
+/// profile.
+class DaybookThanks {
+  const DaybookThanks({
+    required this.toTeam,
+    this.toId,
+    this.toName,
+    this.forId,
+    this.forTitle,
+    this.forRef,
+    this.shown = false,
+    this.mine = false,
+  });
+
+  static DaybookThanks? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final team = json['to_kind'] == 'team';
+    final forPost = json['for'] as Map<String, dynamic>?;
+    return DaybookThanks(
+      toTeam: team,
+      toId: (team ? json['to_team_id'] : json['to_profile_id']) as String?,
+      toName:
+          (team ? json['to_team_name'] : json['to_profile_name']) as String?,
+      forId: forPost?['id'] as String?,
+      forTitle: forPost?['title'] as String?,
+      forRef: forPost?['ref'] as String?,
+      shown: json['show_on_profile'] == true,
+      mine: json['mine'] == true,
+    );
+  }
+
+  final bool toTeam;
+  final String? toId;
+  final String? toName;
+  final String? forId;
+  final String? forTitle;
+  final String? forRef;
+
+  /// On the profile of the person thanked.
+  final bool shown;
+
+  /// I am the person thanked.
+  final bool mine;
+}
+
 class DaybookAttachment {
   const DaybookAttachment({required this.name, this.revLabel});
 
@@ -381,6 +464,9 @@ class DaybookPost {
     this.quote,
     this.sourceMessageId,
     this.hasPage = false,
+    this.tableCount = 0,
+    this.tag,
+    this.thanks,
     this.parentId,
     this.children,
     this.blocks = const [],
@@ -445,6 +531,9 @@ class DaybookPost {
       quote: DaybookQuote.fromJson(json['quote']),
       sourceMessageId: json['source_message_id'] as String?,
       hasPage: json['has_page'] as bool? ?? false,
+      tableCount: (json['table_count'] as num?)?.toInt() ?? 0,
+      tag: DaybookTag.fromJson(json['tag']),
+      thanks: DaybookThanks.fromJson(json['thanks']),
       parentId: json['parent_id'] as String?,
       children: DaybookChildren.fromJson(json['children']),
       // A report draws its page on its card (R2); other kinds open it.
@@ -475,6 +564,9 @@ class DaybookPost {
   /// A daily report (slice 7, R2).
   static const reportKind = 'report';
 
+  /// Review 110 TH1: Thanks, to a person or a Team.
+  static const thanksKind = 'thanks';
+
   /// The kinds the daybook draws; a kind this version doesn't know is
   /// kept for paging only.
   static const shownKinds = {
@@ -485,6 +577,7 @@ class DaybookPost {
     activityKind,
     fileKind,
     reportKind,
+    thanksKind,
   };
 
   final String id;
@@ -576,6 +669,18 @@ class DaybookPost {
   /// Its page holds blocks (slice 5): the card says "Open the page ›".
   final bool hasPage;
 
+  /// Review 110 F: the tables on its page, for the short card's quiet
+  /// line ("1 table").
+  final int tableCount;
+
+  /// Review 110 TG1: a work item's one tag.
+  final DaybookTag? tag;
+
+  /// Review 110 TH2: a Thanks' facts.
+  final DaybookThanks? thanks;
+
+  bool get isThanks => kind == thanksKind;
+
   /// The work item it is under (slice 6), if any.
   final String? parentId;
 
@@ -666,6 +771,9 @@ class DaybookPost {
     quote: quote,
     sourceMessageId: sourceMessageId,
     hasPage: hasPage,
+    tableCount: tableCount,
+    tag: tag,
+    thanks: thanks,
     parentId: parentId,
     children: children ?? this.children,
     blocks: blocks,

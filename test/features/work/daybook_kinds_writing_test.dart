@@ -6,16 +6,16 @@ import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/library/library_parts.dart'
     show libraryDocumentLine;
+import 'package:buildvibes/features/work/composer_kinds.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:buildvibes/shared/widgets/bv_faces.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +24,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/library_fakes.dart';
@@ -107,9 +108,10 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-/// Opens a card, picks [kind] from the kind chips (review 105 SP2) and
-/// types [title]. A file post starts from the Library's Add a file, its
-/// file chooser open.
+/// Opens the composer, picks [kind] from # (review 110 CP2; it opens on a
+/// work item here) and types [title]. A checklist comes as a draft (a
+/// notebook share or a template). A file post starts from the Library's
+/// Add a file, its file chooser open.
 Future<void> _write(
   WidgetTester tester,
   AppLocalizations l10n,
@@ -121,10 +123,11 @@ Future<void> _write(
     await _tap(tester, find.byKey(const Key('library-add-file')));
   } else {
     await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-    final chip = find.byKey(Key('kind-chip-$kind'));
-    await tester.ensureVisible(chip);
-    await tester.pumpAndSettle();
-    await _tap(tester, chip);
+    if (kind == DaybookKind.checklist) {
+      await makeChecklist(tester);
+    } else if (kind != DaybookKind.workItem) {
+      await chooseKind(tester, kind.json);
+    }
   }
   if (title.isNotEmpty) {
     await tester.enterText(find.byKey(const Key('writing-title')), title);
@@ -147,26 +150,6 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
-
-    testWidgets('review 105 SP2: the kinds are one choice of five chips '
-        '(then Walk), the one being written chosen [$lang]', (tester) async {
-      await _open(tester, lang);
-      await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      BvKindChips<Object> chips() => tester.widget<BvKindChips<Object>>(
-        find.byKey(const Key('writing-kinds')),
-      );
-      expect(chips().selected, DaybookKind.workItem);
-      // The five kinds, then Walk for who may post work (H3).
-      expect(
-        [for (final c in chips().choices) c.value],
-        [...rowKinds, kindChipWalk],
-      );
-      final chip = find.byKey(Key('kind-chip-${DaybookKind.announcement}'));
-      await tester.ensureVisible(chip);
-      await tester.pumpAndSettle();
-      await _tap(tester, chip);
-      expect(chips().selected, DaybookKind.announcement);
-    });
 
     testWidgets('F40: a point typed letter by letter keeps its field, its '
         'focus and every letter [$lang]', (tester) async {
@@ -296,8 +279,7 @@ void main() {
     testWidgets('an announcement pinned until a day [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.byKey(const Key('writing-add')));
-      await _tap(tester, find.text(l10n.daybookPinUntil));
+      await addExtra(tester, 'pin');
       expect(
         find.textContaining(
           l10n.daybookPinnedProperty(lang == 'ar' ? 'الجمعة' : 'Fri'),
@@ -317,8 +299,7 @@ void main() {
       final words = DaybookWords(l10n, lang, use24: false);
       final now = DaybookSamples.thursday;
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.byKey(const Key('writing-add')));
-      await _tap(tester, find.text(l10n.daybookPinUntil));
+      await addExtra(tester, 'pin');
       final pin = find.byKey(const Key('writing-pin'));
       final noTime = l10n.daybookPinnedProperty(
         words.pinnedShort(DateTime(2026, 10, 17), now),
@@ -327,8 +308,11 @@ void main() {
         find.descendant(of: pin, matching: find.text(noTime)),
         findsOneWidget,
       );
-      // No time yet: no ✕, and + Time.
-      expect(find.byKey(const Key('writing-property-remove')), findsNothing);
+      // No time yet: its × takes the pin off, and + Time.
+      expect(
+        tester.widget<BvFilterChip>(pin).clearLabel,
+        isNot(l10n.daybookPinRemoveTime),
+      );
       // Its start: the title's selection handle can sit over its middle.
       final addTime = find.text(l10n.daybookPinAddTime);
       await tester.ensureVisible(addTime);
@@ -343,7 +327,12 @@ void main() {
       );
       if (lang == 'en') expect(withTime, 'Pinned until Fri 2:00\u00A0pm');
       expect(find.text(l10n.daybookPinAddTime), findsNothing);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookPinRemoveTime));
+      // Its × now takes the time away.
+      expect(
+        tester.widget<BvFilterChip>(pin).clearLabel,
+        l10n.daybookPinRemoveTime,
+      );
+      await _tap(tester, find.byKey(const Key('writing-pin-clear')));
       expect(
         find.descendant(of: pin, matching: find.text(noTime)),
         findsOneWidget,
@@ -365,8 +354,7 @@ void main() {
       );
       final words = DaybookWords(l10n, lang, use24: false);
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.byKey(const Key('writing-add')));
-      await _tap(tester, find.text(l10n.daybookPinUntil));
+      await addExtra(tester, 'pin');
       final today = l10n.daybookPinnedProperty(
         words.pinnedShort(DateTime(2026, 10, 16), DaybookSamples.thursday),
       );
@@ -423,30 +411,41 @@ void main() {
       expect(sent.toParams()['p_team'], mep.id);
     });
 
-    testWidgets('a scheduled activity: who\'s coming first; then Post with '
-        'no start opens the time pickers, and only Post posts [$lang]', (
-      tester,
-    ) async {
+    testWidgets('a scheduled activity is When · Team (founder, 31 Oct): no '
+        'people needed; Post with no start opens the time pickers, and only '
+        'Post posts [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('writing-who')),
-          matching: find.text(l10n.daybookRowChoose),
-        ),
-        findsOneWidget,
-      );
-      await _who(tester);
-      await _pickPerson(tester, s.saraName);
-      await _tap(tester, find.byKey(const Key('people-done')));
+      expect(find.byKey(const Key('writing-who')), findsNothing);
       await _post(tester);
-      // The pickers only fill the card (F56).
+      // No people sheet: the time pickers only fill the card (F56).
+      expect(find.byKey(const Key('writing-people')), findsNothing);
       expect(daybook.createdPosts, isEmpty);
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.kind, DaybookPost.activityKind);
       expect(sent.startsAt, _walkStart);
       expect(sent.endsAt, _walkEnd);
+      expect(sent.people, isEmpty);
+    });
+
+    testWidgets('+ → People names who\'s coming, if wanted: a chip with ×, '
+        'and they go with it [$lang]', (tester) async {
+      final (app: _, :daybook) = await _open(tester, lang);
+      await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
+      await addExtra(tester, 'people');
+      await _pickPerson(tester, s.saraName);
+      await _tap(tester, find.byKey(const Key('people-done')));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('writing-people-chip')),
+          matching: find.textContaining(s.saraName),
+        ),
+        findsOneWidget,
+      );
+      await _post(tester);
+      await _post(tester);
+      expect(daybook.createdPosts.single.people, isNotEmpty);
     });
 
     testWidgets('a file post from the Library: picking File goes straight to '
@@ -511,13 +510,19 @@ void main() {
       await _write(tester, l10n, DaybookKind.note, s.handoverTitle);
       await tester.enterText(find.byKey(const Key('writing-body')), 'Rev D');
       await tester.pumpAndSettle();
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await addExtra(tester, 'file');
       await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-version')));
       await _tap(tester, find.byKey(Key('version-${v3.id}')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.kindLabel, l10n.daybookKindDocument);
+      expect(composerDraft(tester)!.kind, DaybookKind.file);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('composer-top')),
+          matching: find.text(l10n.daybookKindDocument),
+        ),
+        findsOneWidget,
+      );
       expect(find.text(s.handoverTitle), findsOneWidget);
       expect(find.text('Rev D'), findsOneWidget);
       await _post(tester);
@@ -539,15 +544,10 @@ void main() {
     ) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.note, s.handoverTitle);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await addExtra(tester, 'file');
       await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
-      expect(
-        tester
-            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
-            .selected,
-        DaybookKind.note,
-      );
+      expect(composerDraft(tester)!.kind, DaybookKind.note);
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.kind, DaybookPost.noteKind);
@@ -601,14 +601,11 @@ void main() {
       final ready = Completer<void>();
       await _open(tester, lang, galleryPreparing: ready.future);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-      await tester.tap(find.byKey(const Key('attach-photos')));
+      await _tap(tester, find.byKey(const Key('writing-add')));
+      await tester.tap(find.byKey(const Key('composer-extra-photos')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      for (var i = 0; i < 2; i++) {
-        expect(find.byKey(Key('writing-photo-preparing-$i')), findsOneWidget);
-      }
-      expect(find.text(l10n.photoPreparing), findsNWidgets(2));
+      // Review 110 CP4: a square each, turning, until it is ready.
       expect(find.byType(CircularProgressIndicator), findsNWidgets(2));
       // Still writing meanwhile.
       await tester.enterText(
@@ -619,27 +616,21 @@ void main() {
       expect(find.text(s.cableTraysTitle), findsOneWidget);
       ready.complete();
       await tester.pumpAndSettle();
-      expect(find.text(l10n.photoPreparing), findsNothing);
-      expect(
-        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).photos,
-        hasLength(2),
-      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(composerDraft(tester)!.photos, hasLength(2));
+      expect(find.byKey(const Key('writing-photo-1')), findsOneWidget);
     });
 
     testWidgets("Review 74 H1: a picked photo nobody could open isn't sent: "
         'one line, and the others still go [$lang]', (tester) async {
       await _open(tester, lang, galleryRefused: 1);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-      await _tap(tester, find.byKey(const Key('attach-photos')));
+      await addExtra(tester, 'photos');
       expect(find.text(l10n.photoCannotOpen), findsOneWidget);
-      expect(
-        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).photos,
-        hasLength(2),
-      );
+      expect(composerDraft(tester)!.photos, hasLength(2));
     });
 
-    testWidgets('K4: 📎 on a work item: photos from the gallery and a file, '
+    testWidgets('K4: + on a work item: photos from the gallery and a file, '
         'which goes to the Library and onto the item [$lang]', (tester) async {
       final (:app, :daybook) = await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
@@ -648,17 +639,14 @@ void main() {
         s.cableTraysTitle,
       );
       await tester.pumpAndSettle();
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-      expect(find.byKey(const Key('attach-sheet')), findsOneWidget);
-      await _tap(tester, find.byKey(const Key('attach-photos')));
+      // Review 110 CP3: + → Photos.
+      await addExtra(tester, 'photos');
       // From the gallery, not the camera (proof photos stay camera only).
       expect(app.cameraAsks, [false]);
-      expect(
-        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).photos,
-        hasLength(2),
-      );
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-      // F72: the phone's files straight away.
+      expect(composerDraft(tester)!.photos, hasLength(2));
+      // + → File: the sheet, then the phone's files straight away (F72).
+      await addExtra(tester, 'file');
+      expect(find.byKey(const Key('attach-sheet')), findsOneWidget);
       await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-none')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
@@ -709,8 +697,8 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      // Review 105 SP2: the For row.
-      await _who(tester);
+      // Review 110 (founder, 31 Oct): who's coming, from + → People.
+      await addExtra(tester, 'people');
       await _pickPerson(tester, s.omarName);
       // The chosen faces sit by Done, never a number.
       expect(
@@ -731,7 +719,8 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      await _who(tester);
+      // Review 110: who's coming is named from + → People, if wanted.
+      await addExtra(tester, 'people');
       await _pickPerson(tester, s.omarName);
       await _pickPerson(tester, s.saraName);
       await tester.drag(
@@ -753,11 +742,17 @@ void main() {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
-    // A daily report starts from Space info, with its own tests.
-    for (final kind in [...rowKinds, DaybookKind.file]) {
-      testWidgets('F39, F72: 📎 is the one way to add: Camera, Photos, a '
-          'file from the phone and From the Library on a ${kind.json} '
-          '[$lang]', (tester) async {
+    // A daily report starts from Space info, with its own tests. Review
+    // 110 CP3: the sheet is + → File, on the kinds that take a file.
+    for (final kind in [
+      for (final k in composerKinds)
+        if (composerExtras(k).contains(ComposerExtra.file)) k,
+      DaybookKind.file,
+    ]) {
+      testWidgets('F39, F72: + → File: Camera, Photos, a file from the '
+          'phone and From the Library on a ${kind.json} [$lang]', (
+        tester,
+      ) async {
         await _open(tester, lang);
         await _write(
           tester,
@@ -769,7 +764,7 @@ void main() {
         if (kind == DaybookKind.file) {
           await _tap(tester, find.byKey(const Key('file-lib-m201-c')));
         }
-        await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+        await addExtra(tester, 'file');
         expect(find.byKey(const Key('attach-sheet')), findsOneWidget);
         // A file post is its file: no photos there.
         final photos = kind == DaybookKind.file ? findsNothing : findsOneWidget;
@@ -789,11 +784,12 @@ void main() {
       });
     }
 
-    testWidgets('F74, review 105 SP2: File isn\'t a kind chip; a file post '
+    testWidgets('F74, review 110 CP2: File isn\'t a kind in #; a file post '
         'starts from the Library [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      expect(find.byKey(Key('kind-chip-${DaybookKind.file}')), findsNothing);
+      await _tap(tester, find.byKey(const Key('writing-kind')));
+      expect(find.byKey(const Key('composer-kind-file')), findsNothing);
       expect(l10n.daybookKindDocument, lang == 'en' ? 'File' : 'ملف');
     });
 
@@ -811,8 +807,7 @@ void main() {
           s.cableTraysTitle,
         );
         await tester.pumpAndSettle();
-        await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-        await _tap(tester, find.byKey(const Key('attach-photos')));
+        await addExtra(tester, 'photos');
         await _who(tester);
         await _tap(
           tester,
@@ -838,8 +833,7 @@ void main() {
         await _write(tester, l10n, DaybookKind.checklist, s.handoverTitle);
         await tester.enterText(_emptyPoint(), 'Doors');
         await tester.pumpAndSettle();
-        await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
-        await _tap(tester, find.byKey(const Key('attach-photos')));
+        await addExtra(tester, 'photos');
         await _who(tester);
         await _pickPerson(tester, s.saraName);
         await _tap(tester, find.byKey(const Key('people-done')));

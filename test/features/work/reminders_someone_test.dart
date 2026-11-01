@@ -178,7 +178,10 @@ void main() {
         expect(_key('reminder-before-due'), findsNothing);
         await _tap(tester, _key('reminder-pick'));
         await _tap(tester, _key('reminder-set'));
-        expect(app.workReminders.sets.single.at, DateTime(2026, 10, 16, 15, 30));
+        expect(
+          app.workReminders.sets.single.at,
+          DateTime(2026, 10, 16, 15, 30),
+        );
       });
 
       testWidgets('the note is 140 characters at most', (tester) async {

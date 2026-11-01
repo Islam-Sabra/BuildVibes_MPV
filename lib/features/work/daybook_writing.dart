@@ -14,6 +14,7 @@ import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart'
     show photosPreparingProvider, PhotosPreparing;
 import '../../data/models/daybook.dart';
+import '../../data/models/post_page.dart' show PageChecklist;
 import '../../data/models/space.dart';
 import '../../data/models/template.dart';
 import '../../data/repositories/daybook_repository.dart';
@@ -39,6 +40,7 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError, showSpaceMessage;
+import 'composer_kinds.dart';
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_report.dart' show ReportWriting;
@@ -451,6 +453,7 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.checklist => l10n.daybookKindChecklist,
   DaybookKind.announcement => l10n.daybookKindAnnouncement,
   DaybookKind.activity => l10n.daybookKindActivity,
+  DaybookKind.thanks => l10n.daybookKindThanks,
   // F50: named for what it does; the kind stays `file` on the server.
   DaybookKind.file => l10n.daybookKindDocument,
   DaybookKind.report => l10n.daybookKindReport,
@@ -463,6 +466,7 @@ IconData kindIcon(DaybookKind kind) => switch (kind) {
   DaybookKind.checklist => BvIcons.workItems,
   DaybookKind.announcement => BvIcons.info,
   DaybookKind.activity => BvIcons.due,
+  DaybookKind.thanks => BvIcons.thanks,
   DaybookKind.file => BvIcons.document,
   DaybookKind.report => BvIcons.clipboard,
 };
@@ -504,6 +508,107 @@ class DaybookWriter {
           : null,
     ),
   );
+
+  /// Review 110 CP3: another kind keeps the title, the words and the
+  /// photos; what it doesn't take goes, and is said.
+  Future<List<ComposerDrop>> switchKind(DaybookKind kind) async {
+    final d = draft;
+    if (d == null) return const [];
+    final drops = composerDrops(d, kind);
+    await _put((d) {
+      final s = composerSwitched(d, kind, drops);
+      return kind == DaybookKind.announcement && s.pinnedUntil == null
+          ? s.copyWith(
+              pinnedUntil: () => pinToEndOf(dayOf(ref.read(clockProvider)())),
+            )
+          : s;
+    });
+    return drops;
+  }
+
+  /// Review 110 CP3: a table or a table of tasks added from +, changed
+  /// ([putBlock], by its id) or taken off with its ×.
+  Future<void> putBlock(Map<String, dynamic> block) => _put((d) {
+    final had = d.blocks.any((b) => b['id'] == block['id']);
+    return d.copyWith(
+      blocks: had
+          ? [for (final b in d.blocks) b['id'] == block['id'] ? block : b]
+          : [...d.blocks, block],
+    );
+  });
+
+  /// A new id for a block or a row (as a post's, from the app).
+  String newBlockId() => ref.read(newPostIdProvider)();
+
+  Future<void> removeBlock(String id) => _put(
+    (d) => d.copyWith(
+      blocks: [
+        for (final b in d.blocks)
+          if (b['id'] != id) b,
+      ],
+    ),
+  );
+
+  /// Review 110 TG1: the work item's one tag, or none.
+  Future<void> setTag(DaybookTag? tag) =>
+      _put((d) => d.copyWith(tag: () => tag));
+
+  /// Review 110 TH1: who the Thanks is to (a person or a Team).
+  Future<void> setThanksTo({
+    required String id,
+    required String name,
+    required bool team,
+  }) =>
+      _put((d) => d.copyWith(thanksTo: () => (id: id, name: name, team: team)));
+
+  /// The work item the Thanks is for, or none.
+  Future<void> setThanksFor(({String id, String label})? item) =>
+      _put((d) => d.copyWith(thanksFor: () => item));
+
+  /// Review 110 step 5: + → Checklist on a work item. [lines] become its
+  /// points (an earlier line keeps its id) in one checklist block; none
+  /// takes the points and the block off.
+  Future<void> setChecklist(List<String> lines) => _put((d) {
+    final block = d.blocks.where(_isChecklist).firstOrNull;
+    final listed = [
+      for (final id in block?['point_ids'] as List? ?? const []) '$id',
+    ];
+    final old = [
+      for (final id in listed) ?d.points.where((p) => p.id == id).firstOrNull,
+    ];
+    final points = [
+      for (final (i, t) in lines.indexed)
+        (id: i < old.length ? old[i].id : newBlockId(), text: t),
+    ];
+    final others = [
+      for (final p in d.points)
+        if (!listed.contains(p.id)) p,
+    ];
+    if (points.isEmpty) {
+      return d.copyWith(
+        points: others,
+        blocks: [
+          for (final b in d.blocks)
+            if (b != block) b,
+        ],
+      );
+    }
+    final next = {
+      'id': block?['id'] ?? newBlockId(),
+      'type': PageChecklist.kind,
+      'point_ids': [for (final p in points) p.id],
+    };
+    return d.copyWith(
+      points: [...others, ...points],
+      blocks: block == null
+          ? [...d.blocks, next]
+          : [for (final b in d.blocks) b == block ? next : b],
+    );
+  });
+
+  static bool _isChecklist(Map<String, dynamic> b) =>
+      b['type'] == PageChecklist.kind;
+
   Future<void> setTitle(String text) => _put((d) => d.copyWith(title: text));
   Future<void> setBody(String text) => _put((d) => d.copyWith(body: text));
 
@@ -529,6 +634,9 @@ class DaybookWriter {
           : [...d.people, (id: p.id, name: p.name)],
     );
   });
+
+  /// Review 110 CP4: the people chip's ×.
+  Future<void> clearPeople() => _put((d) => d.copyWith(people: const []));
 
   Future<void> setPoints(List<DraftPoint> points) =>
       _put((d) => d.copyWith(points: points));
@@ -777,6 +885,7 @@ class DaybookWriter {
               placeId: workItem ? d.placeId : null,
               noteId: workItem ? d.noteId : null,
               blocks: workItem && d.blocks.isNotEmpty ? d.blocks : null,
+              tag: workItem ? d.tag : null,
               points: workItem
                   ? [
                       for (final p in d.writtenPoints)
@@ -940,6 +1049,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.activity => l10n.daybookBodyActivity,
     DaybookKind.note ||
     DaybookKind.checklist ||
+    DaybookKind.thanks ||
     DaybookKind.file ||
     DaybookKind.report => l10n.daybookBodyNote,
   };
@@ -1080,7 +1190,8 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       ],
       // Note has no For or Due (review 105 Part 3).
       DaybookKind.note || DaybookKind.announcement => [team],
-      DaybookKind.file || DaybookKind.report => const [],
+      // A Thanks is written in the composer only (review 110 TH1).
+      DaybookKind.thanks || DaybookKind.file || DaybookKind.report => const [],
     };
   }
 
@@ -1724,7 +1835,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     }
     return switch (kind) {
       // A note has nothing to set: its words, photos and files only (F58).
-      DaybookKind.note => const [],
+      DaybookKind.note || DaybookKind.thanks => const [],
       DaybookKind.workItem => [if (!widget.editing) assign, location, due],
       DaybookKind.checklist => [people, due],
       DaybookKind.announcement => [

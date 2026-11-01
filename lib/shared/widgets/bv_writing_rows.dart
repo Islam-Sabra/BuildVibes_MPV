@@ -5,6 +5,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_avatar.dart';
+import 'bv_tap_target.dart';
 
 /// One kind on [BvKindChips]: its icon and its word.
 @immutable
@@ -102,6 +103,9 @@ class BvWritingRow {
     this.empty = false,
     this.ask,
     this.onTap,
+    this.onClear,
+    this.clearLabel,
+    this.clearKey,
   });
 
   final Key key;
@@ -119,6 +123,12 @@ class BvWritingRow {
 
   /// Opens its picker; null keeps it as it is (an edit keeps the owner).
   final VoidCallback? onTap;
+
+  /// Review 110 TH1: an optional line chosen (a Thanks's For) has × at
+  /// its end, said [clearLabel], on a pill.
+  final VoidCallback? onClear;
+  final String? clearLabel;
+  final Key? clearKey;
 }
 
 /// For · Place · Due · Team (review 105 SP2, review 104 N10): each a row
@@ -204,6 +214,97 @@ class BvWritingRows extends StatelessWidget {
                     color: BvColors.iconSecondary,
                   ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Review 110 CP1 (2707:39361): the composer's default lines (For, Team,
+/// When) as pills, one a line: the label quiet, the value strong (with
+/// the person's face), › while it opens its picker.
+class BvWritingPills extends StatelessWidget {
+  const BvWritingPills({super.key, required this.rows});
+
+  final List<BvWritingRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Column(
+      key: const Key('writing-pills'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: BvWritingPillSpec.gap,
+      children: [for (final r in rows) _pill(type, r)],
+    );
+  }
+
+  Widget _pill(BvTypeSet type, BvWritingRow r) {
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    return Semantics(
+      button: r.onTap != null,
+      child: Material(
+        color: BvColors.surfaceSubtle,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: r.key,
+          onTap: r.onTap,
+          child: _Pulse(
+            ask: r.ask,
+            child: Padding(
+              padding: BvWritingPillSpec.padding,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: BvWritingPillSpec.innerGap,
+                children: [
+                  Text(r.label, style: quiet),
+                  if (r.person != null)
+                    BvAvatar(
+                      name: r.person!,
+                      size: BvAvatarSize.xs,
+                      tint: r.tint,
+                    ),
+                  Flexible(
+                    child: Text(
+                      r.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: r.empty
+                          ? quiet
+                          : type.emphasisSm.copyWith(
+                              color: BvColors.textPrimary,
+                            ),
+                    ),
+                  ),
+                  if (r.onTap != null && r.onClear == null)
+                    const Icon(
+                      BvIcons.caretForward,
+                      size: BvWritingPillSpec.caret,
+                      color: BvColors.iconSecondary,
+                    ),
+                  if (r.onClear case final clear?)
+                    Semantics(
+                      button: true,
+                      label: r.clearLabel,
+                      excludeSemantics: true,
+                      child: BvTapTarget(
+                        child: GestureDetector(
+                          key: r.clearKey,
+                          behavior: HitTestBehavior.opaque,
+                          onTap: clear,
+                          child: const Icon(
+                            BvIcons.close,
+                            size: BvWritingPillSpec.caret,
+                            color: BvColors.iconSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

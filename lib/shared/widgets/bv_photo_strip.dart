@@ -15,10 +15,19 @@ typedef BvStripPhoto = ({ImageProvider? image, bool waiting});
 /// more as small ones beside it, never a count (rule 3). A tap opens them
 /// all ([onOpen], with the photo tapped).
 class BvPhotoStrip extends StatelessWidget {
-  const BvPhotoStrip({super.key, required this.photos, this.onOpen});
+  const BvPhotoStrip({
+    super.key,
+    required this.photos,
+    this.onOpen,
+    this.moreLabel,
+  });
 
   final List<BvStripPhoto> photos;
   final ValueChanged<int>? onOpen;
+
+  /// Review 110 F (HV1): the words on the tile after 3 photos ("+5");
+  /// without it, only the first 3 show.
+  final String Function(int more)? moreLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +80,53 @@ class BvPhotoStrip extends StatelessWidget {
 
     const height = BvSlipSpec.photoHeightCard;
     if (photos.length == 1) return tile(0, height);
+    // Review 110 F (HV1): more than 3, three squares and "+N" after them,
+    // which opens the rest.
+    if (photos.length > BvPhotoStripSpec.shortMost && moreLabel != null) {
+      final more = photos.length - BvPhotoStripSpec.shortMost;
+      final open = onOpen;
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final side =
+              (constraints.maxWidth -
+                  BvPhotoStripSpec.shortMost * BvPhotoStripSpec.gap) /
+              (BvPhotoStripSpec.shortMost + 1);
+          return Row(
+            key: const Key('photo-strip'),
+            spacing: BvPhotoStripSpec.gap,
+            children: [
+              for (var i = 0; i < BvPhotoStripSpec.shortMost; i++)
+                SizedBox(width: side, child: tile(i, side)),
+              Semantics(
+                button: open != null,
+                child: GestureDetector(
+                  key: const Key('photo-strip-more'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: open == null
+                      ? null
+                      : () => open(BvPhotoStripSpec.shortMost),
+                  child: Container(
+                    width: side,
+                    height: side,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: BvColors.brandInk,
+                      borderRadius: BvSlipSpec.photoRadius,
+                    ),
+                    child: Text(
+                      moreLabel!(more),
+                      style: BvType.of(
+                        context,
+                      ).emphasis.copyWith(color: BvColors.textInverse),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
     const small = (height - BvPhotoStripSpec.gap) / 2;
     return SizedBox(
       key: const Key('photo-strip'),

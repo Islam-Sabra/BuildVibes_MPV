@@ -2,6 +2,62 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 110, the lead's check W1–W12 fixed on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r110` (worktree `BuildVibes-r110`), pushed. Each fix was written test first, in EN and AR (app) or pgTAP (server).
+- **Founder's decisions (1 Nov):** a Viewer may post a Thanks (`create_thanks` takes any active member); the Thanks composer says under To: "They can show this on their profile." / «يمكنه عرض هذا في ملفه.»
+- **Commits:**
+  - 1c541ca2 **W1, W2:** the Space list reads the Space details instead of watching them, so it can't restart in a loop; the 15 s runs from when the list first opened; the restart count goes to Crashlytics with the error's first line (cut by characters); the screen shows localised words, a short code (the error's type) and Try again, never the raw message.
+  - 80778af4 **W5:** "at most 5 reminders" and "only people who can see it" each have their own plain line.
+  - 9f23abeb **W3, W4, W7 (server), Viewer may thank:** `profile_thanks` skips hidden accounts; `create_thanks` refuses a hidden or blocked recipient and takes any active member; `set_work_item_tag` needs create_items; `create_thanks` can be scheduled (`schedule_post`, `scheduled_call_sql`). Same migration `20261118120000`, **not live**.
+  - 71ffead7 **W10, W12:** the place and the tag stay on one line, the tag becomes "+1" when both don't fit; See more only when the details really run past 2 lines (measured); the `ProfilePageRepository` doc comment back on its class. fe3ffffe: a lone tag is only as wide as itself.
+  - c23413e2 **W8:** the notebook share offers Note · Work item only; a note's to-do lines shared as a work item become its checklist (the server still takes 'checklist' from builds on phones).
+  - 8dadb3fb **W6, W7 (app), W9, W11, Viewer:** Thanks has Details (optional) and Post later; Drafts is gone, Templates is in the top bar (only when the Space has templates for that kind), + no longer holds Template; an announcement's + is Photos · File · Bullets · Table · Pin, a work item's exactly 9 tiles; the opening kind checks rights; a Viewer's bar has Thank someone; the To line.
+  - b0e55af3 **Shots:** `docs/reviews/shots-110b/` (14 r110 screens in EN and AR, 2 changed existing screens as old/new pairs; README). slice7's template shots open Templates from the top bar; T0-more-template and its two goldens are removed (+ has no Template).
+- **Checks on `claude/r110` (b0e55af3):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,095 pass.
+  - `flutter test test_screens`, not updating: 392 pass, 170 fail, all expected: 44 are r110's shots with no golden yet; 126 are image differences only (136 images: 132 identical to shots-110/changed, 4 new in shots-110b/changed). No step failed and nothing overflowed.
+  - `supabase db reset --local`: all migrations apply, through 20261118120000.
+  - `supabase test db`: 56 files, 3,533 checks, PASS.
+- **A (the founder's empty Space list on 852):** still not reproduced. W1 removes a restart loop that fits his repeated loads; the next build on his phone shows a code on the card and sends the error and restart count to Crashlytics.
+- **Next, after the lead's check, and only with the founder's yes:** the goldens from shots-110 and shots-110b; merge into `slice2-app`; migration 20261118120000 live; a build on his phone.
+- **Who has which branch:** PC has `claude/r110` (worktree `BuildVibes-r110`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
+## PC update: 1 Nov 2026 — review 110 built on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r110` from `slice2-app` (worktree `BuildVibes-r110`), pushed.
+- **Commits:**
+  - 77b76e7a **B:** Reminder → Someone only on an open work item (the server refused the rest: his two 403s at 08:24 UTC); each refusal its own plain line.
+  - 34db47ff **C:** RM1d, a picked time alone with ×, in Reminder and Post later.
+  - 92a4ddaa **CP5:** hold Send = Post later on every writing bar; no clock; V7's line on the held menu.
+  - 2960f7bb, 9ec84b4e, merge 5747ac3e **E server:** migration `20261118120000_thanks_and_tags.sql` (**not live**): Thanks (`create_thanks`, `set_thanks_on_profile`, `profile_thanks`, `space_thanks`), tags (`market_work_tags` for kw and eg with Safety marked danger, `work_items.tag`, `space_work_tags`, `set_work_item_tag`, `create_work_item(…, p_tag)` with `scheduled_call_sql` updated), `table_count` on the card JSON. pgTAP 57.
+  - 3f52ac62 **D:** the full-screen composer (× · kind · Space · Drafts; # · + · camera · Send; round-icon grids sized by the phone's text size; default lines per kind; extras as chips with ×; a kind switch drops what the new kind doesn't take, in one line; it opens on the last kind posted here, Note the first time; Checklist off #).
+  - 490197e6 **F and E on the cards:** the short card (2-line title and details, one info line, the place and tag, 3 photos then +N, the quiet line with See more); the Thanks card (Show on my profile only for the person thanked); the tag on a work item (Safety red); the profile's shown Thanks.
+  - eefcc12f **A (diagnostic, not the cause):** the share card's Space list says "Loading your Spaces…"; after 15 s or on any error, "Couldn't load your Spaces. Try again." with the error's type and first line small under it; the error goes to Crashlytics as a non-fatal with its stack (release only); Riverpod's automatic retry is off for it. Also the bottom bar fits 360 dp (his phone overflowed by 16 px).
+  - 75172ece **E in the composer and step 5:** Thanks (TH1: To a person or a Team, For an optional open work item, + Photos only, no Post later); + → Tag (TG1: the market's list, one choice, Safety red), sent as `p_tag`; Work filtered by a card's tag (with ×); + → Checklist on a work item (points and their `checklist_ref` block).
+  - 08a204dd **A scheduled activity is When · Team (founder, 31 Oct):** no people required; + → People names them if wanted. The server already took an activity with no people; pgTAP 57 now proves it (no migration change).
+  - d9c3c2fa **Shots and fixes:** `docs/reviews/shots-110/` (19 new screens in EN and AR; 67 changed ones as old/new pairs; README). The composer's title and details are plain lines, the title bold (CP1). The profile's Thanks section is placed only when there are Thanks (an empty one moved the profile down by a gap).
+- **A, the notebook share's Space list:** the founder's recording on 852 shows the card at "‹ Space" with nothing under it, every try: `workItemSpacesProvider` never reaches data on his phone. **Not reproduced** on the emulator in debug and in profile, against the live project as Islam (read only), at his screen size, with his notes and Spaces; Stylish Text notes are not the cause. **Next:** the next build on his phone shows the error on the card; read it there, then fix the cause.
+- **Checks on `claude/r110` (d9c3c2fa):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,069 pass.
+  - `flutter test test_screens`, not updating: 396 pass, 160 fail, all expected: 38 are the new r110 shots with no golden yet, 122 are image differences only (134 images, in shots-110/changed). No step failed and nothing overflowed.
+  - `supabase db reset --local`: all migrations apply, through 20261118120000.
+  - `supabase test db`: 56 files, 3,516 checks, PASS.
+- **For the lead and the founder:**
+  - The activity's people chip (+ → People) and "Drafts" (it keeps what was written as the Space's draft and closes, as × does; there is one draft per Space).
+  - A Thanks has no details field (the brief), though TH1 draws "Details (optional)".
+  - Post later isn't available for a Thanks (`create_thanks` isn't in `schedule_post`'s list); the held menu says so.
+  - The notebook share still offers Checklist as a kind (only the composer's # lost it).
+- **Next, after the lead's check, and only with the founder's yes:** the goldens from shots-110; merge into `slice2-app`; migration 20261118120000 live; a build (with A's diagnostic) on his phone.
+- **Clean-up done:** the temporary repro test, the copied `google-services.json` and env files are deleted; the second emulator (`Pixel_8_B`) is back to its size and closed. The live sessions on the emulator were ended by clearing the app's data.
+- **Who has which branch:** PC has `claude/r110` (worktree `BuildVibes-r110`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 31 Oct 2026 — review 107 S1 and review 108 live: merged into `slice2-app`, migration 57 live, cron started, `push` deployed, build 852 on the emulator and the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

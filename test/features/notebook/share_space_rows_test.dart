@@ -120,21 +120,22 @@ void main() {
     final d = DaybookSamples(lang);
 
     group('N9 the Space\'s own kinds [$lang]', () {
-      testWidgets('Note · Work item · Checklist with the Space\'s words and '
-          'icons; Note by default; no "Post"', (tester) async {
+      testWidgets('Note · Work item with the Space\'s words and icons (no '
+          'Checklist, review 110 W8); Note by default; no "Post"', (
+        tester,
+      ) async {
         await _open(tester, lang);
         for (final (json, kind) in [
           ('note', DaybookKind.note),
           ('work_item', DaybookKind.workItem),
-          ('checklist', DaybookKind.checklist),
         ]) {
           final chip = tester.widget<BvChip>(_key('share-kind-$json'));
           expect(chip.label, kindName(l10n, kind));
           expect(chip.icon, kindIcon(kind));
           expect(chip.selected, json == 'note');
         }
-        // No other kind: the three chips are all there is.
-        expect(find.byType(BvChip), findsNWidgets(3));
+        // No other kind: the two chips are all there is.
+        expect(find.byType(BvChip), findsNWidgets(2));
       });
 
       testWidgets('Send as it is goes as a Note', (tester) async {
@@ -237,45 +238,12 @@ void main() {
         expect(repo.spaceShares.last['people'], isEmpty);
       });
 
-      testWidgets('a checklist takes several: "You + 2"', (tester) async {
-        final repo = await _open(tester, lang);
-        await _tap(tester, _key('share-kind-checklist'));
-        await _tap(tester, _key('share-for'));
-        for (final name in [d.omarName, d.rakeshName]) {
-          await _tap(
-            tester,
-            find.descendant(
-              of: find.byType(BvGiveToPicker),
-              matching: find.text(name),
-            ),
-          );
-        }
-        // The picker stays for more; Done closes it.
-        expect(find.byType(BvGiveToPicker), findsOneWidget);
-        await _tap(tester, _key('share-for-done'));
-        expect(
-          _row(tester, 'share-for'),
-          l10n.notebookShareForRow(
-            l10n.notebookShareForMore(l10n.daybookYou, 2),
-          ),
-        );
-        await _tap(tester, _key('share-send'));
-        expect(
-          repo.spaceShares.last['people'],
-          unorderedEquals([
-            DaybookSamples.islam,
-            DaybookSamples.omar,
-            DaybookSamples.rakesh,
-          ]),
-        );
-      });
-
       testWidgets('120 members: one For row; the picker searches; a work '
           'item still takes one', (tester) async {
         final repo = await _open(tester, lang, people: _crowd());
         await _tap(tester, _key('share-kind-work_item'));
         expect(_key('share-for'), findsOneWidget);
-        expect(find.byType(BvChip), findsNWidgets(3)); // the three kinds
+        expect(find.byType(BvChip), findsNWidgets(2)); // the two kinds
         await _tap(tester, _key('share-for'));
         // Viewers can't own a work item: 120 less 11 Viewers.
         expect(_listed(tester), hasLength(120 - 11));

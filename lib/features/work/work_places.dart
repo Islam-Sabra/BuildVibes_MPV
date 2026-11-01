@@ -56,6 +56,24 @@ class SpacePlaces extends AsyncNotifier<List<SpacePlace>> {
 String? placeName(List<SpacePlace>? places, String? id) =>
     id == null ? null : places?.where((p) => p.id == id).firstOrNull?.name;
 
+/// Work shown for one tag (review 110 TG1): a tap on a card's tag. Null
+/// shows everything; leaving the Space clears it.
+final workTagFilterProvider = NotifierProvider.autoDispose
+    .family<WorkTagFilter, DaybookTag?, String>(WorkTagFilter.new);
+
+class WorkTagFilter extends Notifier<DaybookTag?> {
+  WorkTagFilter(this.spaceId);
+
+  final String spaceId;
+
+  @override
+  DaybookTag? build() => null;
+
+  void show(DaybookTag tag) => state = tag;
+
+  void clear() => state = null;
+}
+
 /// Work shown for one place (review 105C): a tap on a site tag, or a place
 /// found by Search. Null shows everything; leaving the Space clears it.
 final workPlaceFilterProvider = NotifierProvider.autoDispose

@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/data/repositories/work_reminder_repository.dart';
@@ -20,12 +22,13 @@ class FakeWorkReminderRepository implements WorkReminderRepository {
       >[];
   final removed = <String>[];
 
-  /// The next call fails this way.
+  /// The next call fails this way, with the server's [failureMessage].
   SpaceFailure? failure;
+  String? failureMessage;
 
   void _check() {
     final f = failure;
-    if (f != null) throw SpaceException(f);
+    if (f != null) throw SpaceException(f, failureMessage);
   }
 
   @override
@@ -81,12 +84,13 @@ class FakeScheduleRepository implements ScheduleRepository {
   final cancelled = <String>[];
   final postedNow = <String>[];
 
-  /// The next call fails this way.
+  /// The next call fails this way, with the server's [failureMessage].
   SpaceFailure? failure;
+  String? failureMessage;
 
   void _check() {
     final f = failure;
-    if (f != null) throw SpaceException(f);
+    if (f != null) throw SpaceException(f, failureMessage);
   }
 
   @override
@@ -142,4 +146,27 @@ class FakeScheduleRepository implements ScheduleRepository {
   @override
   Future<List<ScheduledPost>> mine() async =>
       List.of(posts)..sort((a, b) => a.publishAt.compareTo(b.publishAt));
+}
+
+/// Post later (review 110 CP5): hold Send, then "Post later…" on the
+/// small menu over it.
+Future<void> openPostLater(WidgetTester tester) =>
+    _holdThenLater(tester, 'writing-post', 'writing-later');
+
+/// The same on a notebook share's preview: hold Post.
+Future<void> openShareLater(WidgetTester tester) =>
+    _holdThenLater(tester, 'share-send', 'share-later');
+
+Future<void> _holdThenLater(
+  WidgetTester tester,
+  String send,
+  String later,
+) async {
+  final hold = find.byKey(Key(send));
+  await tester.ensureVisible(hold.first);
+  await tester.pumpAndSettle();
+  await tester.longPress(hold.first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(Key(later)).first);
+  await tester.pumpAndSettle();
 }

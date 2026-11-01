@@ -211,8 +211,8 @@ void main() {
       await _open(tester, lang, '/spaces/$_space');
       await _tap(tester, 'space-library');
       await _tap(tester, 'library-add-file');
-      // The Work tab, the card at Now, a file post, the chooser up.
-      expect(find.byKey(const Key('daybook-writing-card')), findsOneWidget);
+      // The Work tab, the composer, a file post, the chooser up.
+      expect(find.byKey(const Key('composer')), findsOneWidget);
       expect(_draft(tester)?.kind, DaybookKind.file);
       expect(find.byKey(const Key('file-chooser')), findsOneWidget);
       await _tap(tester, 'file-from-phone');

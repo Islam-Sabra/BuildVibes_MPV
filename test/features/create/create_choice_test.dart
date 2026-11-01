@@ -2,12 +2,13 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart' show DaybookKind;
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/pump_app.dart';
@@ -96,6 +97,9 @@ void main() {
         spaces: _spaces(s),
         daybook: FakeDaybookRepository(),
         now: DaybookSamples.thursday,
+        // A note was the last kind posted there: Work item still opens
+        // on a work item.
+        composerKind: 'note',
       );
       // Khiran villas was the Space opened last on this phone.
       await app.prefs.setString(
@@ -117,7 +121,8 @@ void main() {
       await tester.tap(kct);
       await tester.pumpAndSettle();
       expect(find.byType(SpaceScreen), findsOneWidget);
-      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.byKey(const Key('composer')), findsOneWidget);
+      expect(composerDraft(tester)!.kind, DaybookKind.workItem);
       expect(find.byType(BvWritingToolbar), findsOneWidget);
       // That Space is now the last one.
       expect(

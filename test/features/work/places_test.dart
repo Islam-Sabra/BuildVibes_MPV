@@ -15,13 +15,13 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/shared/widgets/bv_place_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
+import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -77,19 +77,19 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// Review 110 CP3: + → Place on the composer.
 Future<void> _openPicker(WidgetTester tester) async {
   await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('writing-place-row'));
+  await addExtra(tester, 'place');
 }
 
 DaybookPostDraft? _draft(WidgetTester tester) => ProviderScope.containerOf(
   tester.element(find.byType(Scaffold).first),
 ).read(daybookDraftProvider(DaybookSamples.space));
 
-BvWritingRow _placeRow(WidgetTester tester) => tester
-    .widget<BvWritingRows>(find.byType(BvWritingRows))
-    .rows
-    .firstWhere((r) => r.key == const Key('writing-place-row'));
+/// The place picked, as its chip on the composer (CP4).
+String _placeChip(WidgetTester tester) =>
+    tester.widget<BvFilterChip>(_key('writing-place-chip')).label;
 
 /// A work item tagged [placeId], raised at [h]:[m] on Thursday.
 DaybookCard _tagged(
@@ -176,7 +176,8 @@ void main() {
         // The chosen one has its check.
         await _tap(tester, _key('place-row-${_l2.id}'));
         expect(_key('bv-sheet'), findsNothing);
-        await _tap(tester, _key('writing-place-row'));
+        // A tap on the chip opens it again.
+        await _tap(tester, _key('writing-place-chip'));
         expect(
           find.descendant(
             of: _key('place-row-${_l2.id}'),
@@ -211,7 +212,7 @@ void main() {
         await _openPicker(tester);
         await _tap(tester, _key('place-row-${_l3.id}'));
         expect(find.byType(BvPlacePicker), findsNothing);
-        expect(_placeRow(tester).value, _l3.name);
+        expect(_placeChip(tester), _l3.name);
         expect(_draft(tester)?.placeId, _l3.id);
         await tester.enterText(_key('writing-title'), 'Rebar spacing');
         await tester.pumpAndSettle();
@@ -263,7 +264,7 @@ void main() {
           app.daybook.refusePlace = refuse;
           await _tap(tester, find.text('Rebar spacing'));
           await _tap(tester, _key('page-title'));
-          await _tap(tester, _key('writing-place-row'));
+          await _tap(tester, _key('writing-place-chip'));
           await _tap(tester, _key('place-row-${_l3.id}'));
           await _tap(tester, _key('writing-post'));
           expect(
@@ -275,7 +276,7 @@ void main() {
             !refuse,
           );
           expect(find.text(l10n.spacesNotAllowed), findsNothing);
-          expect(find.byType(BvWritingCard), findsNothing);
+          expect(_key('composer'), findsNothing);
         });
       }
 
@@ -303,7 +304,7 @@ void main() {
           app.daybook.calls,
           contains('add-place ${DaybookSamples.space} Roof'),
         );
-        expect(_placeRow(tester).value, 'Roof');
+        expect(_placeChip(tester), 'Roof');
         expect(_draft(tester)?.placeId, isNotNull);
       });
 

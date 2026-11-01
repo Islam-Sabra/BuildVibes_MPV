@@ -18,7 +18,6 @@ import 'package:buildvibes/features/work/proof_camera.dart';
 import 'package:buildvibes/features/work/work_gestures.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -173,8 +172,12 @@ void main() {
         await _tapCard(tester, 'post-sleeves');
         await _tap(tester, _key('page-title'));
         expect(_key('daybook-page'), findsNothing);
-        final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-        expect(card.titleController!.text, s.sleeves);
+        // Review 110: the composer, filled with the post.
+        expect(_key('composer'), findsOneWidget);
+        expect(
+          tester.widget<TextField>(_key('writing-title')).controller!.text,
+          s.sleeves,
+        );
       });
 
       testWidgets('whoever checks it gets Send back as a deliberate button '

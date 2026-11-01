@@ -128,14 +128,33 @@ class _CreateChoice extends StatelessWidget {
 /// The Spaces where you may write work items (a Viewer's never show),
 /// the one you opened last first, then as My Spaces orders them. The
 /// server decides each Space's rights (custom passes too).
-final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>((
-  ref,
-) async {
+final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>(
+  (ref) {
+    workItemSpacesRuns++;
+    return _workItemSpaces(ref);
+  },
+  // Said, not retried out of sight: Try again, or opening the list again,
+  // tries again.
+  retry: (_, _) => null,
+);
+
+/// Review 110 A (W1): how long the Space list may load, from when it
+/// opened, before it says so.
+const spacesLoadMost = Duration(seconds: 15);
+
+/// Review 110 W1: how many times the list has been worked out since it
+/// opened; sent with an error, so a restart loop shows in Crashlytics.
+var workItemSpacesRuns = 0;
+
+/// Only My Spaces is watched; each Space's rights are read once, so a
+/// detail read again elsewhere never restarts the list (W1).
+Future<List<SpaceSummary>> _workItemSpaces(Ref ref) async {
   final spaces = await ref.watch(mySpacesProvider.future);
-  final last = ref.watch(lastSpaceProvider);
+  final last = ref.read(lastSpaceProvider);
+  final repo = ref.read(spaceRepositoryProvider);
   Future<bool> canWrite(SpaceSummary s) async {
     try {
-      final detail = await ref.watch(spaceDetailProvider(s.id).future);
+      final detail = await repo.fetchSpace(s.id);
       return detail?.myRights.createItems ?? false;
     } on SpaceException {
       return false;
@@ -151,7 +170,7 @@ final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>((
     ...mine.where((s) => s.id == last),
     ...mine.where((s) => s.id != last),
   ];
-});
+}
 
 /// "Which Space?": picking one opens its daybook with the card open. With
 /// none, how to get one: an invite code or a new Space.

@@ -4,13 +4,12 @@
 // Run:
 //   flutter test test_screens/review82_test.dart --update-goldens
 import 'package:buildvibes/data/models/daybook.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/data/models/library.dart';
-import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
@@ -19,7 +18,6 @@ import '../test/helpers/pump_app.dart';
 import '../test/helpers/space_fakes.dart';
 import 'shot.dart';
 
-AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
 Finder _key(String k) => find.byKey(Key(k));
 
@@ -94,7 +92,6 @@ void main() {
   setUpAll(loadAppFonts);
 
   for (final lang in ['en', 'ar']) {
-    final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
     testWidgets('S1 history lines: each time on one line [$lang]', (
@@ -125,11 +122,11 @@ void main() {
     ) async {
       await _open(tester, lang);
       await _tap(tester, _key('post-bar-notepad'));
-      // Review 105 SP2: the kind menu became one row of kind chips.
-      await _tap(tester, _key('kind-chip-${DaybookKind.note}'));
+      // Review 110 CP2: the kind from #.
+      await chooseKind(tester, 'note');
       await tester.enterText(_key('writing-title'), s.handoverTitle);
       await tester.pumpAndSettle();
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await addExtra(tester, 'file');
       await _tap(tester, _key('attach-file'));
       await _tap(tester, _key('replaces-version'));
       await _tap(tester, _key('version-${_m201.id}'));

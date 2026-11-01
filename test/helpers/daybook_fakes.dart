@@ -200,6 +200,27 @@ class FakeDaybookRepository implements DaybookRepository {
     if (card != null) put(item.spaceId, card);
   }
 
+  /// Thanks, as create_thanks got them; [refuseThanksWith] says no.
+  final createdThanks = <NewThanks>[];
+  SpaceException? refuseThanksWith;
+
+  @override
+  Future<void> createThanks(NewThanks thanks) async {
+    _check();
+    if (refuseThanksWith case final e?) throw e;
+    if (createdThanks.any((t) => t.id == thanks.id)) return;
+    createdThanks.add(thanks);
+  }
+
+  /// Each Space's tags (space_work_tags).
+  final tagsBySpace = <String, List<DaybookTag>>{};
+
+  @override
+  Future<List<DaybookTag>> workTags(String spaceId) async {
+    _check();
+    return tagsBySpace[spaceId] ?? const [];
+  }
+
   @override
   Future<DaybookExtras> extras(String spaceId, DateTime day) async =>
       extrasBySpace[spaceId] ?? const DaybookExtras();
@@ -275,6 +296,12 @@ class FakeDaybookRepository implements DaybookRepository {
 
   /// Posts whose Delete fails with no signal (H5).
   final deleteFails = <String>{};
+
+  @override
+  Future<void> showThanks(String postId, {required bool on}) async {
+    _check();
+    calls.add('thanks $postId $on');
+  }
 
   @override
   Future<void> pinPost(String postId, {required bool on}) async {

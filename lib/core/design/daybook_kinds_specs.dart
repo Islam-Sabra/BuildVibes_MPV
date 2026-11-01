@@ -131,8 +131,22 @@ abstract final class BvWritingPointSpec {
 
 /// A post's photos on its card (review 50 F51): the first large, two small
 /// beside it.
+/// Review 110 F (HV1 2721:39795): the short card, the same rule for every
+/// kind; a card is never more than about half the screen.
+abstract final class BvShortCardSpec {
+  static const titleLines = 2;
+  static const detailLines = 2;
+  static const infoLines = 1;
+
+  /// A checklist's first lines, then "4 of 9 ticked".
+  static const points = 3;
+}
+
 abstract final class BvPhotoStripSpec {
   static const gap = BvSpace.s4;
+
+  /// Review 110 F (HV1): a short card shows up to 3, then "+N".
+  static const shortMost = 3;
 
   /// The large photo takes two shares of the width, the small ones one.
   static const largeFlex = 2;

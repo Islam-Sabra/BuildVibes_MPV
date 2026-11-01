@@ -82,11 +82,16 @@ class BvBottomBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
+              // Review 110: each slot up to its width, narrower on a
+              // narrow phone (360 dp), so the five always fit.
               children: [
-                for (var i = 0; i < half; i++) tab(i),
+                for (var i = 0; i < half; i++) Flexible(child: tab(i)),
                 if (onCreate != null)
-                  _CreateSlot(label: createLabel!, onTap: onCreate!),
-                for (var i = half; i < items.length; i++) tab(i),
+                  Flexible(
+                    child: _CreateSlot(label: createLabel!, onTap: onCreate!),
+                  ),
+                for (var i = half; i < items.length; i++)
+                  Flexible(child: tab(i)),
               ],
             ),
           ),
@@ -226,10 +231,13 @@ class _SlotTap extends StatelessWidget {
       onTap: onTap,
       borderRadius: BvRadius.controlAll,
       splashFactory: NoSplash.splashFactory,
-      child: SizedBox(
-        width: BvBottomBarSize.slotWidth,
-        height: BvBottomBarSize.slotHeight,
-        child: Center(child: child),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: BvBottomBarSize.slotWidth),
+        child: SizedBox(
+          width: double.infinity,
+          height: BvBottomBarSize.slotHeight,
+          child: Center(child: child),
+        ),
       ),
     );
   }

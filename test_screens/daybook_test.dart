@@ -13,6 +13,8 @@
 //   flutter test test_screens/daybook_test.dart --update-goldens
 import 'dart:convert';
 
+import 'package:buildvibes/features/work/composer_kinds.dart'
+    show composerKindKey;
 import 'package:buildvibes/data/repositories/page_repository.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
@@ -80,7 +82,11 @@ Future<List<Override>> _overrides(
   // The phone's storage for drafts and the outbox; test_screens/ is a test
   // folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
-  SharedPreferences.setMockInitialValues(phone);
+  SharedPreferences.setMockInitialValues({
+    // Review 110 G1: the composer opens on a work item here.
+    composerKindKey(DaybookSamples.space): 'work_item',
+    ...phone,
+  });
   final prefs = await SharedPreferences.getInstance();
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),

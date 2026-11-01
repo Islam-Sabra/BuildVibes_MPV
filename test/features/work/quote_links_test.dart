@@ -1,5 +1,6 @@
 // Review 80 F83, F87, F91: a quote shows on every kind (the pinned
 // announcement too), opens its Space chat message, and shows on the page.
+import '../../helpers/daybook_rows.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -182,7 +183,7 @@ void main() {
         posts: [post],
         pages: FakePageRepository()..pages[_item] = PostPage(post: post),
       );
-      await tester.tap(find.byKey(const Key('card-open-page')));
+      await tester.tap(seeMore());
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('page-quote')), findsOneWidget);
     });

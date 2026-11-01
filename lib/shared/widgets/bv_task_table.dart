@@ -58,10 +58,7 @@ class BvTaskTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final add = onAdd != null && addLabel != null;
-    const line = BorderSide(
-      color: BvColors.borderSubtle,
-      width: BvStroke.thin,
-    );
+    const line = BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin);
 
     Widget cell({double? width, required Widget child}) {
       final padded = Padding(
@@ -149,10 +146,7 @@ class BvTaskTable extends StatelessWidget {
       final longPress = onRowLongPress;
       return longPress == null
           ? content
-          : GestureDetector(
-              onLongPress: () => longPress(i),
-              child: content,
-            );
+          : GestureDetector(onLongPress: () => longPress(i), child: content);
     }
 
     return DecoratedBox(
@@ -228,10 +222,7 @@ class _Tick extends StatelessWidget {
         borderRadius: BvTaskTableSpec.tickRadius,
         border: on
             ? null
-            : Border.all(
-                color: BvColors.textSecondary,
-                width: BvStroke.medium,
-              ),
+            : Border.all(color: BvColors.textSecondary, width: BvStroke.medium),
       ),
       child: on
           ? const Icon(

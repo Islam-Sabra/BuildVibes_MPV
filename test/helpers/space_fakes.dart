@@ -44,9 +44,17 @@ class FakeSpaceRepository implements SpaceRepository {
   /// Holds my_spaces until it completes (a slow signal).
   Future<void>? spacesGate;
 
+  /// my_spaces fails with this (review 110 A: the Space list says so).
+  Object? spacesError;
+
+  /// fetchSpace fails with this for these Spaces (a detail the app can't
+  /// read).
+  final detailErrors = <String, Object>{};
+
   @override
   Future<List<SpaceSummary>> mySpaces() async {
     await spacesGate;
+    if (spacesError case final e?) throw e;
     return List.of(spaces);
   }
 
@@ -140,7 +148,10 @@ class FakeSpaceRepository implements SpaceRepository {
   }
 
   @override
-  Future<SpaceDetail?> fetchSpace(String spaceId) async => details[spaceId];
+  Future<SpaceDetail?> fetchSpace(String spaceId) async {
+    if (detailErrors[spaceId] case final e?) throw e;
+    return details[spaceId];
+  }
 
   @override
   Future<SpaceInvite> currentInvite(String spaceId) async {

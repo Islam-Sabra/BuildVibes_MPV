@@ -28,6 +28,7 @@ import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/composer_steps.dart';
 import '../../helpers/later_fakes.dart';
 import '../../helpers/post_fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -122,7 +123,7 @@ void main() {
           'next working day (Monday, after a Sat-Sun weekend)', (tester) async {
         final app = await space(tester);
         await writeItem(tester);
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         final words = lookupAppLocalizations(Locale(lang));
         expect(
           find.descendant(
@@ -144,7 +145,7 @@ void main() {
       ) async {
         final app = await space(tester);
         await writeItem(tester);
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         await _tap(tester, _key('later-pick'));
         await _tap(tester, _key('later-schedule'));
         expect(
@@ -171,7 +172,7 @@ void main() {
           s.t('Level 3 slab done', 'بلاطة الطابق 3 منجزة'),
         );
         await tester.pumpAndSettle();
-        await _tap(tester, _key('writing-later'));
+        await openPostLater(tester);
         await _tap(tester, _key('later-workday'));
         await _tap(tester, _key('later-schedule'));
         expect(app.schedule.scheduled.single.at, DateTime(2026, 10, 18, 7));
@@ -274,13 +275,23 @@ void main() {
       ) async {
         final app = await space(tester);
         await writeItem(tester);
-        await _tap(tester, _key('writing-place-row'));
+        // Review 110 CP3: + → Place.
+        await addExtra(tester, 'place');
         await _tap(tester, _key('place-row-${_place.id}'));
         final bar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
         );
         expect(bar.laterReady, isFalse);
-        await _tap(tester, _key('writing-later'));
+        // Review 110 CP5: the held menu says why, under Post later….
+        await tester.longPress(_key('writing-post'));
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<Text>(_key('hold-menu-note')).data,
+          l10n.plCantYet,
+        );
+        await tester.tap(_key('hold-menu-away'));
+        await tester.pumpAndSettle();
+        await openPostLater(tester);
         expect(_key('later-sheet'), findsNothing);
         expect(find.text(l10n.plCantYet), findsOneWidget);
         expect(app.schedule.scheduled, isEmpty);

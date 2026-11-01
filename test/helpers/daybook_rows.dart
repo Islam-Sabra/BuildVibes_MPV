@@ -106,3 +106,12 @@ Future<List<String>> pageKeys(WidgetTester tester, String prefix) async => [
 ];
 
 String _key(Widget w) => (w.key! as ValueKey<String>).value;
+
+/// Review 110 F (HV1): a short card's See more, which opens the whole post.
+Finder seeMore([String? postId]) => postId != null
+    ? find.byKey(Key('card-see-more-$postId'))
+    : find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('card-see-more-'),
+      );

@@ -359,28 +359,20 @@ void main() {
         '[$lang]', (tester) async {
       final pages = FakePageRepository();
       await _open(tester, lang, pages: pages);
-      // On the card in Work.
+      // Review 110 F (HV1): on the short card, only its count on the
+      // quiet line; the rows are on the opened item.
       final card = _key('daybook-card-$_post');
       expect(
         find.descendant(
           of: card,
-          matching: find.textContaining(l10n.taskTableTicked(1, 3)),
+          matching: find.textContaining(l10n.cardTasks(3)),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(of: card, matching: find.text(l10n.taskTableNote)),
-        findsOneWidget,
+        findsNothing,
       );
-      final ticked = tester.widget<Text>(
-        find.descendant(
-          of: card,
-          matching: find.text(
-            s.t('Cracked tile at the stair', 'بلاطة مكسورة عند الدرج'),
-          ),
-        ),
-      );
-      expect(ticked.style?.decoration, TextDecoration.lineThrough);
       // The opened item reads the same.
       await _openItem(tester);
       expect(

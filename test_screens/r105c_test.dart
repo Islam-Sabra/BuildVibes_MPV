@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
@@ -119,17 +120,12 @@ void main() {
       _l2,
       9,
     );
-    final pour = tagged(
-      'post-c',
-      s.t('Pour sequence', 'تسلسل الصب'),
-      _l3,
-      8,
-    );
+    final pour = tagged('post-c', s.t('Pour sequence', 'تسلسل الصب'), _l3, 8);
 
     testWidgets('P1 the Place picker: "Add place …" [$lang]', (tester) async {
       await _openWork(tester, lang, [rebar]);
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('writing-place-row'));
+      await addExtra(tester, 'place');
       await tester.enterText(
         find.descendant(
           of: _key('place-search'),
@@ -163,9 +159,7 @@ void main() {
       await _snap(tester, 'P3-place-filter', lang);
     });
 
-    testWidgets('BA1 before / after on a Checked item [$lang]', (
-      tester,
-    ) async {
+    testWidgets('BA1 before / after on a Checked item [$lang]', (tester) async {
       await warmSamplePhoto(tester);
       final sleeves = s.card(
         s.item(
@@ -224,12 +218,9 @@ void main() {
       final post = snags();
       final pages = FakePageRepository()
         ..pages[_post] = PostPage(post: post, version: 2);
-      await _openWork(
-        tester,
-        lang,
-        [DaybookCard(post: post, lastActivityAt: post.createdAt)],
-        pages: pages,
-      );
+      await _openWork(tester, lang, [
+        DaybookCard(post: post, lastActivityAt: post.createdAt),
+      ], pages: pages);
       await _tap(
         tester,
         find.descendant(
@@ -242,9 +233,7 @@ void main() {
       await _snap(tester, 'SP4-add-sheet', lang);
     });
 
-    testWidgets('SP3 a table of tasks, one row ticked [$lang]', (
-      tester,
-    ) async {
+    testWidgets('SP3 a table of tasks, one row ticked [$lang]', (tester) async {
       final post = snags();
       final pages = FakePageRepository()
         ..pages[_post] = PostPage(
@@ -260,7 +249,10 @@ void main() {
               ),
               TaskRow(
                 '00000000-0000-4000-8000-0000000006c2',
-                s.t('Grout gap at the lift door', 'فراغ الترويب عند باب المصعد'),
+                s.t(
+                  'Grout gap at the lift door',
+                  'فراغ الترويب عند باب المصعد',
+                ),
                 note: s.t('Grey grout', 'ترويب رمادي'),
               ),
               TaskRow(
@@ -317,9 +309,9 @@ void main() {
         spaces: spaces,
         now: DaybookSamples.thursday,
       );
-      GoRouter.of(tester.element(find.byType(Navigator).first)).push(
-        '/spaces/${DaybookSamples.space}/members/${DaybookSamples.omar}',
-      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/spaces/${DaybookSamples.space}/members/${DaybookSamples.omar}');
       await tester.pumpAndSettle();
       await _tap(tester, _key('member-remove'));
       await _snap(tester, 'SP9-removal-sheet', lang);

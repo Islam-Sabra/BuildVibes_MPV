@@ -8741,5 +8741,396 @@
   "plCantYet": "Items with files or a place can't be scheduled yet.",
   "@plCantYet": {
     "description": "Review 108 V7: the clock on a work item with Library files or a place from the list."
+  },
+  "rmOnlyWhoMay": "Only the person who made it, the person it's for, or a Lead can remind someone.",
+  "@rmOnlyWhoMay": {
+    "description": "Review 110 B: set_work_reminder refused \"not allowed\"."
+  },
+  "rmOnlyOpen": "Reminders are only for open work items.",
+  "@rmOnlyOpen": {
+    "description": "Review 110 B: set_work_reminder refused \"only an open work item\"."
+  },
+  "rmClearTime": "Clear this time",
+  "@rmClearTime": {
+    "description": "Review 110 C (RM1d): the × on the picked time, said by a screen reader."
+  },
+  "plLater": "Post later…",
+  "@plLater": {
+    "description": "Review 110 CP5: the one item on the small menu that holding Send opens."
+  },
+  "cpNewNote": "New note",
+  "@cpNewNote": {
+    "description": "Review 110 CP1: the composer's top line, by kind."
+  },
+  "cpNewWorkItem": "New work item",
+  "@cpNewWorkItem": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewChecklist": "New checklist",
+  "@cpNewChecklist": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewAnnouncement": "New announcement",
+  "@cpNewAnnouncement": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpNewActivity": "New scheduled activity",
+  "@cpNewActivity": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpEdit": "Edit · {kind}",
+  "@cpEdit": {
+    "description": "Review 110 CP1: the top line while editing a post.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "cpSpaceLine": "{space} · {line}",
+  "@cpSpaceLine": {
+    "description": "Review 110 CP1: under the top line: the Space's name and its line (\"Private work\").",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      },
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "cpTemplates": "Templates",
+  "@cpTemplates": {
+    "description": "Review 110 W9: the composer's top bar, in Drafts' old place, for a kind with templates in this Space: opens the template picker."
+  },
+  "cpDetails": "Details (optional)",
+  "@cpDetails": {
+    "description": "Review 110 CP1: a work item's details box."
+  },
+  "cpWhatPosting": "What are you posting?",
+  "@cpWhatPosting": {
+    "description": "Review 110 CP2: over the grid of kinds."
+  },
+  "cpAddNote": "Add to this note",
+  "@cpAddNote": {
+    "description": "Review 110 CP3: over the grid of extras, by kind."
+  },
+  "cpAddWorkItem": "Add to this work item",
+  "@cpAddWorkItem": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddChecklist": "Add to this checklist",
+  "@cpAddChecklist": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddAnnouncement": "Add to this announcement",
+  "@cpAddAnnouncement": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddActivity": "Add to this activity",
+  "@cpAddActivity": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTag": "Tag",
+  "@cpTag": {
+    "description": "Review 110 CP3: + → Tag."
+  },
+  "cpPhotos": "Photos",
+  "@cpPhotos": {
+    "description": "Review 110 CP3: + → Photos (from the gallery)."
+  },
+  "cpFile": "File",
+  "@cpFile": {
+    "description": "Review 110 CP3: + → File."
+  },
+  "cpBullets": "Bullets",
+  "@cpBullets": {
+    "description": "Review 110 CP3: + → Bullets (a line that starts with •)."
+  },
+  "cpPin": "Pin",
+  "@cpPin": {
+    "description": "Review 110 CP3: an announcement's pin, in +."
+  },
+  "cpRemoveThe": "Remove {what}",
+  "@cpRemoveThe": {
+    "description": "Review 110 CP4: the × on an added chip, said by a screen reader.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "cpRemoved": "Removed: {what}. {kind} doesn't take it.",
+  "@cpRemoved": {
+    "description": "Review 110 CP3: switching the kind dropped something.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "cpFiles": "Files",
+  "@cpFiles": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTables": "Tables",
+  "@cpTables": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTableChip": "Table · {rows} rows",
+  "@cpTableChip": {
+    "description": "Review 110 CP4: a table added from +.",
+    "placeholders": {
+      "rows": {
+        "type": "int"
+      }
+    }
+  },
+  "cpTaskTableChip": "Table of tasks · {count}",
+  "@cpTaskTableChip": {
+    "description": "Review 110 CP4: a table of tasks added from +.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cpAddRow": "Add a row",
+  "@cpAddRow": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddColumn": "Add a column",
+  "@cpAddColumn": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpTaskHint": "Task",
+  "@cpTaskHint": {
+    "description": "Review 110 D: the composer."
+  },
+  "cpAddTask": "Add a task",
+  "@cpAddTask": {
+    "description": "Review 110 D: the composer."
+  },
+  "cardFiles": "{count, plural, =1{1 file} other{{count} files}}",
+  "@cardFiles": {
+    "description": "Review 110 F (HV1): the short card's quiet line.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardTables": "{count, plural, =1{1 table} other{{count} tables}}",
+  "@cardTables": {
+    "description": "Review 110 F: the short card.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardTasks": "{count, plural, =1{1 task} other{{count} tasks}}",
+  "@cardTasks": {
+    "description": "Review 110 F: the short card.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardSeeMore": "See more",
+  "@cardSeeMore": {
+    "description": "Review 110 F (HV1): opens the whole post in place."
+  },
+  "cardMorePhotos": "+{count}",
+  "@cardMorePhotos": {
+    "description": "Review 110 F (HV1): the tile after 3 photos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thanksStamp": "THANKS",
+  "@thanksStamp": {
+    "description": "Review 110 TH2: the green stamp on a Thanks."
+  },
+  "thanksTo": "To",
+  "@thanksTo": {
+    "description": "Review 110 TH1, TH2: who a Thanks is to."
+  },
+  "thanksShow": "Show on my profile",
+  "@thanksShow": {
+    "description": "Review 110 TH2: only the person thanked sees it."
+  },
+  "thanksHide": "Remove from my profile",
+  "@thanksHide": {
+    "description": "Review 110 TH2: a Thanks already on the profile."
+  },
+  "thanksOnlyYou": "Only you see this button. Nobody else is told.",
+  "@thanksOnlyYou": {
+    "description": "Review 110 TH2."
+  },
+  "profileThanks": "Thanks",
+  "@profileThanks": {
+    "description": "Review 110 TH2: the profile section of Thanks its person chose to show."
+  },
+  "profileThanksFrom": "From {name}",
+  "@profileThanksFrom": {
+    "description": "Review 110 TH2: who thanked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareSpacesLoading": "Loading your Spaces…",
+  "@notebookShareSpacesLoading": {
+    "description": "Review 110 A: the share card while the Spaces load."
+  },
+  "notebookShareSpacesError": "Couldn't load your Spaces. Try again.",
+  "@notebookShareSpacesError": {
+    "description": "Review 110 A: the share card when the Spaces can't be read."
+  },
+  "daybookKindThanks": "Thanks",
+  "@daybookKindThanks": {
+    "description": "Review 110 TH1: the Thanks kind, on # and its name."
+  },
+  "cpNewThanks": "Thanks",
+  "@cpNewThanks": {
+    "description": "Review 110 TH1: the composer's top line for a Thanks."
+  },
+  "cpAddThanks": "Add to this Thanks",
+  "@cpAddThanks": {
+    "description": "Review 110 TH1: + on a Thanks."
+  },
+  "thanksWordsHint": "Thank you for…",
+  "@thanksWordsHint": {
+    "description": "Review 110 TH1: the title line of a Thanks holds its words."
+  },
+  "thanksFor": "For",
+  "@thanksFor": {
+    "description": "Review 110 TH1: the work item a Thanks is for."
+  },
+  "thanksForOptional": "Optional",
+  "@thanksForOptional": {
+    "description": "Review 110 TH1: For, with no work item chosen."
+  },
+  "thanksToTitle": "Thank who?",
+  "@thanksToTitle": {
+    "description": "Review 110 TH1: the To sheet's title."
+  },
+  "thanksTeams": "Teams",
+  "@thanksTeams": {
+    "description": "Review 110 TH1: the To sheet, Teams first."
+  },
+  "thanksForTitle": "For which work item?",
+  "@thanksForTitle": {
+    "description": "Review 110 TH1: the For sheet's title."
+  },
+  "thanksForNone": "No open work items in this Space.",
+  "@thanksForNone": {
+    "description": "Review 110 TH1: the For sheet with nothing to choose."
+  },
+  "thanksSomeone": "Thank someone",
+  "@thanksSomeone": {
+    "description": "Review 110 (founder, 1 Nov): a Viewer's post bar, beside Read only: opens the composer on a Thanks."
+  },
+  "thanksProfileNote": "They can show this on their profile.",
+  "@thanksProfileNote": {
+    "description": "Review 110 (founder, 1 Nov): the quiet line under To in the Thanks composer."
+  },
+  "thanksRefusedNotAllowed": "You can't post a Thanks in this Space.",
+  "@thanksRefusedNotAllowed": {
+    "description": "Review 110 TH1: create_thanks said not allowed."
+  },
+  "thanksRefusedSignIn": "Sign in again, then send it.",
+  "@thanksRefusedSignIn": {
+    "description": "Review 110 TH1: create_thanks said sign in first."
+  },
+  "thanksRefusedIdTaken": "This Thanks couldn't be saved. Send it again.",
+  "@thanksRefusedIdTaken": {
+    "description": "Review 110 TH1: create_thanks said its id is taken."
+  },
+  "thanksRefusedNoOne": "Choose a person or a Team to thank.",
+  "@thanksRefusedNoOne": {
+    "description": "Review 110 TH1: create_thanks said thank a person or a team."
+  },
+  "thanksRefusedSelf": "Thank someone else.",
+  "@thanksRefusedSelf": {
+    "description": "Review 110 TH1: create_thanks said thank someone else."
+  },
+  "thanksRefusedNotMember": "They're no longer in this Space. Choose someone else.",
+  "@thanksRefusedNotMember": {
+    "description": "Review 110 TH1: the person thanked left the Space."
+  },
+  "thanksRefusedTeam": "That Team isn't in this Space. Choose again.",
+  "@thanksRefusedTeam": {
+    "description": "Review 110 TH1: the Team is not in the Space."
+  },
+  "thanksRefusedFor": "That work item can't be chosen. Choose another or remove it.",
+  "@thanksRefusedFor": {
+    "description": "Review 110 TH1: For is not a live work item here."
+  },
+  "thanksRefusedTooLong": "Keep it under 5000 characters.",
+  "@thanksRefusedTooLong": {
+    "description": "Review 110 TH1: the words are too long."
+  },
+  "cpTagPanel": "Tag (one)",
+  "@cpTagPanel": {
+    "description": "Review 110 TG1: the tag panel's title."
+  },
+  "cpTagNote": "The list comes from your market. Tap again to remove.",
+  "@cpTagNote": {
+    "description": "Review 110 TG1: under the tags."
+  },
+  "cpTagsError": "Couldn't load the tags. Try again.",
+  "@cpTagsError": {
+    "description": "Review 110 TG1: the tag panel when the list can't be read."
+  },
+  "daybookTagFilterClear": "Show all tags",
+  "@daybookTagFilterClear": {
+    "description": "Review 110 TG1: × on Work filtered to one tag."
+  },
+  "cpPointHint": "A point to tick",
+  "@cpPointHint": {
+    "description": "Review 110 step 5: a line on the Checklist sheet."
+  },
+  "cpAddPoint": "Add a point",
+  "@cpAddPoint": {
+    "description": "Review 110 step 5: another line on the Checklist sheet."
+  },
+  "cpChecklistChip": "Checklist · {count}",
+  "@cpChecklistChip": {
+    "description": "Review 110 step 5: a work item's checklist from +.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cpPeople": "People",
+  "@cpPeople": {
+    "description": "Review 110 (founder, 31 Oct): + → People on a scheduled activity, to name who's coming if wanted."
+  },
+  "notebookShareSpacesCode": "Code: {code}",
+  "@notebookShareSpacesCode": {
+    "description": "Review 110 W2: under the Space list's error, the error's type as a short code (never its raw words).",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "rmFiveWaiting": "This item already has 5 reminders waiting.",
+  "@rmFiveWaiting": {
+    "description": "Review 110 W5: set_work_reminder refused \"at most 5 reminders wait on an item\"."
+  },
+  "rmOnlyWhoSees": "Only people who can see this item can be reminded.",
+  "@rmOnlyWhoSees": {
+    "description": "Review 110 W5: set_work_reminder refused \"only people in the Space who can see it\"."
   }
 }

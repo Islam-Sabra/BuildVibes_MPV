@@ -16,6 +16,7 @@ import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/dm_repository.dart';
+import 'package:buildvibes/features/work/composer_kinds.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart'
     show filePreviewProvider;
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
@@ -57,6 +58,7 @@ import 'activity_fakes.dart';
 import 'chat_fakes.dart';
 import 'daybook_fakes.dart';
 import 'dm_fakes.dart';
+import 'daybook_samples.dart';
 import 'fakes.dart';
 import 'later_fakes.dart';
 import 'library_fakes.dart';
@@ -259,6 +261,10 @@ Future<TestApp> pumpApp(
   /// What this phone kept from before (an app opened again).
   Map<String, Object> stored = const {},
 
+  /// Review 110 G1: the kind last posted in the sample Space on this
+  /// phone, so the composer opens on it; null for the first time (Note).
+  String? composerKind = 'work_item',
+
   /// The notebook's one-time swipe hint (review 100 Part 3b) still to
   /// come; by default it was seen, so the top card stays still.
   bool swipeHint = false,
@@ -301,6 +307,7 @@ Future<TestApp> pumpApp(
 
   SharedPreferences.setMockInitialValues({
     if (!swipeHint) 'notebook_swipe_hint:user-1': true,
+    composerKindKey(DaybookSamples.space): ?composerKind,
     ...stored,
     'app_language': ?language,
   });

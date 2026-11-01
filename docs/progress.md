@@ -878,6 +878,16 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Build 852 on the founder's phone, the emulator and the Desktop.
   - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; 518 shots.
 
+- **1 Nov (PC): review 110 on `claude/r110`**, for the lead; nothing merged, live or built:
+  - B, C, CP5, D (the full-screen composer), E (Thanks and tags: migration 20261118120000, not live; composer, cards, profile, Work by tag), F (the short card, See more), step 5 (+ → Checklist), an activity's people optional.
+  - A: the Space list now says loading and errors with a diagnostic; the cause on the founder's phone is still to read.
+  - Checks: analyze clean; 3,069 app tests; 3,516 SQL checks; shots 396 pass, 160 expected (38 new, 122 changed), in `docs/reviews/shots-110/`.
+
+- **1 Nov (PC): review 110, the lead's check W1–W12 on `claude/r110`**, for the lead; nothing merged, live or built:
+  - W1/W2 the Space list can't restart in a loop, shows a short code and Try again; W3/W4/W7 server (hidden or blocked recipients, tag needs create_items, Thanks can be scheduled; same migration, not live); W5 two refusal lines; W6 Thanks details; W8 no Checklist in the notebook share, to-dos become a work item's checklist; W9 the composer's top bar and + tiles; W10 tags on one line with +1, See more measured; W11; W12.
+  - Founder: a Viewer may post a Thanks; the To line "They can show this on their profile."
+  - Checks: analyze clean; 3,095 app tests; 3,533 SQL checks; shots 392 pass, 170 expected (44 r110 with no golden, 126 image differences), in `docs/reviews/shots-110b/`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

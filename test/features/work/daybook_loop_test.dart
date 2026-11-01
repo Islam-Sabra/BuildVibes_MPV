@@ -1439,24 +1439,37 @@ void main() {
       );
       await _longPress(tester, 'post-trays');
       await _pick(tester, l10n.daybookEdit);
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.titleController!.text, s.cableTraysTitle);
-      // The owner changes with Give to, not Edit: its row isn't a choice
-      // (review 105 SP2: For · Place · Due · Team).
-      final rows = tester.widget<BvWritingRows>(find.byType(BvWritingRows));
+      // Review 110: the composer, filled.
+      expect(find.byKey(const Key('composer')), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('writing-title')))
+            .controller!
+            .text,
+        s.cableTraysTitle,
+      );
+      // The owner changes with Give to, not Edit: its line isn't a choice
+      // (CP1: For · Team).
+      final rows = tester.widget<BvWritingPills>(find.byType(BvWritingPills));
       expect(rows.rows.map((r) => r.key), const [
         Key('writing-who'),
-        Key('writing-place-row'),
-        Key('writing-due-row'),
         Key('writing-to'),
       ]);
       expect(rows.rows.first.onTap, isNull);
+      // + offers what an edit changes: the place and the due.
+      await tester.tap(find.byKey(const Key('writing-add')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('composer-extra-place')), findsOneWidget);
+      expect(find.byKey(const Key('composer-extra-due')), findsOneWidget);
+      expect(find.byKey(const Key('composer-extra-photos')), findsNothing);
+      await tester.tap(find.byKey(const Key('writing-add')));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('writing-title')), 'Trays');
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(app.daybook.calls.single, 'edit post-trays {"title":"Trays"}');
-      expect(find.byType(BvWritingCard), findsNothing);
+      expect(find.byKey(const Key('composer')), findsNothing);
     });
 
     testWidgets('Edit: the due can be removed [$lang]', (tester) async {
@@ -1468,20 +1481,18 @@ void main() {
       );
       await _longPress(tester, 'post-trays');
       await _pick(tester, l10n.daybookEdit);
-      await tester.tap(
+      expect(
         find.text(words.dueProperty(DateTime(2026, 10, 18), null)),
+        findsOneWidget,
       );
+      // Review 110 CP4: the due chip's ×.
+      await tester.tap(find.byKey(const Key('writing-due-chip-clear')));
       await tester.pumpAndSettle();
-      final rows = tester.widget<BvWritingRows>(find.byType(BvWritingRows));
+      final rows = tester.widget<BvWritingPills>(find.byType(BvWritingPills));
       // An edit keeps the owner: no caret; the due is gone.
       expect(rows.rows.first.value, s.omarName);
       expect(rows.rows.first.onTap, isNull);
-      expect(
-        rows.rows
-            .firstWhere((r) => r.key == const Key('writing-due-row'))
-            .empty,
-        isTrue,
-      );
+      expect(find.byKey(const Key('writing-due-chip')), findsNothing);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(

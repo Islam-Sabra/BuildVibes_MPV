@@ -10195,6 +10195,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Items with files or a place can\'t be scheduled yet.'**
   String get plCantYet;
+
+  /// Review 110 B: set_work_reminder refused "not allowed".
+  ///
+  /// In en, this message translates to:
+  /// **'Only the person who made it, the person it\'s for, or a Lead can remind someone.'**
+  String get rmOnlyWhoMay;
+
+  /// Review 110 B: set_work_reminder refused "only an open work item".
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are only for open work items.'**
+  String get rmOnlyOpen;
+
+  /// Review 110 C (RM1d): the × on the picked time, said by a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear this time'**
+  String get rmClearTime;
+
+  /// Review 110 CP5: the one item on the small menu that holding Send opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Post later…'**
+  String get plLater;
+
+  /// Review 110 CP1: the composer's top line, by kind.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get cpNewNote;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New work item'**
+  String get cpNewWorkItem;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New checklist'**
+  String get cpNewChecklist;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New announcement'**
+  String get cpNewAnnouncement;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'New scheduled activity'**
+  String get cpNewActivity;
+
+  /// Review 110 CP1: the top line while editing a post.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit · {kind}'**
+  String cpEdit(String kind);
+
+  /// Review 110 CP1: under the top line: the Space's name and its line ("Private work").
+  ///
+  /// In en, this message translates to:
+  /// **'{space} · {line}'**
+  String cpSpaceLine(String space, String line);
+
+  /// Review 110 W9: the composer's top bar, in Drafts' old place, for a kind with templates in this Space: opens the template picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get cpTemplates;
+
+  /// Review 110 CP1: a work item's details box.
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get cpDetails;
+
+  /// Review 110 CP2: over the grid of kinds.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you posting?'**
+  String get cpWhatPosting;
+
+  /// Review 110 CP3: over the grid of extras, by kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this note'**
+  String get cpAddNote;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this work item'**
+  String get cpAddWorkItem;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this checklist'**
+  String get cpAddChecklist;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this announcement'**
+  String get cpAddAnnouncement;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this activity'**
+  String get cpAddActivity;
+
+  /// Review 110 CP3: + → Tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get cpTag;
+
+  /// Review 110 CP3: + → Photos (from the gallery).
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get cpPhotos;
+
+  /// Review 110 CP3: + → File.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get cpFile;
+
+  /// Review 110 CP3: + → Bullets (a line that starts with •).
+  ///
+  /// In en, this message translates to:
+  /// **'Bullets'**
+  String get cpBullets;
+
+  /// Review 110 CP3: an announcement's pin, in +.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get cpPin;
+
+  /// Review 110 CP4: the × on an added chip, said by a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {what}'**
+  String cpRemoveThe(String what);
+
+  /// Review 110 CP3: switching the kind dropped something.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed: {what}. {kind} doesn\'t take it.'**
+  String cpRemoved(String what, String kind);
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get cpFiles;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Tables'**
+  String get cpTables;
+
+  /// Review 110 CP4: a table added from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Table · {rows} rows'**
+  String cpTableChip(int rows);
+
+  /// Review 110 CP4: a table of tasks added from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Table of tasks · {count}'**
+  String cpTaskTableChip(int count);
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get cpAddRow;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get cpAddColumn;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get cpTaskHint;
+
+  /// Review 110 D: the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a task'**
+  String get cpAddTask;
+
+  /// Review 110 F (HV1): the short card's quiet line.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file} other{{count} files}}'**
+  String cardFiles(int count);
+
+  /// Review 110 F: the short card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 table} other{{count} tables}}'**
+  String cardTables(int count);
+
+  /// Review 110 F: the short card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 task} other{{count} tasks}}'**
+  String cardTasks(int count);
+
+  /// Review 110 F (HV1): opens the whole post in place.
+  ///
+  /// In en, this message translates to:
+  /// **'See more'**
+  String get cardSeeMore;
+
+  /// Review 110 F (HV1): the tile after 3 photos.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String cardMorePhotos(int count);
+
+  /// Review 110 TH2: the green stamp on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'THANKS'**
+  String get thanksStamp;
+
+  /// Review 110 TH1, TH2: who a Thanks is to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get thanksTo;
+
+  /// Review 110 TH2: only the person thanked sees it.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on my profile'**
+  String get thanksShow;
+
+  /// Review 110 TH2: a Thanks already on the profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from my profile'**
+  String get thanksHide;
+
+  /// Review 110 TH2.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you see this button. Nobody else is told.'**
+  String get thanksOnlyYou;
+
+  /// Review 110 TH2: the profile section of Thanks its person chose to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get profileThanks;
+
+  /// Review 110 TH2: who thanked.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String profileThanksFrom(String name);
+
+  /// Review 110 A: the share card while the Spaces load.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your Spaces…'**
+  String get notebookShareSpacesLoading;
+
+  /// Review 110 A: the share card when the Spaces can't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your Spaces. Try again.'**
+  String get notebookShareSpacesError;
+
+  /// Review 110 TH1: the Thanks kind, on # and its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get daybookKindThanks;
+
+  /// Review 110 TH1: the composer's top line for a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get cpNewThanks;
+
+  /// Review 110 TH1: + on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this Thanks'**
+  String get cpAddThanks;
+
+  /// Review 110 TH1: the title line of a Thanks holds its words.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for…'**
+  String get thanksWordsHint;
+
+  /// Review 110 TH1: the work item a Thanks is for.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get thanksFor;
+
+  /// Review 110 TH1: For, with no work item chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get thanksForOptional;
+
+  /// Review 110 TH1: the To sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank who?'**
+  String get thanksToTitle;
+
+  /// Review 110 TH1: the To sheet, Teams first.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get thanksTeams;
+
+  /// Review 110 TH1: the For sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'For which work item?'**
+  String get thanksForTitle;
+
+  /// Review 110 TH1: the For sheet with nothing to choose.
+  ///
+  /// In en, this message translates to:
+  /// **'No open work items in this Space.'**
+  String get thanksForNone;
+
+  /// Review 110 (founder, 1 Nov): a Viewer's post bar, beside Read only: opens the composer on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank someone'**
+  String get thanksSomeone;
+
+  /// Review 110 (founder, 1 Nov): the quiet line under To in the Thanks composer.
+  ///
+  /// In en, this message translates to:
+  /// **'They can show this on their profile.'**
+  String get thanksProfileNote;
+
+  /// Review 110 TH1: create_thanks said not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t post a Thanks in this Space.'**
+  String get thanksRefusedNotAllowed;
+
+  /// Review 110 TH1: create_thanks said sign in first.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again, then send it.'**
+  String get thanksRefusedSignIn;
+
+  /// Review 110 TH1: create_thanks said its id is taken.
+  ///
+  /// In en, this message translates to:
+  /// **'This Thanks couldn\'t be saved. Send it again.'**
+  String get thanksRefusedIdTaken;
+
+  /// Review 110 TH1: create_thanks said thank a person or a team.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person or a Team to thank.'**
+  String get thanksRefusedNoOne;
+
+  /// Review 110 TH1: create_thanks said thank someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank someone else.'**
+  String get thanksRefusedSelf;
+
+  /// Review 110 TH1: the person thanked left the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'re no longer in this Space. Choose someone else.'**
+  String get thanksRefusedNotMember;
+
+  /// Review 110 TH1: the Team is not in the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'That Team isn\'t in this Space. Choose again.'**
+  String get thanksRefusedTeam;
+
+  /// Review 110 TH1: For is not a live work item here.
+  ///
+  /// In en, this message translates to:
+  /// **'That work item can\'t be chosen. Choose another or remove it.'**
+  String get thanksRefusedFor;
+
+  /// Review 110 TH1: the words are too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it under 5000 characters.'**
+  String get thanksRefusedTooLong;
+
+  /// Review 110 TG1: the tag panel's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag (one)'**
+  String get cpTagPanel;
+
+  /// Review 110 TG1: under the tags.
+  ///
+  /// In en, this message translates to:
+  /// **'The list comes from your market. Tap again to remove.'**
+  String get cpTagNote;
+
+  /// Review 110 TG1: the tag panel when the list can't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the tags. Try again.'**
+  String get cpTagsError;
+
+  /// Review 110 TG1: × on Work filtered to one tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all tags'**
+  String get daybookTagFilterClear;
+
+  /// Review 110 step 5: a line on the Checklist sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'A point to tick'**
+  String get cpPointHint;
+
+  /// Review 110 step 5: another line on the Checklist sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a point'**
+  String get cpAddPoint;
+
+  /// Review 110 step 5: a work item's checklist from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist · {count}'**
+  String cpChecklistChip(int count);
+
+  /// Review 110 (founder, 31 Oct): + → People on a scheduled activity, to name who's coming if wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get cpPeople;
+
+  /// Review 110 W2: under the Space list's error, the error's type as a short code (never its raw words).
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {code}'**
+  String notebookShareSpacesCode(String code);
+
+  /// Review 110 W5: set_work_reminder refused "at most 5 reminders wait on an item".
+  ///
+  /// In en, this message translates to:
+  /// **'This item already has 5 reminders waiting.'**
+  String get rmFiveWaiting;
+
+  /// Review 110 W5: set_work_reminder refused "only people in the Space who can see it".
+  ///
+  /// In en, this message translates to:
+  /// **'Only people who can see this item can be reminded.'**
+  String get rmOnlyWhoSees;
 }
 
 class _AppLocalizationsDelegate

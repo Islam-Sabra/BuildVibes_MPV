@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/crash/crash_reports.dart'
+    show errorCode, errorFirstLine, reportNonFatal;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
@@ -19,17 +21,20 @@ import '../../data/repositories/dm_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/post_repository.dart';
 import '../../data/repositories/schedule_repository.dart';
-import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
+import '../../data/repositories/space_repository.dart'
+    show mySpacesProvider, spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_hold_menu.dart';
 import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/voice.dart' show voiceTime;
-import '../create/create_sheet.dart' show workItemSpacesProvider;
+import '../create/create_sheet.dart'
+    show spacesLoadMost, workItemSpacesProvider, workItemSpacesRuns;
 import '../entry/entry_state.dart' show authUserIdProvider;
 import '../messages/people_search_screen.dart' show peopleSearchProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -53,11 +58,11 @@ import 'notebook_state.dart';
 enum _ShareTo { feed, space, message }
 
 /// What a Space share goes in as (review 104 N9): the Space's own kinds,
-/// with its words and icons.
+/// with its words and icons. No Checklist (review 110 W8): a note's to-do
+/// lines put in as a work item are its checklist.
 enum ShareKind {
   note('note', DaybookKind.note),
-  workItem('work_item', DaybookKind.workItem),
-  checklist('checklist', DaybookKind.checklist);
+  workItem('work_item', DaybookKind.workItem);
 
   const ShareKind(this.json, this.space);
   final String json;
@@ -293,6 +298,39 @@ class _ShareCard extends ConsumerStatefulWidget {
 class _ShareCardState extends ConsumerState<_ShareCard> {
   late _ShareTo? _level = widget.start;
 
+  /// The Space list's error already reported (once each).
+  Object? _reported;
+
+  /// Review 110 W1: the Space list's 15 s, from when it first opened.
+  Timer? _spacesTimer;
+  var _spacesLate = false;
+
+  void _startSpacesClock() {
+    if (_spacesTimer != null) return;
+    workItemSpacesRuns = 0;
+    _spacesTimer = Timer(spacesLoadMost, () {
+      if (mounted) setState(() => _spacesLate = true);
+    });
+  }
+
+  void _retrySpaces() {
+    _spacesTimer?.cancel();
+    _spacesTimer = null;
+    setState(() {
+      _spacesLate = false;
+      _reported = null;
+    });
+    // My Spaces keeps its own failure: it is read again too.
+    ref.invalidate(mySpacesProvider);
+    ref.invalidate(workItemSpacesProvider);
+  }
+
+  @override
+  void dispose() {
+    _spacesTimer?.cancel();
+    super.dispose();
+  }
+
   void _back() =>
       widget.start == null ? setState(() => _level = null) : widget.onPicked();
   var _q = '';
@@ -335,15 +373,49 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
               : setState(() => _level = to),
         );
       case _ShareTo.space:
+        _startSpacesClock();
         final spaces = ref.watch(workItemSpacesProvider);
         final list = spaces.value ?? const <SpaceSummary>[];
+        // Review 110 A, W1–W2: loading and an error are said, never an
+        // empty card with no title. An error (or 15 s from when the list
+        // opened) shows a short code and Try again, and goes to
+        // Crashlytics once with its first line and how often the list ran.
+        final error = spaces.hasValue
+            ? null
+            : spaces.error ??
+                  (_spacesLate ? TimeoutException(null, spacesLoadMost) : null);
+        if (error != null && !identical(error, _reported)) {
+          _reported = error;
+          reportNonFatal(
+            error,
+            spaces.stackTrace,
+            reason: '${errorFirstLine(error)} · runs: $workItemSpacesRuns',
+          );
+        }
         return BvPopoverMenu<SpaceSummary>.line(
           key: const Key('share-menu'),
           back: l10n.notebookShareSpace,
           onBack: _back,
-          title: spaces.hasValue && list.isEmpty
+          title: error != null
+              ? l10n.notebookShareSpacesError
+              : !spaces.hasValue
+              ? l10n.notebookShareSpacesLoading
+              : list.isEmpty
               ? l10n.notebookShareNoSpace
               : null,
+          hint: error == null
+              ? null
+              : l10n.notebookShareSpacesCode(errorCode(error)),
+          foot: error == null
+              ? null
+              : Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const Key('share-spaces-retry'),
+                    onPressed: _retrySpaces,
+                    child: Text(l10n.commonRetry),
+                  ),
+                ),
           scrolls: true,
           tiles: false,
           items: [
@@ -488,7 +560,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   }
 
   /// For (N10): a work item takes exactly one person, and a pick closes
-  /// the picker; a checklist several, picked and unpicked until Done.
+  /// the picker.
   Future<void> _pickFor(
     SpacePeople people,
     String? me,
@@ -496,58 +568,21 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   ) async {
     final l10n = AppLocalizations.of(context);
     final list = _forList(people, me);
-    if (_kind == ShareKind.workItem) {
-      final picked = await showBvSheet<BvGiveToPerson>(
-        context: context,
-        title: l10n.notebookShareFor,
-        builder: (sheet) => BvGiveToPicker(
-          key: const Key('share-for-picker'),
-          people: list,
-          currentOwnerId: forWhom.firstOrNull,
-          meId: me,
-          meLabel: l10n.daybookYou,
-          searchPlaceholder: l10n.daybookAssignSearch,
-          inSheet: true,
-          onPick: (p) => Navigator.of(sheet).pop(p),
-        ),
-      );
-      if (picked != null && mounted) setState(() => _people = {picked.id});
-      return;
-    }
-    var chosen = {...forWhom};
-    await showBvSheet<void>(
+    final picked = await showBvSheet<BvGiveToPerson>(
       context: context,
       title: l10n.notebookShareFor,
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, setSheet) => BvGiveToPicker(
-          key: const Key('share-for-picker'),
-          people: list,
-          currentOwnerId: null,
-          chosenIds: chosen,
-          meId: me,
-          meLabel: l10n.daybookYou,
-          searchPlaceholder: l10n.daybookPeopleSearch,
-          inSheet: true,
-          onPick: (p) {
-            final next = chosen.contains(p.id)
-                ? ({...chosen}..remove(p.id))
-                : {...chosen, p.id};
-            // It is for someone: the last one stays.
-            if (next.isEmpty) return;
-            chosen = next;
-            setSheet(() {});
-            setState(() => _people = next);
-          },
-        ),
-      ),
-      foot: (sheet) => BvButton(
-        key: const Key('share-for-done'),
-        label: l10n.notebookDone,
-        size: BvButtonSize.medium,
-        expand: true,
-        onPressed: () => Navigator.of(sheet).pop(),
+      builder: (sheet) => BvGiveToPicker(
+        key: const Key('share-for-picker'),
+        people: list,
+        currentOwnerId: forWhom.firstOrNull,
+        meId: me,
+        meLabel: l10n.daybookYou,
+        searchPlaceholder: l10n.daybookAssignSearch,
+        inSheet: true,
+        onPick: (p) => Navigator.of(sheet).pop(p),
       ),
     );
+    if (picked != null && mounted) setState(() => _people = {picked.id});
   }
 
   /// The For row's words: me as You, a member by name; "Omar Haddad + 2"
@@ -631,8 +666,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     final people = space == null
         ? null
         : ref.watch(spacePeopleProvider(space.id)).value;
-    // A work item is mine by default; a checklist is for me and whoever is
-    // picked.
+    // A work item is mine by default.
     final forWhom = _people ?? {?me};
     // What Send (or Post later, with its time) carries.
     _Sent sent({DateTime? at}) => _Sent(
@@ -851,25 +885,27 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               onPressed: _sending ? null : () => Navigator.of(context).pop(),
             ),
             const Spacer(),
-            // Review 108 PL1: Post later, for the Feed and a Space.
-            if (person == null)
-              IconButton(
-                key: const Key('share-later'),
-                tooltip: l10n.plTitle,
-                icon: const Icon(BvIcons.clock, color: BvColors.iconPrimary),
+            // Review 110 CP5: Post later for the Feed and a Space, on
+            // holding Post; no clock on the bar.
+            BvHoldMenu(
+              action: person != null || _sending || tooLong
+                  ? null
+                  : BvHoldAction(
+                      key: const Key('share-later'),
+                      icon: BvIcons.clock,
+                      label: l10n.plLater,
+                      onTap: () => unawaited(_later(sent)),
+                    ),
+              child: BvButton(
+                key: const Key('share-send'),
+                label: person != null ? l10n.chatSend : l10n.notebookPost,
+                icon: BvIcons.send,
+                style: BvButtonStyle.tertiary,
+                size: BvButtonSize.medium,
                 onPressed: _sending || tooLong
                     ? null
-                    : () => unawaited(_later(sent)),
+                    : () => unawaited(_go(sent())),
               ),
-            BvButton(
-              key: const Key('share-send'),
-              label: person != null ? l10n.chatSend : l10n.notebookPost,
-              icon: BvIcons.send,
-              style: BvButtonStyle.tertiary,
-              size: BvButtonSize.medium,
-              onPressed: _sending || tooLong
-                  ? null
-                  : () => unawaited(_go(sent())),
             ),
           ],
         ),
@@ -978,9 +1014,7 @@ Future<void> _send(
       final owner = sent.kind == ShareKind.workItem
           ? sent.people.firstOrNull
           : null;
-      final people = sent.kind == ShareKind.checklist
-          ? [...sent.people]
-          : const <String>[];
+      const people = <String>[];
       if (sent.at case final at?) {
         await _schedule(
           ref,

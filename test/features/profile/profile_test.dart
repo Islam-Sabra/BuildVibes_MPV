@@ -165,6 +165,53 @@ void main() {
       },
     );
 
+    testWidgets('review 110 TH2: the Thanks its person chose to show, with '
+        'who thanked and the project; no count [$lang]', (tester) async {
+      final app = await pumpApp(tester, language: lang);
+      _addLayla(app);
+      app.pages.thanksOf['p-layla'] = [
+        ProfileThanks(
+          postId: 'post-thanks',
+          fromName: 'Sara Al-Mutairi',
+          words: 'Thank you for the fast fix on the stair.',
+          at: DateTime(2026, 10, 30, 11, 40),
+          projectName: 'Harbour Tower',
+        ),
+      ];
+      _go(tester, '/people/p-layla');
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('profile-thanks-post-thanks')),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('person-profile')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(find.text(l10n.profileThanks), findsOneWidget);
+      expect(
+        find.text('Thank you for the fast fix on the stair.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(l10n.profileThanksFrom('Sara Al-Mutairi')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Harbour Tower'), findsWidgets);
+    });
+
+    testWidgets('review 110 TH2: none shown, no Thanks section [$lang]', (
+      tester,
+    ) async {
+      final app = await pumpApp(tester, language: lang);
+      _addLayla(app);
+      _go(tester, '/people/p-layla');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('profile-thanks')), findsNothing);
+    });
+
     testWidgets('visitor: block asks first, then leaves the profile [$lang]', (
       tester,
     ) async {

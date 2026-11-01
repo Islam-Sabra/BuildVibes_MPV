@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/dm_fakes.dart';
@@ -179,9 +180,14 @@ Future<void> _write(
     await _tap(tester, _key('library-add-file'));
   } else {
     await _tap(tester, _key('post-bar-notepad'));
+    // Review 110 CP2: the kind from #.
+    await _tap(tester, _key('writing-kind'));
     await _tap(
       tester,
-      find.descendant(of: _key('writing-kinds'), matching: find.text(kindName)),
+      find.descendant(
+        of: _key('composer-kinds'),
+        matching: find.text(kindName),
+      ),
     );
   }
   if (title.isNotEmpty) {
@@ -382,7 +388,8 @@ void main() {
     ) async {
       await _space(tester, lang, files: [_m201, _a501]);
       await _write(tester, lang, l10n.daybookKindNote, s.handoverTitle);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      // Review 110 CP3: + → File.
+      await addExtra(tester, 'file');
       await _snap(tester, 'F72-attach', lang);
     });
 
@@ -390,7 +397,8 @@ void main() {
         '[$lang]', (tester) async {
       await _space(tester, lang, files: [_m201, _a501]);
       await _write(tester, lang, l10n.daybookKindNote, s.handoverTitle);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      // Review 110 CP3: + → File.
+      await addExtra(tester, 'file');
       await _tap(tester, _key('attach-file'));
       await _snap(tester, 'F71-replaces-choice', lang);
       await _tap(tester, _key('replaces-version'));
@@ -523,11 +531,10 @@ void main() {
     ) async {
       await _space(tester, lang);
       await _write(tester, lang, l10n.daybookKindAnnouncement, s.halfDay);
-      // Review 105 SP2: the bar's + holds Pin until.
-      await _tap(tester, _key('writing-add'));
-      await _tap(tester, find.text(l10n.daybookPinUntil));
+      // Review 110 CP3: + → Pin.
+      await addExtra(tester, 'pin');
       await _snap(tester, 'F82-pin-add-time', lang);
-      await _tap(tester, find.text(l10n.daybookPinAddTime));
+      await _tap(tester, _key('pin-add-time'));
       await _snap(tester, 'F82-pin-with-time', lang);
     });
 
@@ -542,9 +549,9 @@ void main() {
               .t('Level 2', 'الدور 2'),
         },
       );
-      // Review 105 H3: Walk is the writing card's last kind chip.
+      // Review 110 CP2: Walk is the last tile of #.
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('kind-chip-walk'));
+      await chooseKind(tester, 'walk');
       await _snap(tester, 'F95-walk-place', lang);
     });
 
