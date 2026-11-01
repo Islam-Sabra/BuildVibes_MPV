@@ -16,7 +16,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(230);
+select plan(236);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000059' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -582,6 +582,26 @@ select is((select row(missed, in_at, out_at, out_on_time)::text
            where user_id = pg_temp.uid('b4')),
   row(true, null::timestamptz, pg_temp.at(0, '14:00'), true)::text,
   'Y5: In missed, with the Out stamp');
+-- Y5 on Noor's own card (the card's clock twin, check_in_card, at D's times).
+create function pg_temp.my_card(p_id text, p_post text, p_at timestamptz) returns jsonb language plpgsql as $$
+begin
+  perform pg_temp.as_user(p_id);
+  return (select public.check_in_card(p, p_at) from public.space_posts p where p.id = pg_temp.id(p_post));
+end;
+$$;
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'my_in', 'null'::jsonb,
+  'Y5 card: no In stamp');
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'my_out',
+  jsonb_build_object('at', pg_temp.at(0, '14:00'), 'on_time', true, 'place', 'on_site'),
+  'Y5 card: the Out stamp');
+select is(pg_temp.my_card('b4', 'c101', pg_temp.at(0, '14:30')) -> 'missed', 'true'::jsonb,
+  'Y5 card: In missed, once check-in has closed');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:00')) -> 'missed', 'false'::jsonb,
+  'before check-in closes: not missed');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:00')) -> 'my_out', 'null'::jsonb,
+  'and no Out stamp');
+select is(pg_temp.my_card('b4', 'c104', pg_temp.at(0, '13:45')) -> 'missed', 'true'::jsonb,
+  'as it closes with no In: missed');
 -- Y2: an earlier day lists those asked that day.
 update public.space_members set confirmed_at = pg_temp.at(1, '01:00')
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('c3');
