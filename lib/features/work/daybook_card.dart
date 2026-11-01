@@ -415,7 +415,6 @@ class DaybookCardView extends StatelessWidget {
         ),
         if ((post.body ?? '').isNotEmpty)
           BvSlipNote(post.body!, maxLines: BvShortCardSpec.detailLines),
-        ?_tags(context),
         // A walk is its rows: its owner is its author, its due theirs.
         if (!post.isTarget)
           BvSlipFacts(
@@ -438,6 +437,8 @@ class DaybookCardView extends StatelessWidget {
           BvSlipFacts(
             children: [BvSlipFact(icon: BvIcons.place, text: typed)],
           ),
+        // HV1: the place and the one tag, under the info line.
+        ?_tags(context),
         ?_quote(),
         if (post.isTarget)
           DaybookTargetRows(

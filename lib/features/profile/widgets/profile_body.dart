@@ -17,7 +17,7 @@ import 'profile_parts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../data/repositories/profile_page_repository.dart'
-    show profileThanksProvider;
+    show ProfileThanks, profileThanksProvider;
 import '../../../shared/widgets/bv_stamp.dart';
 import '../../../shared/widgets/bv_text_field.dart'
     show BvWesternDigitsFormatter;
@@ -77,7 +77,7 @@ class _ProfileBodyState extends State<ProfileBody> {
   }
 }
 
-class _Overview extends StatelessWidget {
+class _Overview extends ConsumerWidget {
   const _Overview({
     required this.profile,
     required this.own,
@@ -89,10 +89,14 @@ class _Overview extends StatelessWidget {
   final VoidCallback onSeeAllProjects;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final (done, total) = profile.completion;
+    // Review 110 TH2: only what its person chose to show; with none, no
+    // section and no gap for it.
+    final thanks =
+        ref.watch(profileThanksProvider(profile.id)).value ?? const [];
     final projects = profile.projects
         .where((p) => own || p.showOnProfile)
         .toList();
@@ -107,7 +111,7 @@ class _Overview extends StatelessWidget {
           own: own,
         ),
         // Review 110 TH2: only what its person chose to show.
-        ProfileThanksSection(profileId: profile.id),
+        if (thanks.isNotEmpty) ProfileThanksSection(thanks: thanks),
         if (own || projects.isNotEmpty)
           Column(
             key: Key(own ? 'proof-card' : 'profile-projects'),
@@ -247,17 +251,15 @@ class _Experience extends StatelessWidget {
 /// Review 110 TH2: the Thanks this person chose to show, newest first:
 /// who thanked, the words, the project and the day. Nothing when there
 /// are none; no counts and no rankings.
-class ProfileThanksSection extends ConsumerWidget {
-  const ProfileThanksSection({super.key, required this.profileId});
+class ProfileThanksSection extends StatelessWidget {
+  const ProfileThanksSection({super.key, required this.thanks});
 
-  final String profileId;
+  final List<ProfileThanks> thanks;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final thanks = ref.watch(profileThanksProvider(profileId)).value;
-    if (thanks == null || thanks.isEmpty) return const SizedBox.shrink();
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final day = DateFormat(
       'd MMM y',

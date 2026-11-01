@@ -59,6 +59,7 @@ Future<void> writingSet(
     l10n.daybookDueDateMenu: 'due',
     l10n.daybookPinUntil: 'pin',
     l10n.templateMenu: 'template',
+    l10n.cpPeople: 'people',
   }[label];
   if (row != null && find.byKey(Key(row)).evaluate().isNotEmpty) {
     final rowFinder = find.byKey(Key(row));

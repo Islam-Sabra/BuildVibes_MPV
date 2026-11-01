@@ -670,8 +670,9 @@ void main() {
           // Review 105C: one of the Space's places, from the picker.
           await _more(tester, l10n, l10n.daybookLocation);
           await _tap(tester, find.byKey(const Key('place-row-$_gatePlaceId')));
-          // Review 110: no For line on an activity; Send asks who's coming.
-          await _tap(tester, find.byKey(const Key('writing-post')));
+          // Review 110 (founder, 31 Oct): who's coming, if wanted, from
+          // + → People.
+          await _more(tester, l10n, l10n.cpPeople);
           await _pick(tester, s.omarName);
           await _pick(tester, s.saraName);
           await _tap(tester, find.byKey(const Key('people-done')));

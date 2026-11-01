@@ -655,9 +655,14 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     final preparing = ref.watch(
       photosPreparingProvider('daybook:${widget.spaceId}'),
     );
-    final field = InputDecoration.collapsed(
-      hintText: '',
-    ).copyWith(hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary));
+    // CP1: plain lines, no boxes (the app's field theme draws borders).
+    final field = InputDecoration.collapsed(hintText: '').copyWith(
+      hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary),
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      filled: false,
+    );
     return Column(
       key: const Key('composer'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -728,14 +733,14 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         textInputAction: kind == DaybookKind.thanks
                             ? TextInputAction.newline
                             : TextInputAction.next,
-                        style: type.titleMd.copyWith(
+                        style: type.titleLg.copyWith(
                           color: BvColors.textPrimary,
                         ),
                         decoration: field.copyWith(
                           hintText: kind == DaybookKind.thanks
                               ? l10n.thanksWordsHint
                               : l10n.daybookWritingTitle,
-                          hintStyle: type.titleMd.copyWith(
+                          hintStyle: type.titleLg.copyWith(
                             color: BvColors.textSecondary,
                           ),
                         ),
