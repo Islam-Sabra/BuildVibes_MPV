@@ -2,6 +2,40 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 109, the lead's check Y1–Y12 fixed on `claude/r109` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branches:** `claude/r109` (app, worktree `BuildVibes-r109`); server fixes on `claude/r109-server` (worktree `BuildVibes-r109s`), merged into `claude/r109` again (0d0dae09). Both pushed. Test first: pgTAP and function tests for the server, EN and AR for the app. All server changes are in migration 20261120120000 (not live).
+- **Server** (9e8be527, 4ebe997b, 6e4d39e4, ba8888ea, 9e4281af):
+  - Y1: the check-in's clock is the Space's zone, else the creator's phone zone stored at posting (`post_check_in(…, p_time_zone)`, checked against `pg_timezone_names`; `check_in_posts.time_zone` replaces `market_id`); used for windows, cron, pushes, card (`"tz"`), list and report. Never a home market or UTC.
+  - Y2: a past day lists only people who were asked members that day (joined by its end, not left before its start), plus anyone who marked.
+  - Y3: the report names people as the list does, for its recipient (hidden and blocked rules).
+  - Y4: `mark_check_in(…, p_accuracy, p_mocked)`; at most 10 marks per person, post, day and kind ('too many tries'); a mocked reading or one worse than 100 m counts as not shared; nothing of the reading is stored.
+  - Y5: check-out without check-in is allowed: "In: missed" plus the Out stamp (card, list, report); the check-out push goes to everyone asked who hasn't checked out.
+  - Y6: once the creator has left, the first-joined active admin is the one recipient of the summary and the report (seeing the list and Stop stay open to any admin).
+  - Y7: a check-in report can't be superseded (a trigger on `library_files`).
+  - Y8: spreadsheet text starting with = + - @ gets an apostrophe.
+  - Y9: a report job still claimed after its 5th attempt becomes failed.
+- **App** (42d721f8, a404183d, 99b70a25):
+  - Y1: the phone's IANA zone sent as `p_time_zone` (new package `flutter_timezone` 5.1.1; nothing in pubspec gave the zone name); card and list times in the card's `tz`.
+  - Y4: accuracy and Android's mock flag sent; a weak reading retried once and the better sent; "Too many tries today. Ask your Lead." («محاولات كثيرة اليوم. اسأل المسؤول.»).
+  - Y5: Check out offered with no In; "In: missed" («دخول: لم يسجّل») plus the Out stamp on the card and the list.
+  - Y10: Arabic minute plurals (=0, =1, =2, few, other): «سماح 10 دقائق», «سماح 15 دقيقة».
+  - Y11: the result notification follows the phone's 24-hour setting, saved by the app when it is open (a background isolate can't read it); 12-hour before the app has ever run.
+  - Y12: `ios/Runner/Runner.entitlements` with the Time Sensitive key, wired as `CODE_SIGN_ENTITLEMENTS` for the Runner target (Debug, Release, Profile). Not built (no Mac); the App ID also needs Time Sensitive Notifications turned on in the Apple Developer portal.
+- **For the lead to confirm:** in a Space with no project, Every day takes its working days from the market pack whose time zone matches the stored zone (Asia/Kuwait gives Kuwait), else every day; a past day uses today's pass and Teams (they have no history; membership dates do limit it).
+- **Shots:** `docs/reviews/shots-109b/` (CI4-missed and the CI5 list shots changed for Y5; new Y5-out-without-in, Y4-too-many, Y10-allowance-10; EN and AR; README by Y). No other existing golden changed.
+- **Checks on `claude/r109` (0d0dae09):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,252 pass.
+  - `flutter test test_screens`, not updating: 566 pass, 44 fail, all expected: 42 are r109's own shots with no golden yet, 2 are CP2-kinds (the Check-in tile, in shots-109/changed).
+  - `supabase db reset --local`: all migrations apply, through 20261120120000.
+  - `supabase test db`: 58 files, 3,808 checks, PASS (file 59: 236).
+- **Phone checks at install** (the lead's list): one notification only (option C); on Android 14, Check in from the notification reads the location; if not, the mark falls back to not shared and that's reported.
+- **Next, after the lead's check, and only with the founder's yes:** goldens from shots-109 and shots-109b; merge into `slice2-app`; migration 20261120120000 live; deploy `check-in-report` and `push`; the report secret; run `check_in_cron.sql`; a build and the phone checks.
+- **Who has which branch:** PC has `claude/r109`, `claude/r109-server` (merged into it) and `slice2-app`.
+
 ## PC update: 1 Nov 2026 — review 109 (Check-in) built on `claude/r109` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
