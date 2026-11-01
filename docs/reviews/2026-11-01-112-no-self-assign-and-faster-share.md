@@ -26,3 +26,15 @@
 ## Tests and shots
 - EN and AR: the For picker without You; the alone-in-a-Space line; the notebook share needing Choose; the server refusals.
 - Shots into `docs/reviews/shots-112/`. Stop before merging.
+
+## The lead's check of `claude/r112` at `433a29f3` (1 Nov): accepted
+- **SQL stand-in:** 3,572 checks pass in 57 files.
+- **The rule is a `before insert` trigger on `work_items`,** so it covers every way an item is made, plus Give to and scheduling. A walk's or a message's parent is allowed only inside the server's own batch.
+- **Older test files** turn the trigger off for their own setup with `alter table … disable trigger`, a test-only statement. File 58 tests the rule.
+- **The shots match** in EN and AR: no "You" in For, Give to or the owner picker; the alone-in-a-Space line with "Post as a Note"; the share's For at Choose; the refusal line.
+- **Handovers are confirmed out of scope.** Review 105B's handover of a removed or leaving member's open work to the admin may make the admin the owner of their own item. That's taking over, not giving yourself work, which is what the founder objected to.
+- **Next, with the founder's yes:**
+  - goldens;
+  - merge into `slice2-app`;
+  - migration `20261119120000` live;
+  - a build on his phone.
