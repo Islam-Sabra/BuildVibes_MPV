@@ -7,6 +7,8 @@
 //   flutter test test_screens/r109_test.dart --update-goldens
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/features/work/check_in_marking.dart'
+    show checkInConsentKey;
 import 'package:buildvibes/features/work/composer_check_in.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -126,6 +128,14 @@ void main() {
       await _snap(tester, 'CI1-allowance', lang);
     });
 
+    testWidgets('Y10 the allowance at 10 minutes [$lang]', (tester) async {
+      await compose(tester);
+      await _tap(tester, _key('writing-check-in-time'));
+      await _tap(tester, _key('check-in-allow-10'));
+      await _tap(tester, _key('check-in-sheet-done'));
+      await _snap(tester, 'Y10-allowance-10', lang);
+    });
+
     testWidgets('CI1 the place set; Send on [$lang]', (tester) async {
       await compose(tester);
       await _tap(tester, _key('writing-check-in-place'));
@@ -153,6 +163,8 @@ void main() {
       int h = 7,
       int m = 0,
       SpacePass pass = SpacePass.crew,
+      FakeCheckInRepository? checkIns,
+      bool accepted = false,
     }) async {
       await pumpApp(
         tester,
@@ -166,6 +178,8 @@ void main() {
           ..spacePeople[DaybookSamples.space] = s.people(),
         daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = [card],
         now: CheckInSamples.at(h, m),
+        checkIns: checkIns,
+        stored: {if (accepted) checkInConsentKey('user-1'): true},
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
@@ -249,6 +263,33 @@ void main() {
     testWidgets('CI4 missed [$lang]', (tester) async {
       await work(tester, CheckInSamples.card(lang), h: 14);
       await _snap(tester, 'CI4-missed', lang);
+    });
+
+    testWidgets('Y5 checked out without an In: In: missed + Out [$lang]', (
+      tester,
+    ) async {
+      await work(
+        tester,
+        CheckInSamples.card(lang, myOut: CheckInSamples.mark(14, 5)),
+        h: 14,
+        m: 10,
+      );
+      await _snap(tester, 'Y5-out-without-in', lang);
+    });
+
+    testWidgets('Y4 too many tries [$lang]', (tester) async {
+      await work(
+        tester,
+        CheckInSamples.card(lang),
+        accepted: true,
+        checkIns: FakeCheckInRepository()
+          ..refuseMark = const SpaceException(
+            SpaceFailure.badInput,
+            'too many tries',
+          ),
+      );
+      await _tap(tester, _key('check-in-${CheckInSamples.id}'));
+      await _snap(tester, 'Y4-too-many', lang);
     });
 
     /// The creator's list.
