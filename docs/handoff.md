@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 109 accepted and live: Z1, goldens, merged into `slice2-app`, migration 20261120120000 live, functions deployed, cron running, build 919 on the founder's phone; the phone check waits
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Z1 (5435826d, `claude/r109`):** Every day in a Space with no project, when no market's time zone matches, keeps the creator's home market weekend. pgTAP first (3 checks; failed before the fix).
+- **Goldens (f921001e):** shots-109 and shots-109b copied byte-identical (44 images; `docs/screens/r109/` let in by `.gitignore`; CP2-kinds in r110); the folders removed.
+- **Checks on `claude/r109` and on `slice2-app` after the merge (`--no-ff`, 47d3a62f, no conflicts):** `flutter analyze` no issues; `flutter test` 3,252 pass; `flutter test test_screens` (not updating) 610 pass; `supabase db reset --local` applies all; `supabase test db` 58 files, 3,811 checks, PASS. Both pushed.
+- **Live** (from a throwaway worktree at 47d3a62f with `supabase/.temp` copied whole; removed after):
+  - `supabase db push --dry-run` listed only 20261120120000; `supabase db push` exit 0, "Applying migration 20261120120000_check_in.sql…", then the known pg-delta catalog-cache warning.
+  - `supabase functions deploy push` and `check-in-report`: exit 0; `functions list`: push ACTIVE (version 14), check-in-report ACTIVE.
+  - The report secret: generated, set as the function secret `CHECK_IN_REPORT_SECRET` and in Vault as `check_in_report_secret` (both exit 0); never printed; its temporary file deleted.
+  - `supabase/ops/check_in_cron.sql` run with the project ref filled in a temporary copy (exit 0): `check-in-notify` every minute and `check-in-daily-report` every 15 minutes, both active.
+  - `supabase migration list --linked`: 58 rows, local and remote match through 20261120120000.
+- **Build 919** (0.9.0, commit 47d3a62f): `Desktop/BuildVibes-919.apk`, the same certificate (SHA-256 9d02b7db…b1df9f); permissions fine location, foreground service, foreground service location; no background location. Config copied in and deleted after.
+- **On the founder's phone:** 192.168.8.33:40853 only; model 22120RN86G, Android 14, 889 on it; `adb install -r`: Success; versionCode 919; disconnected, adb stopped.
+- **The phone check is not done yet:** it needs the test Lead account's sign-in (on live, "Test site" has Islam Ahmed and "smsm ss", both Leads, no project). Then: the emulator (Asia/Kuwait) posts a check-in in "Test site" asking the founder, opening ~3 minutes later; he closes the app; exactly one notification (option C); Check in from it; read his mark on the server (on site / not at site, or not shared = Android didn't read the location). If two ever show, switch to option B.
+
 ## PC update: 1 Nov 2026 — review 109, the lead's check Y1–Y12 fixed on `claude/r109` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
