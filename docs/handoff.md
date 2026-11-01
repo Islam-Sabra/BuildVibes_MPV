@@ -2,6 +2,30 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 110, the lead's check W1–W12 fixed on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r110` (worktree `BuildVibes-r110`), pushed. Each fix was written test first, in EN and AR (app) or pgTAP (server).
+- **Founder's decisions (1 Nov):** a Viewer may post a Thanks (`create_thanks` takes any active member); the Thanks composer says under To: "They can show this on their profile." / «يمكنه عرض هذا في ملفه.»
+- **Commits:**
+  - 1c541ca2 **W1, W2:** the Space list reads the Space details instead of watching them, so it can't restart in a loop; the 15 s runs from when the list first opened; the restart count goes to Crashlytics with the error's first line (cut by characters); the screen shows localised words, a short code (the error's type) and Try again, never the raw message.
+  - 80778af4 **W5:** "at most 5 reminders" and "only people who can see it" each have their own plain line.
+  - 9f23abeb **W3, W4, W7 (server), Viewer may thank:** `profile_thanks` skips hidden accounts; `create_thanks` refuses a hidden or blocked recipient and takes any active member; `set_work_item_tag` needs create_items; `create_thanks` can be scheduled (`schedule_post`, `scheduled_call_sql`). Same migration `20261118120000`, **not live**.
+  - 71ffead7 **W10, W12:** the place and the tag stay on one line, the tag becomes "+1" when both don't fit; See more only when the details really run past 2 lines (measured); the `ProfilePageRepository` doc comment back on its class. fe3ffffe: a lone tag is only as wide as itself.
+  - c23413e2 **W8:** the notebook share offers Note · Work item only; a note's to-do lines shared as a work item become its checklist (the server still takes 'checklist' from builds on phones).
+  - 8dadb3fb **W6, W7 (app), W9, W11, Viewer:** Thanks has Details (optional) and Post later; Drafts is gone, Templates is in the top bar (only when the Space has templates for that kind), + no longer holds Template; an announcement's + is Photos · File · Bullets · Table · Pin, a work item's exactly 9 tiles; the opening kind checks rights; a Viewer's bar has Thank someone; the To line.
+  - b0e55af3 **Shots:** `docs/reviews/shots-110b/` (14 r110 screens in EN and AR, 2 changed existing screens as old/new pairs; README). slice7's template shots open Templates from the top bar; T0-more-template and its two goldens are removed (+ has no Template).
+- **Checks on `claude/r110` (b0e55af3):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,095 pass.
+  - `flutter test test_screens`, not updating: 392 pass, 170 fail, all expected: 44 are r110's shots with no golden yet; 126 are image differences only (136 images: 132 identical to shots-110/changed, 4 new in shots-110b/changed). No step failed and nothing overflowed.
+  - `supabase db reset --local`: all migrations apply, through 20261118120000.
+  - `supabase test db`: 56 files, 3,533 checks, PASS.
+- **A (the founder's empty Space list on 852):** still not reproduced. W1 removes a restart loop that fits his repeated loads; the next build on his phone shows a code on the card and sends the error and restart count to Crashlytics.
+- **Next, after the lead's check, and only with the founder's yes:** the goldens from shots-110 and shots-110b; merge into `slice2-app`; migration 20261118120000 live; a build on his phone.
+- **Who has which branch:** PC has `claude/r110` (worktree `BuildVibes-r110`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 1 Nov 2026 — review 110 built on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
