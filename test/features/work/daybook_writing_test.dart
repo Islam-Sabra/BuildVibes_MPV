@@ -167,12 +167,12 @@ void main() {
       await tester.pumpAndSettle();
       final picker = tester.widget<BvGiveToPicker>(find.byType(BvGiveToPicker));
       expect(picker.searchPlaceholder, l10n.daybookAssignSearch);
+      // Review 112: never me.
       expect(picker.people.map((p) => p.name), [
         s.omarName,
         s.rakeshName,
         s.saraName,
         s.linaName,
-        s.islamName,
       ]);
       expect(picker.people.first.team, isNotNull);
       expect(find.text(l10n.daybookPostAsNote), findsOneWidget);

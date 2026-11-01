@@ -21,8 +21,7 @@ import '../../data/repositories/dm_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/post_repository.dart';
 import '../../data/repositories/schedule_repository.dart';
-import '../../data/repositories/space_repository.dart'
-    show mySpacesProvider, spacePeopleProvider;
+import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -320,8 +319,6 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
       _spacesLate = false;
       _reported = null;
     });
-    // My Spaces keeps its own failure: it is read again too.
-    ref.invalidate(mySpacesProvider);
     ref.invalidate(workItemSpacesProvider);
   }
 
