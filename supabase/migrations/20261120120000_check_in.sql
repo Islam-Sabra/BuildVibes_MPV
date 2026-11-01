@@ -614,20 +614,17 @@ as $$
   select public.check_in_mark_at(p_post, p_kind, p_lat, p_lng, now());
 $$;
 
--- Stop (⋯): its creator only. Its earlier days stay.
+-- Stop (⋯): its creator; a Space admin once the creator has left the
+-- Space (the lead, 1 Nov: otherwise it runs forever). The same people who
+-- see the list (check_in_sees_list). Its earlier days stay.
 create or replace function public.stop_check_in(p_post uuid)
 returns void
 language plpgsql
 security definer
 set search_path = ''
 as $$
-declare
-  v_post public.space_posts;
 begin
-  select * into v_post from public.space_posts where id = p_post;
-  if auth.uid() is null or v_post.id is null or v_post.kind <> 'check_in'
-     or v_post.deleted_at is not null or v_post.author_id is distinct from auth.uid()
-     or not public.is_member(v_post.space_id) or public.is_hidden_account(auth.uid()) then
+  if not public.check_in_sees_list(p_post) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   update public.check_in_posts set stopped_at = now()
@@ -791,6 +788,9 @@ begin
     'stopped', v_stopped,
     'site_set', true,
     'sees_list', public.check_in_sees_list(v_c.post_id),
+    -- Stop in ⋯: an every-day check-in not yet stopped, for whoever may
+    -- stop it (stop_check_in).
+    'can_stop', v_c.repeat = 'daily' and not v_stopped and public.check_in_sees_list(v_c.post_id),
     'asked', v_asked,
     'today', jsonb_build_object(
       'day', v_day,
@@ -1135,6 +1135,22 @@ as $$
                       and not public.is_hidden_account(p.author_id));
 $$;
 
+-- The lock-screen rule (migration 14, push_settings.message_text, off
+-- unless the person turned it on): only then does a check-in push carry
+-- its title, its Space and the summary's counts. Off, the push says only
+-- "Time to check in" or "Check-in summary ready"; the ids stay, so its
+-- actions still work.
+create or replace function public.check_in_shows_text(p_profile uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select ps.message_text from public.push_settings ps
+                   where ps.profile_id = p_profile), false);
+$$;
+
 -- At [p_now]: the opening pushes of each window that is open, once per day
 -- and window, and each summary of a check-in that closed (today or
 -- yesterday, within a day), once, only when someone was late, not at the
@@ -1187,8 +1203,10 @@ begin
           insert into public.push_queue (profile_id, kind, data)
           select m.profile_id, 'check_in_open',
                  jsonb_build_object('post_id', v_c.post_id, 'space_id', v_c.space_id, 'mark', 'in',
-                                    'title', v_post.title, 'space_name', v_space_name,
                                     'until', v_t.in_until, 'tz', v_zone)
+                 || case when public.check_in_shows_text(m.profile_id)
+                         then jsonb_build_object('title', v_post.title, 'space_name', v_space_name)
+                         else '{}'::jsonb end
           from public.space_members m
           where m.space_id = v_c.space_id and public.check_in_asked(v_c, m.profile_id)
             and not exists (select 1 from public.check_in_marks k
@@ -1209,8 +1227,10 @@ begin
           insert into public.push_queue (profile_id, kind, data)
           select m.profile_id, 'check_in_open',
                  jsonb_build_object('post_id', v_c.post_id, 'space_id', v_c.space_id, 'mark', 'out',
-                                    'title', v_post.title, 'space_name', v_space_name,
                                     'until', v_t.out_until, 'tz', v_zone)
+                 || case when public.check_in_shows_text(m.profile_id)
+                         then jsonb_build_object('title', v_post.title, 'space_name', v_space_name)
+                         else '{}'::jsonb end
           from public.space_members m
           where m.space_id = v_c.space_id and public.check_in_asked(v_c, m.profile_id)
             and exists (select 1 from public.check_in_marks k
@@ -1245,9 +1265,11 @@ begin
       continue when v_late + v_away + v_missed = 0;
       insert into public.push_queue (profile_id, kind, data)
       select o.id, 'check_in_summary',
-             jsonb_build_object('post_id', v_c.post_id, 'space_id', v_c.space_id,
-                                'title', v_post.title, 'late', v_late, 'away', v_away,
-                                'missed', v_missed)
+             jsonb_build_object('post_id', v_c.post_id, 'space_id', v_c.space_id)
+             || case when public.check_in_shows_text(o.id)
+                     then jsonb_build_object('title', v_post.title, 'late', v_late, 'away', v_away,
+                                             'missed', v_missed)
+                     else '{}'::jsonb end
       from public.check_in_owners(v_c) o(id)
       where exists (select 1 from public.push_tokens t where t.profile_id = o.id);
       get diagnostics v_rows = row_count;
@@ -1537,6 +1559,247 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 11. My data and account deletion
+-- ---------------------------------------------------------------------------
+
+-- export_my_data (migration 48), as it was, and the person's own marks.
+CREATE OR REPLACE FUNCTION public.export_my_data(p_request uuid)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select jsonb_build_object(
+    'exported_at', now(),
+    'profile', (select to_jsonb(p) - 'follower_count' - 'following_count'
+                from public.profiles p where p.id = r.profile_id),
+    'private', (select to_jsonb(pp) from public.profile_private pp where pp.id = r.profile_id),
+    'experience', coalesce((select jsonb_agg(to_jsonb(e)) from public.experience e
+                            where e.profile_id = r.profile_id), '[]'),
+    'open_to', coalesce((select jsonb_agg(to_jsonb(o)) from public.profile_open_to o
+                         where o.profile_id = r.profile_id), '[]'),
+    'cv_projects', coalesce((select jsonb_agg(to_jsonb(c)) from public.cv_projects c
+                             where c.profile_id = r.profile_id), '[]'),
+    'following', coalesce((select jsonb_agg(f.followee_id) from public.follows f
+                           where f.follower_id = r.profile_id), '[]'),
+    'posts', coalesce((select jsonb_agg(jsonb_build_object(
+                         'id', po.id, 'body', po.body, 'lang', po.lang,
+                         'created_at', po.created_at, 'deleted_at', po.deleted_at))
+                       from public.posts po where po.author_id = r.profile_id), '[]'),
+    'replies', coalesce((select jsonb_agg(jsonb_build_object(
+                           'id', pr.id, 'post_id', pr.post_id, 'body', pr.body,
+                           'created_at', pr.created_at))
+                         from public.post_replies pr where pr.author_id = r.profile_id), '[]'),
+    'spaces', coalesce((select jsonb_agg(jsonb_build_object(
+                          'space', s.name, 'pass', m.pass, 'admin', m.is_admin,
+                          'joined_at', m.confirmed_at, 'left_at', m.left_at))
+                        from public.space_members m join public.spaces s on s.id = m.space_id
+                        where m.profile_id = r.profile_id), '[]'),
+    'work_items_raised', coalesce((select jsonb_agg(jsonb_build_object(
+                                     'ref', w.ref, 'title', w.title, 'status', w.status,
+                                     'created_at', w.created_at))
+                                   from public.work_items w where w.created_by = r.profile_id), '[]'),
+    'work_items_owned', coalesce((select jsonb_agg(jsonb_build_object(
+                                    'ref', w.ref, 'title', w.title, 'status', w.status,
+                                    'checked_at', w.checked_at))
+                                  from public.work_items w where w.owner_id = r.profile_id), '[]'),
+    'messages', coalesce((select jsonb_agg(jsonb_build_object(
+                            'id', ms.id, 'kind', ms.kind, 'body', ms.body,
+                            'created_at', ms.created_at))
+                          from public.messages ms where ms.author_id = r.profile_id), '[]'),
+    'work_item_notes', coalesce((select jsonb_agg(jsonb_build_object(
+                                   'ref', w.ref, 'kind', e.kind, 'note', e.note,
+                                   'created_at', e.created_at))
+                                 from public.work_item_events e
+                                 join public.work_items w on w.id = e.work_item_id
+                                 where e.actor_id = r.profile_id and e.note is not null), '[]'),
+    'library_files', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'name', f.name, 'created_at', f.created_at,
+                                 'deleted_at', f.deleted_at))
+                               from public.library_files f join public.spaces s on s.id = f.space_id
+                               where f.uploaded_by = r.profile_id), '[]'),
+    'blocked', coalesce((select jsonb_agg(jsonb_build_object(
+                           'profile_id', b.blocked_id, 'created_at', b.created_at))
+                         from public.blocks b where b.blocker_id = r.profile_id), '[]'),
+    'muted', coalesce((select jsonb_agg(jsonb_build_object(
+                         'profile_id', mu.muted_id, 'created_at', mu.created_at))
+                       from public.mutes mu where mu.muter_id = r.profile_id), '[]'),
+    'useful_marks', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', u.target_kind, 'target_id', u.target_id,
+                                'created_at', u.created_at))
+                              from public.useful_marks u where u.profile_id = r.profile_id), '[]'),
+    'reports_made', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', rp.target_kind, 'reason', rp.reason, 'note', rp.note,
+                                'status', rp.status, 'created_at', rp.created_at))
+                              from public.reports rp where rp.reporter_id = r.profile_id), '[]'),
+    'join_requests', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'via', j.via, 'status', j.status,
+                                 'created_at', j.created_at))
+                               from public.space_join_requests j join public.spaces s on s.id = j.space_id
+                               where j.profile_id = r.profile_id), '[]'),
+    'space_posts', coalesce((select jsonb_agg(jsonb_build_object(
+                              'kind', p.kind, 'title', p.title, 'body', p.body,
+                              'place', p.place_text, 'due_date', p.due_date, 'due_at', p.due_at,
+                              'quote', p.quote, 'status', p.status,
+                              'pinned_until', p.pinned_until, 'starts_at', p.starts_at,
+                              'ends_at', p.ends_at,
+                              'file', (select f.name from public.library_files f
+                                       where f.id = p.library_file_id),
+                              'blocks', p.blocks, 'template_id', p.template_id,
+                              'created_at', p.created_at, 'deleted_at', p.deleted_at))
+                            from public.space_posts p where p.author_id = r.profile_id), '[]'),
+    'post_edits', coalesce((select jsonb_agg(jsonb_build_object(
+                             'changes', e.changes, 'created_at', e.created_at))
+                           from public.post_edits e where e.editor_id = r.profile_id), '[]'),
+    'post_acks', coalesce((select jsonb_agg(jsonb_build_object(
+                            'post', p.title, 'kind', a.kind, 'created_at', a.created_at))
+                          from public.post_acks a join public.space_posts p on p.id = a.post_id
+                          where a.profile_id = r.profile_id), '[]'),
+    'checklist_ticks', coalesce((select jsonb_agg(jsonb_build_object(
+                                  'point', c.text, 'ticked_at', c.ticked_at))
+                                from public.checklist_points c where c.ticked_by = r.profile_id), '[]'),
+    'tick_log', coalesce((select jsonb_agg(jsonb_build_object(
+                           'post', p.title, 'kind', t.kind, 'point', t.point_text,
+                           'created_at', t.created_at) order by t.created_at, t.id)
+                         from public.post_point_events t join public.space_posts p on p.id = t.post_id
+                         where t.actor_id = r.profile_id), '[]'),
+    'post_people', coalesce((select jsonb_agg(jsonb_build_object(
+                              'post', p.title, 'created_at', pp.created_at))
+                            from public.post_people pp join public.space_posts p on p.id = pp.post_id
+                            where pp.profile_id = r.profile_id), '[]'),
+    'notebook_pages', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'id', np.id, 'title', np.title, 'named', np.named,
+                                 'icon', np.icon,
+                                 'parent_id', np.parent_id, 'pinned', np.pinned,
+                                 'deleted_at', np.deleted_at,
+                                 'created_at', np.created_at))
+                               from public.notebook_pages np where np.owner_id = r.profile_id), '[]'),
+    'notes', coalesce((select jsonb_agg(jsonb_build_object(
+                        'kind', n.kind, 'title', n.title, 'body', n.body, 'points', n.points,
+                        'blocks', n.blocks, 'location_text', n.location_text,
+                        'location_lat', n.location_lat, 'location_lng', n.location_lng,
+                        'due_at', n.due_at, 'done_at', n.done_at, 'pinned', n.pinned,
+                        'remind_at', n.remind_at,
+                        'page_id', n.page_id,
+                        'deleted_at', n.deleted_at,
+                        'archived_at', n.archived_at,
+                        'created_at', n.created_at,
+                        'files', (select jsonb_agg(f.storage_path order by f.sort)
+                                  from public.note_files f where f.note_id = n.id)))
+                      from public.notes n where n.owner_id = r.profile_id), '[]'),
+    'note_shares', coalesce((select jsonb_agg(jsonb_build_object(
+                              'note_id', ns.note_id, 'target', ns.target,
+                              'target_name', ns.target_name,
+                              'space_post_id', ns.space_post_id,
+                              'feed_post_id', ns.feed_post_id,
+                              'dm_thread_id', ns.dm_thread_id,
+                              'created_at', ns.created_at))
+                            from public.note_shares ns where ns.owner_id = r.profile_id), '[]'),
+    'post_templates', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'name', t.name, 'kind', t.kind, 'blocks', t.blocks,
+                                 'fields', t.fields, 'created_at', t.created_at,
+                                 'deleted_at', t.deleted_at))
+                               from public.post_templates t where t.created_by = r.profile_id), '[]'),
+    'dm_messages', coalesce((select jsonb_agg(jsonb_build_object(
+                              'thread_id', d.thread_id, 'kind', d.kind, 'body', d.body,
+                              'created_at', d.created_at, 'deleted_at', d.deleted_at,
+                              'files', (select jsonb_agg(a.name) from public.dm_attachments a
+                                        where a.message_id = d.id)))
+                            from public.dm_messages d where d.author_id = r.profile_id), '[]'),
+    'dm_threads', coalesce((select jsonb_agg(jsonb_build_object(
+                             'thread_id', m.thread_id, 'state', m.state,
+                             'created_at', t.created_at))
+                           from public.dm_members m join public.dm_threads t on t.id = m.thread_id
+                           where m.profile_id = r.profile_id), '[]'),
+    'push_settings', (select to_jsonb(ps) from public.push_settings ps where ps.profile_id = r.profile_id)
+  ) || jsonb_build_object(
+    -- Migration 59: the person's own check-in marks, never anyone else's
+    -- (and never a point: none is kept).
+    'check_in_marks', coalesce((select jsonb_agg(jsonb_build_object(
+                                  'check_in', p.title, 'space', s.name, 'day', k.day,
+                                  'kind', k.kind, 'at', k.at, 'on_time', k.on_time,
+                                  'place', k.place) order by k.day, k.at)
+                                from public.check_in_marks k
+                                join public.space_posts p on p.id = k.post_id
+                                join public.spaces s on s.id = p.space_id
+                                where k.user_id = r.profile_id), '[]'))
+  from public.data_requests r
+  where r.id = p_request;
+$function$;
+
+-- accounts_due_for_purge (migration 22), as it was, and each account's
+-- "only me" check-in reports in space-files: they go with the account (the
+-- account-purge function removes every listed file, then purge_account).
+create or replace function public.accounts_due_for_purge()
+returns table (profile_id uuid, bucket text, name text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with due as (
+    select p.id from public.profiles p
+    where p.deletion_scheduled_at < now() - interval '30 days'
+  ),
+  files as (
+    select d.id, o.bucket_id, o.name
+    from due d
+    join storage.objects o
+      on o.bucket_id in ('avatars', 'post-media', 'notebook-files', 'dm-files')
+     and o.name collate "C" >= d.id::text || '/'
+     and o.name collate "C" < d.id::text || '0'
+    union all
+    select d.id, o.bucket_id, o.name
+    from due d
+    join public.library_files f on f.only_profile_id = d.id and f.source = 'check_in_report'
+    join storage.objects o on o.bucket_id = 'space-files' and o.name = f.storage_path
+  )
+  select d.id, f.bucket_id, f.name
+  from due d
+  left join files f on f.id = d.id
+  order by d.id;
+$$;
+
+-- purge_account (migration 22), as it was, and it waits while an "only
+-- me" check-in report of theirs is still stored; their report rows then go
+-- with the account (library_files.only_profile_id cascades).
+create or replace function public.purge_account(p_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform 1 from public.profiles
+  where id = p_id and deletion_scheduled_at < now() - interval '30 days'
+  for update;
+  if not found then
+    return false;
+  end if;
+  if exists (select 1 from storage.objects o
+             where o.bucket_id in ('avatars', 'post-media', 'notebook-files', 'dm-files')
+               and o.name collate "C" >= p_id::text || '/'
+               and o.name collate "C" < p_id::text || '0')
+     or exists (select 1 from public.library_files f
+                join storage.objects o on o.bucket_id = 'space-files' and o.name = f.storage_path
+                where f.only_profile_id = p_id and f.source = 'check_in_report') then
+    return false;
+  end if;
+  -- Their files went first (their folder): their file rows go too, and a
+  -- message of theirs with no words left shows as "Message deleted"; their
+  -- words stay for the other person (review 42 R1).
+  update public.dm_messages set deleted_at = now()
+  where author_id = p_id and deleted_at is null and body is null;
+  delete from public.dm_attachments a using public.dm_messages m
+  where a.message_id = m.id and m.author_id = p_id;
+  delete from auth.users where id = p_id;
+  -- A thread whose two people are both gone goes too.
+  delete from public.dm_threads where a_id is null and b_id is null;
+  return true;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
 
@@ -1564,6 +1827,10 @@ revoke all on function public.check_in_days(uuid) from public, anon;
 revoke all on function public.check_in_card(public.space_posts, timestamptz) from public, anon, authenticated;
 revoke all on function public.space_post_json(public.space_posts, boolean) from public, anon, authenticated;
 revoke all on function public.check_in_owners(public.check_in_posts) from public, anon, authenticated;
+revoke all on function public.check_in_shows_text(uuid) from public, anon, authenticated;
+revoke all on function public.export_my_data(uuid) from public, anon, authenticated;
+revoke all on function public.accounts_due_for_purge() from public, anon, authenticated;
+revoke all on function public.purge_account(uuid) from public, anon, authenticated;
 revoke all on function public.check_in_notify(timestamptz) from public, anon, authenticated;
 revoke all on function public.check_in_daily_report(timestamptz) from public, anon, authenticated;
 revoke all on function public.claim_check_in_reports(integer) from public, anon, authenticated;
@@ -1586,3 +1853,5 @@ grant execute on function public.check_in_daily_report(timestamptz) to service_r
 grant execute on function public.claim_check_in_reports(integer) to service_role;
 grant execute on function public.check_in_report_rows(uuid, date) to service_role;
 grant execute on function public.finish_check_in_report(uuid, date, bigint, text) to service_role;
+grant execute on function public.accounts_due_for_purge() to service_role;
+grant execute on function public.purge_account(uuid) to service_role;
