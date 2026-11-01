@@ -454,7 +454,7 @@ select is(pg_temp.push_data('work_item_archived', 'b2', 'post_id', pg_temp.id('b
   'its ids, and its title under the lock-screen rule (on for Rakesh)');
 select is((select count(*)::int from public.push_queue where kind = 'work_item_archived'
            and data ->> 'post_id' = pg_temp.id('b004')::text), 0, 'an announcement: no push');
-select is(pg_temp.card('b2', 'b002') -> 'needs_me', 'false'::jsonb, 'it no longer needs its owner');
+select is(pg_temp.card('b2', 'b002') -> 'needs_me', 'null'::jsonb, 'it no longer needs its owner');
 select is(pg_temp.card('a7', 'b002') -> 'hold', 'null'::jsonb, 'archived: nothing to hold');
 select pg_temp.as_user('b2');
 set local role authenticated;

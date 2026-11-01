@@ -256,7 +256,7 @@ select is((select p ->> 'ticked_by_name' from jsonb_array_elements(
              public.post_page(pg_temp.item('a102')) -> 'point_list') p
            where p ->> 'id' = pg_temp.item('b002')::text), 'Tariq Aziz',
   'opened, each tick says who');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a102'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a102'))$$, '22023', null,
   'a tick by someone else ends Delete, even once undone');
 
 -- Editing points and people.
@@ -392,14 +392,14 @@ select is((select count(*) from public.space_posts where id = pg_temp.item('a101
   'nothing on the post says that someone acknowledged it');
 select throws_ok($$select count(*) from public.post_others$$, '42501', null,
   'and nobody reads the record that ends Delete');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a101'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a101'))$$, '22023', null,
   'an acknowledgement by someone else ends Delete');
 select throws_ok($$select public.ack(pg_temp.item('a106'), 'got_it')$$, '42501', null,
   'nobody outside a Team acknowledges its post');
 select pg_temp.as_user('e3');
 select lives_ok($$select public.ack(pg_temp.item('a101'), 'got_it', false)$$, 'Got it can be taken back');
 select pg_temp.as_user('e2');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a101'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a101'))$$, '22023', null,
   'and Delete stays ended');
 
 -- Activities: On my way near the time, In my calendar until the end.
