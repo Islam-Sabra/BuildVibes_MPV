@@ -9,7 +9,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(113);
+select plan(116);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000057' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -514,6 +514,24 @@ select pg_temp.as_user('a1');
 set local role authenticated;
 select throws_ok(format('select public.delete_team(%L)', pg_temp.team()), 'P0001', null,
   'a thanked Team stays in the record');
+reset role;
+
+-- Review 110 (founder, 31 Oct): a scheduled activity is When · Team; its
+-- people are optional, and still taken when named.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok(format($q$select public.create_space_post(%L, %L, 'activity', 'Concrete pour, level 4',
+  p_starts_at => now() + interval '1 day')$q$, pg_temp.id('f001'), pg_temp.sp()),
+  'an activity with no people is made');
+reset role;
+select is((select count(*) from public.post_people where post_id = pg_temp.id('f001'))::integer, 0,
+  'it has no people');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok(format($q$select public.create_space_post(%L, %L, 'activity', 'Crane lift',
+  p_starts_at => now() + interval '1 day', p_people => array[%L]::uuid[])$q$,
+  pg_temp.id('f002'), pg_temp.sp(), pg_temp.uid('b2')),
+  'one with people named still takes them');
 reset role;
 
 select * from finish();

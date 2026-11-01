@@ -411,18 +411,31 @@ void main() {
       expect(sent.toParams()['p_team'], mep.id);
     });
 
-    testWidgets('a scheduled activity: Post asks who\'s coming first, on the '
-        'people sheet (review 110: no For line); then Post with no start '
-        'opens the time pickers, and only Post posts [$lang]', (tester) async {
+    testWidgets('a scheduled activity is When · Team (founder, 31 Oct): no '
+        'people needed; Post with no start opens the time pickers, and only '
+        'Post posts [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
       expect(find.byKey(const Key('writing-who')), findsNothing);
       await _post(tester);
-      expect(find.byKey(const Key('writing-people')), findsOneWidget);
+      // No people sheet: the time pickers only fill the card (F56).
+      expect(find.byKey(const Key('writing-people')), findsNothing);
+      expect(daybook.createdPosts, isEmpty);
+      await _post(tester);
+      final sent = daybook.createdPosts.single;
+      expect(sent.kind, DaybookPost.activityKind);
+      expect(sent.startsAt, _walkStart);
+      expect(sent.endsAt, _walkEnd);
+      expect(sent.people, isEmpty);
+    });
+
+    testWidgets('+ → People names who\'s coming, if wanted: a chip with ×, '
+        'and they go with it [$lang]', (tester) async {
+      final (app: _, :daybook) = await _open(tester, lang);
+      await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
+      await addExtra(tester, 'people');
       await _pickPerson(tester, s.saraName);
       await _tap(tester, find.byKey(const Key('people-done')));
-      expect(daybook.createdPosts, isEmpty);
-      // Who's coming shows as a chip with ×.
       expect(
         find.descendant(
           of: find.byKey(const Key('writing-people-chip')),
@@ -431,13 +444,8 @@ void main() {
         findsOneWidget,
       );
       await _post(tester);
-      // The pickers only fill the card (F56).
-      expect(daybook.createdPosts, isEmpty);
       await _post(tester);
-      final sent = daybook.createdPosts.single;
-      expect(sent.kind, DaybookPost.activityKind);
-      expect(sent.startsAt, _walkStart);
-      expect(sent.endsAt, _walkEnd);
+      expect(daybook.createdPosts.single.people, isNotEmpty);
     });
 
     testWidgets('a file post from the Library: picking File goes straight to '
@@ -689,8 +697,8 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      // Review 110: Post asks who's coming, on the sheet.
-      await _post(tester);
+      // Review 110 (founder, 31 Oct): who's coming, from + → People.
+      await addExtra(tester, 'people');
       await _pickPerson(tester, s.omarName);
       // The chosen faces sit by Done, never a number.
       expect(
@@ -711,7 +719,8 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      await _post(tester);
+      // Review 110: who's coming is named from + → People, if wanted.
+      await addExtra(tester, 'people');
       await _pickPerson(tester, s.omarName);
       await _pickPerson(tester, s.saraName);
       await tester.drag(

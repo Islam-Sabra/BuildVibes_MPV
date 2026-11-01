@@ -9089,7 +9089,7 @@
   },
   "daybookTagFilterClear": "Show all tags",
   "@daybookTagFilterClear": {
-    "description": "Review 110 TG1: \u00d7 on Work filtered to one tag."
+    "description": "Review 110 TG1: × on Work filtered to one tag."
   },
   "cpPointHint": "A point to tick",
   "@cpPointHint": {
@@ -9107,5 +9107,9 @@
         "type": "int"
       }
     }
+  },
+  "cpPeople": "People",
+  "@cpPeople": {
+    "description": "Review 110 (founder, 31 Oct): + → People on a scheduled activity, to name who's coming if wanted."
   }
 }

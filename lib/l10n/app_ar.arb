@@ -1757,5 +1757,6 @@
   "daybookTagFilterClear": "إظهار كل الوسوم",
   "cpPointHint": "بند للتأشير",
   "cpAddPoint": "إضافة بند",
-  "cpChecklistChip": "قائمة تحقق · {count}"
+  "cpChecklistChip": "قائمة تحقق · {count}",
+  "cpPeople": "الأشخاص"
 }

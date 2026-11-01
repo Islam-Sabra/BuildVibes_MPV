@@ -1114,6 +1114,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     switch (extra) {
       case ComposerExtra.place:
         await _pickPlace();
+      case ComposerExtra.people:
+        await _pickPeople();
       case ComposerExtra.due:
         await _pickDue();
       case ComposerExtra.photos:

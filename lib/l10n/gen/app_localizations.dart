@@ -10645,6 +10645,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checklist · {count}'**
   String cpChecklistChip(int count);
+
+  /// Review 110 (founder, 31 Oct): + → People on a scheduled activity, to name who's coming if wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get cpPeople;
 }
 
 class _AppLocalizationsDelegate

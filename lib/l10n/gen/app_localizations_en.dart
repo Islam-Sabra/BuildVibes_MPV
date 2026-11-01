@@ -6398,4 +6398,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String cpChecklistChip(int count) {
     return 'Checklist · $count';
   }
+
+  @override
+  String get cpPeople => 'People';
 }

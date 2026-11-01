@@ -267,7 +267,7 @@ void main() {
           'task_table',
         ],
         'announcement': ['photos', 'file', 'bullets', 'table'],
-        'activity': ['place', 'photos', 'file', 'bullets'],
+        'activity': ['place', 'people', 'photos', 'file', 'bullets'],
       };
       for (final MapEntry(key: kind, value: extras) in kinds.entries) {
         testWidgets('$kind: ${extras.join(' · ')}', (tester) async {

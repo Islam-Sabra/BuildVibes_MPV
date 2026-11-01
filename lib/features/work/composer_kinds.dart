@@ -5,6 +5,8 @@ import 'daybook_draft.dart';
 /// Review 110 CP3: what + adds, in the grid's order (founder, 11:49).
 enum ComposerExtra {
   place('place'),
+  // An activity's people, if wanted (founder, 31 Oct).
+  people('people'),
   due('due'),
   tag('tag'),
   photos('photos'),
@@ -75,6 +77,7 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
   ],
   DaybookKind.activity => const [
     ComposerExtra.place,
+    ComposerExtra.people,
     ComposerExtra.photos,
     ComposerExtra.file,
     ComposerExtra.bullets,
@@ -134,7 +137,9 @@ List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
   return [
     if (draft.ownerId != null && kind != DaybookKind.workItem)
       ComposerDrop.owner,
-    if (draft.people.isNotEmpty && kind != DaybookKind.checklist)
+    if (draft.people.isNotEmpty &&
+        kind != DaybookKind.checklist &&
+        kind != DaybookKind.activity)
       ComposerDrop.people,
     if ((draft.place != null || draft.placeId != null) &&
         !extras.contains(ComposerExtra.place))

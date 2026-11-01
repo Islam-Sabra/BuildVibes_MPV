@@ -224,6 +224,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
   static String extraName(AppLocalizations l10n, ComposerExtra e) =>
       switch (e) {
         ComposerExtra.place => l10n.daybookRowPlace,
+        ComposerExtra.people => l10n.cpPeople,
         ComposerExtra.due => l10n.daybookRowDue,
         ComposerExtra.tag => l10n.cpTag,
         ComposerExtra.photos => l10n.cpPhotos,
@@ -238,6 +239,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
 
   static IconData extraIcon(ComposerExtra e) => switch (e) {
     ComposerExtra.place => BvIcons.place,
+    ComposerExtra.people => BvIcons.people,
     ComposerExtra.due => BvIcons.calendar,
     ComposerExtra.tag => BvIcons.tag,
     ComposerExtra.photos => BvIcons.image,

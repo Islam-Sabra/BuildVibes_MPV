@@ -6446,4 +6446,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String cpChecklistChip(int count) {
     return 'قائمة تحقق · $count';
   }
+
+  @override
+  String get cpPeople => 'الأشخاص';
 }
