@@ -6,6 +6,10 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(28);
+-- Review 112: these checks predate "a work item is always for someone else";
+-- some items here are for their author, as the old rule let them be (such
+-- items stay valid). The rule itself is tested in 58_no_self_assign.
+alter table public.work_items disable trigger work_items_not_for_self;
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000010b1', 'authenticated', 'authenticated', 'omar10@example.com', '{"home_market_id": "kw"}'),
