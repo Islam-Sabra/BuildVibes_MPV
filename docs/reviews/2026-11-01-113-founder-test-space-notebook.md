@@ -86,3 +86,14 @@
    - Library folders and Link folder.
 2. **The founder's ok** on the frames.
 3. **The build**, as one review, after review 111 (Teams), or before it if the founder prefers.
+
+## Frames (drawn 1 Nov, waiting for the founder's ok)
+| Frame | What | EN | AR |
+|---|---|---|---|
+| CV3 | Composer: Discard in the top bar; writing on top; chips; **Type · For · Team pinned**; bar + · camera · mic · Send | `2730:39817` | `2730:40277` |
+| RX1 | Cards with **React · Share**; reactions as icons with faces; the React picker (Like · Heart · Bravo) | `2730:39887` | `2730:40347` |
+| NN1 | **Need you now** sheet: person, optional reason, Add place, send | `2730:39983` | `2730:40443` |
+| NN2 | Its notification (app closed): **On my way · Can't now** | `2730:40034` | `2730:40494` |
+| ST1 | Spaces tab: one needs-you line, each Space with its mark, small **New Space · Join with a code**, no Search; bottom bar without Home | `2730:40062` | `2730:40522` |
+| LB1 | Library folders with who sees each (Whole Space · a Team · a person · Only me), and a linked OneDrive folder | `2730:40149` | `2730:40609` |
+| LB2 | + → **Link folder**: paste, service found, name, who sees it, the warning, Add folder | `2730:40228` | `2730:40688` |
