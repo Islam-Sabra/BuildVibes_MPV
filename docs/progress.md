@@ -893,7 +893,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - A work item is never for its author (founder): migration 20261119120000 (not live) refuses it on every new item, on Give to, and when scheduling; the app's owner pickers never list me; alone, For says to invite someone; the notebook share's For starts at Choose.
   - The notebook share's Space list in one call (`my_postable_spaces`).
   - Checks: analyze clean; 3,113 app tests; 3,572 SQL checks; shots 556 pass, 12 expected, in `docs/reviews/shots-112/`.
-- **1 Nov (PC): review 112 accepted and live:** goldens from shots-112; merged into `slice2-app` (8562677b); migration 20261119120000 live; build 889 on the Desktop, same certificate as 852; not yet on the founder's phone.
+- **1 Nov (PC): review 112 accepted and live:** goldens from shots-112; merged into `slice2-app` (8562677b); migration 20261119120000 live; build 889, same certificate as 852, installed on the founder's phone as an update.
   - Checks: analyze clean; 3,113 app tests; 568 shots, all pass; 3,572 SQL checks.
 
 ## Before the pilot (week 11)

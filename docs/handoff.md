@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 1 Nov 2026 — review 112 accepted: goldens, merged into `slice2-app`, migration 20261119120000 live, build 889 on the Desktop; not yet on the founder's phone
+## PC update: 1 Nov 2026 — review 112 accepted: goldens, merged into `slice2-app`, migration 20261119120000 live, build 889 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -12,7 +12,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Merged** `claude/r112` into `slice2-app` with `--no-ff` (8562677b), no conflicts, pushed. The same checks pass again: no issues, 3,113, 568, reset OK, 3,572 PASS.
 - **Migration 20261119120000 is live**, from a throwaway worktree at 8562677b with `supabase/.temp` copied whole: the dry run listed only that file; `supabase db push` exit 0, "Applying migration 20261119120000_no_self_assign.sql…", then the known pg-delta catalog-cache certificate warning; `supabase migration list --linked` matches local and remote on all 57 rows through 20261119120000. The worktree is removed.
 - **Build 889** (versionCode 889, 0.9.0, commit 8562677b): release APK at `Desktop/BuildVibes-889.apk`, the same certificate as 852 and 880 (SHA-256 9d02b7db…b1df9f). `google-services.json` and `env/prod.json` were copied in and deleted after.
-- **Not yet on the founder's phone:** waiting for his IP:port. **Next:** confirm the model is 22120RN86G, `adb install -r` BuildVibes-889.apk only (an update, keeping his data), disconnect.
+- **On the founder's phone:** connected to 192.168.8.33:40853 only; model 22120RN86G confirmed, 880 on it; `adb install -r BuildVibes-889.apk`: Success (an update, his data kept); versionCode 889 confirmed; disconnected and adb stopped.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`); `claude/r112` is merged (worktree `BuildVibes-r112`).
 
 ## PC update: 1 Nov 2026 — review 112 built on `claude/r112` (pushed); stopped for the lead: no merge, no database push, no build
