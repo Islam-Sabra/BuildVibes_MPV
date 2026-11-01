@@ -130,6 +130,7 @@ void main() {
       final activity = FakeActivityRepository();
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _twoSpaces(),
         activity: activity,
@@ -168,7 +169,7 @@ void main() {
 
     testWidgets('H1b (F3, F28): New Space and Join with a code above the '
         'list, the same width, one tap each [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _twoSpaces());
+      await pumpApp(tester, feed: true, language: lang, spaces: _twoSpaces());
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       double top(String key) => tester.getTopLeft(find.byKey(Key(key))).dy;
@@ -191,7 +192,7 @@ void main() {
 
     testWidgets('H1b (F3): with no Space, the empty state has both, '
         'large [$lang]', (tester) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('spaces-empty')), findsOneWidget);
@@ -217,6 +218,7 @@ void main() {
       );
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _oneSpace(),
         activity: activity,
@@ -307,6 +309,7 @@ void main() {
       );
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _twoSpaces(),
         activity: activity,
@@ -382,7 +385,13 @@ void main() {
             lastActivityAt: testNow.subtract(const Duration(days: 3)),
           ),
         );
-      await pumpApp(tester, language: lang, spaces: spaces, activity: activity);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: spaces,
+        activity: activity,
+      );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       final list = find.byKey(const Key('home-your-spaces'));
@@ -462,6 +471,7 @@ void main() {
       );
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _oneSpace(),
         activity: activity,
@@ -502,6 +512,7 @@ void main() {
       );
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _oneSpace(),
         activity: activity,
@@ -552,6 +563,7 @@ void main() {
       );
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _oneSpace(),
         activity: activity,
@@ -604,6 +616,7 @@ void main() {
         '[$lang]', (tester) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _oneSpace(),
         activity: FakeActivityRepository(
@@ -661,6 +674,7 @@ void main() {
           );
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           spaces: spaces,
           activity: FakeActivityRepository(
@@ -691,7 +705,7 @@ void main() {
           ),
         ],
       );
-      await pumpApp(tester, language: lang, activity: activity);
+      await pumpApp(tester, feed: true, language: lang, activity: activity);
       await _tap(tester, 'nav-activity');
       expect(
         find.text(l10n.activityUseful0, findRichText: true),
@@ -715,7 +729,7 @@ void main() {
     testWidgets('A2: nothing yet, the ledger and Add a project [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _tap(tester, 'nav-activity');
       expect(find.byKey(const Key('activity-empty')), findsOneWidget);
       for (final t in [
@@ -740,7 +754,12 @@ void main() {
           iAmAdmin: false,
           myRights: MemberRights(),
         );
-      final app = await pumpApp(tester, language: lang, spaces: spaces);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: spaces,
+      );
       _router(tester).push('/spaces/space-1');
       await tester.pumpAndSettle();
       expect(app.activity.calls, contains('seen space-1'));

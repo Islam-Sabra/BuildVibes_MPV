@@ -9552,5 +9552,22 @@
   "checkInInMissed": "In: missed",
   "@checkInInMissed": {
     "description": "Review 109 Y5: a check-out with no check-in that day."
+  },
+  "spacesTabNeedsIn": "{n, plural, =1{· in 1 Space} other{· in {n} Spaces}}",
+  "@spacesTabNeedsIn": {
+    "description": "Review 113 ST1: after \"3 need you\" on the Spaces tab, in how many Spaces.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "spacesTabNewToday": "new today",
+  "@spacesTabNewToday": {
+    "description": "Review 113 ST1: a Space's line on the Spaces tab, after its pass, when something happened there today."
+  },
+  "spacesTabQuiet": "quiet",
+  "@spacesTabQuiet": {
+    "description": "Review 113 ST1: a Space's line on the Spaces tab, after its pass, when nothing happened there today."
   }
 }

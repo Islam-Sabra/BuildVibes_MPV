@@ -73,6 +73,7 @@ void main() {
           ..spacePeople[DaybookSamples.space] = s.people();
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           now: _now,
           posts: posts,

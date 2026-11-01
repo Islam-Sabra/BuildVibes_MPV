@@ -225,7 +225,7 @@ void main() {
             threadId: 't-sara',
             person: DmPerson(id: 'p-t-sara', name: 'Sara Ali'),
           );
-        await pumpApp(tester, language: lang, dm: dm, now: _now);
+        await pumpApp(tester, feed: true, language: lang, dm: dm, now: _now);
         await _go(tester, '/messages/t-sara');
         await _tap(tester, find.byKey(const Key('dm-more')));
         await _tap(tester, find.byKey(const Key('dm-menu-mute')));
@@ -253,7 +253,7 @@ void main() {
       testWidgets('a muted conversation: bell-slash beside the name, unread '
           'dot kept; long-press Unmute and Mute', (tester) async {
         final dm = _dm();
-        await pumpApp(tester, language: lang, dm: dm, now: _now);
+        await pumpApp(tester, feed: true, language: lang, dm: dm, now: _now);
         await _go(tester, '/messages');
         final omar = find.byKey(const Key('messages-row-t-omar'));
         expect(
@@ -298,7 +298,7 @@ void main() {
       testWidgets('Home → Spaces: a muted Space shows the bell-slash; '
           'long-press Mute asks for how long', (tester) async {
         final spaces = _spaces();
-        await pumpApp(tester, language: lang, spaces: spaces);
+        await pumpApp(tester, feed: true, language: lang, spaces: spaces);
         await tester.tap(find.text(l10n.homeSpaces));
         await tester.pumpAndSettle();
         expect(
@@ -332,7 +332,7 @@ void main() {
         tester,
       ) async {
         final spaces = _spaces();
-        await pumpApp(tester, language: lang, spaces: spaces);
+        await pumpApp(tester, feed: true, language: lang, spaces: spaces);
         await _go(tester, '/spaces');
         expect(find.byKey(const Key('space-muted-space-1')), findsOneWidget);
         expect(find.byKey(const Key('space-muted-space-2')), findsNothing);
@@ -348,7 +348,14 @@ void main() {
         tester,
       ) async {
         final push = FakePushMessaging(current: PushPermission.granted);
-        await pumpApp(tester, language: lang, dm: _dm(), push: push, now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          dm: _dm(),
+          push: push,
+          now: _now,
+        );
         expect(push.cleared, isEmpty);
         await _go(tester, '/messages/t-omar');
         expect(push.cleared, contains('t-omar'));

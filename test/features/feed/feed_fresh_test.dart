@@ -72,7 +72,7 @@ void main() {
     testWidgets('F18: pull to refresh works on a feed shorter than the page '
         '[$lang]', (tester) async {
       final posts = _posts();
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       expect(find.text(fresh), findsNothing);
       _someonePosts(posts, fresh);
       await tester.fling(
@@ -87,7 +87,7 @@ void main() {
     testWidgets('F11: the feed reads again when the app comes back to the '
         'front [$lang]', (tester) async {
       final posts = _posts();
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       _someonePosts(posts, fresh);
       await backToTheApp(tester);
       expect(find.text(fresh), findsOneWidget);
@@ -96,7 +96,7 @@ void main() {
     testWidgets('F11: the feed reads again when Home is shown again '
         '[$lang]', (tester) async {
       final posts = _posts();
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       await _tap(tester, 'nav-profile');
       _someonePosts(posts, fresh);
       await _tap(tester, 'nav-home');
@@ -116,7 +116,12 @@ void main() {
       tester,
     ) async {
       final posts = _posts();
-      final app = await pumpApp(tester, language: lang, posts: posts);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        posts: posts,
+      );
       _someonePosts(posts, fresh);
       app.push.arrive({'kind': 'post_reply', 'route': '/posts/p0'});
       await tester.pumpAndSettle();
@@ -126,7 +131,7 @@ void main() {
     testWidgets('F11: reading further down, new posts don\'t move the page; '
         '"New" takes them to the top [$lang]', (tester) async {
       final posts = _posts(count: 12);
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       await tester.drag(
         find.byKey(const Key('feed-list')),
         const Offset(0, -700),
@@ -154,7 +159,7 @@ void main() {
     testWidgets('F11: at the top, new posts just come in, with no chip '
         '[$lang]', (tester) async {
       final posts = _posts(count: 12);
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       _someonePosts(posts, fresh);
       await backToTheApp(tester);
       expect(find.text(fresh), findsOneWidget);
@@ -166,6 +171,7 @@ void main() {
       final posts = _posts();
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         posts: posts,
         retryLater: const [Duration(seconds: 2)],
@@ -186,7 +192,12 @@ void main() {
     testWidgets('F17: sent, but not read back yet: the label '
         'goes at once, still one card [$lang]', (tester) async {
       final posts = _posts();
-      final app = await pumpApp(tester, language: lang, posts: posts);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        posts: posts,
+      );
       await _writeOffline(tester, posts, 'Rebar done.');
       // The post gets through; the signal drops before the feed reads it.
       posts.readsOffline = true;
@@ -213,7 +224,12 @@ void main() {
           'label (${onServer ? 'it had reached the server' : 'sent on '
                     'opening'}) [$lang]', (tester) async {
         final posts = _posts();
-        final app = await pumpApp(tester, language: lang, posts: posts);
+        final app = await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          posts: posts,
+        );
         await _writeOffline(tester, posts, 'Rebar done.');
         final kept = app.prefs.getString('post_outbox:user-1')!;
         expect(kept, contains('Rebar done.'));
@@ -234,6 +250,7 @@ void main() {
         await tester.pumpWidget(const SizedBox());
         final again = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           posts: posts,
           stored: {'post_outbox:user-1': kept},
@@ -248,7 +265,7 @@ void main() {
     testWidgets('F19: a reply sent again after the answer was lost is one '
         'reply [$lang]', (tester) async {
       final posts = _posts()..replyAnswerLost = 1;
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
       ).push('/posts/p0');

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildvibes/app.dart';
+import 'package:buildvibes/core/config/feature_switches.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/core/sound/sent_chime.dart';
@@ -238,6 +239,10 @@ Future<TestApp> pumpApp(
   bool onboarded = true,
   String region = 'KW',
   bool phoneSignIn = false,
+
+  /// Review 113 (6): the Home feed's switch; null keeps the app's
+  /// ([feedEnabled], off in the MVP).
+  bool? feed,
 
   /// The phone's "now" (default [testNow]).
   DateTime? now,
@@ -531,6 +536,7 @@ Future<TestApp> pumpApp(
             haptic: () async => chimes.add('haptic'),
           ),
         ),
+        if (feed != null) feedEnabledProvider.overrideWithValue(feed),
         ...overrides,
       ],
       child: const BuildVibesApp(),

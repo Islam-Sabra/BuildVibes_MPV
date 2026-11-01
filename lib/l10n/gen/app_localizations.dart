@@ -11161,6 +11161,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In: missed'**
   String get checkInInMissed;
+
+  /// Review 113 ST1: after "3 need you" on the Spaces tab, in how many Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{· in 1 Space} other{· in {n} Spaces}}'**
+  String spacesTabNeedsIn(int n);
+
+  /// Review 113 ST1: a Space's line on the Spaces tab, after its pass, when something happened there today.
+  ///
+  /// In en, this message translates to:
+  /// **'new today'**
+  String get spacesTabNewToday;
+
+  /// Review 113 ST1: a Space's line on the Spaces tab, after its pass, when nothing happened there today.
+  ///
+  /// In en, this message translates to:
+  /// **'quiet'**
+  String get spacesTabQuiet;
 }
 
 class _AppLocalizationsDelegate

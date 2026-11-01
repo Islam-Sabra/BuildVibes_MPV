@@ -73,7 +73,7 @@ class MySpacesView extends ConsumerWidget {
       onRefresh: refresh,
       child: _Page(
         children: [
-          for (final r in waiting) _RequestCard(request: r),
+          for (final r in waiting) SpaceRequestCard(request: r),
           if (mine.isEmpty)
             _EmptyCard(
               onEnterCode: () => showInviteCodeSheet(context),
@@ -177,8 +177,8 @@ class _SpaceList extends ConsumerWidget {
 
 /// Your own request: waiting (with Cancel request) or not confirmed (with
 /// Dismiss). No reason and no name of who declined.
-class _RequestCard extends ConsumerWidget {
-  const _RequestCard({required this.request});
+class SpaceRequestCard extends ConsumerWidget {
+  const SpaceRequestCard({super.key, required this.request});
 
   final MyJoinRequest request;
 

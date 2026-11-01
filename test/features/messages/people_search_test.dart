@@ -57,7 +57,12 @@ void main() {
     testWidgets('+ in Messages opens New message: the people in my Spaces '
         'A–Z; a search by part of a name finds Omar; a tap writes to him '
         '[$lang]', (tester) async {
-      await pumpApp(tester, language: lang, peopleSearch: _people());
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        peopleSearch: _people(),
+      );
       await tester.tap(find.byKey(const Key('home-messages')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('messages-new')));
@@ -79,7 +84,12 @@ void main() {
         'I blocked never shows; Arabic names stay as written [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, peopleSearch: _people());
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        peopleSearch: _people(),
+      );
       await tester.tap(find.byKey(const Key('home-search')));
       await tester.pumpAndSettle();
       await _type(tester, 'electric');
@@ -96,7 +106,12 @@ void main() {
     testWidgets('Home\'s Search people opens a profile [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, peopleSearch: _people());
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        peopleSearch: _people(),
+      );
       await tester.tap(find.byKey(const Key('home-search')));
       await tester.pumpAndSettle();
       expect(find.text(l10n.homeSearch), findsWidgets);

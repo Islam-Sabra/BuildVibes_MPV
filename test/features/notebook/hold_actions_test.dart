@@ -93,6 +93,8 @@ Future<FakeNotebookRepository> _open(WidgetTester tester, String lang) async {
     );
   await pumpApp(
     tester,
+    // Their Share offers the feed (review 113: behind the switch).
+    feed: true,
     language: lang,
     now: _now,
     notebook: repo,

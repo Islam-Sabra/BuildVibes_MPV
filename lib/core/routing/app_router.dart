@@ -72,6 +72,7 @@ import '../../features/work/walk_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
+import '../config/feature_switches.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -138,6 +139,15 @@ String? redirectForGate(
   };
 }
 
+/// Review 113 (6): with the feed hidden, a link to a feed post opens the
+/// Spaces tab (the first tab, at [AppRoutes.home]).
+String? redirectForFeed(bool feed, String location) =>
+    !feed &&
+        (location == AppRoutes.posts ||
+            location.startsWith('${AppRoutes.posts}/'))
+    ? AppRoutes.home
+    : null;
+
 /// Entry and onboarding sit outside the tabs. Each tab keeps its own
 /// history (an indexed stack of branches). Create is not a tab: it writes
 /// a post in place on Home.
@@ -182,7 +192,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           gate.value,
           state.uri.path,
           finishing: ref.read(onboardingFinishingProvider),
-        ),
+        ) ??
+        redirectForFeed(ref.read(feedEnabledProvider), state.uri.path),
     routes: [
       _Screen(
         path: AppRoutes.loading,

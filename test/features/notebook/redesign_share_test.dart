@@ -34,6 +34,7 @@ Future<FakeNotebookRepository> _open(
   WidgetTester tester,
   String lang, {
   FakeNotebookRepository? notebook,
+  bool feed = true,
 }) async {
   final s = NotebookPageSamples(lang);
   final repo = notebook ?? s.repository();
@@ -43,6 +44,8 @@ Future<FakeNotebookRepository> _open(
   final d = DaybookSamples(lang);
   await pumpApp(
     tester,
+    // Their Share offers the feed (review 113: behind the switch).
+    feed: feed,
     language: lang,
     now: NotebookPageSamples.now,
     notebook: repo,
@@ -98,6 +101,24 @@ void main() {
         expect(_key('share-space-${DaybookSamples.space}'), findsOneWidget);
         await _tap(tester, _key('menu-back'));
         expect(_key('share-menu'), findsNothing);
+      });
+
+      testWidgets('review 113 (6): with the feed hidden, the card offers '
+          'Space and Message only', (tester) async {
+        await _open(tester, lang, feed: false);
+        await _tap(tester, _key('note-entry-pour'));
+        await tester.tap(
+          find.text(s.t('Check the rebar cover', 'فحص غطاء الحديد')),
+        );
+        await tester.pumpAndSettle();
+        await tester.longPress(_key('note-marker-b-2'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('select-share'));
+        expect(_key('share-menu'), findsOneWidget);
+        expect(_key('share-feed'), findsNothing);
+        expect(_key('share-space'), findsOneWidget);
+        expect(_key('share-message'), findsOneWidget);
+        expect(find.text(l10n.notebookShareFeed), findsNothing);
       });
 
       testWidgets('on selected lines: the bar\'s first action; its card over '

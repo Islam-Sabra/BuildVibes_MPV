@@ -119,6 +119,7 @@ Future<TestApp> _feed(
 }) async {
   final app = await pumpApp(
     tester,
+    feed: true,
     language: lang,
     posts: posts ?? _posts(),
     setUp: (pages, _) => pages.cv['user-1'] = [

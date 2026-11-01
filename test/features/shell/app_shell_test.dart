@@ -22,7 +22,7 @@ void main() {
   testWidgets('English: five slots in order, left to right, Home first', (
     tester,
   ) async {
-    await pumpApp(tester);
+    await pumpApp(tester, feed: true);
 
     for (final label in ['Home', 'Explore', 'Create', 'Activity', 'Profile']) {
       expect(find.text(label), findsWidgets);
@@ -36,7 +36,7 @@ void main() {
   testWidgets('Arabic: labels in Arabic and the bar reads right to left', (
     tester,
   ) async {
-    await pumpApp(tester, language: 'ar');
+    await pumpApp(tester, feed: true, language: 'ar');
 
     for (final label in ['الرئيسية', 'استكشف', 'إنشاء', 'النشاط', 'ملفي']) {
       expect(find.text(label), findsWidgets);
@@ -46,7 +46,7 @@ void main() {
   });
 
   testWidgets('tapping a tab shows that tab', (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, feed: true);
 
     await tester.tap(find.byKey(const Key('nav-explore')));
     await tester.pumpAndSettle();
@@ -64,7 +64,7 @@ void main() {
   testWidgets(
     'Create, Post to everyone: a post in place on Home, from every tab',
     (tester) async {
-      await pumpApp(tester);
+      await pumpApp(tester, feed: true);
       await tester.tap(find.byKey(const Key('nav-profile')));
       await tester.pumpAndSettle();
 
@@ -85,7 +85,7 @@ void main() {
   );
 
   testWidgets('every slot is at least the minimum touch size', (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, feed: true);
     for (final k in _tabKeys) {
       final size = tester.getSize(find.byKey(Key(k)));
       expect(size.height, greaterThanOrEqualTo(BvSize.touchMin));
@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets('the bar matches the Figma sizes', (tester) async {
-    await pumpApp(tester);
+    await pumpApp(tester, feed: true);
     final bar = tester.getSize(find.byType(BvBottomBar));
     // 64 high, top border included (no safe area in tests).
     expect(bar.height, BvBottomBarSize.height);
@@ -117,7 +117,7 @@ void main() {
   testWidgets('active tab: indicator above an ink icon, same label weight', (
     tester,
   ) async {
-    await pumpApp(tester);
+    await pumpApp(tester, feed: true);
 
     // Only one indicator, and it sits in the Home slot above the icon.
     final indicator = find.byKey(const Key('nav-indicator'));

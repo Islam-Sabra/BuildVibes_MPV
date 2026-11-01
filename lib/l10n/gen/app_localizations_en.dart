@@ -6711,4 +6711,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkInInMissed => 'In: missed';
+
+  @override
+  String spacesTabNeedsIn(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '· in $n Spaces',
+      one: '· in 1 Space',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesTabNewToday => 'new today';
+
+  @override
+  String get spacesTabQuiet => 'quiet';
 }

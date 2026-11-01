@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/crash/crash_reports.dart'
     show errorCode, errorFirstLine, reportNonFatal;
+import '../../core/config/feature_switches.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
@@ -168,7 +169,7 @@ Future<void> shareEntry(
     NoteStatusKind.message => _ShareTo.message,
     _ => null,
   };
-  if (start == NoteStatusKind.feed) {
+  if (start == NoteStatusKind.feed && ref.read(feedEnabledProvider)) {
     close(_ShareTo.feed);
   } else {
     card.show(
@@ -343,13 +344,16 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
           onBack: widget.onPicked,
           tiles: false,
           items: [
-            BvMenuItem(
-              key: const Key('share-feed'),
-              value: _ShareTo.feed,
-              label: l10n.notebookShareFeed,
-              note: l10n.notebookShareFeedNote,
-              icon: BvIcons.feed,
-            ),
+            // Review 113 (6): Space and Message only while the feed is
+            // hidden.
+            if (ref.watch(feedEnabledProvider))
+              BvMenuItem(
+                key: const Key('share-feed'),
+                value: _ShareTo.feed,
+                label: l10n.notebookShareFeed,
+                note: l10n.notebookShareFeedNote,
+                icon: BvIcons.feed,
+              ),
             BvMenuItem(
               key: const Key('share-space'),
               value: _ShareTo.space,

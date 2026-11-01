@@ -154,6 +154,7 @@ Future<TestApp> _pump(
   FakeLibraryRepository? library,
 }) => pumpApp(
   tester,
+  feed: true,
   spaces: _spaces(),
   chat: _chat(),
   dm: _dm(),

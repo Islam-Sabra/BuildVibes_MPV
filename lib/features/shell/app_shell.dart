@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/feature_switches.dart';
 import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
@@ -32,6 +35,8 @@ class AppShell extends ConsumerWidget {
     final dmUnread =
         !guest && (ref.watch(dmInboxProvider).value?.anyUnread ?? false);
     const homeTab = 0;
+    // Review 113 (6): with the feed hidden, the first tab is Spaces.
+    final feed = ref.watch(feedEnabledProvider);
     const activityTab = 2;
     return Scaffold(
       // Push while signed in (permission, this phone's token, taps), and
@@ -75,6 +80,10 @@ class AppShell extends ConsumerWidget {
             showJoinWall(context);
             return;
           }
+          if (!feed) {
+            unawaited(showCreateWorkItem(context));
+            return;
+          }
           showCreateChoice(
             context,
             onPost: () {
@@ -85,10 +94,11 @@ class AppShell extends ConsumerWidget {
         },
         items: [
           BvBottomBarItem(
-            key: const Key('nav-home'),
-            icon: BvIcons.home,
-            label: l10n.navHome,
-            // A direct message waits (F81): Messages is on Home.
+            key: Key(feed ? 'nav-home' : 'nav-spaces'),
+            icon: feed ? BvIcons.home : BvIcons.team,
+            label: feed ? l10n.navHome : l10n.homeSpaces,
+            // A direct message waits (F81): Messages is on Home (on
+            // Spaces, with the feed hidden).
             dot: dmUnread && navigationShell.currentIndex != homeTab,
           ),
           BvBottomBarItem(

@@ -1843,5 +1843,8 @@
   "checkInTimeOut": "حان وقت تسجيل الخروج",
   "checkInReadingOnce": "قراءة موقعك مرة واحدة لتسجيل الحضور.",
   "checkInRefusedTooMany": "محاولات كثيرة اليوم. اسأل المسؤول.",
-  "checkInInMissed": "دخول: لم يسجّل"
+  "checkInInMissed": "دخول: لم يسجّل",
+  "spacesTabNeedsIn": "{n, plural, =1{· في مساحة واحدة} =2{· في مساحتين} few{· في {n} مساحات} other{· في {n} مساحة}}",
+  "spacesTabNewToday": "جديد اليوم",
+  "spacesTabQuiet": "هادئة"
 }

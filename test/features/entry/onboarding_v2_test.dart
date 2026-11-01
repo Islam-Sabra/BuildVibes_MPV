@@ -95,7 +95,7 @@ void main() {
       testWidgets('one welcome: the whole industry, Continue with email · I '
           'have an invite code · Just looking; no Create account, no Sign '
           'in', (tester) async {
-        await pumpApp(tester, language: lang, signedIn: false);
+        await pumpApp(tester, feed: true, language: lang, signedIn: false);
         expect(find.text(l10n.obWelcomeTitle), findsOneWidget);
         expect(find.text(l10n.obWelcomeLine), findsOneWidget);
         for (final card in [
@@ -130,7 +130,7 @@ void main() {
       });
 
       testWidgets('the language at the top switches the app', (tester) async {
-        await pumpApp(tester, language: lang, signedIn: false);
+        await pumpApp(tester, feed: true, language: lang, signedIn: false);
         await _tap(tester, 'welcome-language');
         final other = _l10n(lang == 'en' ? 'ar' : 'en');
         expect(find.text(other.obWelcomeTitle), findsOneWidget);
@@ -143,7 +143,7 @@ void main() {
       testWidgets('Just looking browses Home without an account', (
         tester,
       ) async {
-        await pumpApp(tester, language: lang, signedIn: false);
+        await pumpApp(tester, feed: true, language: lang, signedIn: false);
         await _tap(tester, 'welcome-look');
         expect(_key('nav-home'), findsOneWidget);
       });
@@ -158,7 +158,13 @@ void main() {
         auth
           ..sendGate = send.future
           ..verifyGate = check.future;
-        await pumpApp(tester, language: lang, signedIn: false, auth: auth);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          signedIn: false,
+          auth: auth,
+        );
         await _tap(tester, 'welcome-email');
         expect(find.text(l10n.emailTitle), findsOneWidget);
         expect(find.text(l10n.obEmailSub), findsOneWidget);
@@ -194,7 +200,12 @@ void main() {
       testWidgets('Try another way: a different email, or a new code', (
         tester,
       ) async {
-        final app = await pumpApp(tester, language: lang, signedIn: false);
+        final app = await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          signedIn: false,
+        );
         await _tap(tester, 'welcome-email');
         await _type(tester, 'email-field', 'sami@gulfbuild.co');
         await _tap(tester, 'email-send');
@@ -217,7 +228,13 @@ void main() {
         final auth = FakeAuthRepository();
         final check = Completer<void>();
         auth.verifyGate = check.future;
-        await pumpApp(tester, language: lang, signedIn: false, auth: auth);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          signedIn: false,
+          auth: auth,
+        );
         await _tap(tester, 'welcome-email');
         await _type(tester, 'email-field', 'sami@gulfbuild.co');
         await _tap(tester, 'email-send');
@@ -264,6 +281,7 @@ void main() {
         );
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -277,7 +295,7 @@ void main() {
     group('OB4 · OB5 your name, your work [$lang]', () {
       testWidgets('OB4: first and last name only, step 1 of 3; both are '
           'asked for', (tester) async {
-        await pumpApp(tester, language: lang, signedIn: false);
+        await pumpApp(tester, feed: true, language: lang, signedIn: false);
         await _signIn(tester);
         expect(find.text(l10n.obNameTitle), findsOneWidget);
         expect(find.text(l10n.obNameSub), findsOneWidget);
@@ -298,6 +316,7 @@ void main() {
         profiles.saveGate = save.future;
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -355,6 +374,7 @@ void main() {
         final profiles = FakeProfileRepository();
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -377,6 +397,7 @@ void main() {
         final profiles = FakeProfileRepository();
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -390,7 +411,12 @@ void main() {
       });
 
       testWidgets('back on your name signs out to start again', (tester) async {
-        final app = await pumpApp(tester, language: lang, signedIn: false);
+        final app = await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          signedIn: false,
+        );
         await _signIn(tester);
         await _tap(tester, 'entry-back');
         expect(app.auth.signOuts, 1);
@@ -402,6 +428,7 @@ void main() {
       Future<TestApp> toSpace(WidgetTester tester) async {
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           spaces: _spaces(),
@@ -463,6 +490,7 @@ void main() {
         final profiles = FakeProfileRepository();
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -482,6 +510,7 @@ void main() {
           'Change code · Skip; Skip goes on to step 3', (tester) async {
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           spaces: _spaces(),
@@ -504,6 +533,7 @@ void main() {
       ) async {
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           spaces: _spaces(),
@@ -521,7 +551,13 @@ void main() {
       testWidgets('Q2: no signal for the request: the code stays, it says '
           'why, and Continue tries again', (tester) async {
         final spaces = _spaces()..joinFailure = SpaceFailure.network;
-        await pumpApp(tester, language: lang, signedIn: false, spaces: spaces);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          signedIn: false,
+          spaces: spaces,
+        );
         await _keepInvite(tester, 'K7Q4MD');
         await _signIn(tester, fromWelcome: false);
         await _name(tester);
@@ -540,6 +576,7 @@ void main() {
         final profiles = FakeProfileRepository()..refusedMarkets.add('eg');
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,
@@ -566,7 +603,7 @@ void main() {
         testWidgets('$from goes ${toEdit ? 'to Edit profile' : 'Home'}', (
           tester,
         ) async {
-          await pumpApp(tester, language: lang);
+          await pumpApp(tester, feed: true, language: lang);
           GoRouter.of(tester.element(find.byType(Navigator).first)).go(from);
           await tester.pumpAndSettle();
           expect(
@@ -586,6 +623,7 @@ void main() {
         final profiles = FakeProfileRepository();
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           profiles: profiles,

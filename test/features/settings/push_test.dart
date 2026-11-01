@@ -53,7 +53,7 @@ void main() {
         current: PushPermission.granted,
         tokenFailures: 2,
       );
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(push.tokenAsks, 3);
       expect(
         app.pushes.calls,
@@ -66,7 +66,7 @@ void main() {
     testWidgets('F9: registered on every start, already allowed and asked '
         'before (signed in from an older build) [$lang]', (tester) async {
       final push = FakePushMessaging(current: PushPermission.granted);
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(push.asked, 0);
       expect(
         app.pushes.calls.single,
@@ -77,7 +77,7 @@ void main() {
     testWidgets('F81: the token goes with this install\'s own id, the same '
         'on every start [$lang]', (tester) async {
       final push = FakePushMessaging(current: PushPermission.granted);
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       final id = app.pushes.installIds.single;
       expect(id, matches(RegExp(r'^[0-9a-f-]{36}$')));
       expect(app.prefs.getString(pushInstallKey), id);
@@ -90,7 +90,7 @@ void main() {
         current: PushPermission.granted,
         tokenFailures: 99,
       );
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(app.pushes.calls, isEmpty);
       expect(push.noTokenReports, 1);
       expect(find.byKey(const Key('push-not-reaching')), findsOneWidget);
@@ -111,7 +111,7 @@ void main() {
         current: PushPermission.granted,
         phoneToken: null,
       );
-      await pumpApp(tester, language: lang, push: push);
+      await pumpApp(tester, feed: true, language: lang, push: push);
       expect(find.byKey(const Key('push-not-reaching')), findsOneWidget);
     });
 
@@ -122,7 +122,7 @@ void main() {
         tokenFailures: 99,
         makers: const ['xiaomi', 'redmi'],
       );
-      await pumpApp(tester, language: lang, push: push);
+      await pumpApp(tester, feed: true, language: lang, push: push);
       await tester.tap(find.text(l10n.pushFixIt));
       await tester.pumpAndSettle();
       expect(find.text(l10n.pushFixTitle), findsOneWidget);
@@ -146,7 +146,7 @@ void main() {
         current: PushPermission.granted,
         tokenFailures: 3,
       );
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(find.byKey(const Key('push-not-reaching')), findsOneWidget);
       expect(app.pushes.calls, isEmpty);
       await backToTheApp(tester);
@@ -161,14 +161,14 @@ void main() {
       tester,
     ) async {
       final push = FakePushMessaging(answer: PushPermission.denied);
-      await pumpApp(tester, language: lang, push: push);
+      await pumpApp(tester, feed: true, language: lang, push: push);
       expect(find.byKey(const Key('push-not-reaching')), findsNothing);
       expect(push.tokenAsks, 0);
     });
 
     testWidgets('the first time the tabs open: asked once, then this phone '
         'is registered in the app language [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       expect(app.push.asked, 1);
       expect(app.prefs.getBool(pushAskedKey), isTrue);
       expect(
@@ -186,7 +186,7 @@ void main() {
 
     testWidgets('changing the app language registers the phone again, in '
         'the new language [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       final other = lang == 'en' ? 'ar' : 'en';
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
@@ -201,7 +201,7 @@ void main() {
     testWidgets('said no: nothing registered, and S4 says how to turn it on '
         '[$lang]', (tester) async {
       final push = FakePushMessaging(answer: PushPermission.denied);
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(app.pushes.calls, isEmpty);
       await _openNotifications(tester);
       expect(find.byType(NotificationsScreen), findsOneWidget);
@@ -215,7 +215,7 @@ void main() {
     testWidgets('S3: the MVP switches, saved on the server [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openNotifications(tester);
       expect(find.byKey(const Key('push-off')), findsNothing);
       expect(find.text(l10n.notifFollowers), findsOneWidget);
@@ -233,7 +233,7 @@ void main() {
     testWidgets('signing out: this phone gets no more pushes [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-sign-out');
@@ -249,7 +249,7 @@ void main() {
         current: PushPermission.granted,
         firstTap: {'kind': 'post_reply', 'route': '/posts/p1', 'post_id': 'p1'},
       );
-      final app = await pumpApp(tester, language: lang, push: push);
+      final app = await pumpApp(tester, feed: true, language: lang, push: push);
       expect(app.push.asked, 0, reason: 'already allowed: no prompt');
       expect(find.byType(PostScreen), findsOneWidget);
       // A link to somewhere outside the app's pages is ignored.
@@ -259,7 +259,12 @@ void main() {
     });
 
     testWidgets('guests are never asked [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang, signedIn: false);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        signedIn: false,
+      );
       await tester.tap(find.byKey(const Key('welcome-look')));
       await tester.pumpAndSettle();
       expect(app.push.asked, 0);

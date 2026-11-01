@@ -147,7 +147,7 @@ void main() {
         'chosen when they may own it; Give and remove waits until each has '
         'someone [$lang]', (tester) async {
       final spaces = _spaces()..openWorkBy['p-omar'] = const [_sleeves, _pump];
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-omar');
       await _tap(tester, 'member-remove');
       final sheet = find.byKey(const Key('handover-sheet'));
@@ -220,7 +220,7 @@ void main() {
 
     testWidgets('SP9: Cancel removes nobody [$lang]', (tester) async {
       final spaces = _spaces()..openWorkBy['p-omar'] = const [_sleeves];
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-omar');
       await _tap(tester, 'member-remove');
       expect(
@@ -238,7 +238,7 @@ void main() {
       tester,
     ) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-omar');
       await _tap(tester, 'member-remove');
       expect(find.byKey(const Key('handover-sheet')), findsNothing);
@@ -249,7 +249,7 @@ void main() {
     testWidgets('no signal for the list: nothing opens, it says why '
         '[$lang]', (tester) async {
       final spaces = _spaces()..failOpenWork = true;
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-omar');
       await _tap(tester, 'member-remove');
       expect(find.byKey(const Key('handover-sheet')), findsNothing);
@@ -270,7 +270,7 @@ void main() {
             makerMayOwn: true,
           ),
         ];
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-leave');
       expect(find.byKey(const Key('handover-sheet')), findsOneWidget);
@@ -289,7 +289,7 @@ void main() {
       tester,
     ) async {
       final spaces = _spaces(iAmAdmin: false);
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-leave');
       expect(find.byKey(const Key('handover-sheet')), findsNothing);
@@ -301,7 +301,7 @@ void main() {
     testWidgets('SP9 mirrored: Cancel at the ${lang == 'ar' ? 'right' : 'left'}'
         ', the Give to row\'s caret pointing on [$lang]', (tester) async {
       final spaces = _spaces()..openWorkBy['p-omar'] = const [_sleeves];
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-omar');
       await _tap(tester, 'member-remove');
       final cancel = tester.getCenter(find.byKey(const Key('handover-cancel')));
@@ -350,7 +350,7 @@ void main() {
           ),
         ],
       );
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openMember(tester, 'p-abdul');
       await _tap(tester, 'member-remove');
       expect(

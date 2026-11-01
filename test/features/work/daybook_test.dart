@@ -58,6 +58,7 @@ Future<FakeDaybookRepository> _open(
     ..spacePeople[DaybookSamples.space] = s.people();
   await pumpApp(
     tester,
+    feed: true,
     language: lang,
     spaces: spaces,
     daybook: fake,
@@ -927,7 +928,13 @@ void main() {
       final daybook = FakeDaybookRepository()..failPages = true;
       final spaces = FakeSpaceRepository()
         ..details[DaybookSamples.space] = s.detail();
-      await pumpApp(tester, language: lang, spaces: spaces, daybook: daybook);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: spaces,
+        daybook: daybook,
+      );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
       ).push('/spaces/${DaybookSamples.space}');

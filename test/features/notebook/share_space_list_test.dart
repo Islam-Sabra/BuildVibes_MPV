@@ -32,6 +32,7 @@ Future<void> _open(
 ) async {
   await pumpApp(
     tester,
+    feed: true,
     language: lang,
     now: NotebookPageSamples.now,
     notebook: NotebookPageSamples(lang).repository(),

@@ -6762,4 +6762,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkInInMissed => 'دخول: لم يسجّل';
+
+  @override
+  String spacesTabNeedsIn(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '· في $n مساحة',
+      few: '· في $n مساحات',
+      two: '· في مساحتين',
+      one: '· في مساحة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesTabNewToday => 'جديد اليوم';
+
+  @override
+  String get spacesTabQuiet => 'هادئة';
 }
