@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 1 Nov 2026 — review 109 accepted and live: Z1, goldens, merged into `slice2-app`, migration 20261120120000 live, functions deployed, cron running, build 919 on the founder's phone; the phone check waits
+## PC update: 1 Nov 2026 — review 109 accepted and live: Z1, goldens, merged into `slice2-app`, migration 20261120120000 live, functions deployed, cron running, build 919 on the founder's phone; the phone check done
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -17,7 +17,13 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - `supabase migration list --linked`: 58 rows, local and remote match through 20261120120000.
 - **Build 919** (0.9.0, commit 47d3a62f): `Desktop/BuildVibes-919.apk`, the same certificate (SHA-256 9d02b7db…b1df9f); permissions fine location, foreground service, foreground service location; no background location. Config copied in and deleted after.
 - **On the founder's phone:** 192.168.8.33:40853 only; model 22120RN86G, Android 14, 889 on it; `adb install -r`: Success; versionCode 919; disconnected, adb stopped.
-- **The phone check is not done yet:** it needs the test Lead account's sign-in (on live, "Test site" has Islam Ahmed and "smsm ss", both Leads, no project). Then: the emulator (Asia/Kuwait) posts a check-in in "Test site" asking the founder, opening ~3 minutes later; he closes the app; exactly one notification (option C); Check in from it; read his mark on the server (on site / not at site, or not shared = Android didn't read the location). If two ever show, switch to option B.
+- **The phone check (1 Nov, 21:43–22:02 Kuwait):**
+  - Setup: a new test account "Test Lead" (islam.sabra8262+lead@gmail.com) signed up on the emulator (Pixel_8, build 919, Asia/Kuwait, location in Kuwait City), joined "Test site" with code 2G68G9; the founder confirmed it as Lead, made the Team "Founder test" with himself and Test Lead (the creator is never asked, so only he was). "smsm ss" was not used and not asked.
+  - The Test Lead posted "Phone check": today 22:00, no allowance, once, for Founder test (server: time_zone Asia/Kuwait, one Team).
+  - **One notification only: passed.** The cron queued one `check_in_open` at 22:00:00 (no title: his lock-screen text is off); exactly one notification arrived, never two. Option C stays.
+  - **Buttons: not shown.** The app's own notification with Check in / Open never replaced the system one while the app was closed (MIUI most likely didn't run the background handler). The tap opened the post (the fallback, as designed). So Check in from the notification on Android 14 could not be tested. Allowing BuildVibes Autostart on his phone is the next thing to try (a phone setting, not code).
+  - **The location was read:** he checked in from the card at 22:01:39: late (0 allowance), place `away` (not at site, i.e. read and more than 100 m from the emulator's point; a failed read would be not_shared).
+  - Cleanup: the emulator's app data cleared and the emulator shut down; the Test Lead account and the "Phone check" post stay on live.
 
 ## PC update: 1 Nov 2026 — review 109, the lead's check Y1–Y12 fixed on `claude/r109` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
 
