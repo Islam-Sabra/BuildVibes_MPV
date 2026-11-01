@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/models/space.dart';
 import 'daybook_draft.dart';
 
 /// Review 110 CP3: what + adds, in the grid's order (founder, 11:49).
@@ -15,10 +16,9 @@ enum ComposerExtra {
   bullets('bullets'),
   table('table'),
   taskTable('task_table'),
-  // Kept from before review 110 (not in the founder's table, but no
-  // other changes): an announcement's pin, and a template.
-  pin('pin'),
-  template('template');
+  // Kept from before review 110: an announcement's pin (W9). A template
+  // is on the composer's top bar (W9), not here.
+  pin('pin');
 
   const ComposerExtra(this.key);
 
@@ -38,8 +38,7 @@ const composerKinds = [
   DaybookKind.thanks,
 ];
 
-/// Each kind shows only its own extras (CP3, the founder's table), then
-/// Template where the Space has one for it (slice 7, kept).
+/// Each kind shows only its own extras (CP3, the founder's table; W9).
 List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
   DaybookKind.note => const [
     ComposerExtra.photos,
@@ -47,7 +46,6 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
     ComposerExtra.place,
     ComposerExtra.bullets,
     ComposerExtra.table,
-    ComposerExtra.template,
   ],
   DaybookKind.workItem => const [
     ComposerExtra.place,
@@ -59,13 +57,11 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
     ComposerExtra.bullets,
     ComposerExtra.table,
     ComposerExtra.taskTable,
-    ComposerExtra.template,
   ],
   DaybookKind.checklist => const [
     ComposerExtra.due,
     ComposerExtra.photos,
     ComposerExtra.bullets,
-    ComposerExtra.template,
   ],
   DaybookKind.announcement => const [
     ComposerExtra.photos,
@@ -73,7 +69,6 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
     ComposerExtra.bullets,
     ComposerExtra.table,
     ComposerExtra.pin,
-    ComposerExtra.template,
   ],
   DaybookKind.activity => const [
     ComposerExtra.place,
@@ -81,7 +76,6 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
     ComposerExtra.photos,
     ComposerExtra.file,
     ComposerExtra.bullets,
-    ComposerExtra.template,
   ],
   // TH1: a Thanks takes photos only.
   DaybookKind.thanks => const [ComposerExtra.photos],
@@ -220,15 +214,28 @@ DaybookPostDraft composerSwitched(
   return DaybookPostDraft.fromJson(json);
 }
 
+/// The kinds [space]'s reader may post from #. Who may not post work (a
+/// Viewer, or a Crew pass with posting locked) may still thank (founder,
+/// 1 Nov: create_thanks takes any member), and only thank. Review 109's
+/// Check-in joins here for a Lead.
+List<DaybookKind> composerKindsFor(SpaceDetail space) =>
+    space.myRights.createItems ? composerKinds : const [DaybookKind.thanks];
+
 /// G1: the kind the composer opens on is the last one posted in this
-/// Space, kept on the phone; Note the first time.
+/// Space, kept on the phone; Note the first time. W11: only one of
+/// [kinds] (what this person may post); else Note, else the first of them
+/// (a Viewer: Thanks).
 String composerKindKey(String spaceId) => 'composer_kind:$spaceId';
 
-DaybookKind composerStartKind(SharedPreferences prefs, String spaceId) {
+DaybookKind composerStartKind(
+  SharedPreferences prefs,
+  String spaceId,
+  List<DaybookKind> kinds,
+) {
   final kept = prefs.getString(composerKindKey(spaceId));
-  if (kept == null) return DaybookKind.note;
-  final kind = DaybookKind.fromJson(kept);
-  return composerKinds.contains(kind) ? kind : DaybookKind.note;
+  final kind = kept == null ? null : DaybookKind.fromJson(kept);
+  if (kind != null && kinds.contains(kind)) return kind;
+  return kinds.contains(DaybookKind.note) ? DaybookKind.note : kinds.first;
 }
 
 Future<void> rememberComposerKind(

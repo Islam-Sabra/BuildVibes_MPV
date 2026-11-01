@@ -58,7 +58,8 @@ class SpaceComposing extends Notifier<bool> {
 }
 
 /// Review 110 D (CP1–CP4, 2707:39361…): writing in a Space, over the whole
-/// screen. On top, × · the kind's name over the Space's · Drafts. Then
+/// screen. On top, × · the kind's name over the Space's · Templates (W9:
+/// where this Space has templates for the kind; × keeps the draft). Then
 /// the title, the details, the photos, the lines the kind needs (For,
 /// Team, When) and what was added from + as small chips with ×; nothing
 /// else until asked for. [bar] (# · + · camera · Send) sits on the
@@ -84,6 +85,8 @@ class DaybookComposer extends ConsumerStatefulWidget {
     required this.onPickDue,
     required this.onPickThanksTo,
     required this.onPickThanksFor,
+    this.kinds = composerKinds,
+    this.onTemplates,
     this.overlay,
     this.editing = false,
     this.askWho,
@@ -97,8 +100,15 @@ class DaybookComposer extends ConsumerStatefulWidget {
   final ComposerPanel? panel;
   final ValueChanged<ComposerPanel?> onPanel;
 
-  /// × and Drafts: back to the Space, what was written kept as its draft.
+  /// ×: back to the Space, what was written kept as its draft.
   final VoidCallback onClose;
+
+  /// What # offers: the kinds this person may post (W11; a Viewer:
+  /// Thanks only).
+  final List<DaybookKind> kinds;
+
+  /// Templates on the top bar (W9): the template picker.
+  final VoidCallback? onTemplates;
   final ValueChanged<DaybookKind> onKind;
   final ValueChanged<ComposerExtra> onExtra;
   final ValueChanged<DaybookWritingMenu> onMenu;
@@ -215,7 +225,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
   };
 
   String _bodyHint(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
-    DaybookKind.workItem => l10n.cpDetails,
+    // W6: a Thanks has Details (optional) under its words (TH1).
+    DaybookKind.workItem || DaybookKind.thanks => l10n.cpDetails,
     DaybookKind.announcement => l10n.daybookBodyAnnouncement,
     DaybookKind.activity => l10n.daybookBodyActivity,
     _ => l10n.daybookBodyNote,
@@ -234,7 +245,6 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         ComposerExtra.table => l10n.pageTable,
         ComposerExtra.taskTable => l10n.pageTaskTable,
         ComposerExtra.pin => l10n.cpPin,
-        ComposerExtra.template => l10n.templateMenu,
       };
 
   static IconData extraIcon(ComposerExtra e) => switch (e) {
@@ -249,7 +259,6 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     ComposerExtra.table => BvIcons.tableBlock,
     ComposerExtra.taskTable => BvIcons.todoList,
     ComposerExtra.pin => BvIcons.pin,
-    ComposerExtra.template => BvIcons.clipboard,
   };
 
   /// # (CP2): the kind's icon on the bar.
@@ -564,7 +573,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       columns: BvIconGridSpec.kindsColumns,
       largeColumns: BvIconGridSpec.kindsColumnsLarge,
       items: [
-        for (final k in composerKinds)
+        for (final k in widget.kinds)
           BvIconGridItem(
             id: k.json,
             icon: composerKindIcon(k),
@@ -590,18 +599,11 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       largeColumns: BvIconGridSpec.extrasColumnsLarge,
       items: [
         for (final e in composerOffered(draft.kind, editing: widget.editing))
-          if (e != ComposerExtra.template ||
-              writingHasTemplates(
-                ref,
-                widget.spaceId,
-                draft,
-                editing: widget.editing,
-              ))
-            BvIconGridItem(
-              id: e.key,
-              icon: extraIcon(e),
-              label: extraName(l10n, e),
-            ),
+          BvIconGridItem(
+            id: e.key,
+            icon: extraIcon(e),
+            label: extraName(l10n, e),
+          ),
       ],
       onSelected: (id) {
         final e = ComposerExtra.values.firstWhere((e) => e.key == id);
@@ -667,7 +669,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       key: const Key('composer'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // × · the kind's name over the Space's · Drafts.
+        // × · the kind's name over the Space's · Templates (W9).
         Padding(
           key: const Key('composer-top'),
           padding: BvComposerSpec.topPadding,
@@ -702,11 +704,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                   ],
                 ),
               ),
-              if (!widget.editing)
+              if (widget.onTemplates != null &&
+                  writingHasTemplates(
+                    ref,
+                    widget.spaceId,
+                    draft,
+                    editing: widget.editing,
+                  ))
                 TextButton(
-                  key: const Key('composer-drafts'),
-                  onPressed: widget.onClose,
-                  child: Text(l10n.cpDrafts, style: quiet),
+                  key: const Key('composer-templates'),
+                  onPressed: widget.onTemplates,
+                  child: Text(l10n.cpTemplates, style: quiet),
                 ),
             ],
           ),
@@ -746,28 +754,25 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ),
                         onChanged: _writer.setTitle,
                       ),
-                      // TH1: no details on a Thanks; words kept from
-                      // another kind still show, and go under its words.
-                      if (kind != DaybookKind.thanks ||
-                          draft.body.isNotEmpty) ...[
-                        const SizedBox(height: BvSpace.s8),
-                        TextField(
-                          key: const Key('writing-body'),
-                          controller: _body,
-                          focusNode: _bodyFocus,
-                          maxLength: DaybookPostDraft.bodyMax,
-                          buildCounter: _noCounter,
-                          minLines: 1,
-                          maxLines: null,
-                          style: type.bodyMd.copyWith(
-                            color: BvColors.textPrimary,
-                          ),
-                          decoration: field.copyWith(
-                            hintText: _bodyHint(l10n, kind),
-                          ),
-                          onChanged: _writer.setBody,
+                      // W6: a Thanks too (TH1): Details (optional) under
+                      // its words; both go as its one body.
+                      const SizedBox(height: BvSpace.s8),
+                      TextField(
+                        key: const Key('writing-body'),
+                        controller: _body,
+                        focusNode: _bodyFocus,
+                        maxLength: DaybookPostDraft.bodyMax,
+                        buildCounter: _noCounter,
+                        minLines: 1,
+                        maxLines: null,
+                        style: type.bodyMd.copyWith(
+                          color: BvColors.textPrimary,
                         ),
-                      ],
+                        decoration: field.copyWith(
+                          hintText: _bodyHint(l10n, kind),
+                        ),
+                        onChanged: _writer.setBody,
+                      ),
                     ],
                     if (draft.quote case final q?) ...[
                       const SizedBox(height: BvSpace.s12),
@@ -827,7 +832,19 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ],
                       ),
                     ],
-                    if (lines.isNotEmpty) ...[
+                    if (kind == DaybookKind.thanks) ...[
+                      // To, its one quiet line (founder, 1 Nov), then For.
+                      const SizedBox(height: BvSpace.s12),
+                      BvWritingPills(rows: lines.take(1).toList()),
+                      const SizedBox(height: BvWritingPillSpec.gap),
+                      Text(
+                        l10n.thanksProfileNote,
+                        key: const Key('writing-thanks-profile-note'),
+                        style: quiet,
+                      ),
+                      const SizedBox(height: BvWritingPillSpec.gap),
+                      BvWritingPills(rows: lines.skip(1).toList()),
+                    ] else if (lines.isNotEmpty) ...[
                       const SizedBox(height: BvSpace.s12),
                       BvWritingPills(rows: lines),
                     ],

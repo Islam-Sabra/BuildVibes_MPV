@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -990,10 +991,20 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         call: call,
         params: params,
         at: at,
-        title: item.draft?.title.trim() ?? item.title,
+        title: scheduledTitle(item.draft?.title ?? item.title),
         // V8: the server marks the note once it goes.
         noteId: item.fromNote,
       );
+
+  /// What Scheduled shows of a post (review 110 W7): its first line, at
+  /// most [ScheduledCall.titleMax] characters (never cut inside one). A
+  /// Thanks's words can run to many lines.
+  @visibleForTesting
+  static String scheduledTitle(String text) {
+    final first = text.trim().split('\n').first.trim().characters;
+    const most = ScheduledCall.titleMax;
+    return first.length <= most ? '$first' : '${first.take(most - 1)}…';
+  }
 
   Future<void> _call(PendingItem item, List<PendingPhoto> photos) async {
     final daybook = ref.read(daybookRepositoryProvider);
@@ -1035,23 +1046,26 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           await setPostPlaceOrKeepName(daybook, item.id, place);
         }
       case PendingKind.post when item.draft?.kind == DaybookKind.thanks:
-        // Review 110 TH1: never scheduled (not in schedule_post's list).
         final d = item.draft!;
-        await daybook.createThanks(
-          NewThanks(
-            id: item.id,
-            spaceId: item.spaceId,
-            // Words kept from another kind's details go under them.
-            words: [
-              d.title.trim(),
-              d.body.trim(),
-            ].where((w) => w.isNotEmpty).join('\n\n'),
-            toPersonId: d.thanksToTeam ? null : d.thanksToId,
-            toTeamId: d.thanksToTeam ? d.thanksToId : null,
-            forId: d.thanksForId,
-            photoPaths: paths,
-          ),
+        final made = NewThanks(
+          id: item.id,
+          spaceId: item.spaceId,
+          // W6: the server keeps one body: the words from the title line,
+          // a blank line, then Details (optional).
+          words: [
+            d.title.trim(),
+            d.body.trim(),
+          ].where((w) => w.isNotEmpty).join('\n\n'),
+          toPersonId: d.thanksToTeam ? null : d.thanksToId,
+          toTeamId: d.thanksToTeam ? d.thanksToId : null,
+          forId: d.thanksForId,
+          photoPaths: paths,
         );
+        // W7: Post later keeps create_thanks with the same params.
+        if (item.scheduleAt case final at?) {
+          return _schedule(item, ScheduledCall.thanks, made.toParams(), at);
+        }
+        await daybook.createThanks(made);
       case PendingKind.post:
         final d = item.draft!;
         final made = NewSpacePost(

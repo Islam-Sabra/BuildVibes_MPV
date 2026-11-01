@@ -1,12 +1,16 @@
 // Review 110 E in the composer: a Thanks (TH1 2715:39559) to a person or a
-// Team, for an optional work item, its words in the title line; a work
+// Team, for an optional work item, its words in the title line and
+// Details (optional) under them (W6); Post later for it too (W7); a
+// Viewer may thank, and only thank (founder, 1 Nov); a work
 // item's one tag from + → Tag (TG1 2715:39661), Safety red; Work filtered
 // by a card's tag; and + → Checklist on a work item (step 5). In English
 // and Arabic.
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
+import 'package:buildvibes/data/repositories/schedule_repository.dart';
 import 'package:buildvibes/features/work/daybook_composer.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
@@ -14,13 +18,16 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
+import '../../helpers/later_fakes.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -45,14 +52,16 @@ const _tags = [
   DaybookTag(id: 'design', name: {'en': 'Design', 'ar': 'التصميم'}),
 ];
 
-/// Islam (Lead) writing in the sample Space, the composer open on
-/// [kind].
+/// Islam (Lead, or another [pass]) writing in the sample Space, the
+/// composer open on [kind].
 Future<FakeDaybookRepository> _open(
   WidgetTester tester,
   String lang, {
   String kind = 'work_item',
   List<DaybookCard>? posts,
   bool write = true,
+  SpacePass pass = SpacePass.lead,
+  FakeScheduleRepository? schedule,
 }) async {
   final s = DaybookSamples(lang);
   final fake = FakeDaybookRepository()
@@ -63,9 +72,13 @@ Future<FakeDaybookRepository> _open(
     language: lang,
     composerKind: kind,
     spaces: FakeSpaceRepository()
-      ..details[DaybookSamples.space] = s.detail()
+      ..details[DaybookSamples.space] = s.detail(
+        pass: pass,
+        admin: pass == SpacePass.lead,
+      )
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: fake,
+    schedule: schedule,
     now: _now,
   );
   GoRouter.of(
@@ -153,6 +166,39 @@ void main() {
     });
   });
 
+  test('W7: a Thanks is one of the calls Post later keeps', () {
+    expect(ScheduledCall.thanks, 'create_thanks');
+  });
+
+  test('W11: the kind it opens on is one this person may post: a Viewer '
+      'thanks only; a kind kept from before falls back to Note', () async {
+    SharedPreferences.setMockInitialValues({
+      composerKindKey('s1'): 'work_item',
+      composerKindKey('s2'): 'announcement',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final lead = DaybookSamples('en').detail();
+    final viewer = DaybookSamples('en').detail(pass: SpacePass.viewer);
+    expect(composerKindsFor(lead), composerKinds);
+    expect(composerKindsFor(viewer), const [DaybookKind.thanks]);
+    expect(
+      composerStartKind(prefs, 's1', composerKindsFor(lead)),
+      DaybookKind.workItem,
+    );
+    expect(
+      composerStartKind(prefs, 's1', composerKindsFor(viewer)),
+      DaybookKind.thanks,
+    );
+    expect(composerStartKind(prefs, 'new', composerKinds), DaybookKind.note);
+    expect(
+      composerStartKind(prefs, 's2', const [
+        DaybookKind.note,
+        DaybookKind.thanks,
+      ]),
+      DaybookKind.note,
+    );
+  });
+
   for (final lang in ['en', 'ar']) {
     final l10n = lookupAppLocalizations(Locale(lang));
     final s = DaybookSamples(lang);
@@ -181,8 +227,9 @@ void main() {
         );
       });
 
-      testWidgets('top "Thanks"; the words in the title line; To and For; '
-          'no details, no Team; + offers Photos only', (tester) async {
+      testWidgets('top "Thanks"; the words in the title line, Details '
+          '(optional) under them; To, with its one quiet line, and For; no '
+          'Team; + offers Photos only', (tester) async {
         await _open(tester, lang, kind: 'thanks');
         expect(
           find.descendant(
@@ -195,8 +242,22 @@ void main() {
           tester.widget<TextField>(_key('writing-title')).decoration?.hintText,
           l10n.thanksWordsHint,
         );
-        expect(_key('writing-body'), findsNothing);
+        expect(
+          tester.widget<TextField>(_key('writing-body')).decoration?.hintText,
+          l10n.cpDetails,
+        );
+        expect(
+          tester.getTopLeft(_key('writing-body')).dy,
+          greaterThan(tester.getTopLeft(_key('writing-title')).dy),
+        );
         expect(_key('writing-thanks-to'), findsOneWidget);
+        // The founder's line under To (1 Nov).
+        final note = _key('writing-thanks-profile-note');
+        expect(tester.widget<Text>(note).data, l10n.thanksProfileNote);
+        expect(
+          tester.getTopLeft(note).dy,
+          greaterThan(tester.getTopLeft(_key('writing-thanks-to')).dy),
+        );
         expect(_key('writing-thanks-for'), findsOneWidget);
         expect(_key('writing-to'), findsNothing);
         expect(_key('writing-who'), findsNothing);
@@ -285,10 +346,29 @@ void main() {
         expect(fake.createdThanks.single.toPersonId, isNull);
       });
 
-      testWidgets('hold Send: Post later is not ready, and says why', (
-        tester,
-      ) async {
-        await _open(tester, lang, kind: 'thanks');
+      testWidgets('W6: the words and the details go as one body: the '
+          'words, a blank line, then the details', (tester) async {
+        final fake = await _open(tester, lang, kind: 'thanks');
+        final details = s.t('The pour went well.', 'سار الصب جيدًا.');
+        await tester.enterText(_key('writing-title'), 'Great week');
+        await tester.enterText(_key('writing-body'), details);
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-thanks-to'));
+        await _tap(tester, _key('thanks-to-team-t-mep'));
+        await _tap(tester, _key('writing-post'));
+        expect(fake.createdThanks.single.words, 'Great week\n\n$details');
+      });
+
+      testWidgets('W7: hold Send offers Post later; it sends create_thanks '
+          'through schedule_post with its params, nothing now, and '
+          'Scheduled lists it', (tester) async {
+        final schedule = FakeScheduleRepository();
+        final fake = await _open(
+          tester,
+          lang,
+          kind: 'thanks',
+          schedule: schedule,
+        );
         await tester.enterText(_key('writing-title'), 'Great week');
         await tester.pumpAndSettle();
         await _tap(tester, _key('writing-thanks-to'));
@@ -296,13 +376,47 @@ void main() {
         final bar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
         );
-        expect(bar.laterReady, isFalse);
-        await tester.longPress(_key('writing-post'));
-        await tester.pumpAndSettle();
+        expect(bar.laterReady, isTrue);
+        await openPostLater(tester);
+        await _tap(tester, _key('later-schedule'));
+        final sent = schedule.scheduled.single;
+        expect(sent.call, ScheduledCall.thanks);
+        expect(sent.params, {
+          'p_id': sent.id,
+          'p_space': DaybookSamples.space,
+          'p_body': 'Great week',
+          'p_to_person': null,
+          'p_to_team': 't-mep',
+          'p_for': null,
+          'p_files': <Object>[],
+        });
+        expect(fake.createdThanks, isEmpty);
+        expect(_key('composer'), findsNothing);
+        expect(schedule.posts.single.title, 'Great week');
         expect(
-          tester.widget<Text>(_key('hold-menu-note')).data,
-          l10n.thanksCantSchedule,
+          find.descendant(
+            of: _key('space-scheduled'),
+            matching: find.text(l10n.plCount(1)),
+          ),
+          findsOneWidget,
         );
+      });
+
+      testWidgets('W7: what Scheduled shows is the first line of the words, '
+          'cut to what it keeps', (tester) async {
+        final schedule = FakeScheduleRepository();
+        await _open(tester, lang, kind: 'thanks', schedule: schedule);
+        final long = List.filled(60, 'thanks').join(' ');
+        await tester.enterText(_key('writing-title'), '$long\nsecond line');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-thanks-to'));
+        await _tap(tester, _key('thanks-to-team-t-mep'));
+        await openPostLater(tester);
+        await _tap(tester, _key('later-schedule'));
+        final title = schedule.posts.single.title;
+        expect(title.length, lessThanOrEqualTo(ScheduledCall.titleMax));
+        expect(long.startsWith(title.substring(0, title.length - 1)), isTrue);
+        expect(title, isNot(contains('\n')));
       });
 
       testWidgets('another kind drops To and For, in one line', (tester) async {
@@ -339,6 +453,81 @@ void main() {
         await _tap(tester, _key('daybook-draft'));
         expect(find.text(l10n.thanksRefusedSelf), findsOneWidget);
         expect(find.text(l10n.daybookCouldNotSend), findsNothing);
+      });
+    });
+
+    group('A Viewer may thank (founder, 1 Nov) [$lang]', () {
+      testWidgets('the post bar keeps Viewer and Read only, and has Thank '
+          'someone with the heart', (tester) async {
+        await _open(tester, lang, pass: SpacePass.viewer, write: false);
+        expect(find.text(l10n.daybookReadOnly), findsOneWidget);
+        expect(_key('post-bar-notepad'), findsNothing);
+        expect(_key('post-bar-camera'), findsNothing);
+        final thank = _key('post-bar-thank');
+        expect(
+          find.descendant(of: thank, matching: find.text(l10n.thanksSomeone)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: thank, matching: find.byIcon(BvIcons.thanks)),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('it opens the composer on Thanks only, whatever was kept: '
+          'no #, + Photos only; Send posts create_thanks', (tester) async {
+        final fake = await _open(
+          tester,
+          lang,
+          pass: SpacePass.viewer,
+          write: false,
+        );
+        await _tap(tester, _key('post-bar-thank'));
+        expect(_key('composer'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: _key('composer-top'),
+            matching: find.text(l10n.cpNewThanks),
+          ),
+          findsOneWidget,
+        );
+        expect(_key('writing-kind'), findsNothing);
+        await _tap(tester, _key('writing-add'));
+        final shown = {
+          for (final e in ComposerExtra.values)
+            if (_key('composer-extra-${e.key}').evaluate().isNotEmpty) e.key,
+        };
+        expect(shown, {'photos'});
+        await _tap(tester, _key('writing-add'));
+        await tester.enterText(_key('writing-title'), 'Great week');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-thanks-to'));
+        await _tap(tester, find.text(s.omarName).last);
+        await _tap(tester, _key('writing-post'));
+        expect(fake.createdThanks.single.toPersonId, DaybookSamples.omar);
+        expect(_key('composer'), findsNothing);
+        expect(_key('post-bar-thank'), findsOneWidget);
+      });
+
+      testWidgets('a draft of another kind kept from before opens as a '
+          'Thanks', (tester) async {
+        await _open(tester, lang, pass: SpacePass.viewer, write: false);
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(Navigator).first),
+        );
+        await container
+            .read(daybookDraftProvider(DaybookSamples.space).notifier)
+            .put(
+              const DaybookPostDraft(
+                id: 'kept',
+                kind: DaybookKind.workItem,
+                title: 'Edge guard',
+              ),
+            );
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('daybook-draft'));
+        expect(composerDraft(tester)?.kind, DaybookKind.thanks);
+        expect(composerDraft(tester)?.title, 'Edge guard');
       });
     });
 

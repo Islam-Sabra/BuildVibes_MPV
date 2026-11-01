@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
+import 'bv_chip.dart';
 import 'bv_tap_target.dart';
 import 'bv_tip.dart';
 
 /// The bar under the Daybook (spec §8): a notepad that starts writing in
 /// place, and the camera (a tap only: a signature is never on a hold, the
 /// lead's check of 105A, H1). For a Viewer pass,
-/// [BvPostBar.viewer] shows the pass and "Read only" instead.
+/// [BvPostBar.viewer] shows the pass and "Read only" instead, and "Thank
+/// someone" (review 110, founder 1 Nov: a Viewer may thank).
 class BvPostBar extends StatelessWidget {
   const BvPostBar({
     super.key,
@@ -22,13 +24,17 @@ class BvPostBar extends StatelessWidget {
     this.end,
   }) : passLabel = null,
        readOnly = null,
-       passTone = BvPassTone.viewer;
+       passTone = BvPassTone.viewer,
+       thankLabel = null,
+       onThank = null;
 
   const BvPostBar.viewer({
     super.key,
     required String this.passLabel,
     this.readOnly,
     this.passTone = BvPassTone.viewer,
+    this.thankLabel,
+    this.onThank,
   }) : placeholder = null,
        onWrite = null,
        onCamera = null,
@@ -62,6 +68,10 @@ class BvPostBar extends StatelessWidget {
   final String? readOnly;
   final BvPassTone passTone;
 
+  /// "Thank someone", with the heart: the composer on a Thanks.
+  final String? thankLabel;
+  final VoidCallback? onThank;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
@@ -94,6 +104,15 @@ class BvPostBar extends StatelessWidget {
                     style: type.metadata.copyWith(
                       color: BvColors.textSecondary,
                     ),
+                  ),
+                ),
+              if (thankLabel != null && onThank != null)
+                Flexible(
+                  child: BvChip(
+                    key: const Key('post-bar-thank'),
+                    label: thankLabel!,
+                    icon: BvIcons.thanks,
+                    onTap: onThank,
                   ),
                 ),
             ],

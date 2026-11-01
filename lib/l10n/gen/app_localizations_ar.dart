@@ -6210,7 +6210,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get cpDrafts => 'المسودات';
+  String get cpTemplates => 'القوالب';
 
   @override
   String get cpDetails => 'التفاصيل (اختياري)';
@@ -6393,7 +6393,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get thanksForNone => 'لا بنود عمل مفتوحة في هذه المساحة.';
 
   @override
-  String get thanksCantSchedule => 'لا يمكن جدولة الشكر حاليًا.';
+  String get thanksSomeone => 'اشكر شخصًا';
+
+  @override
+  String get thanksProfileNote => 'يمكنه عرض هذا في ملفه.';
 
   @override
   String get thanksRefusedNotAllowed => 'لا يمكنك نشر شكر في هذه المساحة.';

@@ -10262,11 +10262,11 @@ abstract class AppLocalizations {
   /// **'{space} · {line}'**
   String cpSpaceLine(String space, String line);
 
-  /// Review 110 CP1: keeps what was written as the Space's draft and goes back to the Space.
+  /// Review 110 W9: the composer's top bar, in Drafts' old place, for a kind with templates in this Space: opens the template picker.
   ///
   /// In en, this message translates to:
-  /// **'Drafts'**
-  String get cpDrafts;
+  /// **'Templates'**
+  String get cpTemplates;
 
   /// Review 110 CP1: a work item's details box.
   ///
@@ -10544,11 +10544,17 @@ abstract class AppLocalizations {
   /// **'No open work items in this Space.'**
   String get thanksForNone;
 
-  /// Review 110 TH1: hold Send on a Thanks.
+  /// Review 110 (founder, 1 Nov): a Viewer's post bar, beside Read only: opens the composer on a Thanks.
   ///
   /// In en, this message translates to:
-  /// **'A Thanks can\'t be scheduled yet.'**
-  String get thanksCantSchedule;
+  /// **'Thank someone'**
+  String get thanksSomeone;
+
+  /// Review 110 (founder, 1 Nov): the quiet line under To in the Thanks composer.
+  ///
+  /// In en, this message translates to:
+  /// **'They can show this on their profile.'**
+  String get thanksProfileNote;
 
   /// Review 110 TH1: create_thanks said not allowed.
   ///

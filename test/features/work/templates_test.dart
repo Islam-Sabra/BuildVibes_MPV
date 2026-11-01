@@ -143,9 +143,10 @@ Future<void> _write(
   }
 }
 
-/// The bar's + (review 110 CP3: Template is one of its tiles).
-Future<void> _more(WidgetTester tester, AppLocalizations l10n) =>
-    _tap(tester, _key('writing-add'));
+/// Templates on the composer's top bar (review 110 W9: it left the + grid
+/// and took Drafts' place).
+Future<void> _fromTemplate(WidgetTester tester) =>
+    _tap(tester, _key('composer-templates'));
 
 void main() {
   test('only the Everyone templates of the kind, unless the card has an '
@@ -196,8 +197,7 @@ void main() {
         '"From:" with ✕ [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.checklist);
-      await _more(tester, l10n);
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _fromTemplate(tester);
       final picker = _key('template-picker');
       expect(picker, findsOneWidget);
       // Only this kind's.
@@ -258,8 +258,7 @@ void main() {
         '[$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement);
-      await _more(tester, l10n);
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _fromTemplate(tester);
       await _tap(tester, _key('template-$_gate'));
       await _tap(tester, _key('writing-template-clear'));
       expect(_key('writing-template'), findsNothing);
@@ -274,8 +273,7 @@ void main() {
         'first, another Team\'s isn\'t offered [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement);
-      await _more(tester, l10n);
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _fromTemplate(tester);
       expect(
         find.descendant(
           of: _key('template-$_mepNote'),
@@ -302,8 +300,7 @@ void main() {
         'shows them [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _tap(tester, _key('post-bar-notepad'));
-      await _more(tester, l10n);
-      await _tap(tester, find.text(l10n.templateMenu));
+      await _fromTemplate(tester);
       await _tap(tester, _key('template-$_sleeves'));
       // Review 105 SP2: the For row.
       await _tap(tester, _key('writing-who'));
@@ -333,8 +330,9 @@ void main() {
         templates: FakeTemplateRepository(kept: [dailyReportTemplate]),
       );
       await _write(tester, l10n, DaybookKind.checklist);
-      await _more(tester, l10n);
-      expect(find.text(l10n.templateMenu), findsNothing);
+      expect(_key('composer-templates'), findsNothing);
+      await _tap(tester, _key('writing-add'));
+      expect(_key('composer-extra-template'), findsNothing);
     });
 
     testWidgets('Save as template: a Lead names it; at the Space\'s 50 it '

@@ -8799,9 +8799,9 @@
       }
     }
   },
-  "cpDrafts": "Drafts",
-  "@cpDrafts": {
-    "description": "Review 110 CP1: keeps what was written as the Space's draft and goes back to the Space."
+  "cpTemplates": "Templates",
+  "@cpTemplates": {
+    "description": "Review 110 W9: the composer's top bar, in Drafts' old place, for a kind with templates in this Space: opens the template picker."
   },
   "cpDetails": "Details (optional)",
   "@cpDetails": {
@@ -9035,9 +9035,13 @@
   "@thanksForNone": {
     "description": "Review 110 TH1: the For sheet with nothing to choose."
   },
-  "thanksCantSchedule": "A Thanks can't be scheduled yet.",
-  "@thanksCantSchedule": {
-    "description": "Review 110 TH1: hold Send on a Thanks."
+  "thanksSomeone": "Thank someone",
+  "@thanksSomeone": {
+    "description": "Review 110 (founder, 1 Nov): a Viewer's post bar, beside Read only: opens the composer on a Thanks."
+  },
+  "thanksProfileNote": "They can show this on their profile.",
+  "@thanksProfileNote": {
+    "description": "Review 110 (founder, 1 Nov): the quiet line under To in the Thanks composer."
   },
   "thanksRefusedNotAllowed": "You can't post a Thanks in this Space.",
   "@thanksRefusedNotAllowed": {

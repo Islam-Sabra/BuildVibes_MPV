@@ -78,7 +78,7 @@ void main() {
 
     group('CP1 the composer takes the whole screen [$lang]', () {
       testWidgets('no Space header, no Work · Chat, no day line; × · the '
-          'kind\'s name over the Space\'s · Drafts', (tester) async {
+          'kind\'s name over the Space\'s; no Drafts (W9)', (tester) async {
         await _open(tester, lang, lastKind: 'work_item');
         expect(_key('composer'), findsOneWidget);
         expect(find.byType(BvSpaceHeader), findsNothing);
@@ -99,7 +99,10 @@ void main() {
           findsOneWidget,
         );
         expect(_key('composer-close'), findsOneWidget);
-        expect(_key('composer-drafts'), findsOneWidget);
+        expect(_key('composer-drafts'), findsNothing);
+        expect(find.text('Drafts'), findsNothing);
+        // No template here for a work item: no Templates either.
+        expect(_key('composer-templates'), findsNothing);
         // The kind's name once only: no kind chips over the title.
         expect(_key('writing-kinds'), findsNothing);
         expect(find.text(l10n.daybookWorkItem), findsNothing);
@@ -121,7 +124,7 @@ void main() {
       });
 
       testWidgets('× returns to the Space and keeps what was written as its '
-          'draft; Drafts does the same', (tester) async {
+          'draft', (tester) async {
         await _open(tester, lang, lastKind: 'work_item');
         await tester.enterText(_key('writing-title'), 'Cracked tile');
         await tester.pumpAndSettle();
@@ -131,7 +134,11 @@ void main() {
         expect(_key('daybook-draft'), findsOneWidget);
         await _tap(tester, _key('daybook-draft'));
         expect(_key('composer'), findsOneWidget);
-        await _tap(tester, _key('composer-drafts'));
+        expect(
+          tester.widget<TextField>(_key('writing-title')).controller?.text,
+          'Cracked tile',
+        );
+        await _tap(tester, _key('composer-close'));
         expect(_key('composer'), findsNothing);
         expect(_draft(tester)?.title, 'Cracked tile');
       });
@@ -252,6 +259,8 @@ void main() {
       });
     });
 
+    // The founder's table (part D), with Pin on an announcement and People
+    // on an activity (W9). Template is no longer in + (W9).
     group('CP3 + the extras, each kind its own [$lang]', () {
       final kinds = <String, List<String>>{
         'note': ['photos', 'file', 'place', 'bullets', 'table'],
@@ -266,22 +275,38 @@ void main() {
           'table',
           'task_table',
         ],
-        'announcement': ['photos', 'file', 'bullets', 'table'],
+        'announcement': ['photos', 'file', 'bullets', 'table', 'pin'],
         'activity': ['place', 'people', 'photos', 'file', 'bullets'],
       };
       for (final MapEntry(key: kind, value: extras) in kinds.entries) {
-        testWidgets('$kind: ${extras.join(' · ')}', (tester) async {
+        testWidgets('$kind: exactly ${extras.join(' · ')}', (tester) async {
           await _open(tester, lang, lastKind: kind);
           await _tap(tester, _key('writing-add'));
           expect(_key('composer-extras'), findsOneWidget);
-          final shown = {
-            for (final e in ComposerExtra.values)
-              if (_key('composer-extra-${e.key}').evaluate().isNotEmpty) e.key,
-          };
-          shown.removeAll(['pin', 'template']);
-          expect(shown, extras.toSet());
+          final tiles = find.descendant(
+            of: _key('composer-extras'),
+            matching: find.byType(BvIconGridTile),
+          );
+          expect(
+            [
+              for (final t in tester.widgetList<BvIconGridTile>(tiles))
+                '${t.key}'.replaceAll(RegExp(r"^\[<'composer-extra-|'>\]$"), ''),
+            ],
+            extras,
+          );
         });
       }
+
+      testWidgets('a work item\'s 9: a row of 5, then a row of 4', (
+        tester,
+      ) async {
+        await _open(tester, lang, lastKind: 'work_item');
+        await _tap(tester, _key('writing-add'));
+        double row(String k) => tester.getTopLeft(_key('composer-extra-$k')).dy;
+        expect(row('file'), row('place'));
+        expect(row('checklist'), greaterThan(row('place')));
+        expect(row('task_table'), row('checklist'));
+      });
     });
 
     group('CP4 what was added [$lang]', () {

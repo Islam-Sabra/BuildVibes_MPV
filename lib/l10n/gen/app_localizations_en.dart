@@ -6163,7 +6163,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get cpDrafts => 'Drafts';
+  String get cpTemplates => 'Templates';
 
   @override
   String get cpDetails => 'Details (optional)';
@@ -6341,7 +6341,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get thanksForNone => 'No open work items in this Space.';
 
   @override
-  String get thanksCantSchedule => 'A Thanks can\'t be scheduled yet.';
+  String get thanksSomeone => 'Thank someone';
+
+  @override
+  String get thanksProfileNote => 'They can show this on their profile.';
 
   @override
   String get thanksRefusedNotAllowed =>
