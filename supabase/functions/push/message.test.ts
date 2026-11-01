@@ -346,3 +346,43 @@ test("review 109 CI5: the creator's summary is a normal notification with what t
   assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
   assert.equal(m.apns, undefined);
 });
+
+// Lock-screen text off (migration 14's rule): the queue has no title, no
+// Space and no counts; only the ids and the window.
+const checkInPlain = (mark: string): QueueRow =>
+  row("check_in_open", {
+    actor_id: null,
+    data: { post_id: "p1", space_id: "s1", mark, until: "2026-12-01T04:15:00+00:00", tz: "Asia/Kuwait" },
+  });
+
+test("review 109, lock-screen text off: only Time to check in / out, in the person's language, actions kept", () => {
+  const p = buildPush(checkInPlain("in"), "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Time to check in");
+  assert.ok(!p.body.includes("07:15"), "not even the time");
+  assert.equal(p.data.push_title, "BuildVibes");
+  assert.equal(p.data.push_body, "Time to check in");
+  assert.equal(p.data.post_id, "p1", "the ids stay, so Check in works");
+  assert.equal(p.data.mark, "in");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(checkInPlain("out"), "en", null, strings).body, "Time to check out");
+  assert.equal(buildPush(checkInPlain("in"), "ar", null, strings).body, "حان وقت تسجيل الحضور");
+  assert.equal(buildPush(checkInPlain("out"), "ar", null, strings).body, "حان وقت تسجيل الخروج");
+  const m = fcmMessage("tok", p) as {
+    data: Record<string, string>;
+    apns: { payload: { aps: { category: string; alert: { title: string; body: string } } } };
+  };
+  assert.equal(m.apns.payload.aps.category, "CHECK_IN_IN", "the actions stay on iOS");
+  assert.equal(m.apns.payload.aps.alert.body, "Time to check in");
+  assert.equal(m.data.channel_id, "check_in");
+  assert.ok(!JSON.stringify(m).includes("Morning"), "no title anywhere in what FCM gets");
+});
+
+test("review 109, lock-screen text off: the summary says only that it is ready", () => {
+  const summary = row("check_in_summary", { actor_id: null, data: { post_id: "p1", space_id: "s1" } });
+  const p = buildPush(summary, "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Check-in summary ready");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(summary, "ar", null, strings).body, "ملخص الحضور جاهز");
+});

@@ -185,12 +185,19 @@ function checkInOpenPush(
   locale: string,
 ): Push {
   const d = row.data ?? {};
-  const until = d.until ? clockIn(d.until, locale, d.tz) : "";
-  const space = d.space_name?.trim() ? isolate(d.space_name.trim()) : "";
-  const by = until ? t.check_in_by.replaceAll("{time}", until) : "";
-  const title = d.title?.trim() ? isolate(d.title.trim()) : t.title;
-  const body = [space, by].filter((x) => x).join(t.separator) ||
-    (d.mark === "out" ? t.check_in_open_out : t.check_in_open_in);
+  const plain = d.mark === "out" ? t.check_in_open_out : t.check_in_open_in;
+  let title = t.title;
+  let body = plain;
+  // The lock-screen rule (migration 14): the queue carries the title and
+  // the Space only when the person turned lock-screen text on. Off, only
+  // "Time to check in"; the ids stay in the data, so the actions work.
+  if (d.title?.trim()) {
+    const until = d.until ? clockIn(d.until, locale, d.tz) : "";
+    const space = d.space_name?.trim() ? isolate(d.space_name.trim()) : "";
+    const by = until ? t.check_in_by.replaceAll("{time}", until) : "";
+    title = isolate(d.title.trim());
+    body = [space, by].filter((x) => x).join(t.separator) || plain;
+  }
   // The app draws the Android notification from these two.
   return { title, body, data: { ...data, push_title: title, push_body: body } };
 }
@@ -204,6 +211,8 @@ function checkInSummaryPush(
   data: Record<string, string>,
 ): Push {
   const d = row.data ?? {};
+  // Lock-screen text off: the queue holds no title and no counts.
+  if (!d.title?.trim()) return { title: t.title, body: t.check_in_summary, data };
   const parts = (["late", "away", "missed"] as const)
     .map((k) => [k, Number(d[k] ?? "0") || 0] as const)
     .filter(([, n]) => n > 0)
