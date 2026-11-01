@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 1 Nov 2026 — review 110 accepted: X1, goldens, merged into `slice2-app`, migration 20261118120000 live, build 880 on the Desktop; not yet on the founder's phone
+## PC update: 1 Nov 2026 — review 110 accepted: X1, goldens, merged into `slice2-app`, migration 20261118120000 live, build 880 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -14,7 +14,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Merged** `claude/r110` into `slice2-app` with `--no-ff` (8a17d2ed), no conflicts, pushed. The same checks pass again: no issues, 3,101, 562, reset OK, 3,533 PASS.
 - **Migration 20261118120000 is live**, from a throwaway worktree at 8a17d2ed with `supabase/.temp` copied whole: the dry run listed only that file; `supabase db push` exit 0, "Applying migration 20261118120000_thanks_and_tags.sql…", then the known pg-delta catalog-cache certificate warning; `supabase migration list --linked` matches local and remote on every row through 20261118120000. The worktree is removed.
 - **Build 880** (versionCode 880, 0.9.0, commit 8a17d2ed): release APK at `Desktop/BuildVibes-880.apk`, signed with the same certificate as 852 (SHA-256 9d02b7db…b1df9f, CN=BuildVibes). `google-services.json` and `env/prod.json` were copied in and deleted after.
-- **Not yet on the founder's phone:** `adb connect 192.168.8.33:46081` was refused (wireless debugging gives a new port each time). **Next:** with his new IP:port, confirm the model is 22120RN86G, `adb install -r` BuildVibes-880.apk only (an update, keeping his data), disconnect. Then he tries the notebook share once and reads the code on the card if it still fails.
+- **On the founder's phone:** connected to 192.168.8.33:40853 only; model 22120RN86G confirmed, 852 on it; `adb install -r BuildVibes-880.apk`: Success (an update, his data kept); versionCode 880 confirmed; disconnected and adb stopped. **Next:** he tries the notebook share once and reads the code on the card if it still fails.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r110` (merged; worktree `BuildVibes-r110`).
 
 ## PC update: 1 Nov 2026 — review 110, the lead's check W1–W12 fixed on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build

@@ -887,7 +887,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - W1/W2 the Space list can't restart in a loop, shows a short code and Try again; W3/W4/W7 server (hidden or blocked recipients, tag needs create_items, Thanks can be scheduled; same migration, not live); W5 two refusal lines; W6 Thanks details; W8 no Checklist in the notebook share, to-dos become a work item's checklist; W9 the composer's top bar and + tiles; W10 tags on one line with +1, See more measured; W11; W12.
   - Founder: a Viewer may post a Thanks; the To line "They can show this on their profile."
   - Checks: analyze clean; 3,095 app tests; 3,533 SQL checks; shots 392 pass, 170 expected (44 r110 with no golden, 126 image differences), in `docs/reviews/shots-110b/`.
-- **1 Nov (PC): review 110 accepted and live:** X1 (the Viewer's bar wraps); goldens from shots-110, shots-110b and X1 (plus 38 screens that lost Drafts or Checklist, at today's render); merged into `slice2-app` (8a17d2ed); migration 20261118120000 live; build 880 on the Desktop, same certificate as 852; not yet on the founder's phone (his wireless debugging port changed).
+- **1 Nov (PC): review 110 accepted and live:** X1 (the Viewer's bar wraps); goldens from shots-110, shots-110b and X1 (plus 38 screens that lost Drafts or Checklist, at today's render); merged into `slice2-app` (8a17d2ed); migration 20261118120000 live; build 880, same certificate as 852, installed on the founder's phone as an update.
   - Checks: analyze clean; 3,101 app tests; 562 shots, all pass; 3,533 SQL checks.
 
 ## Before the pilot (week 11)
