@@ -30,7 +30,7 @@ test("every kind has its text in English and Arabic", () => {
     "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
     "activity_invited", "activity_starting", "file_new_version",
     "dm_message", "dm_request", "dm_follow_up",
-    "work_reminder", "scheduled_failed",
+    "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -277,4 +277,72 @@ test("review 108 PL: a scheduled post that couldn't go says why and opens Schedu
     "ar", null, strings,
   );
   assert.equal(ar.body, "تعذّر النشر: افتح المجدولة لتحاول مجددًا.");
+});
+
+const checkIn = (mark: string): QueueRow =>
+  row("check_in_open", {
+    actor_id: null,
+    data: {
+      post_id: "p1", space_id: "s1", mark, title: "Morning, Block B", space_name: "Tower 3",
+      until: mark === "in" ? "2026-12-01T04:15:00+00:00" : "2026-12-01T11:15:00+00:00",
+      tz: "Asia/Kuwait",
+    },
+  });
+
+test("review 109 CI2: check-in opens: the title over the Space and the on-time limit, in the Space's zone", () => {
+  const p = buildPush(checkIn("in"), "en", null, strings);
+  assert.equal(p.title, "⁨Morning, Block B⁩");
+  assert.equal(p.body, "⁨Tower 3⁩ · by 07:15");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(p.data.mark, "in");
+  assert.equal(p.data.push_title, p.title);
+  assert.equal(p.data.push_body, p.body);
+  const ar = buildPush(checkIn("out"), "ar", null, strings);
+  assert.equal(ar.body, "⁨Tower 3⁩ · حتى 14:15", "Western digits in Arabic");
+});
+
+test("review 109 CI2: Android gets a high-priority data message on the check_in channel; iOS a time-sensitive alert with its category", () => {
+  const m = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as {
+    notification?: unknown;
+    data: Record<string, string>;
+    android: { priority: string; notification?: unknown };
+    apns: {
+      headers: Record<string, string>;
+      payload: { aps: Record<string, unknown> & { alert: { title: string; body: string } } };
+    };
+  };
+  assert.equal(m.notification, undefined, "data only: the app draws it, with its actions");
+  assert.equal(m.android.priority, "high");
+  assert.equal(m.android.notification, undefined);
+  assert.equal(m.data.channel_id, "check_in");
+  assert.equal(m.data.kind, "check_in_open");
+  assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+  assert.equal(m.apns.headers["apns-priority"], "10");
+  assert.equal(m.apns.payload.aps.category, "CHECK_IN_IN");
+  assert.equal(m.apns.payload.aps["interruption-level"], "time-sensitive");
+  assert.equal(m.apns.payload.aps.alert.title, "⁨Morning, Block B⁩");
+  const out = fcmMessage("tok", buildPush(checkIn("out"), "en", null, strings)) as {
+    apns: { payload: { aps: { category: string } } };
+  };
+  assert.equal(out.apns.payload.aps.category, "CHECK_IN_OUT");
+});
+
+test("review 109 CI5: the creator's summary is a normal notification with what there is to see", () => {
+  const summary = row("check_in_summary", {
+    actor_id: null,
+    data: { post_id: "p1", space_id: "s1", title: "Morning, Block B", late: "2", away: "1", missed: "0" },
+  });
+  const p = buildPush(summary, "en", null, strings);
+  assert.equal(p.title, "⁨Morning, Block B⁩");
+  assert.equal(p.body, "2 late · 1 not at site");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(summary, "ar", null, strings).body, "متأخر 2 · خارج الموقع 1");
+  const m = fcmMessage("tok", p) as {
+    notification: { title: string; body: string };
+    android: { notification: { channel_id: string } };
+    apns?: unknown;
+  };
+  assert.equal(m.notification.body, "2 late · 1 not at site");
+  assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
+  assert.equal(m.apns, undefined);
 });

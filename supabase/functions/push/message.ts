@@ -52,6 +52,10 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
     // Review 108: a scheduled post that couldn't go opens Scheduled.
     case "scheduled_failed":
       return { route: "/scheduled-posts" };
+    // Review 109: a check-in opens its card.
+    case "check_in_open":
+    case "check_in_summary":
+      return { route: `/spaces/${d.space_id}/items/${d.post_id}` };
     // Everything else opens its card in the Space: the work item, or the
     // daybook post (migration 19's space_post_id); the Space with neither.
     default: {
@@ -93,6 +97,8 @@ export function buildPush(
     };
   }
   if (row.kind === "work_reminder") return reminderPush(row, t, name, data, locale);
+  if (row.kind === "check_in_open") return checkInOpenPush(row, t, data, locale);
+  if (row.kind === "check_in_summary") return checkInSummaryPush(row, t, data);
   if (row.kind === "scheduled_failed") {
     const reason = t[`scheduled_reason_${row.data?.reason}`] ?? t.scheduled_reason_other;
     return { title: t.title, body: t.scheduled_failed.replaceAll("{reason}", reason), data };
@@ -166,6 +172,49 @@ function reminderPush(
   };
 }
 
+// Review 109 CI2: when check-in (or check-out) opens. The post's title
+// over "Space · by 7:15" (the on-time limit, in the Space's zone), as the
+// approved frame shows: here the title and the Space are what the person
+// acts on. Android gets it as data and draws it itself, with Check in and
+// Open, on its "check_in" channel; iOS as a time-sensitive alert with the
+// CHECK_IN_IN or CHECK_IN_OUT category (fcmMessage).
+function checkInOpenPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  data: Record<string, string>,
+  locale: string,
+): Push {
+  const d = row.data ?? {};
+  const until = d.until ? clockIn(d.until, locale, d.tz) : "";
+  const space = d.space_name?.trim() ? isolate(d.space_name.trim()) : "";
+  const by = until ? t.check_in_by.replaceAll("{time}", until) : "";
+  const title = d.title?.trim() ? isolate(d.title.trim()) : t.title;
+  const body = [space, by].filter((x) => x).join(t.separator) ||
+    (d.mark === "out" ? t.check_in_open_out : t.check_in_open_in);
+  // The app draws the Android notification from these two.
+  return { title, body, data: { ...data, push_title: title, push_body: body } };
+}
+
+// Review 109 CI5: one summary to the creator when check-in closes, only
+// when there is something to see: "Morning, Block B" over "2 late · 1 not
+// at site · 1 missed".
+function checkInSummaryPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  data: Record<string, string>,
+): Push {
+  const d = row.data ?? {};
+  const parts = (["late", "away", "missed"] as const)
+    .map((k) => [k, Number(d[k] ?? "0") || 0] as const)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => t[`check_in_${k}`].replaceAll("{count}", String(n)));
+  return {
+    title: d.title?.trim() ? isolate(d.title.trim()) : t.title,
+    body: parts.join(t.separator) || t.check_in_summary,
+    data,
+  };
+}
+
 // "10:00" at [iso] in [zone] (UTC without one).
 // Review 108 V6: a zone Intl can't read is UTC, never a dropped push.
 function clockIn(iso: string, locale: string, zone?: string): string {
@@ -204,7 +253,35 @@ export function channelFor(kind: string | undefined): string {
   return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
 }
 
+// Review 109: check-in's own Android channel (the app makes it, with sound
+// and high importance), and the iOS categories that carry Check in and
+// Check out.
+export const CHECK_IN_CHANNEL = "check_in";
+
 export function fcmMessage(token: string, push: Push): Record<string, unknown> {
+  if (push.data.kind === "check_in_open") {
+    // Android: a high-priority data message, so the app builds the
+    // notification with its actions on the check_in channel, even when
+    // closed (a notification message Android draws can't carry actions).
+    // iOS: an alert APNs shows, time-sensitive, with the category whose
+    // actions the app registered.
+    return {
+      token,
+      data: { ...push.data, channel_id: CHECK_IN_CHANNEL },
+      android: { priority: "high" },
+      apns: {
+        headers: { "apns-priority": "10", "apns-push-type": "alert" },
+        payload: {
+          aps: {
+            alert: { title: push.title, body: push.body },
+            sound: "default",
+            category: push.data.mark === "out" ? "CHECK_IN_OUT" : "CHECK_IN_IN",
+            "interruption-level": "time-sensitive",
+          },
+        },
+      },
+    };
+  }
   return {
     token,
     notification: { title: push.title, body: push.body },

@@ -36,7 +36,14 @@
     "scheduled_failed": "Couldn't post: {reason}",
     "scheduled_reason_not_allowed": "you can't post there any more.",
     "scheduled_reason_not_valid": "something in it isn't valid any more.",
-    "scheduled_reason_other": "open Scheduled to try again."
+    "scheduled_reason_other": "open Scheduled to try again.",
+    "check_in_by": "by {time}",
+    "check_in_open_in": "Check-in is open.",
+    "check_in_open_out": "Check-out is open.",
+    "check_in_late": "{count} late",
+    "check_in_away": "{count} not at site",
+    "check_in_missed": "{count} missed",
+    "check_in_summary": "Check-in has closed."
   },
   "ar": {
     "title": "BuildVibes",
@@ -75,6 +82,13 @@
     "scheduled_failed": "تعذّر النشر: {reason}",
     "scheduled_reason_not_allowed": "لم تعد تستطيع النشر هناك.",
     "scheduled_reason_not_valid": "شيء فيه لم يعد صالحًا.",
-    "scheduled_reason_other": "افتح المجدولة لتحاول مجددًا."
+    "scheduled_reason_other": "افتح المجدولة لتحاول مجددًا.",
+    "check_in_by": "حتى {time}",
+    "check_in_open_in": "تسجيل الحضور مفتوح.",
+    "check_in_open_out": "تسجيل الخروج مفتوح.",
+    "check_in_late": "متأخر {count}",
+    "check_in_away": "خارج الموقع {count}",
+    "check_in_missed": "لم يسجّل {count}",
+    "check_in_summary": "أُغلق تسجيل الحضور."
   }
 }
