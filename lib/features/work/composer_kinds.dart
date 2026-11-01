@@ -18,7 +18,12 @@ enum ComposerExtra {
   taskTable('task_table'),
   // Kept from before review 110: an announcement's pin (W9). A template
   // is on the composer's top bar (W9), not here.
-  pin('pin');
+  pin('pin'),
+
+  /// Review 109 CI1b: a Check-in's check-out (a time and an allowance),
+  /// and Every day (the market pack's working days).
+  checkOut('check_out'),
+  everyDay('every_day');
 
   const ComposerExtra(this.key);
 
@@ -27,14 +32,15 @@ enum ComposerExtra {
 }
 
 /// The kinds # offers, in the grid's order (CP2). Walk follows them;
-/// Check-in waits for review 109; Thanks (review 110 TH1) comes before
-/// Walk. A checklist is no longer a kind to
+/// Check-in (review 109, for Leads only) and Thanks (review 110 TH1) come
+/// before Walk. A checklist is no longer a kind to
 /// start (founder, 13:42): a work item takes ticks from + → Checklist.
 const composerKinds = [
   DaybookKind.note,
   DaybookKind.workItem,
   DaybookKind.announcement,
   DaybookKind.activity,
+  DaybookKind.checkIn,
   DaybookKind.thanks,
 ];
 
@@ -82,6 +88,8 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
   // A file post is its file: + → File changes it (F72, as 📎 did).
   DaybookKind.file => const [ComposerExtra.file],
   DaybookKind.report => const [],
+  // Review 109 CI1b: + offers exactly Check-out and Every day.
+  DaybookKind.checkIn => const [ComposerExtra.checkOut, ComposerExtra.everyDay],
 };
 
 /// An edit of a posted work item changes only its place and its due from
@@ -115,6 +123,12 @@ enum ComposerDrop {
 
   /// A work item's checklist from + (step 5): its points and their block.
   checklist,
+
+  /// A Check-in's times, Teams and place (review 109).
+  checkIn,
+
+  /// Photos: a Check-in has no camera (review 109 §1).
+  photos,
 }
 
 bool _isChecklist(Map<String, dynamic> b) => b['type'] == 'checklist_ref';
@@ -153,6 +167,15 @@ List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
     if (draft.blocks.any(_isChecklist) &&
         !extras.contains(ComposerExtra.checklist))
       ComposerDrop.checklist,
+    if (kind != DaybookKind.checkIn &&
+        (draft.siteSet ||
+            draft.inTime != null ||
+            draft.outTime != null ||
+            draft.daily ||
+            draft.checkInTeams.isNotEmpty))
+      ComposerDrop.checkIn,
+    if (kind == DaybookKind.checkIn && draft.photos.isNotEmpty)
+      ComposerDrop.photos,
   ];
 }
 
@@ -188,6 +211,17 @@ DaybookPostDraft composerSwitched(
     'thanks_for_label',
   ]);
   drop(ComposerDrop.tag, ['tag']);
+  drop(ComposerDrop.checkIn, [
+    'check_in_teams',
+    'in_time',
+    'in_allow',
+    'out_time',
+    'out_allow',
+    'daily',
+    'site_lat',
+    'site_lng',
+  ]);
+  drop(ComposerDrop.photos, ['photos']);
   // A pin is an announcement's alone; it goes quietly.
   if (kind != DaybookKind.announcement) json.remove('pinned_until');
   if (drops.contains(ComposerDrop.tables)) {
@@ -217,9 +251,15 @@ DaybookPostDraft composerSwitched(
 /// The kinds [space]'s reader may post from #. Who may not post work (a
 /// Viewer, or a Crew pass with posting locked) may still thank (founder,
 /// 1 Nov: create_thanks takes any member), and only thank. Review 109's
-/// Check-in joins here for a Lead.
-List<DaybookKind> composerKindsFor(SpaceDetail space) =>
-    space.myRights.createItems ? composerKinds : const [DaybookKind.thanks];
+/// Check-in is for a Lead and the Space admin only (post_check_in).
+List<DaybookKind> composerKindsFor(SpaceDetail space) {
+  if (!space.myRights.createItems) return const [DaybookKind.thanks];
+  if (space.myPass == SpacePass.lead || space.iAmAdmin) return composerKinds;
+  return [
+    for (final k in composerKinds)
+      if (k != DaybookKind.checkIn) k,
+  ];
+}
 
 /// G1: the kind the composer opens on is the last one posted in this
 /// Space, kept on the phone; Note the first time. W11: only one of

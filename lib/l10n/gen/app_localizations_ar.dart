@@ -6470,4 +6470,287 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get workItemForSomeoneElse =>
       'بند العمل لشخص آخر. لنفسك استخدم دفترك.';
+
+  @override
+  String get daybookKindCheckIn => 'تسجيل حضور';
+
+  @override
+  String get cpNewCheckIn => 'تسجيل حضور جديد';
+
+  @override
+  String get cpAddCheckIn => 'أضف إلى هذا التسجيل';
+
+  @override
+  String get checkInFor => 'لـ';
+
+  @override
+  String checkInTeamsJoin(String first, String rest) {
+    return '$first + $rest';
+  }
+
+  @override
+  String get checkInRowIn => 'الدخول';
+
+  @override
+  String checkInTimeAllow(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'سماح $minutes دقيقة',
+      zero: 'بدون سماح',
+    );
+    return '$time · $_temp0';
+  }
+
+  @override
+  String get checkInRowPlace => 'المكان';
+
+  @override
+  String get checkInSetPlace => 'حدّد المكان هنا';
+
+  @override
+  String get checkInPlaceSet => 'حُدّد هنا';
+
+  @override
+  String get checkInReading => 'جارٍ قراءة موقعك…';
+
+  @override
+  String get checkInPlaceRefused =>
+      'الموقع مغلق لتطبيق BuildVibes. اسمح به من إعدادات الهاتف ثم اضغط «حدّد المكان هنا».';
+
+  @override
+  String get checkInPlaceFailed =>
+      'تعذّرت قراءة مكانك. شغّل الموقع وحاول مرة أخرى.';
+
+  @override
+  String get checkInExtraOut => 'الخروج';
+
+  @override
+  String get checkInEveryDay => 'كل يوم';
+
+  @override
+  String get checkInOnce => 'مرة واحدة';
+
+  @override
+  String checkInOutChip(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'سماح $minutes دقيقة',
+      zero: 'بدون سماح',
+    );
+    return 'خروج $time · $_temp0';
+  }
+
+  @override
+  String get checkInAllowance => 'السماح';
+
+  @override
+  String checkInMinutes(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String get checkInTimeLabel => 'الوقت';
+
+  @override
+  String get checkInTimeHelp => 'وقت الدخول';
+
+  @override
+  String get checkOutTimeHelp => 'وقت الخروج';
+
+  @override
+  String checkInSheetNote(int minutes, int metres) {
+    return 'يفتح قبل الوقت بـ $minutes د ويُحسب في الوقت حتى $minutes د بعده. في الموقع يعني على بُعد $metres م من المكان.';
+  }
+
+  @override
+  String get checkInDropWhat => 'أوقاته ومكانه';
+
+  @override
+  String checkInIn(String time) {
+    return 'دخول $time';
+  }
+
+  @override
+  String checkInOut(String time) {
+    return 'خروج $time';
+  }
+
+  @override
+  String get checkInOnTime => 'في الوقت';
+
+  @override
+  String get checkInLate => 'متأخر';
+
+  @override
+  String get checkInOnSite => 'في الموقع';
+
+  @override
+  String get checkInAway => 'خارج الموقع';
+
+  @override
+  String get checkInNotShared => 'بدون مشاركة الموقع';
+
+  @override
+  String get checkInNoLocation => 'بدون موقع';
+
+  @override
+  String get checkInMissed => 'لم يسجّل';
+
+  @override
+  String checkInTimes(String inTime, String outTime) {
+    return 'دخول $inTime · خروج $outTime';
+  }
+
+  @override
+  String checkInTimesIn(String inTime) {
+    return 'دخول $inTime';
+  }
+
+  @override
+  String get checkInButton => 'سجّل حضوري';
+
+  @override
+  String get checkOutButton => 'سجّل خروجي';
+
+  @override
+  String checkInBy(String time) {
+    return 'سجّل حضوري · قبل $time';
+  }
+
+  @override
+  String checkInFrom(String time) {
+    return 'سجّل حضوري · من $time';
+  }
+
+  @override
+  String checkOutFrom(String time) {
+    return 'سجّل خروجي · من $time';
+  }
+
+  @override
+  String get checkInTryAgain => 'حاول مرة أخرى';
+
+  @override
+  String get checkInStopped => 'متوقف';
+
+  @override
+  String get checkInNotToday => 'لا تسجيل حضور اليوم';
+
+  @override
+  String get checkInSeeList => 'من سجّل حضوره';
+
+  @override
+  String checkInResultIn(String time, String how) {
+    return 'سُجّل حضورك $time · $how';
+  }
+
+  @override
+  String checkInResultOut(String time, String how) {
+    return 'سُجّل خروجك $time · $how';
+  }
+
+  @override
+  String get checkInRefusedNotAllowed => 'لست مطلوبًا لتسجيل الحضور هنا.';
+
+  @override
+  String get checkInRefusedNotOpen => 'لم يُفتح تسجيل الحضور بعد.';
+
+  @override
+  String get checkInRefusedClosed => 'أُغلق تسجيل الحضور لهذا اليوم.';
+
+  @override
+  String get checkInRefusedNotToday => 'لا يوجد تسجيل حضور اليوم.';
+
+  @override
+  String get checkInRefusedStopped => 'أُوقف تسجيل الحضور هذا.';
+
+  @override
+  String get checkInRefusedAlready => 'سجّلت حضورك اليوم من قبل.';
+
+  @override
+  String get checkInRefusedInFirst => 'سجّل حضورك أولًا ثم خروجك.';
+
+  @override
+  String get checkInRefusedNetwork =>
+      'لا توجد إشارة. حاول مرة أخرى عند عودة الاتصال.';
+
+  @override
+  String get checkInWarnTitle => 'تسجيل الحضور يشارك موقعك';
+
+  @override
+  String get checkInWarnBody =>
+      'يقرأ التطبيق مكانك مرة واحدة الآن، ويُعلم صاحب المنشور إن كنت في الموقع. لا يتابعك بعد ذلك.';
+
+  @override
+  String get checkInAccept => 'موافق';
+
+  @override
+  String get checkInWithout => 'سجّل بدون الموقع';
+
+  @override
+  String get checkOutWithout => 'سجّل الخروج بدون الموقع';
+
+  @override
+  String checkInListSub(String day) {
+    return '$day · تراه أنت فقط';
+  }
+
+  @override
+  String get checkInListToday => 'اليوم';
+
+  @override
+  String get checkInListLibrary => 'يُحفظ في المكتبة كل مساء. لا يفتحه غيرك.';
+
+  @override
+  String get checkInListEmpty => 'لا أحد مطلوب لتسجيل الحضور.';
+
+  @override
+  String get checkInDayPicker => 'اختر يومًا';
+
+  @override
+  String get checkInStop => 'إيقاف';
+
+  @override
+  String get checkInStopTitle => 'إيقاف تسجيل الحضور هذا؟';
+
+  @override
+  String get checkInStopBody =>
+      'لن يُطلب من أحد تسجيل الحضور من الآن. الأيام السابقة تبقى في المكتبة.';
+
+  @override
+  String get checkInKeep => 'أبقِه';
+
+  @override
+  String get checkInStoppedDone =>
+      'تم الإيقاف. الأيام السابقة تبقى في المكتبة.';
+
+  @override
+  String get checkInChannel => 'تسجيل الحضور';
+
+  @override
+  String get checkInChannelAbout => 'عند فتح تسجيل الحضور، مع زر للتسجيل.';
+
+  @override
+  String get checkInActionOpen => 'فتح';
+
+  @override
+  String get checkInRefusedNoCheckOut => 'تسجيل الحضور هذا بلا خروج.';
+
+  @override
+  String get checkInOutTooEarly =>
+      'يجب أن يفتح الخروج بعد انتهاء سماح الدخول. اختر خروجًا أبعد أو سماحًا أقصر.';
+
+  @override
+  String get checkInDayFit => 'يجب أن يقع وقت الدخول وسماحه داخل اليوم.';
+
+  @override
+  String get checkInTimeIn => 'حان وقت تسجيل الحضور';
+
+  @override
+  String get checkInTimeOut => 'حان وقت تسجيل الخروج';
+
+  @override
+  String get checkInReadingOnce => 'قراءة موقعك مرة واحدة لتسجيل الحضور.';
 }

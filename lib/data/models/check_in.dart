@@ -208,6 +208,7 @@ class CheckInSetup {
     this.stopped = false,
     this.siteSet = true,
     this.seesList = false,
+    this.canStop = false,
     this.asked = false,
     this.today,
     this.myIn,
@@ -238,6 +239,7 @@ class CheckInSetup {
       stopped: json['stopped'] == true,
       siteSet: json['site_set'] != false,
       seesList: json['sees_list'] == true,
+      canStop: json['can_stop'] == true,
       asked: json['asked'] == true,
       today: CheckInToday.fromJson(json['today']),
       myIn: CheckInMark.fromJson(json['my_in']),
@@ -263,6 +265,10 @@ class CheckInSetup {
   /// the creator has left.
   final bool seesList;
 
+  /// The reader may Stop it (the server says: its creator, or a Space
+  /// admin once the creator left, on a daily one not yet stopped).
+  final bool canStop;
+
   /// The reader is asked to check in (in an asked Team, not a Viewer).
   final bool asked;
   final CheckInToday? today;
@@ -282,7 +288,16 @@ class CheckInSetup {
       missed: false,
     );
     final t = today;
-    if (!asked || stopped || t == null || !t.runs) return nothing;
+    if (!asked || t == null) return nothing;
+    // A past once-only check-in, or a stopped one, keeps its day (runs is
+    // false): nothing to tap, but a miss still shows.
+    if (stopped || !t.runs) {
+      return (
+        action: CheckInAction.none,
+        tryAgain: false,
+        missed: myIn == null && missed,
+      );
+    }
     final inOpen = !now.isBefore(t.inOpensAt) && now.isBefore(t.inClosesAt);
     final mine = myIn;
     if (mine == null) {
@@ -387,6 +402,9 @@ enum CheckInRefusal {
   stopped,
   already,
   inFirst,
+
+  /// Check out on a check-in without one (the server's 'no check-out').
+  noCheckOut,
   network,
   unknown;
 
@@ -397,6 +415,7 @@ enum CheckInRefusal {
     if (m.contains('not a check-in day')) return notToday;
     if (m.contains('already checked in')) return already;
     if (m.contains('check in first')) return inFirst;
+    if (m.contains('no check-out')) return noCheckOut;
     if (m.contains('stopped')) return stopped;
     if (m.contains('closed')) return closed;
     if (e.failure == SpaceFailure.notAllowed) return notAllowed;
@@ -418,6 +437,22 @@ DateTime? _day(Object? value) {
   if (y == null || m == null || d == null) return null;
   return DateTime(y, m, d);
 }
+
+/// Check-out must open after check-in's on-time limit (post_check_in:
+/// "check-out opens after check-in's allowance").
+bool checkOutFits({
+  required DayTime inTime,
+  required int inAllow,
+  required DayTime outTime,
+  required int outAllow,
+}) => _minutes(outTime) - outAllow > _minutes(inTime) + inAllow;
+
+/// The check-in time and its allowance fit in the day (post_check_in).
+bool checkInFitsDay(DayTime inTime, int inAllow) =>
+    _minutes(inTime) - inAllow >= 0 &&
+    _minutes(inTime) + inAllow < Duration.minutesPerDay;
+
+int _minutes(DayTime t) => t.hour * Duration.minutesPerHour + t.minute;
 
 /// A calendar day as the server takes it ("2026-10-15").
 String checkInDayJson(DateTime d) =>

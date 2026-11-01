@@ -35,6 +35,7 @@ import '../../core/push/reminders.dart' show spaceReminderId;
 import '../../core/network/signal_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/first_run_tip.dart';
+import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -84,6 +85,7 @@ import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'composer_check_in.dart';
 import 'composer_thanks.dart';
 import 'post_later_sheet.dart';
 import 'reminder_sheet.dart';
@@ -1113,6 +1115,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ComposerDrop.thanks => l10n.thanksTo,
       ComposerDrop.tag => l10n.cpTag,
       ComposerDrop.checklist => l10n.daybookKindChecklist,
+      ComposerDrop.checkIn => l10n.checkInDropWhat,
+      ComposerDrop.photos => l10n.cpPhotos,
     };
     showSpaceMessage(
       context,
@@ -1151,7 +1155,67 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // Bullets is the composer's own (a line in the details).
       case ComposerExtra.bullets:
         break;
+      // Review 109 CI1b: a check-out's time and allowance; Every day.
+      case ComposerExtra.checkOut:
+        await _pickCheckOut();
+      case ComposerExtra.everyDay:
+        await _card.setDaily(true);
     }
+  }
+
+  /// Review 109 CI1: a Check-in's lines.
+  Future<void> _checkIn(CheckInPick pick) async {
+    _setMenu(null);
+    switch (pick) {
+      case CheckInPick.teams:
+        final teams = audienceTeams(
+          ref.read(spacePeopleProvider(_spaceId)).value,
+          me: ref.read(authUserIdProvider).value,
+          admin: widget.space.iAmAdmin,
+        );
+        final picked = await pickCheckInTeams(
+          context,
+          teams: teams,
+          chosen: _card.draft?.checkInTeams ?? const [],
+        );
+        if (picked != null) await _card.setCheckInTeams(picked);
+      case CheckInPick.time:
+        await _pickCheckInTime();
+      case CheckInPick.place:
+        await setCheckInPlace(context, ref, _card);
+    }
+  }
+
+  /// The check-in's time and allowance (one single choice).
+  Future<void> _pickCheckInTime() async {
+    final d = _card.draft;
+    if (d == null) return;
+    final picked = await pickCheckInTime(
+      context,
+      out: false,
+      time: d.inTime,
+      allow: d.inAllow,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _askWho = null);
+    await _card.setCheckInTime(picked.time, picked.allow);
+  }
+
+  /// + → Check-out (CI1b), or its chip: the time and the allowance.
+  Future<void> _pickCheckOut() async {
+    final d = _card.draft;
+    if (d == null) return;
+    final from = d.inTime;
+    final picked = await pickCheckInTime(
+      context,
+      out: true,
+      time: d.outTime,
+      allow: d.outAllow ?? checkInDefaultAllowance,
+      suggested: from == null
+          ? null
+          : DayTime((from.hour + 8) % 24, from.minute),
+    );
+    if (picked != null) await _card.setCheckOut(picked);
   }
 
   void _setMenu(DaybookWritingMenu? menu) => setState(() {
@@ -1430,6 +1494,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         });
       case DaybookMissing.start:
         await _pickStart();
+      case DaybookMissing.checkInTime:
+        setState(() => _askWho = Object());
+        await _pickCheckInTime();
       case null:
         await _post(myName);
     }
@@ -1640,13 +1707,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   _panel == ComposerPanel.extras ? null : ComposerPanel.extras,
                 ),
         ),
-        BvWritingTool(
-          key: const Key('writing-camera'),
-          icon: BvIcons.camera,
-          label: l10n.daybookCamera,
-          // An edit keeps its photos (slice 5 opens a post in place).
-          onTap: _editing ? null : () => unawaited(_photos(_writer.addPhoto())),
-        ),
+        // Review 109: a Check-in has no camera.
+        if (kind != DaybookKind.checkIn)
+          BvWritingTool(
+            key: const Key('writing-camera'),
+            icon: BvIcons.camera,
+            label: l10n.daybookCamera,
+            // An edit keeps its photos (slice 5 opens a post in place).
+            onTap: _editing
+                ? null
+                : () => unawaited(_photos(_writer.addPhoto())),
+          ),
       ],
       postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
       // Post turns on with what the kind can't go without (review 46);
@@ -1708,6 +1779,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           onPickDue: () => unawaited(_pickDue()),
           onPickThanksTo: () => unawaited(_pickThanksTo()),
           onPickThanksFor: () => unawaited(_pickThanksFor()),
+          onCheckIn: (p) => unawaited(_checkIn(p)),
           // H3: Walk is for who may post work (a Lead or Crew).
           onWalk: _editing || !widget.space.mayPostWork
               ? null
@@ -2487,6 +2559,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   Future<void> _openCard(DaybookCard card, {required String? me}) async {
     final l10n = AppLocalizations.of(context);
     final view = DaybookCardView(
+      spaceId: _spaceId,
       card: card,
       words: DaybookWords(
         l10n,
@@ -2875,6 +2948,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             ),
       newVersion: file?.supersedesId != null,
       quote: d.quote,
+      // Review 109: a Check-in waits with its times; nothing to mark yet.
+      checkIn: d.kind == DaybookKind.checkIn && d.inTime != null
+          ? CheckInSetup(
+              inTime: d.inTime!,
+              inAllow: d.inAllow,
+              outTime: d.outTime,
+              outAllow: d.outAllow,
+              daily: d.daily,
+              teams: d.checkInTeams.isEmpty ? null : d.checkInTeams,
+            )
+          : null,
       // A daily report waits with its page, as it was posted.
       blocks: d.kind == DaybookKind.report ? d.blocks : const [],
       refs: d.kind == DaybookKind.report
@@ -3405,6 +3489,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       final refusedProof = s.refusedProof;
       final tables = unsent == null ? taskTables[c.id] : null;
       final view = DaybookCardView(
+        spaceId: _spaceId,
         card: c,
         words: words,
         me: me,

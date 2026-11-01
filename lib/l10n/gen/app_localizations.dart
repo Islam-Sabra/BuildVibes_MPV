@@ -10687,6 +10687,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A work item is for someone else. For yourself, use My notebook.'**
   String get workItemForSomeoneElse;
+
+  /// Review 109: the Check-in kind (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get daybookKindCheckIn;
+
+  /// Review 109 CI1: the composer top line for a Check-in.
+  ///
+  /// In en, this message translates to:
+  /// **'New check-in'**
+  String get cpNewCheckIn;
+
+  /// Review 109 CI1b: + on a Check-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this check-in'**
+  String get cpAddCheckIn;
+
+  /// Review 109 CI1: who a Check-in asks (Teams or the whole Space).
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get checkInFor;
+
+  /// Review 109 CI1: two or more Teams on the For line.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} + {rest}'**
+  String checkInTeamsJoin(String first, String rest);
+
+  /// Review 109 CI1: the Check-in line: its time and allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get checkInRowIn;
+
+  /// Review 109 CI1: a check-in time and its allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · {minutes, plural, =0{no allowance} other{{minutes} min allowance}}'**
+  String checkInTimeAllow(String time, int minutes);
+
+  /// Review 109 CI1: the Place line.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get checkInRowPlace;
+
+  /// Review 109 CI1: reads the Lead's location once; that point is the site.
+  ///
+  /// In en, this message translates to:
+  /// **'Set place here'**
+  String get checkInSetPlace;
+
+  /// Review 109 CI1: the site is set where the Lead stood.
+  ///
+  /// In en, this message translates to:
+  /// **'Set here'**
+  String get checkInPlaceSet;
+
+  /// Review 109: while the location is read once.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your location…'**
+  String get checkInReading;
+
+  /// Review 109 CI1: the phone refused the location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is off for BuildVibes. Allow it in the phone settings, then tap Set place here.'**
+  String get checkInPlaceRefused;
+
+  /// Review 109 CI1: the location is off or too weak.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read where you are. Turn location on and try again.'**
+  String get checkInPlaceFailed;
+
+  /// Review 109 CI1b: + adds a check-out time and allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-out'**
+  String get checkInExtraOut;
+
+  /// Review 109 CI1b: the market pack's working days.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get checkInEveryDay;
+
+  /// Review 109: a check-in that is not every day.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get checkInOnce;
+
+  /// Review 109 CI1: the Check-out chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Out {time} · {minutes, plural, =0{no allowance} other{{minutes} min}}'**
+  String checkInOutChip(String time, int minutes);
+
+  /// Review 109: minutes before and after the time that count as on time.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance'**
+  String get checkInAllowance;
+
+  /// Review 109: one allowance choice.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String checkInMinutes(int minutes);
+
+  /// Review 109: the time row of the Check-in and Check-out sheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get checkInTimeLabel;
+
+  /// Review 109: the time picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in time'**
+  String get checkInTimeHelp;
+
+  /// Review 109: the time picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-out time'**
+  String get checkOutTimeHelp;
+
+  /// Review 109: what the allowance means; the distance is fixed.
+  ///
+  /// In en, this message translates to:
+  /// **'It opens {minutes} min before and is on time up to {minutes} min after. On site means within {metres} m of the place.'**
+  String checkInSheetNote(int minutes, int metres);
+
+  /// Review 109: what a kind switch takes from a Check-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Its times and place'**
+  String get checkInDropWhat;
+
+  /// Review 109 CI4, CI5: the In stamp.
+  ///
+  /// In en, this message translates to:
+  /// **'In {time}'**
+  String checkInIn(String time);
+
+  /// Review 109 CI4, CI5: the Out stamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Out {time}'**
+  String checkInOut(String time);
+
+  /// Review 109 glossary: On time.
+  ///
+  /// In en, this message translates to:
+  /// **'on time'**
+  String get checkInOnTime;
+
+  /// Review 109 glossary: Late.
+  ///
+  /// In en, this message translates to:
+  /// **'late'**
+  String get checkInLate;
+
+  /// Review 109 glossary: On site.
+  ///
+  /// In en, this message translates to:
+  /// **'on site'**
+  String get checkInOnSite;
+
+  /// Review 109 glossary: Not at site.
+  ///
+  /// In en, this message translates to:
+  /// **'not at site'**
+  String get checkInAway;
+
+  /// Review 109 glossary: Location not shared.
+  ///
+  /// In en, this message translates to:
+  /// **'location not shared'**
+  String get checkInNotShared;
+
+  /// Review 109 CI5: the list's short word for location not shared.
+  ///
+  /// In en, this message translates to:
+  /// **'no location'**
+  String get checkInNoLocation;
+
+  /// Review 109 glossary: Missed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get checkInMissed;
+
+  /// Review 109 CI4: the card's times.
+  ///
+  /// In en, this message translates to:
+  /// **'In {inTime} · Out {outTime}'**
+  String checkInTimes(String inTime, String outTime);
+
+  /// Review 109 CI4: the card's time with no check-out.
+  ///
+  /// In en, this message translates to:
+  /// **'In {inTime}'**
+  String checkInTimesIn(String inTime);
+
+  /// Review 109 glossary: Check in (button).
+  ///
+  /// In en, this message translates to:
+  /// **'Check in'**
+  String get checkInButton;
+
+  /// Review 109 glossary: Check out (button).
+  ///
+  /// In en, this message translates to:
+  /// **'Check out'**
+  String get checkOutButton;
+
+  /// Review 109 CI4: Check in while open, with its on-time limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in · by {time}'**
+  String checkInBy(String time);
+
+  /// Review 109 CI4: Check in, not open yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in · from {time}'**
+  String checkInFrom(String time);
+
+  /// Review 109 CI4: Check out, not open yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out · from {time}'**
+  String checkOutFrom(String time);
+
+  /// Review 109 CI4: Not at site, while check-in is open.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get checkInTryAgain;
+
+  /// Review 109: a repeating check-in its creator stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get checkInStopped;
+
+  /// Review 109: a day off of an Every day check-in.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-in today'**
+  String get checkInNotToday;
+
+  /// Review 109 CI5: the creator's list, from the card.
+  ///
+  /// In en, this message translates to:
+  /// **'Who checked in'**
+  String get checkInSeeList;
+
+  /// Review 109 CI2: the result, as a notification and a line.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in {time} · {how}'**
+  String checkInResultIn(String time, String how);
+
+  /// Review 109: the check-out result.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out {time} · {how}'**
+  String checkInResultOut(String time, String how);
+
+  /// Review 109: mark_check_in said not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You aren\'t asked to check in here.'**
+  String get checkInRefusedNotAllowed;
+
+  /// Review 109: mark_check_in said not open yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in isn\'t open yet.'**
+  String get checkInRefusedNotOpen;
+
+  /// Review 109: mark_check_in said closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in is closed for today.'**
+  String get checkInRefusedClosed;
+
+  /// Review 109: mark_check_in said not a check-in day.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no check-in today.'**
+  String get checkInRefusedNotToday;
+
+  /// Review 109: mark_check_in said stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'This check-in was stopped.'**
+  String get checkInRefusedStopped;
+
+  /// Review 109: mark_check_in said already checked in.
+  ///
+  /// In en, this message translates to:
+  /// **'You already checked in today.'**
+  String get checkInRefusedAlready;
+
+  /// Review 109: mark_check_in said check in first.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in first, then check out.'**
+  String get checkInRefusedInFirst;
+
+  /// Review 109: no connection.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Try again when you\'re back online.'**
+  String get checkInRefusedNetwork;
+
+  /// Review 109 CI3: the first-time warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking in shares your location'**
+  String get checkInWarnTitle;
+
+  /// Review 109 CI3: the warning, word for word.
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads where you are once, now, and tells the creator if you are at the site. It does not follow you after that.'**
+  String get checkInWarnBody;
+
+  /// Review 109 CI3: Accept: the phone asks its permission, once.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get checkInAccept;
+
+  /// Review 109 CI3: checked in as location not shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in without location'**
+  String get checkInWithout;
+
+  /// Review 109 CI3: the same warning for a check-out.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out without location'**
+  String get checkOutWithout;
+
+  /// Review 109 CI5: under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · only you see this'**
+  String checkInListSub(String day);
+
+  /// Review 109 CI5: the day picker's today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get checkInListToday;
+
+  /// Review 109 CI5: the evening spreadsheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to the Library every evening. Only you can open it.'**
+  String get checkInListLibrary;
+
+  /// Review 109 CI5: no lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is asked to check in.'**
+  String get checkInListEmpty;
+
+  /// Review 109 CI5: the day picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a day'**
+  String get checkInDayPicker;
+
+  /// Review 109: ⋯ → Stop on a repeating check-in (creator only).
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get checkInStop;
+
+  /// Review 109: the Stop confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop this check-in?'**
+  String get checkInStopTitle;
+
+  /// Review 109: the Stop confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is asked to check in from now on. Earlier days stay in the Library.'**
+  String get checkInStopBody;
+
+  /// Review 109: cancel on the Stop confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get checkInKeep;
+
+  /// Review 109: after Stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped. Earlier days stay in the Library.'**
+  String get checkInStoppedDone;
+
+  /// Review 109 CI2: the Android notification channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get checkInChannel;
+
+  /// Review 109 CI2: the channel's description.
+  ///
+  /// In en, this message translates to:
+  /// **'When a check-in opens, with a button to check in.'**
+  String get checkInChannelAbout;
+
+  /// Review 109 CI2: the notification's Open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get checkInActionOpen;
+
+  /// Review 109: mark_check_in said no check-out.
+  ///
+  /// In en, this message translates to:
+  /// **'This check-in has no check-out.'**
+  String get checkInRefusedNoCheckOut;
+
+  /// Review 109: post_check_in's rule, checked before Send.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-out has to open after check-in’s on-time limit. Choose a later check-out or a shorter allowance.'**
+  String get checkInOutTooEarly;
+
+  /// Review 109: post_check_in's rule, checked before Send.
+  ///
+  /// In en, this message translates to:
+  /// **'The check-in time and its allowance have to fit in the day.'**
+  String get checkInDayFit;
+
+  /// Review 109 CI2: a check-in notification's plain title when the push carries none.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to check in'**
+  String get checkInTimeIn;
+
+  /// Review 109 CI2: a check-out notification's plain title when the push carries none.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to check out'**
+  String get checkInTimeOut;
+
+  /// Review 109 CI2: the short Android foreground notice while the Check in action reads the location.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your location once to check in.'**
+  String get checkInReadingOnce;
 }
 
 class _AppLocalizationsDelegate

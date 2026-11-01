@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart';
 import '../../data/models/post_page.dart';
@@ -30,7 +31,10 @@ enum DaybookKind {
 
   /// A daily report (slice 7): started from the Space menu, never from the
   /// kind menu.
-  report(DaybookPost.reportKind);
+  report(DaybookPost.reportKind),
+
+  /// Review 109: a Check-in, for Leads (and the Space admin) to post.
+  checkIn(DaybookPost.checkInKind);
 
   const DaybookKind(this.json);
   final String json;
@@ -179,6 +183,14 @@ class DaybookPostDraft {
     this.thanksForLabel,
     this.tag,
     this.refusal,
+    this.checkInTeams = const [],
+    this.inTime,
+    this.inAllow = checkInDefaultAllowance,
+    this.outTime,
+    this.outAllow,
+    this.daily = false,
+    this.siteLat,
+    this.siteLng,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -250,6 +262,20 @@ class DaybookPostDraft {
         thanksForLabel: json['thanks_for_label'] as String?,
         tag: DaybookTag.fromJson(json['tag']),
         refusal: json['refusal'] as String?,
+        checkInTeams: [
+          for (final t in json['check_in_teams'] as List? ?? const [])
+            (
+              id: (t as Map<String, dynamic>)['id'] as String,
+              name: t['name'] as String? ?? '',
+            ),
+        ],
+        inTime: DayTime.parse(json['in_time']),
+        inAllow: (json['in_allow'] as num?)?.toInt() ?? checkInDefaultAllowance,
+        outTime: DayTime.parse(json['out_time']),
+        outAllow: (json['out_allow'] as num?)?.toInt(),
+        daily: json['daily'] as bool? ?? false,
+        siteLat: (json['site_lat'] as num?)?.toDouble(),
+        siteLng: (json['site_lng'] as num?)?.toDouble(),
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -411,6 +437,38 @@ class DaybookPostDraft {
   /// name).
   final String? refusal;
 
+  /// A Check-in (review 109): the Teams asked (none: the whole Space),
+  /// its time and allowance, its check-out if added, Every day, and the
+  /// site: where the Lead stood when they tapped Set place here. The site
+  /// is the post's, never a person's track.
+  final List<({String id, String name})> checkInTeams;
+  final DayTime? inTime;
+  final int inAllow;
+  final DayTime? outTime;
+  final int? outAllow;
+  final bool daily;
+  final double? siteLat;
+  final double? siteLng;
+
+  bool get siteSet => siteLat != null && siteLng != null;
+
+  /// The server's other rules for a Check-in, checked before Send can
+  /// hit them: the time and its allowance fit in the day, and a check-out
+  /// opens after check-in's on-time limit.
+  bool get checkInTimesFit {
+    final t = inTime;
+    if (t == null) return true;
+    if (!checkInFitsDay(t, inAllow)) return false;
+    final out = outTime;
+    return out == null ||
+        checkOutFits(
+          inTime: t,
+          inAllow: inAllow,
+          outTime: out,
+          outAllow: outAllow ?? checkInDefaultAllowance,
+        );
+  }
+
   /// The Done today lines that go: the day's checked work, less what was
   /// taken out.
   List<ReportRef> get refsIn => [
@@ -461,7 +519,12 @@ class DaybookPostDraft {
             noteId == null &&
             thanksToId == null &&
             thanksForId == null &&
-            tag == null;
+            tag == null &&
+            inTime == null &&
+            outTime == null &&
+            !daily &&
+            !siteSet &&
+            checkInTeams.isEmpty;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
   /// message, not a Draft left from before.
@@ -483,6 +546,8 @@ class DaybookPostDraft {
   bool get readyToTry => switch (kind) {
     DaybookKind.file => files.isNotEmpty && titleFits,
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
+    // Review 109: Send stays off until the place is set.
+    DaybookKind.checkIn => titleFits && siteSet && checkInTimesFit,
     _ => titleFits,
   };
 
@@ -495,6 +560,7 @@ class DaybookPostDraft {
     DaybookKind.activity when startsAt == null || !startsAt!.isAfter(now) =>
       DaybookMissing.start,
     DaybookKind.thanks when thanksToId == null => DaybookMissing.to,
+    DaybookKind.checkIn when inTime == null => DaybookMissing.checkInTime,
     _ => null,
   };
 
@@ -535,8 +601,23 @@ class DaybookPostDraft {
     ({String id, String label})? Function()? thanksFor,
     DaybookTag? Function()? tag,
     String? Function()? refusal,
+    List<({String id, String name})>? checkInTeams,
+    DayTime? Function()? inTime,
+    int? inAllow,
+    DayTime? Function()? outTime,
+    int? Function()? outAllow,
+    bool? daily,
+    ({double lat, double lng})? Function()? site,
     bool refused = false,
   }) => DaybookPostDraft(
+    checkInTeams: checkInTeams ?? this.checkInTeams,
+    inTime: inTime == null ? this.inTime : inTime(),
+    inAllow: inAllow ?? this.inAllow,
+    outTime: outTime == null ? this.outTime : outTime(),
+    outAllow: outAllow == null ? this.outAllow : outAllow(),
+    daily: daily ?? this.daily,
+    siteLat: site == null ? siteLat : site()?.lat,
+    siteLng: site == null ? siteLng : site()?.lng,
     thanksToId: thanksTo == null ? thanksToId : thanksTo()?.id,
     thanksToName: thanksTo == null ? thanksToName : thanksTo()?.name,
     thanksToTeam: thanksTo == null ? thanksToTeam : thanksTo()?.team ?? false,
@@ -626,11 +707,21 @@ class DaybookPostDraft {
     'thanks_for_label': thanksForLabel,
     'tag': tag?.toJson(),
     'refusal': refusal,
+    'check_in_teams': [
+      for (final t in checkInTeams) {'id': t.id, 'name': t.name},
+    ],
+    'in_time': inTime?.json,
+    'in_allow': inAllow,
+    'out_time': outTime?.json,
+    'out_allow': outAllow,
+    'daily': daily,
+    'site_lat': siteLat,
+    'site_lng': siteLng,
   };
 }
 
 /// What Post still needs before it can send: it opens that picker.
-enum DaybookMissing { owner, people, start, to }
+enum DaybookMissing { owner, people, start, to, checkInTime }
 
 /// The card in place: a new post's ([DaybookDraft]) or an edit's
 /// ([DaybookEdit]).

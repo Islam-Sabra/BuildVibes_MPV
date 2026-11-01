@@ -13,6 +13,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart'
     show photosPreparingProvider, PhotosPreparing;
+import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/post_page.dart' show PageChecklist;
 import '../../data/models/space.dart';
@@ -465,6 +466,7 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   // F50: named for what it does; the kind stays `file` on the server.
   DaybookKind.file => l10n.daybookKindDocument,
   DaybookKind.report => l10n.daybookKindReport,
+  DaybookKind.checkIn => l10n.daybookKindCheckIn,
 };
 
 /// The kind menu's icon for [kind] (E6 v14 2598:36360).
@@ -477,6 +479,8 @@ IconData kindIcon(DaybookKind kind) => switch (kind) {
   DaybookKind.thanks => BvIcons.thanks,
   DaybookKind.file => BvIcons.document,
   DaybookKind.report => BvIcons.clipboard,
+  // Review 109: the map pin, as on # and the card.
+  DaybookKind.checkIn => BvIcons.place,
 };
 
 /// Writing in one Space: the card's changes, its photos and files, the
@@ -572,6 +576,26 @@ class DaybookWriter {
   /// The work item the Thanks is for, or none.
   Future<void> setThanksFor(({String id, String label})? item) =>
       _put((d) => d.copyWith(thanksFor: () => item));
+
+  /// Review 109: the Teams a Check-in asks; none, the whole Space.
+  Future<void> setCheckInTeams(List<({String id, String name})> teams) =>
+      _put((d) => d.copyWith(checkInTeams: teams));
+
+  /// A Check-in's time and its allowance.
+  Future<void> setCheckInTime(DayTime time, int allow) =>
+      _put((d) => d.copyWith(inTime: () => time, inAllow: allow));
+
+  /// Its check-out, from + (CI1b); null takes it off (its chip's ×).
+  Future<void> setCheckOut(({DayTime time, int allow})? out) => _put(
+    (d) => d.copyWith(outTime: () => out?.time, outAllow: () => out?.allow),
+  );
+
+  /// Every day (the market pack's working days), or once.
+  Future<void> setDaily(bool on) => _put((d) => d.copyWith(daily: on));
+
+  /// The site: where the Lead stood when they tapped Set place here.
+  Future<void> setSite(({double lat, double lng})? site) =>
+      _put((d) => d.copyWith(site: () => site));
 
   /// Review 110 step 5: + → Checklist on a work item. [lines] become its
   /// points (an earlier line keeps its id) in one checklist block; none
@@ -1058,6 +1082,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.note ||
     DaybookKind.checklist ||
     DaybookKind.thanks ||
+    DaybookKind.checkIn ||
     DaybookKind.file ||
     DaybookKind.report => l10n.daybookBodyNote,
   };
@@ -1199,7 +1224,11 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       // Note has no For or Due (review 105 Part 3).
       DaybookKind.note || DaybookKind.announcement => [team],
       // A Thanks is written in the composer only (review 110 TH1).
-      DaybookKind.thanks || DaybookKind.file || DaybookKind.report => const [],
+      // A Check-in too (review 109).
+      DaybookKind.thanks ||
+      DaybookKind.checkIn ||
+      DaybookKind.file ||
+      DaybookKind.report => const [],
     };
   }
 
@@ -1843,7 +1872,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     }
     return switch (kind) {
       // A note has nothing to set: its words, photos and files only (F58).
-      DaybookKind.note || DaybookKind.thanks => const [],
+      DaybookKind.note || DaybookKind.thanks || DaybookKind.checkIn => const [],
       DaybookKind.workItem => [if (!widget.editing) assign, location, due],
       DaybookKind.checklist => [people, due],
       DaybookKind.announcement => [

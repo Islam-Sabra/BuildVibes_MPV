@@ -16,6 +16,8 @@ import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/check_in_repository.dart';
 import 'package:buildvibes/core/location/location_reader.dart';
+import 'package:buildvibes/features/work/check_in_phone.dart'
+    show checkInNotifierProvider;
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/dm_repository.dart';
 import 'package:buildvibes/features/work/composer_kinds.dart';
@@ -144,6 +146,7 @@ class TestApp {
     required this.schedule,
     required this.checkIns,
     required this.location,
+    required this.notices,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -209,6 +212,7 @@ class TestApp {
   /// Review 109: Check-in's calls, and the phone's location.
   final FakeCheckInRepository checkIns;
   final FakeLocationReader location;
+  final FakeCheckInNotifier notices;
 
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
@@ -371,6 +375,7 @@ Future<TestApp> pumpApp(
   final fakeCheckIns =
       checkIns ?? FakeCheckInRepository(now: clock ?? () => now ?? testNow);
   final fakeLocation = location ?? FakeLocationReader();
+  final fakeNotices = FakeCheckInNotifier();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -431,6 +436,7 @@ Future<TestApp> pumpApp(
         scheduleRepositoryProvider.overrideWithValue(fakeSchedule),
         checkInRepositoryProvider.overrideWithValue(fakeCheckIns),
         locationReaderProvider.overrideWithValue(fakeLocation),
+        checkInNotifierProvider.overrideWithValue(fakeNotices),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;
@@ -563,6 +569,7 @@ Future<TestApp> pumpApp(
     schedule: fakeSchedule,
     checkIns: fakeCheckIns,
     location: fakeLocation,
+    notices: fakeNotices,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

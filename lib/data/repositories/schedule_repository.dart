@@ -64,6 +64,9 @@ abstract final class ScheduledCall {
   /// A Thanks (review 110 W7), with create_thanks's own params.
   static const thanks = 'create_thanks';
 
+  /// A Check-in (review 109), with post_check_in's own params.
+  static const checkIn = 'post_check_in';
+
   /// What Scheduled shows of it: schedule_post keeps 1 to 200 characters.
   static const titleMax = 200;
 }

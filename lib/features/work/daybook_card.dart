@@ -32,6 +32,7 @@ import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError;
+import 'check_in_card.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_page.dart' show forLineWithTasks;
@@ -225,7 +226,12 @@ class DaybookCardView extends StatelessWidget {
     this.taskTables,
     this.taskCount,
     this.onTag,
+    this.spaceId,
   });
+
+  /// The Space it is in (review 109: a Check-in's times in its time zone,
+  /// and its creator's list).
+  final String? spaceId;
 
   /// The card as the phone shows it: what waits to be sent is already on
   /// it.
@@ -336,6 +342,7 @@ class DaybookCardView extends StatelessWidget {
     onTag: onTag,
     taskTables: taskTables,
     taskCount: taskCount,
+    spaceId: spaceId,
   );
 
   /// The site tag, for a post with a place in the Space's list.
@@ -705,6 +712,7 @@ class DaybookCardView extends StatelessWidget {
     DaybookPost.activityKind => l10n.daybookKindActivityWord,
     DaybookPost.fileKind => l10n.daybookKindFileWord,
     DaybookPost.reportKind => l10n.daybookKindReportWord,
+    DaybookPost.checkInKind => l10n.daybookKindCheckIn,
     _ => l10n.daybookToEveryone,
   };
 
@@ -779,6 +787,17 @@ class DaybookCardView extends StatelessWidget {
       // it is to and what for; Show on my profile only for them.
       case DaybookPost.thanksKind:
         return [DaybookThanksBody(post: post, lifted: lifted || waiting)];
+      // Review 109 CI4: the reader's own stamp, then Check out; the
+      // creator's list.
+      case DaybookPost.checkInKind:
+        return [
+          DaybookCheckInBody(
+            post: post,
+            words: words,
+            spaceId: spaceId,
+            lifted: lifted || waiting || viewer,
+          ),
+        ];
       case DaybookPost.checklistKind:
         return [
           ...top(

@@ -45,6 +45,9 @@ abstract final class BvPrimitive {
   // The app icon's cube (review 91): its left and right faces.
   static const cubeLeft = Color(0xFFF8F1E8);
   static const cubeRight = Color(0xFFE6DACA);
+  // Review 109 (CI4, CI5): a check-in stamp's soft green and amber.
+  static const positiveSoft = Color(0xFFE1F0E7);
+  static const warningSoft = Color(0xFFFCEDD2);
 }
 
 /// Semantic colours ("Color / Semantic", Light mode).
@@ -58,6 +61,11 @@ abstract final class BvColors {
 
   /// A site tag's sand (review 105 Part 5).
   static const surfaceSiteTag = BvPrimitive.sand;
+
+  /// Review 109: a check-in stamp's ground: on time and on site, late or
+  /// not at site.
+  static const surfacePositiveSoft = BvPrimitive.positiveSoft;
+  static const surfaceWarningSoft = BvPrimitive.warningSoft;
 
   /// Under a label on a photo (review 105C SP7).
   static const surfacePhotoLabel = BvPrimitive.ink70;

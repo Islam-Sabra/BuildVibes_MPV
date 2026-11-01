@@ -1,6 +1,19 @@
 import 'package:buildvibes/data/models/check_in.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/check_in_repository.dart';
+import 'package:buildvibes/features/work/check_in_notice.dart';
+
+/// Review 109's notifications in tests: what was shown, in order.
+class FakeCheckInNotifier implements CheckInNotifier {
+  final shown = <CheckInNotice>[];
+  var channels = 0;
+
+  @override
+  Future<void> ensureChannel() async => channels++;
+
+  @override
+  Future<void> show(CheckInNotice notice) async => shown.add(notice);
+}
 
 /// Review 109's server calls in tests.
 class FakeCheckInRepository implements CheckInRepository {

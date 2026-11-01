@@ -216,8 +216,8 @@ void main() {
           expect(_key('composer-kind-$k'), findsOneWidget, reason: k);
         }
         expect(_key('composer-kind-walk'), findsOneWidget);
-        // Check-in waits for review 109.
-        expect(_key('composer-kind-check_in'), findsNothing);
+        // Review 109: a Lead is offered Check-in too.
+        expect(_key('composer-kind-check_in'), findsOneWidget);
         expect(
           tester
               .widget<BvIconGridTile>(_key('composer-kind-work_item'))

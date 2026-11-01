@@ -17,6 +17,7 @@ import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
+import '../work/check_in_notice.dart' show checkInPushRoute;
 import '../../core/routing/open_thread.dart';
 
 /// Whether the phone lets BuildVibes notify (S4 shows when it doesn't).
@@ -269,7 +270,8 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// Only the app's own pages: a Space, its item or thread, a post, a
   /// person, a direct message thread, your profile, or Scheduled.
   void _open(Map<String, String> data) {
-    final sent = data['route'];
+    // Review 109: a check-in's push opens its card, or the creator's list.
+    final sent = checkInPushRoute(data) ?? data['route'];
     if (!mounted || sent == null) return;
     final route = pushRoute(sent, eventId: data['event_id']);
     final router = GoRouter.of(context);
