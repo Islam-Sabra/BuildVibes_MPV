@@ -10651,6 +10651,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'People'**
   String get cpPeople;
+
+  /// Review 110 W2: under the Space list's error, the error's type as a short code (never its raw words).
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {code}'**
+  String notebookShareSpacesCode(String code);
 }
 
 class _AppLocalizationsDelegate

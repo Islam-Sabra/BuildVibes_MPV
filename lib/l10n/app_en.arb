@@ -9111,5 +9111,14 @@
   "cpPeople": "People",
   "@cpPeople": {
     "description": "Review 110 (founder, 31 Oct): + → People on a scheduled activity, to name who's coming if wanted."
+  },
+  "notebookShareSpacesCode": "Code: {code}",
+  "@notebookShareSpacesCode": {
+    "description": "Review 110 W2: under the Space list's error, the error's type as a short code (never its raw words).",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
   }
 }

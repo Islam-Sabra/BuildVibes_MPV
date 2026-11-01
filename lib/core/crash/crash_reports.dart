@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:flutter/foundation.dart';
 
 /// What a crash report says about an error: its type only, never its
@@ -67,25 +68,29 @@ void reportNoPushToken() {
 }
 
 /// Review 110 A: an error the app shows rather than crashes on (the share
-/// card's Space list), as one non-fatal report with its stack; its words
-/// are scrubbed to the error's type. Release builds only.
-void reportNonFatal(Object error, StackTrace? stack) {
+/// card's Space list), as one non-fatal report with its stack and
+/// [reason] (W2: the error's first line, cut by characters, and how many
+/// times the list ran). Release builds only.
+void reportNonFatal(Object error, StackTrace? stack, {String? reason}) {
   if (Firebase.apps.isEmpty || !kReleaseMode) return;
   unawaited(
     FirebaseCrashlytics.instance.recordError(
       ScrubbedError(crashSummary(error)),
       stack,
+      reason: reason,
       fatal: false,
       printDetails: false,
     ),
   );
 }
 
-/// Review 110 A: a short diagnostic for the screen: the error's type and
-/// the first line of what it says, at most [most] characters.
-String errorDiagnostic(Object error, {int most = 120}) {
-  final first = '$error'.split('\n').first.trim();
-  final type = '${error.runtimeType}';
-  final line = first.startsWith(type) ? first : '$type: $first';
-  return line.length <= most ? line : '${line.substring(0, most - 1)}…';
+/// Review 110 W2: the short code shown on screen: the error's type only,
+/// never what it says.
+String errorCode(Object error) => '${error.runtimeType}';
+
+/// Review 110 W2: the error's first line, at most [most] characters
+/// (never cut inside a character), for Crashlytics only.
+String errorFirstLine(Object error, {int most = 120}) {
+  final first = '$error'.split('\n').first.trim().characters;
+  return first.length <= most ? first.toString() : '${first.take(most - 1)}…';
 }

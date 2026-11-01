@@ -1758,5 +1758,6 @@
   "cpPointHint": "بند للتأشير",
   "cpAddPoint": "إضافة بند",
   "cpChecklistChip": "قائمة تحقق · {count}",
-  "cpPeople": "الأشخاص"
+  "cpPeople": "الأشخاص",
+  "notebookShareSpacesCode": "الرمز: {code}"
 }

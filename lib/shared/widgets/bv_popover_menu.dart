@@ -85,6 +85,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
        back = null,
        onBack = null,
        field = null,
+       foot = null,
        tiles = true;
 
   /// [wide]: the kind menu (E6 v14 2598:36413), whose small lines fit on
@@ -105,6 +106,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
        back = null,
        onBack = null,
        field = null,
+       foot = null,
        tiles = true;
 
   const BvPopoverMenu.screen({
@@ -123,6 +125,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
        back = null,
        onBack = null,
        field = null,
+       foot = null,
        tiles = true;
 
   /// The card next to a line (review 98): the line menu (NBY2), and the
@@ -141,6 +144,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
     this.onBack,
     this.field,
     this.tiles = true,
+    this.foot,
   }) : picker = false,
        screen = false,
        wide = false,
@@ -171,6 +175,9 @@ class BvPopoverMenu<T> extends StatelessWidget {
 
   /// A field under the ‹ row (Share's "To": a search, review 100 H14).
   final Widget? field;
+
+  /// Review 110 W1: an action at the card's foot (Try again).
+  final Widget? foot;
 
   /// Each row's icon on a grey tile (the block list's glyphs, BH8), or
   /// plain (📎 and the Filter, BH7, BH9; review 100 H10).
@@ -294,6 +301,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   padding: BvLineMenuSpec.hintPadding,
                   child: Text(hint, style: quiet),
                 ),
+              ?foot,
             ],
           ),
         ),

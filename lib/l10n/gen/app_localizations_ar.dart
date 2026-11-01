@@ -6449,4 +6449,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cpPeople => 'الأشخاص';
+
+  @override
+  String notebookShareSpacesCode(String code) {
+    return 'الرمز: $code';
+  }
 }

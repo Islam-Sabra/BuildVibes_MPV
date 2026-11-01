@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/crash/crash_reports.dart'
-    show errorDiagnostic, reportNonFatal;
+    show errorCode, errorFirstLine, reportNonFatal;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
@@ -21,7 +21,8 @@ import '../../data/repositories/dm_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/post_repository.dart';
 import '../../data/repositories/schedule_repository.dart';
-import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
+import '../../data/repositories/space_repository.dart'
+    show mySpacesProvider, spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -32,7 +33,8 @@ import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/voice.dart' show voiceTime;
-import '../create/create_sheet.dart' show workItemSpacesProvider;
+import '../create/create_sheet.dart'
+    show spacesLoadMost, workItemSpacesProvider, workItemSpacesRuns;
 import '../entry/entry_state.dart' show authUserIdProvider;
 import '../messages/people_search_screen.dart' show peopleSearchProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -299,6 +301,36 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
   /// The Space list's error already reported (once each).
   Object? _reported;
 
+  /// Review 110 W1: the Space list's 15 s, from when it first opened.
+  Timer? _spacesTimer;
+  var _spacesLate = false;
+
+  void _startSpacesClock() {
+    if (_spacesTimer != null) return;
+    workItemSpacesRuns = 0;
+    _spacesTimer = Timer(spacesLoadMost, () {
+      if (mounted) setState(() => _spacesLate = true);
+    });
+  }
+
+  void _retrySpaces() {
+    _spacesTimer?.cancel();
+    _spacesTimer = null;
+    setState(() {
+      _spacesLate = false;
+      _reported = null;
+    });
+    // My Spaces keeps its own failure: it is read again too.
+    ref.invalidate(mySpacesProvider);
+    ref.invalidate(workItemSpacesProvider);
+  }
+
+  @override
+  void dispose() {
+    _spacesTimer?.cancel();
+    super.dispose();
+  }
+
   void _back() =>
       widget.start == null ? setState(() => _level = null) : widget.onPicked();
   var _q = '';
@@ -341,15 +373,24 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
               : setState(() => _level = to),
         );
       case _ShareTo.space:
+        _startSpacesClock();
         final spaces = ref.watch(workItemSpacesProvider);
         final list = spaces.value ?? const <SpaceSummary>[];
-        // Review 110 A: loading and an error are said, never an empty card
-        // with no title; an error shows its type and first line, small,
-        // and goes to Crashlytics once.
-        final error = spaces.hasValue ? null : spaces.error;
+        // Review 110 A, W1–W2: loading and an error are said, never an
+        // empty card with no title. An error (or 15 s from when the list
+        // opened) shows a short code and Try again, and goes to
+        // Crashlytics once with its first line and how often the list ran.
+        final error = spaces.hasValue
+            ? null
+            : spaces.error ??
+                  (_spacesLate ? TimeoutException(null, spacesLoadMost) : null);
         if (error != null && !identical(error, _reported)) {
           _reported = error;
-          reportNonFatal(error, spaces.stackTrace);
+          reportNonFatal(
+            error,
+            spaces.stackTrace,
+            reason: '${errorFirstLine(error)} · runs: $workItemSpacesRuns',
+          );
         }
         return BvPopoverMenu<SpaceSummary>.line(
           key: const Key('share-menu'),
@@ -362,7 +403,19 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
               : list.isEmpty
               ? l10n.notebookShareNoSpace
               : null,
-          hint: error == null ? null : errorDiagnostic(error),
+          hint: error == null
+              ? null
+              : l10n.notebookShareSpacesCode(errorCode(error)),
+          foot: error == null
+              ? null
+              : Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const Key('share-spaces-retry'),
+                    onPressed: _retrySpaces,
+                    child: Text(l10n.commonRetry),
+                  ),
+                ),
           scrolls: true,
           tiles: false,
           items: [
