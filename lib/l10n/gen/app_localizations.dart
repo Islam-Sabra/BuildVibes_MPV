@@ -10675,6 +10675,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only people who can see this item can be reminded.'**
   String get rmOnlyWhoSees;
+
+  /// Review 112: the For picker when nobody else in the Space can own a work item (you can't give one to yourself).
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone to give work items to.'**
+  String get workItemInviteSomeone;
+
+  /// Review 112: the server refused a work item for its own author.
+  ///
+  /// In en, this message translates to:
+  /// **'A work item is for someone else. For yourself, use My notebook.'**
+  String get workItemForSomeoneElse;
 }
 
 class _AppLocalizationsDelegate

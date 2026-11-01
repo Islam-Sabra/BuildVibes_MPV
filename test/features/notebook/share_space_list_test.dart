@@ -3,7 +3,8 @@
 // says so; after 15 s from when the list opened, or on an error, it says it
 // couldn't load them, with a short code (the error's type, never its raw
 // words) and Try again. A Space's detail changing never restarts the list.
-// In English and Arabic.
+// Review 112: the list is one call, my_postable_spaces, not one read per
+// Space. In English and Arabic.
 import 'dart:async';
 
 import 'package:buildvibes/data/models/space.dart';
@@ -102,16 +103,25 @@ void main() {
       expect(find.text(l10n.notebookShareSpacesError), findsNothing);
     });
 
-    testWidgets('a Space\'s detail the app can\'t read: the error line with '
-        'its code [$lang]', (tester) async {
-      final spaces = two()..detailErrors[_other] = TypeError();
+    testWidgets('review 112: one call, my_postable_spaces; no Space\'s '
+        'detail is read for the list [$lang]', (tester) async {
+      final spaces = two();
       await _open(tester, lang, spaces);
       await tester.pumpAndSettle();
-      expect(find.text(l10n.notebookShareSpacesError), findsOneWidget);
-      expect(
-        find.text(l10n.notebookShareSpacesCode('TypeError')),
-        findsOneWidget,
-      );
+      expect(_key('share-space-${DaybookSamples.space}'), findsOneWidget);
+      expect(_key('share-space-$_other'), findsOneWidget);
+      expect(spaces.postableCalls, 1);
+      expect(spaces.fetchSpaceCalls, 0);
+    });
+
+    testWidgets('review 112: only the Spaces where I may give work [$lang]', (
+      tester,
+    ) async {
+      final spaces = two()..details[_other] = s.detail(pass: SpacePass.viewer);
+      await _open(tester, lang, spaces);
+      await tester.pumpAndSettle();
+      expect(_key('share-space-${DaybookSamples.space}'), findsOneWidget);
+      expect(_key('share-space-$_other'), findsNothing);
     });
 
     testWidgets('15 s from when the list opened: the error line, code '

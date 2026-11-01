@@ -14,6 +14,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
 import 'package:buildvibes/features/work/daybook_composer.dart'
     show BvIconGridTile;
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -222,6 +223,15 @@ void main() {
       // Review 80: the picker has no "now" under the one chosen.
       await _tap(tester, _key('walk-owner'));
       expect(find.text(l10n.daybookOwnerNow), findsNothing);
+      // Review 112: each line is for someone else, never me.
+      expect(
+        tester
+            .widget<BvGiveToPicker>(_key('walk-owner-picker'))
+            .people
+            .map((p) => p.id),
+        isNot(contains(DaybookSamples.islam)),
+      );
+      expect(_key('give-to-me'), findsNothing);
       await _tap(
         tester,
         find.descendant(

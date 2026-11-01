@@ -13,6 +13,10 @@ import '../supabase/supabase_provider.dart';
 abstract class SpaceRepository {
   Future<List<SpaceSummary>> mySpaces();
 
+  /// My Spaces where I may give work (create_items), the one I posted in
+  /// last first: one call (review 112, my_postable_spaces).
+  Future<List<SpaceSummary>> postableSpaces();
+
   /// Your waiting requests, and declined ones from the last 30 days.
   Future<List<MyJoinRequest>> myJoinRequests();
 
@@ -178,6 +182,12 @@ class SupabaseSpaceRepository implements SpaceRepository {
   @override
   Future<List<SpaceSummary>> mySpaces() => _guard(() async {
     final rows = _rows(await _client.rpc<List<dynamic>>('my_spaces'));
+    return [for (final r in rows) SpaceSummary.fromJson(r)];
+  });
+
+  @override
+  Future<List<SpaceSummary>> postableSpaces() => _guard(() async {
+    final rows = _rows(await _client.rpc<List<dynamic>>('my_postable_spaces'));
     return [for (final r in rows) SpaceSummary.fromJson(r)];
   });
 

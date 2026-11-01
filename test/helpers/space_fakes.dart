@@ -58,6 +58,23 @@ class FakeSpaceRepository implements SpaceRepository {
     return List.of(spaces);
   }
 
+  /// my_postable_spaces calls, and Space details read (review 112: the
+  /// share's list is one call).
+  var postableCalls = 0;
+  var fetchSpaceCalls = 0;
+
+  /// As the server: my Spaces where my rights let me give work.
+  @override
+  Future<List<SpaceSummary>> postableSpaces() async {
+    postableCalls++;
+    await spacesGate;
+    if (spacesError case final e?) throw e;
+    return [
+      for (final s in spaces)
+        if (details[s.id]?.myRights.createItems ?? false) s,
+    ];
+  }
+
   @override
   Future<List<MyJoinRequest>> myJoinRequests() async => List.of(requests);
 
@@ -149,6 +166,7 @@ class FakeSpaceRepository implements SpaceRepository {
 
   @override
   Future<SpaceDetail?> fetchSpace(String spaceId) async {
+    fetchSpaceCalls++;
     if (detailErrors[spaceId] case final e?) throw e;
     return details[spaceId];
   }

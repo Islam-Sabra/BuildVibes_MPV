@@ -9132,5 +9132,13 @@
   "rmOnlyWhoSees": "Only people who can see this item can be reminded.",
   "@rmOnlyWhoSees": {
     "description": "Review 110 W5: set_work_reminder refused \"only people in the Space who can see it\"."
+  },
+  "workItemInviteSomeone": "Invite someone to give work items to.",
+  "@workItemInviteSomeone": {
+    "description": "Review 112: the For picker when nobody else in the Space can own a work item (you can't give one to yourself)."
+  },
+  "workItemForSomeoneElse": "A work item is for someone else. For yourself, use My notebook.",
+  "@workItemForSomeoneElse": {
+    "description": "Review 112: the server refused a work item for its own author."
   }
 }

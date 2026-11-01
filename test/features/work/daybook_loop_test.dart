@@ -1255,6 +1255,11 @@ void main() {
       expect(picker.currentOwnerId, DaybookSamples.omar);
       expect(picker.searchPlaceholder, l10n.daybookGiveToSearch);
       expect(picker.people.map((p) => p.name), isNot(contains(s.monaName)));
+      // Review 112: never the one giving it.
+      expect(
+        picker.people.map((p) => p.id),
+        isNot(contains(DaybookSamples.islam)),
+      );
       await tester.tap(
         find.descendant(
           of: find.byKey(const Key('give-to')),

@@ -419,6 +419,14 @@ List<BvGiveToPerson> assignablePeople(SpacePeople people, {String? me}) =>
       pass: (p) => p == SpacePass.lead || p == SpacePass.crew,
     );
 
+/// Who a work item can be for (review 112, founder, 1 Nov): as
+/// [assignablePeople], never [me]. A work item is always for someone else;
+/// what's mine alone belongs in My notebook.
+List<BvGiveToPerson> ownerPeople(SpacePeople people, {required String? me}) => [
+  for (final p in assignablePeople(people, me: me))
+    if (p.id != me) p,
+];
+
 /// Who an activity can be for: everyone active in the Space, Viewers too
 /// (a Viewer attends).
 List<BvGiveToPerson> attendees(SpacePeople people, {String? me}) =>
@@ -1942,14 +1950,13 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
         // One owner: the first pick closes it.
         return BvGiveToPicker(
           key: const Key('writing-assign'),
-          people: assignablePeople(people, me: widget.me),
+          // Review 112: never me (F69's You row is gone).
+          people: ownerPeople(people, me: widget.me),
           currentOwnerId: draft?.ownerId,
           currentLabel: l10n.daybookOwnerNow,
           // The menu says "Assign" (review 46).
           searchPlaceholder: l10n.daybookAssignSearch,
-          // F69: me first, as You.
-          meId: widget.me,
-          meLabel: l10n.daybookYou,
+          emptyLine: l10n.workItemInviteSomeone,
           onPick: (p) async {
             await _writer.setOwner(p);
             widget.onAssigned();

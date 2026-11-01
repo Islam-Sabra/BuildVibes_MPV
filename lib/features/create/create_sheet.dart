@@ -126,8 +126,8 @@ class _CreateChoice extends StatelessWidget {
 }
 
 /// The Spaces where you may write work items (a Viewer's never show),
-/// the one you opened last first, then as My Spaces orders them. The
-/// server decides each Space's rights (custom passes too).
+/// the one you opened last first, then the one you posted in last. The
+/// server decides each Space's rights (custom passes too), in one call.
 final workItemSpacesProvider = FutureProvider.autoDispose<List<SpaceSummary>>(
   (ref) {
     workItemSpacesRuns++;
@@ -146,26 +146,12 @@ const spacesLoadMost = Duration(seconds: 15);
 /// opened; sent with an error, so a restart loop shows in Crashlytics.
 var workItemSpacesRuns = 0;
 
-/// Only My Spaces is watched; each Space's rights are read once, so a
-/// detail read again elsewhere never restarts the list (W1).
+/// Nothing is watched, so nothing read again elsewhere restarts the list
+/// (W1).
 Future<List<SpaceSummary>> _workItemSpaces(Ref ref) async {
-  final spaces = await ref.watch(mySpacesProvider.future);
+  // Review 112: one call, not a Space detail per Space (4 requests each).
+  final mine = await ref.read(spaceRepositoryProvider).postableSpaces();
   final last = ref.read(lastSpaceProvider);
-  final repo = ref.read(spaceRepositoryProvider);
-  Future<bool> canWrite(SpaceSummary s) async {
-    try {
-      final detail = await repo.fetchSpace(s.id);
-      return detail?.myRights.createItems ?? false;
-    } on SpaceException {
-      return false;
-    }
-  }
-
-  final allowed = await Future.wait(spaces.map(canWrite));
-  final mine = [
-    for (final (i, s) in spaces.indexed)
-      if (allowed[i]) s,
-  ];
   return [
     ...mine.where((s) => s.id == last),
     ...mine.where((s) => s.id != last),

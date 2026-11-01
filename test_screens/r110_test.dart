@@ -490,7 +490,8 @@ void main() {
               isAdmin: true,
             ),
           )
-          ..detailErrors[DaybookSamples.space] = TypeError(),
+          // Review 112: the list is one call; it fails.
+          ..spacesError = TypeError(),
       );
       await tester.pumpAndSettle();
       await _snap(tester, 'A2-spaces-error', lang);

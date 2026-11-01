@@ -32,6 +32,7 @@ import 'daybook_photos.dart';
 import 'daybook_report.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart';
+import 'work_outbox.dart' show RefusalWhy;
 import 'work_places.dart';
 
 export 'composer_kinds.dart';
@@ -862,6 +863,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                       Text(
                         kind == DaybookKind.thanks
                             ? thanksRefusalText(l10n, draft.refusal)
+                            : draft.refusal == RefusalWhy.forSomeoneElse.name
+                            ? l10n.workItemForSomeoneElse
                             : l10n.daybookCouldNotSend,
                         style: type.metadata.copyWith(
                           color: BvColors.textDestructive,

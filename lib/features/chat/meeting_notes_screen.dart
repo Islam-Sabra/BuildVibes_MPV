@@ -19,7 +19,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../spaces/space_errors.dart';
 import '../work/daybook_draft.dart' show DaybookPostDraft;
-import '../work/daybook_writing.dart' show assignablePeople, newPostIdProvider;
+import '../work/daybook_writing.dart' show newPostIdProvider, ownerPeople;
 import 'chat_tab.dart' show threadName;
 
 /// At most this many lines go in as work items (create_from_message).
@@ -104,7 +104,8 @@ class _MeetingNotesState extends ConsumerState<MeetingNotesScreen> {
         ?.teamId;
     final team = people.teams.where((t) => t.id == teamId).firstOrNull;
     return [
-      for (final p in assignablePeople(people, me: me))
+      // Review 112: each line is for someone else, never me.
+      for (final p in ownerPeople(people, me: me))
         if (team == null || team.memberIds.contains(p.id)) p,
     ];
   }
@@ -120,8 +121,7 @@ class _MeetingNotesState extends ConsumerState<MeetingNotesScreen> {
         key: const Key('meeting-owner-picker'),
         people: people,
         currentOwnerId: _owners[index]?.id,
-        meId: ref.read(authUserIdProvider).value,
-        meLabel: l10n.daybookYou,
+        emptyLine: l10n.workItemInviteSomeone,
         searchPlaceholder: l10n.daybookAssignSearch,
         inSheet: true,
         onPick: (p) => Navigator.of(sheet).pop(p),

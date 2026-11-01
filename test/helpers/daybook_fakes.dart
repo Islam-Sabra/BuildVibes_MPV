@@ -190,9 +190,13 @@ class FakeDaybookRepository implements DaybookRepository {
     createdWalks.add(walk);
   }
 
+  /// create_work_item says no with this (review 112: for yourself).
+  SpaceException? refuseItemsWith;
+
   @override
   Future<void> createWorkItem(NewWorkItem item) async {
     _check();
+    if (refuseItemsWith case final e?) throw e;
     // The same id again is the same post.
     if (created.any((c) => c.id == item.id)) return;
     created.add(item);

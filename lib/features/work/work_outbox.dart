@@ -1213,12 +1213,21 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     }
   }
 
-  /// A refused Thanks keeps why, for its plain line (review 110 TH1).
+  /// A refused Thanks keeps why, for its plain line (review 110 TH1); so
+  /// does a work item refused for its own author (review 112).
   static PendingItem _withRefusal(PendingItem item, SpaceException e) {
     final d = item.draft;
-    if (d == null || d.kind != DaybookKind.thanks) return item;
+    if (d?.kind == DaybookKind.thanks) {
+      return item.copyWith(
+        draft: d!.copyWith(refusal: () => ThanksRefusal.of(e).name),
+      );
+    }
+    if (RefusalWhy.of(e) != RefusalWhy.forSomeoneElse) return item;
+    // A work item keeps no Draft of its own while it waits: it is made
+    // from the item.
+    final back = d ?? DaybookPostDraft.refused(item);
     return item.copyWith(
-      draft: d.copyWith(refusal: () => ThanksRefusal.of(e).name),
+      draft: back.copyWith(refusal: () => RefusalWhy.forSomeoneElse.name),
     );
   }
 
@@ -1323,6 +1332,9 @@ enum RefusalWhy {
 
   /// Remove from Space while they own open work (review 105B L1).
   openWork,
+
+  /// A work item for yourself (review 112).
+  forSomeoneElse,
   unknown;
 
   static RefusalWhy of(SpaceException e) {
@@ -1330,6 +1342,7 @@ enum RefusalWhy {
     return switch (e.failure) {
       SpaceFailure.notAllowed => notAllowed,
       SpaceFailure.openWork => openWork,
+      _ when m.contains(workItemForSomeoneElse) => forSomeoneElse,
       SpaceFailure.rule when m.contains('checked work') => checked,
       SpaceFailure.rule when m.contains('cancelled') => cancelled,
       SpaceFailure.rule when m.contains('removed') => removed,
@@ -1339,6 +1352,10 @@ enum RefusalWhy {
     };
   }
 }
+
+/// The server's words when a work item would be for its own author
+/// (review 112, migration 20261119120000).
+const workItemForSomeoneElse = 'a work item is for someone else';
 
 /// One refusal to say in plain words, then the page reads again.
 @immutable
