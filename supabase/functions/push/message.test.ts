@@ -289,6 +289,14 @@ const checkIn = (mark: string): QueueRow =>
     },
   });
 
+// Lock-screen text off (migration 14's rule): the queue has no title, no
+// Space and no counts; only the ids and the window.
+const checkInPlain = (mark: string): QueueRow =>
+  row("check_in_open", {
+    actor_id: null,
+    data: { post_id: "p1", space_id: "s1", mark, until: "2026-12-01T04:15:00+00:00", tz: "Asia/Kuwait" },
+  });
+
 test("review 109 CI2: check-in opens: the title over the Space and the on-time limit, in the Space's zone", () => {
   const p = buildPush(checkIn("in"), "en", null, strings);
   assert.equal(p.title, "⁨Morning, Block B⁩");
@@ -301,20 +309,52 @@ test("review 109 CI2: check-in opens: the title over the Space and the on-time l
   assert.equal(ar.body, "⁨Tower 3⁩ · حتى 14:15", "Western digits in Arabic");
 });
 
-test("review 109 CI2: Android gets a high-priority data message on the check_in channel; iOS a time-sensitive alert with its category", () => {
-  const m = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as {
-    notification?: unknown;
-    data: Record<string, string>;
-    android: { priority: string; notification?: unknown };
-    apns: {
-      headers: Record<string, string>;
-      payload: { aps: Record<string, unknown> & { alert: { title: string; body: string } } };
-    };
+type CheckInFcm = {
+  notification: { title: string; body: string };
+  data: Record<string, string>;
+  android: {
+    priority: string;
+    notification: { channel_id: string; tag: string; default_sound: boolean };
   };
-  assert.equal(m.notification, undefined, "data only: the app draws it, with its actions");
-  assert.equal(m.android.priority, "high");
-  assert.equal(m.android.notification, undefined);
-  assert.equal(m.data.channel_id, "check_in");
+  apns: {
+    headers: Record<string, string>;
+    payload: { aps: Record<string, unknown> & { alert: { title: string; body: string } } };
+  };
+};
+
+test("review 109 (option C): Android gets a notification on the check_in channel, tagged per post and kind, with the data part", () => {
+  for (const [label, push, title, body] of [
+    ["text on", buildPush(checkIn("in"), "en", null, strings), "⁨Morning, Block B⁩", "⁨Tower 3⁩ · by 07:15"],
+    ["text off", buildPush(checkInPlain("in"), "en", null, strings), "BuildVibes", "Time to check in"],
+  ] as const) {
+    const m = fcmMessage("tok", push) as CheckInFcm;
+    assert.deepEqual(m.notification, { title, body }, `${label}: a notification Android draws`);
+    assert.equal(m.android.priority, "high", label);
+    assert.equal(m.android.notification.channel_id, "check_in", label);
+    assert.equal(m.android.notification.default_sound, true, label);
+    assert.equal(m.android.notification.tag, "checkin:p1:in", `${label}: one tag per post and kind`);
+    assert.equal(m.data.tag, "checkin:p1:in", `${label}: the same tag in the data`);
+    assert.equal(m.data.post_id, "p1", label);
+    assert.equal(m.data.mark, "in", label);
+    assert.equal(m.data.until, "2026-12-01T04:15:00+00:00", label);
+    assert.equal(m.data.push_title, title, label);
+    assert.equal(m.data.push_body, body, label);
+    assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+  }
+  const on = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as CheckInFcm;
+  assert.equal(on.data.title, "Morning, Block B");
+  assert.equal(on.data.space_name, "Tower 3");
+  const off = fcmMessage("tok", buildPush(checkInPlain("in"), "en", null, strings)) as CheckInFcm;
+  assert.equal(off.data.title, undefined, "text off: no title in the data");
+  assert.equal(off.data.space_name, undefined, "nor the Space");
+  assert.ok(!JSON.stringify(off).includes("Tower"), "anywhere");
+  const out = fcmMessage("tok", buildPush(checkIn("out"), "en", null, strings)) as CheckInFcm;
+  assert.equal(out.android.notification.tag, "checkin:p1:out");
+  assert.equal(out.data.tag, "checkin:p1:out");
+});
+
+test("review 109 CI2: iOS a time-sensitive alert with its category", () => {
+  const m = fcmMessage("tok", buildPush(checkIn("in"), "en", null, strings)) as CheckInFcm;
   assert.equal(m.data.kind, "check_in_open");
   assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
   assert.equal(m.apns.headers["apns-priority"], "10");
@@ -346,14 +386,6 @@ test("review 109 CI5: the creator's summary is a normal notification with what t
   assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
   assert.equal(m.apns, undefined);
 });
-
-// Lock-screen text off (migration 14's rule): the queue has no title, no
-// Space and no counts; only the ids and the window.
-const checkInPlain = (mark: string): QueueRow =>
-  row("check_in_open", {
-    actor_id: null,
-    data: { post_id: "p1", space_id: "s1", mark, until: "2026-12-01T04:15:00+00:00", tz: "Asia/Kuwait" },
-  });
 
 test("review 109, lock-screen text off: only Time to check in / out, in the person's language, actions kept", () => {
   const p = buildPush(checkInPlain("in"), "en", null, strings);
