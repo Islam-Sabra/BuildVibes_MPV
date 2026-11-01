@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 110 accepted: X1, goldens, merged into `slice2-app`, migration 20261118120000 live, build 880 on the Desktop; not yet on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **X1 (e166780a, `claude/r110`):** the Viewer's bar is a centred Wrap, so "Thank someone" is never cut: at 390 it fits on one line in EN and AR; with a larger text size it goes under the pass. Test first in `bv_post_bar_test` with the app's real fonts, at text x1.0, x1.3 and x2.0, EN and AR (the old bar failed: EN cut at x1.0).
+- **Goldens (61dd02d1):** shots-110, shots-110b and X1's renders copied byte-identical (180 images; 44 new in `docs/screens/r110/`, which `.gitignore` now lets in); the shot folders removed.
+  - **Not from an accepted shot folder, for the lead to see in the golden diff:** 38 screens (76 images) that lost "Drafts" from the composer's top bar (W9), "Templates" in its place on T1, or "Checklist" from the notebook share (W8, NB-put-in-space) after shots-110 was taken. shots-110b's README wrongly said they matched shots-110: its comparison looked only at the alpha channel. Each diff was checked to be only that change; they take today's render: DM5-writing-quote, E1-write, E2-more-menu, E3-assign, E3-filled-card, E6-kind-chip, E6-kind-menu, F45-people-picker-done, F50-kind-menu, F56-to-menu, F56-who-asks, F56-who-row, F63-kind-menu, F66-who-row-chosen, F69-picker-you-first, F71-replaces-choice, F71-replaces-picked, F71-version-picker, F71-writing-replaces, F72-attach, F82-pin-add-time, F82-pin-with-time, H2-photos-preparing, K4-attach, NB-put-in-space, P1-place-picker, PL1-post-later, PL1b-later-not-yet, R2-writing, R2-writing-done-today, T1-template-picker, T2-checklist-from-template, T2-from-template, W-activity, W-announcement, W-checklist, W-file, W-file-chooser, F71-replaces-picked (review82).
+  - review82's F71-replaces-picked had failed since shots-110 unseen (its failure images share a name with review80's); it is the composer in place of the in-list card (D), and takes today's render.
+- **Checks on `claude/r110` (61dd02d1):** `flutter analyze` no issues; `flutter test` 3,101 pass; `flutter test test_screens` (not updating) 562 pass; `supabase db reset --local` applies all; `supabase test db` 56 files, 3,533 checks, PASS.
+- **Merged** `claude/r110` into `slice2-app` with `--no-ff` (8a17d2ed), no conflicts, pushed. The same checks pass again: no issues, 3,101, 562, reset OK, 3,533 PASS.
+- **Migration 20261118120000 is live**, from a throwaway worktree at 8a17d2ed with `supabase/.temp` copied whole: the dry run listed only that file; `supabase db push` exit 0, "Applying migration 20261118120000_thanks_and_tags.sql…", then the known pg-delta catalog-cache certificate warning; `supabase migration list --linked` matches local and remote on every row through 20261118120000. The worktree is removed.
+- **Build 880** (versionCode 880, 0.9.0, commit 8a17d2ed): release APK at `Desktop/BuildVibes-880.apk`, signed with the same certificate as 852 (SHA-256 9d02b7db…b1df9f, CN=BuildVibes). `google-services.json` and `env/prod.json` were copied in and deleted after.
+- **Not yet on the founder's phone:** `adb connect 192.168.8.33:46081` was refused (wireless debugging gives a new port each time). **Next:** with his new IP:port, confirm the model is 22120RN86G, `adb install -r` BuildVibes-880.apk only (an update, keeping his data), disconnect. Then he tries the notebook share once and reads the code on the card if it still fails.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r110` (merged; worktree `BuildVibes-r110`).
+
 ## PC update: 1 Nov 2026 — review 110, the lead's check W1–W12 fixed on `claude/r110` (pushed); stopped for the lead: no merge, no database push, no build
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
