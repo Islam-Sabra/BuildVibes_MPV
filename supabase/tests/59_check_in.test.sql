@@ -16,7 +16,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(229);
+select plan(230);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000059' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -589,8 +589,12 @@ update public.space_members set left_at = now()
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('b4');
 select is((select array_agg(name order by name)
            from public.check_in_rows(pg_temp.id('c104'), pg_temp.d(), pg_temp.at(1, '00:00'))),
-  array['Rakesh Nair', 'Sami Fares', 'Tariq Aziz'],
-  'Y2: not who left before the day began; who joined after it ended only for a mark that day');
+  array['Rakesh Nair', 'Sami Fares'],
+  'Y2: not who joined after the day ended, nor who left before it began');
+select is((select array_agg(name order by name)
+           from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))),
+  array['Noor Ali', 'Rakesh Nair', 'Sami Fares', 'Tariq Aziz'],
+  'but anyone who marked that day stays on it');
 update public.space_members set confirmed_at = now(), left_at = null
 where space_id = pg_temp.sp() and profile_id in (pg_temp.uid('c3'), pg_temp.uid('b4'));
 select is((select in_on_time from public.check_in_rows(pg_temp.id('c101'), pg_temp.d(), pg_temp.at(1, '00:00'))

@@ -2,7 +2,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import strings from "./strings.json" with { type: "json" };
 import { reportTable } from "./report.ts";
-import { buildXlsx, columnName, crc32, safeSheetName, xmlText } from "./xlsx.ts";
+import { buildXlsx, cellText, columnName, crc32, safeSheetName, xmlText } from "./xlsx.ts";
 
 const dec = new TextDecoder();
 
@@ -62,7 +62,7 @@ Deno.test("a workbook with its six parts and the rows as text", () => {
   ]);
   const sheet = parts.get("xl/worksheets/sheet1.xml")!;
   assert(sheet.includes('<c r="A1" t="inlineStr" s="1"><is><t xml:space="preserve">Name</t></is></c>'));
-  assert(sheet.includes('<c r="A2" t="inlineStr"><is><t xml:space="preserve">=SUM(A1)</t></is></c>'));
+  assert(sheet.includes('<c r="A2" t="inlineStr"><is><t xml:space="preserve">&apos;=SUM(A1)</t></is></c>'));
   assert(sheet.includes("Steel &amp; fixers"));
   assert(!sheet.includes("<f>"), "no formulas");
   assert(!sheet.includes("rightToLeft"));
@@ -72,6 +72,16 @@ Deno.test("a workbook with its six parts and the rows as text", () => {
     bytes,
     buildXlsx([["Name", "Team"], ["=SUM(A1)", "Steel & fixers"]], { sheetName: "2026-12-01" }),
   );
+});
+
+Deno.test("Y8: text starting with = + - @ gets an apostrophe, nothing else does", () => {
+  assertEquals(
+    ["=1+1", "+965", "-5", "@cmd", "Noor", "", "a=b", "'quoted"].map(cellText),
+    ["'=1+1", "'+965", "'-5", "'@cmd", "Noor", "", "a=b", "'quoted"],
+  );
+  const sheet = unzip(buildXlsx([["Name"], ["@SUM(1)"]], { sheetName: "x" }))
+    .get("xl/worksheets/sheet1.xml")!;
+  assert(sheet.includes(">&apos;@SUM(1)</t>"));
 });
 
 Deno.test("Arabic reads from the right", () => {
