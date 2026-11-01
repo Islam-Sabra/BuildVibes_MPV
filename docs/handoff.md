@@ -2,6 +2,32 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 1 Nov 2026 — review 112 built on `claude/r112` (pushed); stopped for the lead: no merge, no database push, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r112` from `slice2-app` (ad1a3742), worktree `BuildVibes-r112`, pushed. Test first: pgTAP for the server, EN and AR for the app.
+- **Commits:**
+  - e9250a07 **Server** (migration `20261119120000_no_self_assign.sql`, **not live**; pgTAP 58, 39 checks):
+    - a trigger on `work_items` refuses a new item for the person making it (`22023`, "a work item is for someone else"), whichever way it is made: `create_work_item`, the notebook share, a walk's lines, work items from a message, and a scheduled one when it goes out (it runs as its author). A walk's or a message's parent item stays its author's (it holds the lines; it is made in the batch with no parent).
+    - `reassign_work_item` (Give to) refuses yourself.
+    - a trigger on `scheduled_posts` refuses scheduling a work item (or a note as one) for yourself.
+    - `my_postable_spaces()` (security definer, `search_path=''`): my Spaces where I may create work items, the one I posted in last first. pgTAP: a non-member, a Viewer, someone who left, a hidden account, nobody signed in.
+    - Items already for their author stay as they are and can still be signed (pgTAP proves it).
+    - Eleven older pgTAP files make some items for their author as setup (as the old rule let them); each turns the trigger off for its own run, with a comment.
+  - 7338c650 **App, a work item is never for yourself:** `ownerPeople` (Lead and Crew, never me) in every owner picker: the composer's For, Give to, the walk, meeting notes, a work item under one, the notebook share. F69's You row is gone. Alone in a Space (nobody else can own one), For says "Invite someone to give work items to." and Post stays off; "Post as a Note" stays under it. The notebook share's For starts at "Choose", and Post is off until someone is chosen. A Duplicate of an item for me asks For again. The refusal reads "A work item is for someone else. For yourself, use My notebook." (the composer's draft line, the share's error line, Give to's line).
+  - 555131fd **App, the Space list in one call:** `postableSpaces()` (`my_postable_spaces`) instead of `fetchSpace` per Space; review 110's loading line, error line with its code, Try again and Crashlytics stay.
+  - 4528c0c2 **Shots:** `docs/reviews/shots-112/` (4 new screens in EN and AR; 3 changed as old/new pairs; README). The r110 A2 shot now fails the one call (it used a Space's detail).
+- **A decision for the lead to confirm:** a handover is not "for yourself". When a member is removed or leaves, or Send back needs a new owner because theirs left, their open work may still go to the admin (review 105B L1: "his open work goes to the admin first"), even if the admin wrote the item. Only new items and Give to refuse yourself. pgTAP 58 proves a removal's handover to the admin still works.
+- **Checks on `claude/r112` (4528c0c2):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,113 pass.
+  - `flutter test test_screens`, not updating: 556 pass, 12 fail, all expected: 6 are r112's new shots with no golden yet, 6 are the three changed screens (in shots-112/changed).
+  - `supabase db reset --local`: all migrations apply, through 20261119120000.
+  - `supabase test db`: 57 files, 3,572 checks, PASS.
+- **Next, after the lead's check, and only with the founder's yes:** the goldens from shots-112; merge into `slice2-app`; migration 20261119120000 live; a build.
+- **Who has which branch:** PC has `claude/r112` (worktree `BuildVibes-r112`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 1 Nov 2026 — review 110 accepted: X1, goldens, merged into `slice2-app`, migration 20261118120000 live, build 880 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

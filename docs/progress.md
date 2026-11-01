@@ -889,6 +889,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checks: analyze clean; 3,095 app tests; 3,533 SQL checks; shots 392 pass, 170 expected (44 r110 with no golden, 126 image differences), in `docs/reviews/shots-110b/`.
 - **1 Nov (PC): review 110 accepted and live:** X1 (the Viewer's bar wraps); goldens from shots-110, shots-110b and X1 (plus 38 screens that lost Drafts or Checklist, at today's render); merged into `slice2-app` (8a17d2ed); migration 20261118120000 live; build 880, same certificate as 852, installed on the founder's phone as an update.
   - Checks: analyze clean; 3,101 app tests; 562 shots, all pass; 3,533 SQL checks.
+- **1 Nov (PC): review 112 on `claude/r112`**, for the lead; nothing merged, live or built:
+  - A work item is never for its author (founder): migration 20261119120000 (not live) refuses it on every new item, on Give to, and when scheduling; the app's owner pickers never list me; alone, For says to invite someone; the notebook share's For starts at Choose.
+  - The notebook share's Space list in one call (`my_postable_spaces`).
+  - Checks: analyze clean; 3,113 app tests; 3,572 SQL checks; shots 556 pass, 12 expected, in `docs/reviews/shots-112/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
