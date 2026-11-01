@@ -72,7 +72,20 @@
   - **Later:** seeing the files inside, in the app, needs a real connection (after the pilot).
 
 ## Bug
-- **(7) "Couldn't send · Tap to fix" after uploading a file**, and tapping doesn't fix it. **The place and file type are still to be confirmed with the founder.** Debug first (systematic debugging) with the server log for 1 Nov around 19:00 Kuwait time. Find the root cause, and make "Tap to fix" say what's wrong and offer Try again or Remove.
+- **(7) "Couldn't send · Tap to fix" after uploading a file.**
+- **The live log (lead, read-only):** two **Library PDF uploads** in NBKCH were refused by storage with **HTTP 400**:
+  - 16:02:09 and 16:02:26 UTC;
+  - path `space-files/<space>/library/125848ae-…/<file>.pdf`.
+  - No `library_files` row was made.
+- **What's ruled out:** his permission is fine. Run as him, `may_upload` on that path is **true**, `can(add_files)` is true, and he has 0 loose and 0 today uploads.
+- **So the refusal is the bucket's own check.** The likely causes:
+  - **size over the bucket's 25 MB limit** (`file_size_limit = 26214400`); Supabase answers 400 with an inner 413;
+  - or a **content type not in the bucket's list.** The PDF is sent as `application/octet-stream` by some file pickers or drives, and the bucket allows only `application/pdf` (plus images, audio and .xlsx).
+- **Fix, test first:**
+  - Before uploading, check the size, and send the right content type from the file's extension (`.pdf` → `application/pdf`).
+  - Over the limit, say so in plain words before uploading: "This file is 38 MB. The most is 25 MB." («حجم الملف 38 ميجابايت. الحد الأقصى 25 ميجابايت.»). Offer **Link folder** (9) for big drawings.
+  - "Tap to fix" opens a line saying **what's wrong**, with **Try again** or **Remove**. Never a dead end.
+  - Map storage's errors (size, type) to those lines.
 
 ## Order
 1. **Frames** by the lead for the changed screens:
@@ -85,7 +98,9 @@
    - the nudge;
    - Library folders and Link folder.
 2. **The founder's ok** on the frames.
-3. **The build**, as one review, after review 111 (Teams), or before it if the founder prefers.
+3. **The build,** as one review, **before review 111** (founder, 21:34: "ok").
+
+**Status update (21:34):** the frames are approved by the founder. Build next.
 
 ## Frames (drawn 1 Nov, waiting for the founder's ok)
 | Frame | What | EN | AR |
