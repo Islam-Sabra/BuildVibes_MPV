@@ -1,0 +1,28 @@
+{
+  "en": {
+    "name": "Name",
+    "team": "Team",
+    "in": "In",
+    "out": "Out",
+    "late": "Late",
+    "place": "Place",
+    "place_on_site": "On site",
+    "place_away": "Not at site",
+    "place_not_shared": "Location not shared",
+    "place_missed": "Missed",
+    "separator": " · "
+  },
+  "ar": {
+    "name": "الاسم",
+    "team": "الفريق",
+    "in": "الحضور",
+    "out": "الخروج",
+    "late": "متأخر",
+    "place": "الموقع",
+    "place_on_site": "في الموقع",
+    "place_away": "خارج الموقع",
+    "place_not_shared": "بدون مشاركة الموقع",
+    "place_missed": "لم يسجّل",
+    "separator": " · "
+  }
+}
