@@ -401,12 +401,12 @@ test("review 109, lock-screen text off: only Time to check in / out, in the pers
   assert.equal(buildPush(checkInPlain("in"), "ar", null, strings).body, "حان وقت تسجيل الحضور");
   assert.equal(buildPush(checkInPlain("out"), "ar", null, strings).body, "حان وقت تسجيل الخروج");
   const m = fcmMessage("tok", p) as {
-    data: Record<string, string>;
+    android: { notification: { channel_id: string } };
     apns: { payload: { aps: { category: string; alert: { title: string; body: string } } } };
   };
   assert.equal(m.apns.payload.aps.category, "CHECK_IN_IN", "the actions stay on iOS");
   assert.equal(m.apns.payload.aps.alert.body, "Time to check in");
-  assert.equal(m.data.channel_id, "check_in");
+  assert.equal(m.android.notification.channel_id, "check_in");
   assert.ok(!JSON.stringify(m).includes("Morning"), "no title anywhere in what FCM gets");
 });
 

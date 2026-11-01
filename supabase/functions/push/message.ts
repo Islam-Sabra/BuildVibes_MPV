@@ -198,8 +198,10 @@ function checkInOpenPush(
     title = isolate(d.title.trim());
     body = [space, by].filter((x) => x).join(t.separator) || plain;
   }
-  // The app draws the Android notification from these two.
-  return { title, body, data: { ...data, push_title: title, push_body: body } };
+  // One tag per post and kind: the app's own notification (same tag, id 0)
+  // replaces this one with its buttons, from these words.
+  const tag = `checkin:${d.post_id}:${d.mark === "out" ? "out" : "in"}`;
+  return { title, body, tag, data: { ...data, push_title: title, push_body: body, tag } };
 }
 
 // Review 109 CI5: one summary to the creator when check-in closes, only
@@ -211,15 +213,17 @@ function checkInSummaryPush(
   data: Record<string, string>,
 ): Push {
   const d = row.data ?? {};
+  const tag = `checkin:${d.post_id}:summary`;
   // Lock-screen text off: the queue holds no title and no counts.
-  if (!d.title?.trim()) return { title: t.title, body: t.check_in_summary, data };
+  if (!d.title?.trim()) return { title: t.title, body: t.check_in_summary, tag, data };
   const parts = (["late", "away", "missed"] as const)
     .map((k) => [k, Number(d[k] ?? "0") || 0] as const)
     .filter(([, n]) => n > 0)
     .map(([k, n]) => t[`check_in_${k}`].replaceAll("{count}", String(n)));
   return {
-    title: d.title?.trim() ? isolate(d.title.trim()) : t.title,
+    title: isolate(d.title.trim()),
     body: parts.join(t.separator) || t.check_in_summary,
+    tag,
     data,
   };
 }
@@ -248,7 +252,8 @@ export function countWords(t: Record<string, string>, n: number): string {
 
 // What goes to FCM for one phone. A notification message drawn by Android
 // itself (the lead's decision, 24 Oct: no data-only messages, which MIUI
-// may never wake a closed app for). The tag makes each push of a
+// may never wake a closed app for). Check-in keeps to it (review 109,
+// option C): it is a notification with data, never data-only. The tag makes each push of a
 // conversation replace the last; Android sounds again on each replace
 // (FCM never sets "alert once"), through the high-importance channel.
 // Android channels (MainActivity): messages have their own, with vibration
@@ -258,40 +263,18 @@ export const DEFAULT_CHANNEL = "buildvibes";
 // A follow-up queued before migration 41 is a message too.
 const messageKinds = new Set(["dm_message", "dm_request", "chat_message", "dm_follow_up"]);
 
-export function channelFor(kind: string | undefined): string {
-  return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
-}
-
 // Review 109: check-in's own Android channel (the app makes it, with sound
 // and high importance), and the iOS categories that carry Check in and
 // Check out.
 export const CHECK_IN_CHANNEL = "check_in";
 
+export function channelFor(kind: string | undefined): string {
+  if (kind === "check_in_open") return CHECK_IN_CHANNEL;
+  return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
+}
+
 export function fcmMessage(token: string, push: Push): Record<string, unknown> {
-  if (push.data.kind === "check_in_open") {
-    // Android: a high-priority data message, so the app builds the
-    // notification with its actions on the check_in channel, even when
-    // closed (a notification message Android draws can't carry actions).
-    // iOS: an alert APNs shows, time-sensitive, with the category whose
-    // actions the app registered.
-    return {
-      token,
-      data: { ...push.data, channel_id: CHECK_IN_CHANNEL },
-      android: { priority: "high" },
-      apns: {
-        headers: { "apns-priority": "10", "apns-push-type": "alert" },
-        payload: {
-          aps: {
-            alert: { title: push.title, body: push.body },
-            sound: "default",
-            category: push.data.mark === "out" ? "CHECK_IN_OUT" : "CHECK_IN_IN",
-            "interruption-level": "time-sensitive",
-          },
-        },
-      },
-    };
-  }
-  return {
+  const message = {
     token,
     notification: { title: push.title, body: push.body },
     data: push.data,
@@ -306,6 +289,29 @@ export function fcmMessage(token: string, push: Push): Record<string, unknown> {
       },
     },
   };
+  if (push.data.kind === "check_in_open") {
+    // Review 109, option C. Android: the notification above, on the
+    // check_in channel, tagged "checkin:<post>:<in|out>" (data.tag holds the
+    // same), so it shows even when MIUI never wakes the app; the app then
+    // posts its own with that tag and id 0, replacing it with the Check in
+    // and Open buttons: never two. iOS: an alert APNs shows,
+    // time-sensitive, with the category whose actions the app registered.
+    return {
+      ...message,
+      apns: {
+        headers: { "apns-priority": "10", "apns-push-type": "alert" },
+        payload: {
+          aps: {
+            alert: { title: push.title, body: push.body },
+            sound: "default",
+            category: push.data.mark === "out" ? "CHECK_IN_OUT" : "CHECK_IN_IN",
+            "interruption-level": "time-sensitive",
+          },
+        },
+      },
+    };
+  }
+  return message;
 }
 
 // Arabic counts its nouns in four forms (one, two, 3–10, 11 and more);
