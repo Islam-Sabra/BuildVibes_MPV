@@ -219,7 +219,9 @@ as $$
 $$;
 
 -- The market whose working days Every day keeps: the Space's project's;
--- with no project, the market pack whose time zone is the check-in's.
+-- with no project, the market pack whose time zone is the check-in's;
+-- with none, the creator's home market (Z1: nobody is called on their
+-- weekend by accident).
 create or replace function public.check_in_market(p_c public.check_in_posts)
 returns public.markets
 language sql
@@ -233,7 +235,10 @@ as $$
      join public.projects pr on pr.id = s.project_id
      where s.id = p_c.space_id),
     (select mk.id from public.markets mk where mk.time_zone = p_c.time_zone
-     order by mk.sort, mk.id limit 1));
+     order by mk.sort, mk.id limit 1),
+    (select pf.home_market_id from public.space_posts sp
+     join public.profiles pf on pf.id = sp.author_id
+     where sp.id = p_c.post_id));
 $$;
 
 -- [p_day] is one of its days by its schedule: on or after its first day;

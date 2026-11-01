@@ -16,7 +16,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(236);
+select plan(239);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000059' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -328,6 +328,21 @@ select is((pg_temp.card('a1', 'c107') -> 'check_in' -> 'today' ->> 'in_opens_at'
   ((pg_temp.card('a1', 'c107') -> 'check_in' -> 'today' ->> 'day')::date + time '06:45')
     at time zone 'Africa/Cairo',
   'and its times are in that zone');
+
+-- Z1: Every day in a Space with no project, in a zone no market pack has:
+-- the creator's home market's weekend (Omar is in Kuwait: Friday and
+-- Saturday off), never every day.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select is(public.post_check_in(pg_temp.id('c108'), current_setting('test.yard')::uuid,
+  'Yard roll, Paris phone', null, null, 29.3759, 47.9774, '07:00', 15, p_daily => true,
+  p_time_zone => 'Europe/Paris'), pg_temp.id('c108'), 'Z1: a zone no market pack has');
+reset role;
+update public.check_in_posts set start_day = pg_temp.d() where post_id = pg_temp.id('c108');
+select is(public.check_in_runs_on((select c from public.check_in_posts c where c.post_id = pg_temp.id('c108')),
+  pg_temp.d() + 3), false, 'Z1: the creator''s home market''s weekend: not on Friday');
+select is(public.check_in_runs_on((select c from public.check_in_posts c where c.post_id = pg_temp.id('c108')),
+  pg_temp.d()), true, 'Z1: and on a working day it runs');
 
 -- The days the tests run on.
 update public.check_in_posts set start_day = pg_temp.d()
