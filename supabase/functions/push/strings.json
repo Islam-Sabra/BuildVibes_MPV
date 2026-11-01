@@ -43,7 +43,19 @@
     "check_in_late": "{count} late",
     "check_in_away": "{count} not at site",
     "check_in_missed": "{count} missed",
-    "check_in_summary": "Check-in summary ready"
+    "check_in_summary": "Check-in summary ready",
+    "post_reaction": "{name} reacted to your post.",
+    "work_item_archived": "{name} archived a work item of yours: no longer needed.",
+    "work_item_archived_shown": "Archived by {name}: no longer needed.",
+    "check_in_nudge": "No check-in posted for today. Post one?",
+    "need_you_title": "{name} needs you now",
+    "need_you_hidden": "Someone needs you now",
+    "need_you_colon": ": ",
+    "need_you_comma": ", ",
+    "need_you_answer_coming": "{name}: On my way",
+    "need_you_answer_cant": "{name}: Can't now",
+    "need_you_answer_hidden_coming": "Answer to your call: On my way",
+    "need_you_answer_hidden_cant": "Answer to your call: Can't now"
   },
   "ar": {
     "title": "BuildVibes",
@@ -89,6 +101,18 @@
     "check_in_late": "متأخر {count}",
     "check_in_away": "خارج الموقع {count}",
     "check_in_missed": "لم يسجّل {count}",
-    "check_in_summary": "ملخص الحضور جاهز"
+    "check_in_summary": "ملخص الحضور جاهز",
+    "post_reaction": "تفاعل من {name} على منشورك.",
+    "work_item_archived": "أرشفة من {name} لبند عمل لك: لم يعد مطلوبًا.",
+    "work_item_archived_shown": "أرشفه {name}: لم يعد مطلوبًا.",
+    "check_in_nudge": "لم يُنشر تسجيل حضور لليوم. هل تنشر واحدًا؟",
+    "need_you_title": "{name} يحتاجك الآن",
+    "need_you_hidden": "شخص يحتاجك الآن",
+    "need_you_colon": ": ",
+    "need_you_comma": "، ",
+    "need_you_answer_coming": "{name}: في الطريق",
+    "need_you_answer_cant": "{name}: لا أستطيع الآن",
+    "need_you_answer_hidden_coming": "ردّ على طلبك: في الطريق",
+    "need_you_answer_hidden_cant": "ردّ على طلبك: لا أستطيع الآن"
   }
 }

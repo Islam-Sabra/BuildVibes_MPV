@@ -55,7 +55,18 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
     // Review 109: a check-in opens its card.
     case "check_in_open":
     case "check_in_summary":
+    // Review 113: a reaction and an archived work item open the post.
+    case "post_reaction":
+    case "work_item_archived":
       return { route: `/spaces/${d.space_id}/items/${d.post_id}` };
+    // Review 113 (17): the Space, and the composer filled from the last
+    // check-in (data.from_post_id).
+    case "check_in_nudge":
+      return { route: `/spaces/${d.space_id}`, open: "check_in_nudge" };
+    // Review 113 NN1, NN2: the Space, with the call (data.call_id).
+    case "need_you":
+    case "need_you_answer":
+      return { route: `/spaces/${d.space_id}`, open: "need_you" };
     // Everything else opens its card in the Space: the work item, or the
     // daybook post (migration 19's space_post_id); the Space with neither.
     default: {
@@ -99,6 +110,11 @@ export function buildPush(
   if (row.kind === "work_reminder") return reminderPush(row, t, name, data, locale);
   if (row.kind === "check_in_open") return checkInOpenPush(row, t, data, locale);
   if (row.kind === "check_in_summary") return checkInSummaryPush(row, t, data);
+  if (row.kind === "post_reaction") return reactionPush(row, t, name, data);
+  if (row.kind === "work_item_archived") return archivedPush(row, t, name, data);
+  if (row.kind === "check_in_nudge") return nudgePush(row, t, data);
+  if (row.kind === "need_you") return needYouPush(row, t, data);
+  if (row.kind === "need_you_answer") return needYouAnswerPush(row, t, data);
   if (row.kind === "scheduled_failed") {
     const reason = t[`scheduled_reason_${row.data?.reason}`] ?? t.scheduled_reason_other;
     return { title: t.title, body: t.scheduled_failed.replaceAll("{reason}", reason), data };
@@ -228,6 +244,104 @@ function checkInSummaryPush(
   };
 }
 
+// Review 113 RX1: "Rakesh Nair reacted to your post.", one per post: the
+// tag makes a later one (after the 10 minutes) replace it. Lock-screen text
+// on: the post's title over "Space · ...". The reaction's own kind travels
+// as data.reaction (data.kind stays the push's kind, for the app).
+function reactionPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  name: string,
+  data: Record<string, string>,
+): Push {
+  const d = row.data ?? {};
+  const out = { ...data, kind: row.kind };
+  if (d.kind) out.reaction = String(d.kind);
+  const sentence = t.post_reaction.replaceAll("{name}", name);
+  const tag = `reaction:${d.post_id}`;
+  if (!d.title?.trim()) return { title: t.title, body: sentence, data: out, tag };
+  const space = d.space_name?.trim() ? isolate(d.space_name.trim()) : "";
+  return {
+    title: isolate(d.title.trim()),
+    body: [space, sentence].filter((x) => x).join(t.separator),
+    data: out,
+    tag,
+  };
+}
+
+// Review 113: an open work item was archived: "Gus Lead archived a work
+// item of yours: no longer needed." Text on: its title over "Archived by
+// Gus Lead: no longer needed."
+function archivedPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  name: string,
+  data: Record<string, string>,
+): Push {
+  const title = row.data?.title?.trim();
+  if (!title) return { title: t.title, body: t.work_item_archived.replaceAll("{name}", name), data };
+  return {
+    title: isolate(title),
+    body: t.work_item_archived_shown.replaceAll("{name}", name),
+    data,
+  };
+}
+
+// Review 113 (17): "No check-in posted for today. Post one?" to the Lead;
+// the Space's name as the title with lock-screen text on.
+function nudgePush(row: QueueRow, t: Record<string, string>, data: Record<string, string>): Push {
+  const d = row.data ?? {};
+  const space = d.space_name?.trim();
+  return {
+    title: space ? isolate(space) : t.title,
+    body: t.check_in_nudge,
+    data,
+    tag: `checkin_nudge:${d.space_id}`,
+  };
+}
+
+// Review 113 NN2: "Omar Haddad needs you now" over "NBKCH Site: Gate 2,
+// concrete truck waiting". Lock-screen text off (the queue then has no
+// name, reason, place or Space): only "Someone needs you now", never a
+// name, even the actor's. As check-in (option C), one tag per call, and
+// the words in the data for the app's own notification with On my way and
+// Can't now.
+function needYouPush(row: QueueRow, t: Record<string, string>, data: Record<string, string>): Push {
+  const d = row.data ?? {};
+  const from = d.from_name?.trim();
+  let title = t.title;
+  let body = t.need_you_hidden;
+  if (from) {
+    title = t.need_you_title.replaceAll("{name}", isolate(from));
+    const what = [d.place, d.reason]
+      .map((x) => x?.trim())
+      .filter((x): x is string => !!x)
+      .map(isolate)
+      .join(t.need_you_comma);
+    const space = d.space_name?.trim() ? isolate(d.space_name.trim()) : "";
+    body = [space, what].filter((x) => x).join(t.need_you_colon) || t.need_you_hidden;
+  }
+  const tag = `needyou:${d.call_id}`;
+  return { title, body, tag, data: { ...data, push_title: title, push_body: body, tag } };
+}
+
+// Review 113 NN2: the answer, to the caller: "Tariq Aziz: On my way" (the
+// name only with lock-screen text on, from the queue), else "Answer to
+// your call: On my way".
+function needYouAnswerPush(
+  row: QueueRow,
+  t: Record<string, string>,
+  data: Record<string, string>,
+): Push {
+  const d = row.data ?? {};
+  const answer = d.answer === "cant" ? "cant" : "coming";
+  const who = d.name?.trim();
+  const body = who
+    ? t[`need_you_answer_${answer}`].replaceAll("{name}", isolate(who))
+    : t[`need_you_answer_hidden_${answer}`];
+  return { title: t.title, body, data, tag: `needyou_answer:${d.call_id}` };
+}
+
 // "10:00" at [iso] in [zone] (UTC without one).
 // Review 108 V6: a zone Intl can't read is UTC, never a dropped push.
 function clockIn(iso: string, locale: string, zone?: string): string {
@@ -267,9 +381,13 @@ const messageKinds = new Set(["dm_message", "dm_request", "chat_message", "dm_fo
 // and high importance), and the iOS categories that carry Check in and
 // Check out.
 export const CHECK_IN_CHANNEL = "check_in";
+// Review 113: Need you now's own strong channel (the app makes it, with
+// sound and high importance, as check_in).
+export const NEED_YOU_CHANNEL = "need_you";
 
 export function channelFor(kind: string | undefined): string {
   if (kind === "check_in_open") return CHECK_IN_CHANNEL;
+  if (kind === "need_you") return NEED_YOU_CHANNEL;
   return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
 }
 
@@ -289,6 +407,51 @@ export function fcmMessage(token: string, push: Push): Record<string, unknown> {
       },
     },
   };
+  if (push.data.kind === "post_reaction") {
+    // Review 113 RX1: quiet. Normal priority, low on the shade, no sound or
+    // vibration of its own (the channel still decides from Android 8);
+    // iOS passive: in the list, never lighting the screen.
+    return {
+      ...message,
+      android: {
+        priority: "normal",
+        notification: {
+          channel_id: DEFAULT_CHANNEL,
+          ...(push.tag ? { tag: push.tag } : {}),
+          notification_priority: "PRIORITY_LOW",
+        },
+      },
+      apns: {
+        headers: { "apns-priority": "5", "apns-push-type": "alert" },
+        payload: {
+          aps: {
+            alert: { title: push.title, body: push.body },
+            "interruption-level": "passive",
+          },
+        },
+      },
+    };
+  }
+  if (push.data.kind === "need_you") {
+    // Review 113 NN2, option C as check-in: the notification on the
+    // need_you channel, tagged "needyou:<call>" (data.tag the same), which
+    // the app replaces with its own (same tag, id 0) carrying On my way and
+    // Can't now. iOS: time-sensitive, with the NEED_YOU category.
+    return {
+      ...message,
+      apns: {
+        headers: { "apns-priority": "10", "apns-push-type": "alert" },
+        payload: {
+          aps: {
+            alert: { title: push.title, body: push.body },
+            sound: "default",
+            category: "NEED_YOU",
+            "interruption-level": "time-sensitive",
+          },
+        },
+      },
+    };
+  }
   if (push.data.kind === "check_in_open") {
     // Review 109, option C. Android: the notification above, on the
     // check_in channel, tagged "checkin:<post>:<in|out>" (data.tag holds the
