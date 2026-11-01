@@ -301,10 +301,8 @@ void main() {
     testWidgets('the template picker [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement);
-      // Review 105 SP2: the bar's + holds the template.
-      await _tap(tester, _key('writing-add'));
-      await _snap(tester, 'T0-more-template', lang);
-      await _tap(tester, _key('composer-extra-template'));
+      // Review 110 W9: Templates is in the top bar (+ no longer holds it).
+      await _tap(tester, _key('composer-templates'));
       await _snap(tester, 'T1-template-picker', lang);
       await _tap(tester, _key('template-$_gateNote'));
       FocusManager.instance.primaryFocus?.unfocus();
@@ -315,9 +313,8 @@ void main() {
     testWidgets('a checklist from a template [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.checklist);
-      // Review 105 SP2: the bar's + holds the template.
-      await _tap(tester, _key('writing-add'));
-      await _tap(tester, _key('composer-extra-template'));
+      // Review 110 W9: Templates is in the top bar (+ no longer holds it).
+      await _tap(tester, _key('composer-templates'));
       await _tap(tester, _key('template-$_pour'));
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();

@@ -139,6 +139,8 @@ void main() {
       String me = DaybookSamples.islam,
       FakeWorkReminderRepository? reminders,
       String? composerKind = 'work_item',
+      SpacePass pass = SpacePass.lead,
+      List<SpacePlace> places = const [],
     }) async {
       final app = await pumpApp(
         tester,
@@ -146,12 +148,13 @@ void main() {
         auth: FakeAuthRepository(userId: me, phone: '+96550000001'),
         composerKind: composerKind,
         spaces: FakeSpaceRepository()
-          ..details[DaybookSamples.space] = s.detail()
+          ..details[DaybookSamples.space] = s.detail(pass: pass)
           ..spacePeople[DaybookSamples.space] = s.people(),
         daybook: FakeDaybookRepository()
           ..posts[DaybookSamples.space] = posts ?? s.d1()
           ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
-          ..tagsBySpace[DaybookSamples.space] = _tags,
+          ..tagsBySpace[DaybookSamples.space] = _tags
+          ..placesBySpace[DaybookSamples.space] = [...places],
         workReminders: reminders,
         now: _now,
         overrides: [
@@ -379,6 +382,47 @@ void main() {
       await _snap(tester, 'ACT-activity-extras', lang);
     });
 
+    testWidgets('V1 a Viewer may thank [$lang]', (tester) async {
+      await space(tester, pass: SpacePass.viewer, me: DaybookSamples.omar);
+      await _snap(tester, 'V1-viewer-thank', lang);
+    });
+
+    testWidgets('W10 the place and the tag on one line: +1 [$lang]', (
+      tester,
+    ) async {
+      final longPlace = SpacePlace(
+        id: 'place-long',
+        name: s.t(
+          'North stair core, between grids C and D, level 4 landing',
+          'درج القلب الشمالي بين المحورين C و D، بسطة الدور 4',
+        ),
+      );
+      final post = terrace();
+      await space(
+        tester,
+        places: [longPlace],
+        posts: [
+          s.card(
+            DaybookPost(
+              id: post.id,
+              kind: post.kind,
+              createdAt: post.createdAt,
+              title: post.title,
+              body: post.body,
+              authorId: post.authorId,
+              authorName: post.authorName,
+              item: post.item,
+              placeId: longPlace.id,
+              tag: post.tag,
+              attachments: post.attachments,
+              tableCount: post.tableCount,
+            ),
+          ),
+        ],
+      );
+      await _snap(tester, 'W10-tags-more', lang);
+    });
+
     Future<void> shareSpace(
       WidgetTester tester,
       FakeSpaceRepository spaces,
@@ -400,6 +444,28 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
     }
+
+    testWidgets('W8 the notebook share: Note · Work item [$lang]', (
+      tester,
+    ) async {
+      await shareSpace(
+        tester,
+        FakeSpaceRepository()
+          ..spaces.add(
+            SpaceSummary(
+              id: DaybookSamples.space,
+              name: s.spaceName,
+              pass: SpacePass.lead,
+              isAdmin: true,
+            ),
+          )
+          ..details[DaybookSamples.space] = s.detail()
+          ..spacePeople[DaybookSamples.space] = s.people(),
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('share-space-${DaybookSamples.space}'));
+      await _snap(tester, 'W8-share-kinds', lang);
+    });
 
     testWidgets('A1 the Space list loading [$lang]', (tester) async {
       await shareSpace(
