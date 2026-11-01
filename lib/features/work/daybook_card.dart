@@ -363,7 +363,9 @@ class DaybookCardView extends StatelessWidget {
       danger: tag.danger,
       onTap: lifted || waiting ? null : onTag,
     );
-    if (site == null) return chip;
+    // In a Row, so it is only as wide as itself (the card's column
+    // stretches its children).
+    if (site == null) return Row(children: [Flexible(child: chip)]);
     // W10: on one line; when the place and the tag don't both fit, the
     // tag becomes "+1".
     final siteName = this.site!.name;
