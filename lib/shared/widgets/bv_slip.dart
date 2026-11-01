@@ -692,8 +692,11 @@ class BvSiteTag extends StatelessWidget {
         ],
       ),
     );
+    // As wide as the tag, so the place and the tag share a line (review
+    // 110 HV1) and a tap anywhere on it is on it.
     return Align(
       alignment: AlignmentDirectional.centerStart,
+      widthFactor: 1,
       child: Semantics(
         button: onTap != null,
         child: onTap == null

@@ -258,8 +258,10 @@ void main() {
         'work_item': [
           'place',
           'due',
+          'tag',
           'photos',
           'file',
+          'checklist',
           'bullets',
           'table',
           'task_table',
@@ -276,7 +278,6 @@ void main() {
             for (final e in ComposerExtra.values)
               if (_key('composer-extra-${e.key}').evaluate().isNotEmpty) e.key,
           };
-          // Tag and Checklist come with their steps (E, 5).
           shown.removeAll(['pin', 'template']);
           expect(shown, extras.toSet());
         });

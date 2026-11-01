@@ -17,28 +17,42 @@ class BvChip extends StatelessWidget {
     this.ink = false,
     this.icon,
     this.onTap,
+    this.danger = false,
   });
 
   final String label;
   final bool selected;
   final bool ink;
+
+  /// Review 110 TG1: chosen, a danger choice (Safety) is red, with a
+  /// check at its end.
+  final bool danger;
   final IconData? icon;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final inkOn = ink && selected;
+    final red = danger && selected;
     final fill = inkOn
         ? BvColors.brandInk
+        : red
+        ? BvColors.surfaceDestructiveSoft
         : selected
         ? BvColors.surfaceBrandSoft
         : BvColors.surfaceElevated;
     final border = inkOn
         ? BvColors.brandInk
+        : red
+        ? BvColors.borderDestructive
         : selected
         ? BvColors.borderSelected
         : BvColors.borderDefault;
-    final text = inkOn ? BvColors.textInverse : BvColors.textPrimary;
+    final text = inkOn
+        ? BvColors.textInverse
+        : red
+        ? BvColors.textDestructive
+        : BvColors.textPrimary;
 
     return Semantics(
       button: true,
@@ -77,6 +91,8 @@ class BvChip extends StatelessWidget {
                     style: BvType.of(context).labelMd.copyWith(color: text),
                   ),
                 ),
+                if (red)
+                  Icon(BvIcons.check, size: BvChipSpec.iconSize, color: text),
               ],
             ),
           ),
@@ -98,10 +114,14 @@ class BvFilterChip extends StatelessWidget {
     this.icon,
     this.clearKey,
     this.onTap,
+    this.danger = false,
   });
 
   final String label;
   final String clearLabel;
+
+  /// Review 110 TG1: a danger tag (Safety) shows red.
+  final bool danger;
   final VoidCallback onClear;
   final IconData? icon;
   final Key? clearKey;
@@ -112,9 +132,14 @@ class BvFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: BvColors.surfaceBrandSoft,
+      color: danger
+          ? BvColors.surfaceDestructiveSoft
+          : BvColors.surfaceBrandSoft,
       borderRadius: BvRadius.controlAll,
-      border: Border.all(color: BvColors.borderSelected, width: BvStroke.thin),
+      border: Border.all(
+        color: danger ? BvColors.borderDestructive : BvColors.borderSelected,
+        width: BvStroke.thin,
+      ),
     ),
     child: Container(
       constraints: const BoxConstraints(minHeight: BvChipSpec.height),
@@ -137,16 +162,20 @@ class BvFilterChip extends StatelessWidget {
                     Icon(
                       icon,
                       size: BvChipSpec.iconSize,
-                      color: BvColors.textPrimary,
+                      color: danger
+                          ? BvColors.textDestructive
+                          : BvColors.textPrimary,
                     ),
                   Flexible(
                     child: Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: BvType.of(
-                        context,
-                      ).labelMd.copyWith(color: BvColors.textPrimary),
+                      style: BvType.of(context).labelMd.copyWith(
+                        color: danger
+                            ? BvColors.textDestructive
+                            : BvColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],

@@ -84,6 +84,7 @@ import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'composer_thanks.dart';
 import 'post_later_sheet.dart';
 import 'reminder_sheet.dart';
 import 'space_day.dart' show spaceWallNow;
@@ -302,6 +303,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     ref.listenManual(workPlaceFilterProvider(_spaceId), (_, place) {
       if (place != null) unawaited(_readAllPages());
     }, fireImmediately: true);
+    // Review 110 TG1: Work for one tag, the same way.
+    ref.listenManual(workTagFilterProvider(_spaceId), (_, tag) {
+      if (tag != null) unawaited(_readAllPages());
+    });
     // A card that only quotes a message just put in this Space (review
     // 64, DM5), or one just made from a note, is new, not a Draft from
     // before. F88: any other kept card,
@@ -793,17 +798,25 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   /// The cards to show: those of [place] when Work is filtered to one,
   /// and of [waiting] when it shows what waits on me; both, together.
+  /// Review 110 TG1: and of [tag] when Work is filtered to one tag.
   static Set<String>? _shownOnly(
     List<DaybookCard> cards,
     SpacePlace? place,
-    Set<String>? waiting,
-  ) {
-    if (place == null) return waiting;
-    final there = {
-      for (final c in cards)
-        if (c.post.placeId == place.id) c.id,
-    };
-    return waiting == null ? there : there.intersection(waiting);
+    Set<String>? waiting, {
+    DaybookTag? tag,
+  }) {
+    Set<String>? only = waiting;
+    Set<String> and(bool Function(DaybookPost p) keep) {
+      final these = {
+        for (final c in cards)
+          if (keep(c.post)) c.id,
+      };
+      return only == null ? these : these.intersection(only);
+    }
+
+    if (place != null) only = and((p) => p.placeId == place.id);
+    if (tag != null) only = and((p) => p.tag?.id == tag.id);
+    return only;
   }
 
   /// Every page of Work, oldest last (a place's filter, review 105C).
@@ -1083,6 +1096,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ComposerDrop.pin => l10n.cpPin,
       ComposerDrop.files => l10n.cpFiles,
       ComposerDrop.tables => l10n.cpTables,
+      ComposerDrop.thanks => l10n.thanksTo,
+      ComposerDrop.tag => l10n.cpTag,
+      ComposerDrop.checklist => l10n.daybookKindChecklist,
     };
     showSpaceMessage(
       context,
@@ -1112,11 +1128,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         await editComposerTable(context, _card);
       case ComposerExtra.taskTable:
         await editComposerTasks(context, _card);
-      // Bullets is the composer's own (a line in the details); Tag and
-      // Checklist come with their steps.
-      case ComposerExtra.bullets ||
-          ComposerExtra.tag ||
-          ComposerExtra.checklist:
+      // Review 110 step 5: the points to tick, on a sheet.
+      case ComposerExtra.checklist:
+        await editComposerChecklist(context, _card);
+      // TG1: Tag's list in place of the keyboard.
+      case ComposerExtra.tag:
+        _setPanel(ComposerPanel.tags);
+      // Bullets is the composer's own (a line in the details).
+      case ComposerExtra.bullets:
         break;
     }
   }
@@ -1144,6 +1163,37 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         onDone: () => Navigator.of(sheet).pop(),
       ),
     );
+  }
+
+  /// A Thanks's To (review 110 TH1): Teams, then people.
+  Future<void> _pickThanksTo() async {
+    _setMenu(null);
+    final picked = await pickThanksTo(
+      context,
+      ref,
+      spaceId: _spaceId,
+      me: ref.read(authUserIdProvider).value,
+      currentId: _card.draft?.thanksToId,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _askWho = null);
+    await _card.setThanksTo(
+      id: picked.id,
+      name: picked.name,
+      team: picked.team,
+    );
+  }
+
+  /// A Thanks's For: one of this Space's open work items.
+  Future<void> _pickThanksFor() async {
+    _setMenu(null);
+    final picked = await pickThanksFor(
+      context,
+      ref,
+      spaceId: _spaceId,
+      currentId: _card.draft?.thanksForId,
+    );
+    if (picked != null) await _card.setThanksFor(picked);
   }
 
   /// The Place row, or More → Location (review 105C; the lead's check
@@ -1359,7 +1409,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // coming (still required, F56) is asked on the people sheet.
       case DaybookMissing.people when draft.kind == DaybookKind.activity:
         await _pickPeople();
-      case DaybookMissing.owner || DaybookMissing.people:
+      case DaybookMissing.owner || DaybookMissing.people || DaybookMissing.to:
         setState(() {
           _menu = null;
           _askWho = Object();
@@ -1531,6 +1581,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final postReady =
         _editing || (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false);
     final extras = composerOffered(kind, editing: _editing);
+    // TH1: a Thanks isn't in schedule_post's list.
+    final laterNote = kind == DaybookKind.thanks
+        ? l10n.thanksCantSchedule
+        : l10n.plCantYet;
     final bar = BvWritingToolbar.tools(
       tools: [
         // # (CP2): the kind's icon; its grid of kinds.
@@ -1551,8 +1605,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           key: const Key('writing-add'),
           icon: BvIcons.add,
           label: l10n.daybookMore,
-          outlined: _panel == ComposerPanel.extras,
-          active: _panel == ComposerPanel.extras,
+          outlined:
+              _panel == ComposerPanel.extras || _panel == ComposerPanel.tags,
+          active:
+              _panel == ComposerPanel.extras || _panel == ComposerPanel.tags,
           onTap: extras.isEmpty
               ? null
               : () => _setPanel(
@@ -1581,10 +1637,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // not yet for one with Library files or a place from the list.
       laterLabel: _editing ? null : l10n.plLater,
       laterReady: !laterBlocked,
-      laterNote: l10n.plCantYet,
+      laterNote: laterNote,
       onLater: !_editing && postReady
           ? (laterBlocked
-                ? () => showSpaceMessage(context, l10n.plCantYet)
+                ? () => showSpaceMessage(context, laterNote)
                 : () => unawaited(_postLater(myName)))
           : null,
     );
@@ -1623,6 +1679,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           onPickPinTime: () => unawaited(_pickPinTime()),
           onPickPlace: () => unawaited(_pickPlace()),
           onPickDue: () => unawaited(_pickDue()),
+          onPickThanksTo: () => unawaited(_pickThanksTo()),
+          onPickThanksFor: () => unawaited(_pickThanksFor()),
           // H3: Walk is for who may post work (a Lead or Crew).
           onWalk: _editing || !widget.space.mayPostWork
               ? null
@@ -1794,6 +1852,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
     // Review 105C: Work for one place, said by a chip with ✕.
     final place = ref.watch(workPlaceFilterProvider(_spaceId));
+    final tag = ref.watch(workTagFilterProvider(_spaceId));
     final shown = _shownDay ?? today;
     // Any new post waiting to send keeps the first page away: a work
     // item, another kind, a walk.
@@ -1821,7 +1880,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
         signing: signing,
-        only: _shownOnly(cards, place, _needsMine ? waiting : null),
+        only: _shownOnly(cards, place, _needsMine ? waiting : null, tag: tag),
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -1837,8 +1896,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final cardDraft = _editing ? edit : draft;
     final laterBlocked =
         cardDraft != null &&
-        cardDraft.kind == DaybookKind.workItem &&
-        (cardDraft.files.isNotEmpty || cardDraft.placeId != null);
+        (cardDraft.kind == DaybookKind.thanks ||
+            (cardDraft.kind == DaybookKind.workItem &&
+                (cardDraft.files.isNotEmpty || cardDraft.placeId != null)));
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
     final atToday = _writing || !_wasAway || shown == today;
@@ -1889,6 +1949,27 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                       clearKey: const Key('place-filter-clear'),
                       onClear: ref
                           .read(workPlaceFilterProvider(_spaceId).notifier)
+                          .clear,
+                    ),
+                  ),
+                ),
+              // Review 110 TG1: Work for one tag, said the same way.
+              if (tag != null && !_writing)
+                Padding(
+                  padding: BvPlaceFilterSpec.outer,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: BvFilterChip(
+                      key: const Key('tag-filter'),
+                      icon: BvIcons.tag,
+                      label: tag.nameIn(
+                        Localizations.localeOf(context).languageCode,
+                      ),
+                      danger: tag.danger,
+                      clearLabel: l10n.daybookTagFilterClear,
+                      clearKey: const Key('tag-filter-clear'),
+                      onClear: ref
+                          .read(workTagFilterProvider(_spaceId).notifier)
                           .clear,
                     ),
                   ),
@@ -3336,6 +3417,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             names?.member(id)?.person.fullName ??
             c.history.where((e) => e.byId == id).firstOrNull?.byName,
         site: _siteOf(c.post, places),
+        onTag: switch (c.post.tag) {
+          final tag? when !_writing =>
+            () => ref.read(workTagFilterProvider(_spaceId).notifier).show(tag),
+          _ => null,
+        },
         selected: selected.contains(c.id),
         // While writing, a tap on a card puts the card down, as anywhere
         // off it; while selecting it adds or takes off this one; a refused

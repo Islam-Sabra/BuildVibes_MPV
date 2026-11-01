@@ -141,6 +141,9 @@ class DaybookTag {
 
   /// Its name in [lang], else English, else its id.
   String nameIn(String lang) => name[lang] ?? name['en'] ?? id;
+
+  /// As the card JSON has it, for a draft and the outbox.
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'danger': danger};
 }
 
 /// Review 110 TH1, TH2: a Thanks, to a person or a Team, for an optional

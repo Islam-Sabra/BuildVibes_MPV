@@ -6309,4 +6309,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notebookShareSpacesError =>
       'Couldn\'t load your Spaces. Try again.';
+
+  @override
+  String get daybookKindThanks => 'Thanks';
+
+  @override
+  String get cpNewThanks => 'Thanks';
+
+  @override
+  String get cpAddThanks => 'Add to this Thanks';
+
+  @override
+  String get thanksWordsHint => 'Thank you for…';
+
+  @override
+  String get thanksFor => 'For';
+
+  @override
+  String get thanksForOptional => 'Optional';
+
+  @override
+  String get thanksToTitle => 'Thank who?';
+
+  @override
+  String get thanksTeams => 'Teams';
+
+  @override
+  String get thanksForTitle => 'For which work item?';
+
+  @override
+  String get thanksForNone => 'No open work items in this Space.';
+
+  @override
+  String get thanksCantSchedule => 'A Thanks can\'t be scheduled yet.';
+
+  @override
+  String get thanksRefusedNotAllowed =>
+      'You can\'t post a Thanks in this Space.';
+
+  @override
+  String get thanksRefusedSignIn => 'Sign in again, then send it.';
+
+  @override
+  String get thanksRefusedIdTaken =>
+      'This Thanks couldn\'t be saved. Send it again.';
+
+  @override
+  String get thanksRefusedNoOne => 'Choose a person or a Team to thank.';
+
+  @override
+  String get thanksRefusedSelf => 'Thank someone else.';
+
+  @override
+  String get thanksRefusedNotMember =>
+      'They\'re no longer in this Space. Choose someone else.';
+
+  @override
+  String get thanksRefusedTeam =>
+      'That Team isn\'t in this Space. Choose again.';
+
+  @override
+  String get thanksRefusedFor =>
+      'That work item can\'t be chosen. Choose another or remove it.';
+
+  @override
+  String get thanksRefusedTooLong => 'Keep it under 5000 characters.';
+
+  @override
+  String get cpTagPanel => 'Tag (one)';
+
+  @override
+  String get cpTagNote =>
+      'The list comes from your market. Tap again to remove.';
+
+  @override
+  String get cpTagsError => 'Couldn\'t load the tags. Try again.';
+
+  @override
+  String get daybookTagFilterClear => 'Show all tags';
+
+  @override
+  String get cpPointHint => 'A point to tick';
+
+  @override
+  String get cpAddPoint => 'Add a point';
+
+  @override
+  String cpChecklistChip(int count) {
+    return 'Checklist · $count';
+  }
 }

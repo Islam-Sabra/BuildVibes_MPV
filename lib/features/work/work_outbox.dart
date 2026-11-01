@@ -11,7 +11,7 @@ import '../../core/network/signal_state.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
-import '../../data/models/daybook.dart' show DaybookQuote;
+import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -183,6 +183,7 @@ class PendingItem {
     this.handTo,
     this.handovers = const [],
     this.scheduleAt,
+    this.tag,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -240,6 +241,7 @@ class PendingItem {
         ),
     ],
     scheduleAt: _time(json['schedule_at']),
+    tag: DaybookTag.fromJson(json['tag']),
   );
 
   static DateTime? _time(Object? value) =>
@@ -337,6 +339,10 @@ class PendingItem {
   /// time (schedule_post), not now. It is never a slip on the daybook.
   final DateTime? scheduleAt;
 
+  /// A new work item's one tag (review 110 TG1), sent as p_tag; with its
+  /// name, for its card while it waits.
+  final DaybookTag? tag;
+
   /// The card this is about.
   String get cardId => postId ?? id;
 
@@ -352,6 +358,7 @@ class PendingItem {
     List<DraftFile>? files,
     bool? refused,
     bool? sent,
+    DaybookPostDraft? draft,
   }) => PendingItem(
     id: id,
     spaceId: spaceId,
@@ -369,7 +376,7 @@ class PendingItem {
     dueAt: dueAt,
     madeAt: madeAt,
     authorName: authorName,
-    draft: draft,
+    draft: draft ?? this.draft,
     files: files ?? this.files,
     quote: quote,
     sourceMessageId: sourceMessageId,
@@ -384,6 +391,7 @@ class PendingItem {
     handTo: handTo,
     handovers: handovers,
     scheduleAt: scheduleAt,
+    tag: tag,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -419,6 +427,7 @@ class PendingItem {
     handTo: handTo,
     handovers: handovers,
     scheduleAt: scheduleAt,
+    tag: tag,
   );
 
   /// A new post, of any kind.
@@ -466,6 +475,7 @@ class PendingItem {
     'hand_to': ?handTo,
     if (handovers.isNotEmpty) 'handovers': handoversJson(handovers),
     'schedule_at': ?scheduleAt?.toUtc().toIso8601String(),
+    'tag': ?tag?.toJson(),
   };
 
   /// Only the kinds this version knows are read back.
@@ -1010,6 +1020,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           blocks: item.blocks,
           points: item.points,
           teamId: item.teamId,
+          tagId: item.tag?.id,
         );
         if (item.scheduleAt case final at?) {
           return _schedule(item, ScheduledCall.workItem, made.toParams(), at);
@@ -1023,6 +1034,24 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         if (item.placeId case final place?) {
           await setPostPlaceOrKeepName(daybook, item.id, place);
         }
+      case PendingKind.post when item.draft?.kind == DaybookKind.thanks:
+        // Review 110 TH1: never scheduled (not in schedule_post's list).
+        final d = item.draft!;
+        await daybook.createThanks(
+          NewThanks(
+            id: item.id,
+            spaceId: item.spaceId,
+            // Words kept from another kind's details go under them.
+            words: [
+              d.title.trim(),
+              d.body.trim(),
+            ].where((w) => w.isNotEmpty).join('\n\n'),
+            toPersonId: d.thanksToTeam ? null : d.thanksToId,
+            toTeamId: d.thanksToTeam ? d.thanksToId : null,
+            forId: d.thanksForId,
+            photoPaths: paths,
+          ),
+        );
       case PendingKind.post:
         final d = item.draft!;
         final made = NewSpacePost(
@@ -1133,7 +1162,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                 (item.sourceMessageId ?? item.draft?.sourceMessageId) != null
             ? item.withoutSource()
             : item;
-        if (await reopenRefused(back)) return;
+        if (await reopenRefused(_withRefusal(back, e))) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
         await _put(back.copyWith(refused: true));
@@ -1168,6 +1197,15 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
               ),
             );
     }
+  }
+
+  /// A refused Thanks keeps why, for its plain line (review 110 TH1).
+  static PendingItem _withRefusal(PendingItem item, SpaceException e) {
+    final d = item.draft;
+    if (d == null || d.kind != DaybookKind.thanks) return item;
+    return item.copyWith(
+      draft: d.copyWith(refusal: () => ThanksRefusal.of(e).name),
+    );
   }
 
   /// A refused sign-off taken off the phone for good: its photos too.
@@ -1215,6 +1253,38 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       // Already gone.
     }
   }
+}
+
+/// Why the server refused a Thanks (create_thanks), from its message;
+/// [unknown] says the plain "Couldn't send" line.
+enum ThanksRefusal {
+  notAllowed,
+  signIn,
+  idTaken,
+  noOne,
+  self,
+  notMember,
+  team,
+  forItem,
+  tooLong,
+  unknown;
+
+  static ThanksRefusal of(SpaceException e) {
+    final m = (e.message ?? '').toLowerCase();
+    if (m.contains('sign in first')) return signIn;
+    if (m.contains('this id is taken')) return idTaken;
+    if (m.contains('thank a person or a team')) return noOne;
+    if (m.contains('thank someone else')) return self;
+    if (m.contains('only someone in this space')) return notMember;
+    if (m.contains('team not in this space')) return team;
+    if (m.contains('only a work item of this space')) return forItem;
+    if (m.contains('at most 5000 characters')) return tooLong;
+    if (e.failure == SpaceFailure.notAllowed) return notAllowed;
+    return unknown;
+  }
+
+  static ThanksRefusal? fromName(String? name) =>
+      values.where((r) => r.name == name).firstOrNull;
 }
 
 /// What the server refused on the daybook (review 47, answer 5).

@@ -6361,4 +6361,89 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookShareSpacesError => 'تعذّر تحميل مساحاتك. حاول مرة أخرى.';
+
+  @override
+  String get daybookKindThanks => 'شكر';
+
+  @override
+  String get cpNewThanks => 'شكر';
+
+  @override
+  String get cpAddThanks => 'أضف إلى الشكر';
+
+  @override
+  String get thanksWordsHint => 'شكرًا على…';
+
+  @override
+  String get thanksFor => 'على';
+
+  @override
+  String get thanksForOptional => 'اختياري';
+
+  @override
+  String get thanksToTitle => 'اشكر من؟';
+
+  @override
+  String get thanksTeams => 'الفرق';
+
+  @override
+  String get thanksForTitle => 'على أي بند عمل؟';
+
+  @override
+  String get thanksForNone => 'لا بنود عمل مفتوحة في هذه المساحة.';
+
+  @override
+  String get thanksCantSchedule => 'لا يمكن جدولة الشكر حاليًا.';
+
+  @override
+  String get thanksRefusedNotAllowed => 'لا يمكنك نشر شكر في هذه المساحة.';
+
+  @override
+  String get thanksRefusedSignIn => 'سجّل الدخول مرة أخرى ثم أرسله.';
+
+  @override
+  String get thanksRefusedIdTaken => 'تعذّر حفظ هذا الشكر. أرسله مرة أخرى.';
+
+  @override
+  String get thanksRefusedNoOne => 'اختر شخصًا أو فريقًا لتشكره.';
+
+  @override
+  String get thanksRefusedSelf => 'اشكر شخصًا آخر.';
+
+  @override
+  String get thanksRefusedNotMember => 'لم يعد في هذه المساحة. اختر شخصًا آخر.';
+
+  @override
+  String get thanksRefusedTeam =>
+      'هذا الفريق ليس في هذه المساحة. اختر مرة أخرى.';
+
+  @override
+  String get thanksRefusedFor =>
+      'لا يمكن اختيار بند العمل هذا. اختر غيره أو أزِله.';
+
+  @override
+  String get thanksRefusedTooLong => 'اجعله أقل من 5000 حرف.';
+
+  @override
+  String get cpTagPanel => 'وسم (واحد)';
+
+  @override
+  String get cpTagNote => 'القائمة من سوقك. اضغط مرة أخرى للإزالة.';
+
+  @override
+  String get cpTagsError => 'تعذّر تحميل الوسوم. حاول مرة أخرى.';
+
+  @override
+  String get daybookTagFilterClear => 'إظهار كل الوسوم';
+
+  @override
+  String get cpPointHint => 'بند للتأشير';
+
+  @override
+  String get cpAddPoint => 'إضافة بند';
+
+  @override
+  String cpChecklistChip(int count) {
+    return 'قائمة تحقق · $count';
+  }
 }

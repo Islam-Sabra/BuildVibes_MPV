@@ -8994,5 +8994,118 @@
   "notebookShareSpacesError": "Couldn't load your Spaces. Try again.",
   "@notebookShareSpacesError": {
     "description": "Review 110 A: the share card when the Spaces can't be read."
+  },
+  "daybookKindThanks": "Thanks",
+  "@daybookKindThanks": {
+    "description": "Review 110 TH1: the Thanks kind, on # and its name."
+  },
+  "cpNewThanks": "Thanks",
+  "@cpNewThanks": {
+    "description": "Review 110 TH1: the composer's top line for a Thanks."
+  },
+  "cpAddThanks": "Add to this Thanks",
+  "@cpAddThanks": {
+    "description": "Review 110 TH1: + on a Thanks."
+  },
+  "thanksWordsHint": "Thank you for…",
+  "@thanksWordsHint": {
+    "description": "Review 110 TH1: the title line of a Thanks holds its words."
+  },
+  "thanksFor": "For",
+  "@thanksFor": {
+    "description": "Review 110 TH1: the work item a Thanks is for."
+  },
+  "thanksForOptional": "Optional",
+  "@thanksForOptional": {
+    "description": "Review 110 TH1: For, with no work item chosen."
+  },
+  "thanksToTitle": "Thank who?",
+  "@thanksToTitle": {
+    "description": "Review 110 TH1: the To sheet's title."
+  },
+  "thanksTeams": "Teams",
+  "@thanksTeams": {
+    "description": "Review 110 TH1: the To sheet, Teams first."
+  },
+  "thanksForTitle": "For which work item?",
+  "@thanksForTitle": {
+    "description": "Review 110 TH1: the For sheet's title."
+  },
+  "thanksForNone": "No open work items in this Space.",
+  "@thanksForNone": {
+    "description": "Review 110 TH1: the For sheet with nothing to choose."
+  },
+  "thanksCantSchedule": "A Thanks can't be scheduled yet.",
+  "@thanksCantSchedule": {
+    "description": "Review 110 TH1: hold Send on a Thanks."
+  },
+  "thanksRefusedNotAllowed": "You can't post a Thanks in this Space.",
+  "@thanksRefusedNotAllowed": {
+    "description": "Review 110 TH1: create_thanks said not allowed."
+  },
+  "thanksRefusedSignIn": "Sign in again, then send it.",
+  "@thanksRefusedSignIn": {
+    "description": "Review 110 TH1: create_thanks said sign in first."
+  },
+  "thanksRefusedIdTaken": "This Thanks couldn't be saved. Send it again.",
+  "@thanksRefusedIdTaken": {
+    "description": "Review 110 TH1: create_thanks said its id is taken."
+  },
+  "thanksRefusedNoOne": "Choose a person or a Team to thank.",
+  "@thanksRefusedNoOne": {
+    "description": "Review 110 TH1: create_thanks said thank a person or a team."
+  },
+  "thanksRefusedSelf": "Thank someone else.",
+  "@thanksRefusedSelf": {
+    "description": "Review 110 TH1: create_thanks said thank someone else."
+  },
+  "thanksRefusedNotMember": "They're no longer in this Space. Choose someone else.",
+  "@thanksRefusedNotMember": {
+    "description": "Review 110 TH1: the person thanked left the Space."
+  },
+  "thanksRefusedTeam": "That Team isn't in this Space. Choose again.",
+  "@thanksRefusedTeam": {
+    "description": "Review 110 TH1: the Team is not in the Space."
+  },
+  "thanksRefusedFor": "That work item can't be chosen. Choose another or remove it.",
+  "@thanksRefusedFor": {
+    "description": "Review 110 TH1: For is not a live work item here."
+  },
+  "thanksRefusedTooLong": "Keep it under 5000 characters.",
+  "@thanksRefusedTooLong": {
+    "description": "Review 110 TH1: the words are too long."
+  },
+  "cpTagPanel": "Tag (one)",
+  "@cpTagPanel": {
+    "description": "Review 110 TG1: the tag panel's title."
+  },
+  "cpTagNote": "The list comes from your market. Tap again to remove.",
+  "@cpTagNote": {
+    "description": "Review 110 TG1: under the tags."
+  },
+  "cpTagsError": "Couldn't load the tags. Try again.",
+  "@cpTagsError": {
+    "description": "Review 110 TG1: the tag panel when the list can't be read."
+  },
+  "daybookTagFilterClear": "Show all tags",
+  "@daybookTagFilterClear": {
+    "description": "Review 110 TG1: \u00d7 on Work filtered to one tag."
+  },
+  "cpPointHint": "A point to tick",
+  "@cpPointHint": {
+    "description": "Review 110 step 5: a line on the Checklist sheet."
+  },
+  "cpAddPoint": "Add a point",
+  "@cpAddPoint": {
+    "description": "Review 110 step 5: another line on the Checklist sheet."
+  },
+  "cpChecklistChip": "Checklist · {count}",
+  "@cpChecklistChip": {
+    "description": "Review 110 step 5: a work item's checklist from +.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

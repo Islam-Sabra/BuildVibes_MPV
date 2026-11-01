@@ -25,13 +25,15 @@ enum ComposerExtra {
 }
 
 /// The kinds # offers, in the grid's order (CP2). Walk follows them;
-/// Check-in waits for review 109. A checklist is no longer a kind to
+/// Check-in waits for review 109; Thanks (review 110 TH1) comes before
+/// Walk. A checklist is no longer a kind to
 /// start (founder, 13:42): a work item takes ticks from + → Checklist.
 const composerKinds = [
   DaybookKind.note,
   DaybookKind.workItem,
   DaybookKind.announcement,
   DaybookKind.activity,
+  DaybookKind.thanks,
 ];
 
 /// Each kind shows only its own extras (CP3, the founder's table), then
@@ -48,8 +50,10 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
   DaybookKind.workItem => const [
     ComposerExtra.place,
     ComposerExtra.due,
+    ComposerExtra.tag,
     ComposerExtra.photos,
     ComposerExtra.file,
+    ComposerExtra.checklist,
     ComposerExtra.bullets,
     ComposerExtra.table,
     ComposerExtra.taskTable,
@@ -76,6 +80,8 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
     ComposerExtra.bullets,
     ComposerExtra.template,
   ],
+  // TH1: a Thanks takes photos only.
+  DaybookKind.thanks => const [ComposerExtra.photos],
   // A file post is its file: + → File changes it (F72, as 📎 did).
   DaybookKind.file => const [ComposerExtra.file],
   DaybookKind.report => const [],
@@ -94,7 +100,27 @@ List<ComposerExtra> composerOffered(DaybookKind kind, {bool editing = false}) =>
 
 /// What a kind switch takes away (CP3: "Due was removed: an announcement
 /// has none"). Title, words and photos always stay.
-enum ComposerDrop { owner, people, place, due, start, pin, files, tables }
+enum ComposerDrop {
+  owner,
+  people,
+  place,
+  due,
+  start,
+  pin,
+  files,
+  tables,
+
+  /// A Thanks's To and For (review 110 TH1).
+  thanks,
+
+  /// A work item's tag (TG1).
+  tag,
+
+  /// A work item's checklist from + (step 5): its points and their block.
+  checklist,
+}
+
+bool _isChecklist(Map<String, dynamic> b) => b['type'] == 'checklist_ref';
 
 /// What [draft] holds that [kind] doesn't take.
 List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
@@ -120,6 +146,14 @@ List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
     if (draft.files.isNotEmpty && !extras.contains(ComposerExtra.file))
       ComposerDrop.files,
     if (tables) ComposerDrop.tables,
+    if ((draft.thanksToId != null || draft.thanksForId != null) &&
+        kind != DaybookKind.thanks)
+      ComposerDrop.thanks,
+    if (draft.tag != null && !extras.contains(ComposerExtra.tag))
+      ComposerDrop.tag,
+    if (draft.blocks.any(_isChecklist) &&
+        !extras.contains(ComposerExtra.checklist))
+      ComposerDrop.checklist,
   ];
 }
 
@@ -147,12 +181,35 @@ DaybookPostDraft composerSwitched(
   drop(ComposerDrop.due, ['due_date', 'due_at']);
   drop(ComposerDrop.start, ['starts_at', 'ends_at']);
   drop(ComposerDrop.files, ['files']);
+  drop(ComposerDrop.thanks, [
+    'thanks_to_id',
+    'thanks_to_name',
+    'thanks_to_team',
+    'thanks_for_id',
+    'thanks_for_label',
+  ]);
+  drop(ComposerDrop.tag, ['tag']);
   // A pin is an announcement's alone; it goes quietly.
   if (kind != DaybookKind.announcement) json.remove('pinned_until');
   if (drops.contains(ComposerDrop.tables)) {
     json['blocks'] = [
       for (final b in draft.blocks)
         if (kept(b)) b,
+    ];
+  }
+  if (drops.contains(ComposerDrop.checklist)) {
+    final listed = {
+      for (final b in draft.blocks)
+        if (_isChecklist(b))
+          for (final id in b['point_ids'] as List? ?? const []) '$id',
+    };
+    json['blocks'] = [
+      for (final b in json['blocks'] as List)
+        if (!_isChecklist(b as Map<String, dynamic>)) b,
+    ];
+    json['points'] = [
+      for (final p in draft.points)
+        if (!listed.contains(p.id)) {'id': p.id, 'text': p.text},
     ];
   }
   return DaybookPostDraft.fromJson(json);

@@ -10483,6 +10483,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load your Spaces. Try again.'**
   String get notebookShareSpacesError;
+
+  /// Review 110 TH1: the Thanks kind, on # and its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get daybookKindThanks;
+
+  /// Review 110 TH1: the composer's top line for a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get cpNewThanks;
+
+  /// Review 110 TH1: + on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this Thanks'**
+  String get cpAddThanks;
+
+  /// Review 110 TH1: the title line of a Thanks holds its words.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for…'**
+  String get thanksWordsHint;
+
+  /// Review 110 TH1: the work item a Thanks is for.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get thanksFor;
+
+  /// Review 110 TH1: For, with no work item chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get thanksForOptional;
+
+  /// Review 110 TH1: the To sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank who?'**
+  String get thanksToTitle;
+
+  /// Review 110 TH1: the To sheet, Teams first.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get thanksTeams;
+
+  /// Review 110 TH1: the For sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'For which work item?'**
+  String get thanksForTitle;
+
+  /// Review 110 TH1: the For sheet with nothing to choose.
+  ///
+  /// In en, this message translates to:
+  /// **'No open work items in this Space.'**
+  String get thanksForNone;
+
+  /// Review 110 TH1: hold Send on a Thanks.
+  ///
+  /// In en, this message translates to:
+  /// **'A Thanks can\'t be scheduled yet.'**
+  String get thanksCantSchedule;
+
+  /// Review 110 TH1: create_thanks said not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t post a Thanks in this Space.'**
+  String get thanksRefusedNotAllowed;
+
+  /// Review 110 TH1: create_thanks said sign in first.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again, then send it.'**
+  String get thanksRefusedSignIn;
+
+  /// Review 110 TH1: create_thanks said its id is taken.
+  ///
+  /// In en, this message translates to:
+  /// **'This Thanks couldn\'t be saved. Send it again.'**
+  String get thanksRefusedIdTaken;
+
+  /// Review 110 TH1: create_thanks said thank a person or a team.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person or a Team to thank.'**
+  String get thanksRefusedNoOne;
+
+  /// Review 110 TH1: create_thanks said thank someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank someone else.'**
+  String get thanksRefusedSelf;
+
+  /// Review 110 TH1: the person thanked left the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'re no longer in this Space. Choose someone else.'**
+  String get thanksRefusedNotMember;
+
+  /// Review 110 TH1: the Team is not in the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'That Team isn\'t in this Space. Choose again.'**
+  String get thanksRefusedTeam;
+
+  /// Review 110 TH1: For is not a live work item here.
+  ///
+  /// In en, this message translates to:
+  /// **'That work item can\'t be chosen. Choose another or remove it.'**
+  String get thanksRefusedFor;
+
+  /// Review 110 TH1: the words are too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it under 5000 characters.'**
+  String get thanksRefusedTooLong;
+
+  /// Review 110 TG1: the tag panel's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag (one)'**
+  String get cpTagPanel;
+
+  /// Review 110 TG1: under the tags.
+  ///
+  /// In en, this message translates to:
+  /// **'The list comes from your market. Tap again to remove.'**
+  String get cpTagNote;
+
+  /// Review 110 TG1: the tag panel when the list can't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the tags. Try again.'**
+  String get cpTagsError;
+
+  /// Review 110 TG1: × on Work filtered to one tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all tags'**
+  String get daybookTagFilterClear;
+
+  /// Review 110 step 5: a line on the Checklist sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'A point to tick'**
+  String get cpPointHint;
+
+  /// Review 110 step 5: another line on the Checklist sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a point'**
+  String get cpAddPoint;
+
+  /// Review 110 step 5: a work item's checklist from +.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist · {count}'**
+  String cpChecklistChip(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -22,6 +22,10 @@ enum DaybookKind {
   checklist(DaybookPost.checklistKind),
   announcement(DaybookPost.announcementKind),
   activity(DaybookPost.activityKind),
+
+  /// Review 110 TH1: thanks to a person or a Team, for an optional work
+  /// item; its words are in the title line, sent as the body.
+  thanks(DaybookPost.thanksKind),
   file(DaybookPost.fileKind),
 
   /// A daily report (slice 7): started from the Space menu, never from the
@@ -168,6 +172,13 @@ class DaybookPostDraft {
     this.notes = const [],
     this.refsOut = const [],
     this.noteId,
+    this.thanksToId,
+    this.thanksToName,
+    this.thanksToTeam = false,
+    this.thanksForId,
+    this.thanksForLabel,
+    this.tag,
+    this.refusal,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -232,6 +243,13 @@ class DaybookPostDraft {
         ],
         refsOut: [for (final r in json['refs_out'] as List? ?? const []) '$r'],
         noteId: json['note_id'] as String?,
+        thanksToId: json['thanks_to_id'] as String?,
+        thanksToName: json['thanks_to_name'] as String?,
+        thanksToTeam: json['thanks_to_team'] as bool? ?? false,
+        thanksForId: json['thanks_for_id'] as String?,
+        thanksForLabel: json['thanks_for_label'] as String?,
+        tag: DaybookTag.fromJson(json['tag']),
+        refusal: json['refusal'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -257,6 +275,7 @@ class DaybookPostDraft {
       quote: item.quote,
       sourceMessageId: item.sourceMessageId,
       noteId: item.noteId,
+      tag: item.tag,
     );
   }
 
@@ -372,6 +391,22 @@ class DaybookPostDraft {
   /// the server takes the post (mark_note_put). The note stays private.
   final String? noteId;
 
+  /// A Thanks (review 110 TH1): who it is to, a person or a Team
+  /// ([thanksToTeam]), with the name for its pill; and the work item it
+  /// is for, if any, with its "KCT-016 · title" line.
+  final String? thanksToId;
+  final String? thanksToName;
+  final bool thanksToTeam;
+  final String? thanksForId;
+  final String? thanksForLabel;
+
+  /// A work item's one tag (review 110 TG1), from the market's list.
+  final DaybookTag? tag;
+
+  /// Why the server refused it, when it says (a Thanks: [ThanksRefusal]'s
+  /// name).
+  final String? refusal;
+
   /// The Done today lines that go: the day's checked work, less what was
   /// taken out.
   List<ReportRef> get refsIn => [
@@ -379,7 +414,12 @@ class DaybookPostDraft {
       if (!refsOut.contains(r.postId)) r,
   ];
 
-  int get _titleMax => kind == DaybookKind.workItem ? titleMax : postTitleMax;
+  int get _titleMax => switch (kind) {
+    DaybookKind.workItem => titleMax,
+    // A Thanks's words are its body (create_thanks).
+    DaybookKind.thanks => bodyMax,
+    _ => postTitleMax,
+  };
 
   /// What the title box takes.
   int get titleLimit => _titleMax;
@@ -414,7 +454,10 @@ class DaybookPostDraft {
             startsAt == null &&
             files.isEmpty &&
             quote == null &&
-            noteId == null;
+            noteId == null &&
+            thanksToId == null &&
+            thanksForId == null &&
+            tag == null;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
   /// message, not a Draft left from before.
@@ -447,6 +490,7 @@ class DaybookPostDraft {
     DaybookKind.activity when people.isEmpty => DaybookMissing.people,
     DaybookKind.activity when startsAt == null || !startsAt!.isAfter(now) =>
       DaybookMissing.start,
+    DaybookKind.thanks when thanksToId == null => DaybookMissing.to,
     _ => null,
   };
 
@@ -483,8 +527,19 @@ class DaybookPostDraft {
     List<String>? refsOut,
     List<Map<String, dynamic>>? blocks,
     String? Function()? noteId,
+    ({String id, String name, bool team})? Function()? thanksTo,
+    ({String id, String label})? Function()? thanksFor,
+    DaybookTag? Function()? tag,
+    String? Function()? refusal,
     bool refused = false,
   }) => DaybookPostDraft(
+    thanksToId: thanksTo == null ? thanksToId : thanksTo()?.id,
+    thanksToName: thanksTo == null ? thanksToName : thanksTo()?.name,
+    thanksToTeam: thanksTo == null ? thanksToTeam : thanksTo()?.team ?? false,
+    thanksForId: thanksFor == null ? thanksForId : thanksFor()?.id,
+    thanksForLabel: thanksFor == null ? thanksForLabel : thanksFor()?.label,
+    tag: tag == null ? this.tag : tag(),
+    refusal: refusal == null ? this.refusal : refusal(),
     noteId: noteId == null ? this.noteId : noteId(),
     templateId: template == null ? templateId : template()?.id,
     templateName: template == null ? templateName : template()?.name,
@@ -560,11 +615,18 @@ class DaybookPostDraft {
     'notes': [for (final r in notes) r.toJson()],
     'refs_out': refsOut,
     'note_id': noteId,
+    'thanks_to_id': thanksToId,
+    'thanks_to_name': thanksToName,
+    'thanks_to_team': thanksToTeam,
+    'thanks_for_id': thanksForId,
+    'thanks_for_label': thanksForLabel,
+    'tag': tag?.toJson(),
+    'refusal': refusal,
   };
 }
 
 /// What Post still needs before it can send: it opens that picker.
-enum DaybookMissing { owner, people, start }
+enum DaybookMissing { owner, people, start, to }
 
 /// The card in place: a new post's ([DaybookDraft]) or an edit's
 /// ([DaybookEdit]).

@@ -9,9 +9,11 @@ import '../../core/design/daybook_writing_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../data/models/daybook.dart';
-import '../../data/models/note.dart' show noteBulletMark;
+import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/daybook_repository.dart'
+    show spaceWorkTagsProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -24,6 +26,7 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart' show personName;
 import 'composer_kinds.dart';
+import 'composer_thanks.dart' show thanksRefusalText;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart';
 import 'daybook_report.dart';
@@ -34,9 +37,9 @@ import 'work_places.dart';
 export 'composer_kinds.dart';
 export '../../shared/widgets/bv_icon_grid.dart' show BvIconGridTile;
 
-/// Which grid shows in place of the keyboard: # (the kinds) or + (the
-/// extras).
-enum ComposerPanel { kinds, extras }
+/// Which grid shows in place of the keyboard: # (the kinds), + (the
+/// extras), or + → Tag's list (review 110 TG1).
+enum ComposerPanel { kinds, extras, tags }
 
 /// Review 110 D: the composer is open in this Space. The Space screen then
 /// hides its header and Work · Chat (CP1).
@@ -79,6 +82,8 @@ class DaybookComposer extends ConsumerStatefulWidget {
     required this.onPickPinTime,
     required this.onPickPlace,
     required this.onPickDue,
+    required this.onPickThanksTo,
+    required this.onPickThanksFor,
     this.overlay,
     this.editing = false,
     this.askWho,
@@ -105,6 +110,10 @@ class DaybookComposer extends ConsumerStatefulWidget {
   final VoidCallback onPickPinTime;
   final VoidCallback onPickPlace;
   final VoidCallback onPickDue;
+
+  /// A Thanks's To and For (review 110 TH1).
+  final VoidCallback onPickThanksTo;
+  final VoidCallback onPickThanksFor;
 
   /// The Give to and Team pickers, over the composer.
   final Widget? overlay;
@@ -191,6 +200,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
           DaybookKind.checklist => l10n.cpNewChecklist,
           DaybookKind.announcement => l10n.cpNewAnnouncement,
           DaybookKind.activity => l10n.cpNewActivity,
+          DaybookKind.thanks => l10n.cpNewThanks,
           DaybookKind.file || DaybookKind.report => kindName(l10n, kind),
         };
 
@@ -200,6 +210,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     DaybookKind.checklist => l10n.cpAddChecklist,
     DaybookKind.announcement => l10n.cpAddAnnouncement,
     DaybookKind.activity => l10n.cpAddActivity,
+    DaybookKind.thanks => l10n.cpAddThanks,
     DaybookKind.file || DaybookKind.report => l10n.daybookAttachTitle,
   };
 
@@ -296,6 +307,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
             ], me: me),
             onTap: widget.onPickPeople,
           );
+    if (kind == DaybookKind.thanks) return _thanksLines(l10n, draft);
     final team = BvWritingRow(
       key: const Key('writing-to'),
       label: l10n.daybookRowTeam,
@@ -320,6 +332,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         team,
       ],
       DaybookKind.note || DaybookKind.announcement => [team],
+      // Answered above (_thanksLines).
+      DaybookKind.thanks => const [],
       DaybookKind.file || DaybookKind.report => [
         BvWritingRow(
           key: const Key('writing-to'),
@@ -331,6 +345,47 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         ),
       ],
     };
+  }
+
+  /// A Thanks's lines (TH1): To (required: a person or a Team) and For
+  /// (optional: a work item; × clears it).
+  List<BvWritingRow> _thanksLines(
+    AppLocalizations l10n,
+    DaybookPostDraft draft,
+  ) {
+    final to = draft.thanksToId;
+    final person = to == null || draft.thanksToTeam
+        ? null
+        : personName(l10n, draft.thanksToName);
+    final label = draft.thanksForLabel;
+    return [
+      BvWritingRow(
+        key: const Key('writing-thanks-to'),
+        label: l10n.thanksTo,
+        value: to == null
+            ? (widget.askWho == null
+                  ? l10n.daybookRowChoose
+                  : l10n.daybookChooseWho)
+            : person ?? draft.thanksToName ?? '',
+        person: person,
+        tint: person == null ? null : BvAvatarTints.forId(to!),
+        empty: to == null,
+        ask: widget.askWho,
+        onTap: widget.onPickThanksTo,
+      ),
+      BvWritingRow(
+        key: const Key('writing-thanks-for'),
+        label: l10n.thanksFor,
+        value: label ?? l10n.thanksForOptional,
+        empty: label == null,
+        onTap: widget.onPickThanksFor,
+        onClear: draft.thanksForId == null
+            ? null
+            : () => unawaited(_writer.setThanksFor(null)),
+        clearLabel: l10n.cpRemoveThe(l10n.thanksFor),
+        clearKey: const Key('writing-thanks-for-clear'),
+      ),
+    ];
   }
 
   /// What was added from + (CP4): small chips with ×.
@@ -346,7 +401,36 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
           draft.placeId,
         ) ??
         draft.place;
+    final lang = Localizations.localeOf(context).languageCode;
+    final checklist = draft.blocks
+        .where((b) => b['type'] == PageChecklist.kind)
+        .firstOrNull;
     return [
+      // TG1: the one tag, red when it is a danger tag (Safety).
+      if (draft.tag case final tag?)
+        BvFilterChip(
+          key: const Key('writing-tag-chip'),
+          clearKey: const Key('writing-tag-chip-clear'),
+          icon: BvIcons.tag,
+          label: tag.nameIn(lang),
+          danger: tag.danger,
+          clearLabel: l10n.cpRemoveThe(l10n.cpTag),
+          onTap: () => widget.onPanel(ComposerPanel.tags),
+          onClear: () => unawaited(_writer.setTag(null)),
+        ),
+      // Step 5: + → Checklist's points; a tap edits them.
+      if (checklist != null)
+        BvFilterChip(
+          key: const Key('writing-checklist-chip'),
+          clearKey: const Key('writing-checklist-chip-clear'),
+          icon: BvIcons.workItems,
+          label: l10n.cpChecklistChip(
+            (checklist['point_ids'] as List? ?? const []).length,
+          ),
+          clearLabel: l10n.cpRemoveThe(l10n.daybookKindChecklist),
+          onTap: () => unawaited(editComposerChecklist(context, _writer)),
+          onClear: () => unawaited(_writer.setChecklist(const [])),
+        ),
       if (draft.templateName != null && draft.templateId != null)
         BvFilterChip(
           key: const Key('writing-template'),
@@ -519,9 +603,19 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       ],
       onSelected: (id) {
         final e = ComposerExtra.values.firstWhere((e) => e.key == id);
+        // TG1: Tag's list takes the grid's place.
+        if (e == ComposerExtra.tag) return widget.onPanel(ComposerPanel.tags);
         widget.onPanel(null);
         e == ComposerExtra.bullets ? addBullet() : widget.onExtra(e);
       },
+    ),
+    ComposerPanel.tags => ComposerTagPanel(
+      key: const Key('composer-tags'),
+      spaceId: widget.spaceId,
+      chosen: draft.tag?.id,
+      onPick: (t) => unawaited(
+        _writer.setTag(t == null || t.id == draft.tag?.id ? null : t),
+      ),
     ),
   };
 
@@ -625,35 +719,48 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         autofocus: widget.panel == null,
                         maxLength: draft.titleLimit,
                         buildCounter: _noCounter,
-                        textInputAction: TextInputAction.next,
+                        // TH1: a Thanks's words, on as many lines as they
+                        // take.
+                        minLines: 1,
+                        maxLines: kind == DaybookKind.thanks ? null : 1,
+                        textInputAction: kind == DaybookKind.thanks
+                            ? TextInputAction.newline
+                            : TextInputAction.next,
                         style: type.titleMd.copyWith(
                           color: BvColors.textPrimary,
                         ),
                         decoration: field.copyWith(
-                          hintText: l10n.daybookWritingTitle,
+                          hintText: kind == DaybookKind.thanks
+                              ? l10n.thanksWordsHint
+                              : l10n.daybookWritingTitle,
                           hintStyle: type.titleMd.copyWith(
                             color: BvColors.textSecondary,
                           ),
                         ),
                         onChanged: _writer.setTitle,
                       ),
-                      const SizedBox(height: BvSpace.s8),
-                      TextField(
-                        key: const Key('writing-body'),
-                        controller: _body,
-                        focusNode: _bodyFocus,
-                        maxLength: DaybookPostDraft.bodyMax,
-                        buildCounter: _noCounter,
-                        minLines: 1,
-                        maxLines: null,
-                        style: type.bodyMd.copyWith(
-                          color: BvColors.textPrimary,
+                      // TH1: no details on a Thanks; words kept from
+                      // another kind still show, and go under its words.
+                      if (kind != DaybookKind.thanks ||
+                          draft.body.isNotEmpty) ...[
+                        const SizedBox(height: BvSpace.s8),
+                        TextField(
+                          key: const Key('writing-body'),
+                          controller: _body,
+                          focusNode: _bodyFocus,
+                          maxLength: DaybookPostDraft.bodyMax,
+                          buildCounter: _noCounter,
+                          minLines: 1,
+                          maxLines: null,
+                          style: type.bodyMd.copyWith(
+                            color: BvColors.textPrimary,
+                          ),
+                          decoration: field.copyWith(
+                            hintText: _bodyHint(l10n, kind),
+                          ),
+                          onChanged: _writer.setBody,
                         ),
-                        decoration: field.copyWith(
-                          hintText: _bodyHint(l10n, kind),
-                        ),
-                        onChanged: _writer.setBody,
-                      ),
+                      ],
                     ],
                     if (draft.quote case final q?) ...[
                       const SizedBox(height: BvSpace.s12),
@@ -729,7 +836,9 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                     if (draft.couldNotSend) ...[
                       const SizedBox(height: BvSpace.s8),
                       Text(
-                        l10n.daybookCouldNotSend,
+                        kind == DaybookKind.thanks
+                            ? thanksRefusalText(l10n, draft.refusal)
+                            : l10n.daybookCouldNotSend,
                         style: type.metadata.copyWith(
                           color: BvColors.textDestructive,
                         ),
@@ -902,6 +1011,97 @@ Future<void> editComposerTasks(
         ).toJson(),
     ],
   });
+}
+
+/// + → Checklist on a work item (review 110 step 5): one point a line;
+/// Done puts them on it with their checklist block.
+Future<void> editComposerChecklist(
+  BuildContext context,
+  DaybookWriter writer,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final d = writer.draft;
+  final block = d?.blocks
+      .where((b) => b['type'] == PageChecklist.kind)
+      .firstOrNull;
+  final start = [
+    for (final id in block?['point_ids'] as List? ?? const [])
+      ?d!.points.where((p) => p.id == '$id').firstOrNull?.text,
+  ];
+  final lines = await showBvSheet<List<String>>(
+    context: context,
+    title: l10n.daybookKindChecklist,
+    builder: (sheet) => _LinesSheet(
+      lines: start,
+      hint: l10n.cpPointHint,
+      addLabel: l10n.cpAddPoint,
+      max: Note.pointsMax,
+      cellMax: PageChecklist.pointMax,
+    ),
+  );
+  if (lines == null) return;
+  await writer.setChecklist([
+    for (final l in lines)
+      if (l.trim().isNotEmpty) l.trim(),
+  ]);
+}
+
+/// + → Tag (TG1 2715:39661): in place of the keyboard, the market's tags
+/// as chips, one choice, a danger one red; a tap on the chosen one takes
+/// it off.
+class ComposerTagPanel extends ConsumerWidget {
+  const ComposerTagPanel({
+    super.key,
+    required this.spaceId,
+    required this.chosen,
+    required this.onPick,
+  });
+
+  final String spaceId;
+  final String? chosen;
+  final ValueChanged<DaybookTag?> onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final lang = Localizations.localeOf(context).languageCode;
+    final tags = ref.watch(spaceWorkTagsProvider(spaceId));
+    return ColoredBox(
+      color: BvColors.surfaceApp,
+      child: SingleChildScrollView(
+        padding: BvIconGridSpec.padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: BvIconGridSpec.titleGap,
+          children: [
+            Text(l10n.cpTagPanel, style: quiet),
+            switch (tags) {
+              AsyncData(:final value) => Wrap(
+                spacing: BvSpace.s8,
+                runSpacing: BvSpace.s8,
+                children: [
+                  for (final t in value)
+                    BvChip(
+                      key: Key('tag-option-${t.id}'),
+                      label: t.nameIn(lang),
+                      icon: BvIcons.tag,
+                      selected: t.id == chosen,
+                      danger: t.danger,
+                      onTap: () => onPick(t),
+                    ),
+                ],
+              ),
+              AsyncError() => Text(l10n.cpTagsError, style: quiet),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
+            Text(l10n.cpTagNote, style: quiet),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _TableSheet extends StatefulWidget {

@@ -224,6 +224,7 @@ class DaybookCardView extends StatelessWidget {
     this.site,
     this.taskTables,
     this.taskCount,
+    this.onTag,
   });
 
   /// The card as the phone shows it: what waits to be sent is already on
@@ -285,6 +286,9 @@ class DaybookCardView extends StatelessWidget {
   /// keeps its typed place as a fact.
   final ({String name, VoidCallback? onTap})? site;
 
+  /// Review 110 TG1: a tap on the card's tag filters Work to it.
+  final VoidCallback? onTag;
+
   /// A work item's tables of tasks (review 105 SP3), under its facts, and
   /// their rows ticked of all ("1 of 3 ticked" on the For line).
   final Widget? taskTables;
@@ -329,6 +333,7 @@ class DaybookCardView extends StatelessWidget {
     onTap: onTap == null ? this.onTap : onTap(),
     nameOf: nameOf,
     site: site,
+    onTag: onTag,
     taskTables: taskTables,
     taskCount: taskCount,
   );
@@ -356,6 +361,7 @@ class DaybookCardView extends StatelessWidget {
       name: tag.nameIn(lang),
       icon: BvIcons.tag,
       danger: tag.danger,
+      onTap: lifted || waiting ? null : onTag,
     );
     return Wrap(
       spacing: BvSpace.s8,

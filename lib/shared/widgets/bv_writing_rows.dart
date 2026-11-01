@@ -5,6 +5,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_avatar.dart';
+import 'bv_tap_target.dart';
 
 /// One kind on [BvKindChips]: its icon and its word.
 @immutable
@@ -102,6 +103,9 @@ class BvWritingRow {
     this.empty = false,
     this.ask,
     this.onTap,
+    this.onClear,
+    this.clearLabel,
+    this.clearKey,
   });
 
   final Key key;
@@ -119,6 +123,12 @@ class BvWritingRow {
 
   /// Opens its picker; null keeps it as it is (an edit keeps the owner).
   final VoidCallback? onTap;
+
+  /// Review 110 TH1: an optional line chosen (a Thanks's For) has × at
+  /// its end, said [clearLabel], on a pill.
+  final VoidCallback? onClear;
+  final String? clearLabel;
+  final Key? clearKey;
 }
 
 /// For · Place · Due · Team (review 105 SP2, review 104 N10): each a row
@@ -269,11 +279,29 @@ class BvWritingPills extends StatelessWidget {
                             ),
                     ),
                   ),
-                  if (r.onTap != null)
+                  if (r.onTap != null && r.onClear == null)
                     const Icon(
                       BvIcons.caretForward,
                       size: BvWritingPillSpec.caret,
                       color: BvColors.iconSecondary,
+                    ),
+                  if (r.onClear case final clear?)
+                    Semantics(
+                      button: true,
+                      label: r.clearLabel,
+                      excludeSemantics: true,
+                      child: BvTapTarget(
+                        child: GestureDetector(
+                          key: r.clearKey,
+                          behavior: HitTestBehavior.opaque,
+                          onTap: clear,
+                          child: const Icon(
+                            BvIcons.close,
+                            size: BvWritingPillSpec.caret,
+                            color: BvColors.iconSecondary,
+                          ),
+                        ),
+                      ),
                     ),
                 ],
               ),
