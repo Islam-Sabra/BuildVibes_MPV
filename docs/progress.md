@@ -878,6 +878,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Build 852 on the founder's phone, the emulator and the Desktop.
   - Checks: 3,400 SQL checks; analyze clean; 2,947 app tests; 518 shots.
 
+- **1 Nov (PC): review 110 on `claude/r110`**, for the lead; nothing merged, live or built:
+  - B, C, CP5, D (the full-screen composer), E (Thanks and tags: migration 20261118120000, not live; composer, cards, profile, Work by tag), F (the short card, See more), step 5 (+ → Checklist), an activity's people optional.
+  - A: the Space list now says loading and errors with a diagnostic; the cause on the founder's phone is still to read.
+  - Checks: analyze clean; 3,069 app tests; 3,516 SQL checks; shots 396 pass, 160 expected (38 new, 122 changed), in `docs/reviews/shots-110/`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
