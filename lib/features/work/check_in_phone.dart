@@ -13,7 +13,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/l10n/bv_time.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/location/location_reader.dart';
 import '../../core/push/push_state.dart';
@@ -250,7 +249,7 @@ Future<void> checkInNotificationResponse(NotificationResponse r) async {
     ),
     notifier: LocalCheckInNotifier(l10n),
     l10n: l10n,
-    time: BvTime(l10n, l10n.localeName, use24: false),
+    time: checkInBackgroundTime(l10n, prefs),
     showText: () async =>
         (await SupabasePushRepository(client).settings()).messageText,
   );
@@ -288,7 +287,12 @@ class ServiceLocationReader implements LocationReader {
           ),
         ),
       ).first;
-      return LocationRead.ofAccuracy(p.latitude, p.longitude, p.accuracy);
+      return LocationRead.point(
+        p.latitude,
+        p.longitude,
+        p.accuracy,
+        mocked: p.isMocked,
+      );
     } on Object {
       return const LocationRead.miss(LocationMiss.weak);
     }
@@ -349,6 +353,13 @@ class _CheckInHostState extends ConsumerState<CheckInHost> {
 
   @override
   Widget build(BuildContext context) {
+    // Y11: the phone's 24-hour setting, for notifications drawn with the
+    // app closed.
+    final use24 = MediaQuery.alwaysUse24HourFormatOf(context);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (prefs.getBool(checkInClock24Key) != use24) {
+      unawaited(prefs.setBool(checkInClock24Key, use24));
+    }
     ref.listen(pushArrivalProvider, (_, arrival) {
       final push = arrival == null ? null : CheckInPush.fromData(arrival.data);
       if (push == null) return;

@@ -1771,7 +1771,7 @@
   "checkInFor": "لـ",
   "checkInTeamsJoin": "{first} + {rest}",
   "checkInRowIn": "الدخول",
-  "checkInTimeAllow": "{time} · {minutes, plural, =0{بدون سماح} other{سماح {minutes} دقيقة}}",
+  "checkInTimeAllow": "{time} · {minutes, plural, =0{بدون سماح} =1{سماح دقيقة واحدة} =2{سماح دقيقتين} few{سماح {minutes} دقائق} other{سماح {minutes} دقيقة}}",
   "checkInRowPlace": "المكان",
   "checkInSetPlace": "حدّد المكان هنا",
   "checkInPlaceSet": "حُدّد هنا",
@@ -1781,7 +1781,7 @@
   "checkInExtraOut": "الخروج",
   "checkInEveryDay": "كل يوم",
   "checkInOnce": "مرة واحدة",
-  "checkInOutChip": "خروج {time} · {minutes, plural, =0{بدون سماح} other{سماح {minutes} دقيقة}}",
+  "checkInOutChip": "خروج {time} · {minutes, plural, =0{بدون سماح} =1{سماح دقيقة واحدة} =2{سماح دقيقتين} few{سماح {minutes} دقائق} other{سماح {minutes} دقيقة}}",
   "checkInAllowance": "السماح",
   "checkInMinutes": "{minutes} د",
   "checkInTimeLabel": "الوقت",
@@ -1817,7 +1817,6 @@
   "checkInRefusedNotToday": "لا يوجد تسجيل حضور اليوم.",
   "checkInRefusedStopped": "أُوقف تسجيل الحضور هذا.",
   "checkInRefusedAlready": "سجّلت حضورك اليوم من قبل.",
-  "checkInRefusedInFirst": "سجّل حضورك أولًا ثم خروجك.",
   "checkInRefusedNetwork": "لا توجد إشارة. حاول مرة أخرى عند عودة الاتصال.",
   "checkInWarnTitle": "تسجيل الحضور يشارك موقعك",
   "checkInWarnBody": "يقرأ التطبيق مكانك مرة واحدة الآن، ويُعلم صاحب المنشور إن كنت في الموقع. لا يتابعك بعد ذلك.",
@@ -1842,5 +1841,7 @@
   "checkInDayFit": "يجب أن يقع وقت الدخول وسماحه داخل اليوم.",
   "checkInTimeIn": "حان وقت تسجيل الحضور",
   "checkInTimeOut": "حان وقت تسجيل الخروج",
-  "checkInReadingOnce": "قراءة موقعك مرة واحدة لتسجيل الحضور."
+  "checkInReadingOnce": "قراءة موقعك مرة واحدة لتسجيل الحضور.",
+  "checkInRefusedTooMany": "محاولات كثيرة اليوم. اسأل المسؤول.",
+  "checkInInMissed": "دخول: لم يسجّل"
 }

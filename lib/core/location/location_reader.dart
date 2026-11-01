@@ -13,26 +13,35 @@ enum LocationMiss { refused, off, weak }
 /// nothing keeps it, and it never prints its numbers.
 @immutable
 class LocationRead {
-  const LocationRead._(this.lat, this.lng, this.accuracyM, this.miss);
+  const LocationRead._(
+    this.lat,
+    this.lng,
+    this.accuracyM,
+    this.miss, {
+    this.mocked = false,
+  });
 
-  const LocationRead.point(double lat, double lng, double accuracyM)
-    : this._(lat, lng, accuracyM, null);
+  /// Y4: with its accuracy and Android's mock flag, which go to the server
+  /// with it (a mocked or unsure reading counts as not shared there).
+  const LocationRead.point(
+    double lat,
+    double lng,
+    double accuracyM, {
+    bool mocked = false,
+  }) : this._(lat, lng, accuracyM, null, mocked: mocked);
 
   const LocationRead.miss(LocationMiss miss) : this._(null, null, null, miss);
-
-  /// A point, or weak when it is less sure than the site's distance (the
-  /// 100 m test can't be made with it).
-  factory LocationRead.ofAccuracy(double lat, double lng, double accuracyM) =>
-      accuracyM > checkInSiteMetres
-      ? const LocationRead.miss(LocationMiss.weak)
-      : LocationRead.point(lat, lng, accuracyM);
 
   final double? lat;
   final double? lng;
   final double? accuracyM;
   final LocationMiss? miss;
+  final bool mocked;
 
   bool get hasPoint => miss == null && lat != null && lng != null;
+
+  /// Less sure than the site's distance: the 100 m test can't be made.
+  bool get unsure => !hasPoint || (accuracyM ?? 0) > checkInSiteMetres;
 
   @override
   String toString() => hasPoint ? 'LocationRead(point)' : 'LocationRead($miss)';
@@ -48,13 +57,19 @@ abstract class LocationReader {
   Future<LocationRead> readOnce();
 }
 
-/// One tap's reading for a check-in (§3): a weak signal is tried again
-/// once, quietly; still weak, it counts as not shared. Refused and off are
-/// never tried again.
+/// One tap's reading for a check-in (§3): a weak signal, or a point less
+/// sure than 100 m, is tried again once, quietly. Then the better of the
+/// two goes (a point over none); still weak, it counts as not shared.
+/// Refused and off are never tried again.
 Future<LocationRead> readForCheckIn(LocationReader reader) async {
   final first = await reader.readOnce();
-  if (first.miss != LocationMiss.weak) return first;
-  return reader.readOnce();
+  final weak =
+      first.miss == LocationMiss.weak || (first.hasPoint && first.unsure);
+  if (!weak) return first;
+  final second = await reader.readOnce();
+  if (!second.hasPoint) return first.hasPoint ? first : second;
+  if (!first.hasPoint) return second;
+  return (second.accuracyM ?? 0) <= (first.accuracyM ?? 0) ? second : first;
 }
 
 /// geolocator, foreground only.
@@ -85,7 +100,12 @@ class GeolocatorLocationReader implements LocationReader {
           timeLimit: timeLimit,
         ),
       );
-      return LocationRead.ofAccuracy(p.latitude, p.longitude, p.accuracy);
+      return LocationRead.point(
+        p.latitude,
+        p.longitude,
+        p.accuracy,
+        mocked: p.isMocked,
+      );
     } on LocationServiceDisabledException {
       return const LocationRead.miss(LocationMiss.off);
     } on PermissionDeniedException {

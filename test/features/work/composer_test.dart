@@ -287,13 +287,10 @@ void main() {
             of: _key('composer-extras'),
             matching: find.byType(BvIconGridTile),
           );
-          expect(
-            [
-              for (final t in tester.widgetList<BvIconGridTile>(tiles))
-                '${t.key}'.replaceAll(RegExp(r"^\[<'composer-extra-|'>\]$"), ''),
-            ],
-            extras,
-          );
+          expect([
+            for (final t in tester.widgetList<BvIconGridTile>(tiles))
+              '${t.key}'.replaceAll(RegExp(r"^\[<'composer-extra-|'>\]$"), ''),
+          ], extras);
         });
       }
 

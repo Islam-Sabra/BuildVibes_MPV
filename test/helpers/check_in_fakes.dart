@@ -23,7 +23,16 @@ class FakeCheckInRepository implements CheckInRepository {
 
   final posted = <NewCheckIn>[];
   final marks =
-      <({String postId, CheckInMarkKind kind, double? lat, double? lng})>[];
+      <
+        ({
+          String postId,
+          CheckInMarkKind kind,
+          double? lat,
+          double? lng,
+          double? accuracy,
+          bool mocked,
+        })
+      >[];
   final stopped = <String>[];
 
   /// What mark_check_in says: on time, and on site when a point came.
@@ -49,9 +58,18 @@ class FakeCheckInRepository implements CheckInRepository {
     CheckInMarkKind kind, {
     double? lat,
     double? lng,
+    double? accuracy,
+    bool mocked = false,
   }) async {
     if (refuseMark case final e?) throw e;
-    marks.add((postId: postId, kind: kind, lat: lat, lng: lng));
+    marks.add((
+      postId: postId,
+      kind: kind,
+      lat: lat,
+      lng: lng,
+      accuracy: accuracy,
+      mocked: mocked,
+    ));
     final shared = lat != null && lng != null;
     final at = now?.call() ?? DateTime.utc(2026, 10, 15, 6, 58);
     return answer?.call(kind, shared) ??

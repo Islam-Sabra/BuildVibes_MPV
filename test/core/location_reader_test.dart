@@ -49,14 +49,42 @@ void main() {
     }
   });
 
-  test('a reading less sure than the site distance is weak', () {
-    expect(LocationRead.ofAccuracy(1, 2, 40).hasPoint, isTrue);
-    expect(LocationRead.ofAccuracy(1, 2, 250).miss, LocationMiss.weak);
+  test('Y4: a point keeps its accuracy and the mock flag, for the server '
+      'to judge', () {
+    const p = LocationRead.point(1, 2, 250, mocked: true);
+    expect(p.hasPoint, isTrue);
+    expect(p.accuracyM, 250);
+    expect(p.mocked, isTrue);
+    expect(const LocationRead.point(1, 2, 8).mocked, isFalse);
+  });
+
+  test('Y4: a reading less sure than 100 m is tried once more; the better '
+      'one goes', () async {
+    final reader = FakeLocationReader([
+      const LocationRead.point(1, 2, 250),
+      const LocationRead.point(3, 4, 12),
+    ]);
+    final read = await readForCheckIn(reader);
+    expect(reader.reads, 2);
+    expect(read.lat, 3);
+    expect(read.accuracyM, 12);
+  });
+
+  test('Y4: still unsure, the reading goes with its accuracy (the server '
+      'counts it as not shared)', () async {
+    final reader = FakeLocationReader([
+      const LocationRead.point(1, 2, 250),
+      const LocationRead.miss(LocationMiss.weak),
+    ]);
+    final read = await readForCheckIn(reader);
+    expect(reader.reads, 2);
+    expect(read.hasPoint, isTrue);
+    expect(read.accuracyM, 250);
   });
 
   test('a point never shows its numbers when printed', () {
     expect(
-      '${LocationRead.point(29.37594, 47.9774, 8)}',
+      '${const LocationRead.point(29.37594, 47.9774, 8)}',
       isNot(contains('29')),
     );
   });

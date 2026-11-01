@@ -35,6 +35,9 @@ abstract final class CheckInSamples {
     bool daily = true,
     bool stopped = false,
     bool runs = true,
+
+    /// Y1: the check-in's own clock (the card JSON's "tz").
+    String? tz = zone,
   }) {
     final s = DaybookSamples(lang);
     final post = DaybookPost.fromJson({
@@ -70,6 +73,7 @@ abstract final class CheckInSamples {
         'my_in': myIn,
         'my_out': myOut,
         'missed': missed,
+        'tz': tz,
       },
     });
     return DaybookCard(post: post, lastActivityAt: at(5, 30));
@@ -109,6 +113,13 @@ abstract final class CheckInSamples {
         outMark: m(14, 50),
       ),
       CheckInLine(userId: DaybookSamples.sara, name: s.saraName, missed: true),
+      // Y5: checked out without checking in.
+      CheckInLine(
+        userId: DaybookSamples.lina,
+        name: s.linaName,
+        outMark: m(14, 55),
+        missed: true,
+      ),
     ];
   }
 }

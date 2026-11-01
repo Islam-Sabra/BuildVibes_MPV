@@ -45,14 +45,18 @@ class CheckInStamp extends StatelessWidget {
         },
       );
 
-  /// Missed (grey).
-  factory CheckInStamp.missed(AppLocalizations l10n, {Key? key}) =>
-      CheckInStamp(
-        key: key,
-        text: l10n.checkInMissed,
-        tone: CheckInTone.quiet,
-        icon: BvIcons.info,
-      );
+  /// Missed (grey); "In: missed" when the day has a check-out (Y5: a
+  /// check-out without a check-in is allowed).
+  factory CheckInStamp.missed(
+    AppLocalizations l10n, {
+    Key? key,
+    bool inOnly = false,
+  }) => CheckInStamp(
+    key: key,
+    text: inOnly ? l10n.checkInInMissed : l10n.checkInMissed,
+    tone: CheckInTone.quiet,
+    icon: BvIcons.info,
+  );
 
   final String text;
   final CheckInTone tone;
@@ -136,9 +140,12 @@ class _DaybookCheckInBodyState extends ConsumerState<DaybookCheckInBody> {
     final c = post.checkIn;
     final words = widget.words;
     final spaceId = widget.spaceId;
-    final zone = spaceId == null
-        ? null
-        : ref.watch(spaceDetailProvider(spaceId)).value?.timeZone;
+    // Y1: the check-in's own clock, else the Space's.
+    final zone =
+        post.checkIn?.zone ??
+        (spaceId == null
+            ? null
+            : ref.watch(spaceDetailProvider(spaceId)).value?.timeZone);
     String at(DateTime t) => checkInTimeOf(words.time, zone, t);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final now = ref.watch(clockProvider)();
@@ -251,6 +258,12 @@ class _DaybookCheckInBodyState extends ConsumerState<DaybookCheckInBody> {
                   myIn,
                   key: Key('check-in-stamp-in-${post.id}'),
                 ),
+              if (step?.missed ?? false)
+                CheckInStamp.missed(
+                  l10n,
+                  inOnly: c?.outTime != null,
+                  key: Key('check-in-missed-${post.id}'),
+                ),
               if (myOut != null)
                 CheckInStamp.of(
                   checkInStampText(
@@ -262,11 +275,6 @@ class _DaybookCheckInBodyState extends ConsumerState<DaybookCheckInBody> {
                   ),
                   myOut,
                   key: Key('check-in-stamp-out-${post.id}'),
-                ),
-              if (step?.missed ?? false)
-                CheckInStamp.missed(
-                  l10n,
-                  key: Key('check-in-missed-${post.id}'),
                 ),
             ],
           ),

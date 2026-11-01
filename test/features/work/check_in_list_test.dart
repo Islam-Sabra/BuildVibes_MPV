@@ -119,6 +119,25 @@ void main() {
           findsOneWidget,
         );
         expect(find.text(l10n.checkInListLibrary), findsOneWidget);
+        // Y5: out without in.
+        expect(
+          find.descendant(
+            of: find.byKey(Key('check-in-line-${DaybookSamples.lina}')),
+            matching: find.text(l10n.checkInInMissed),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(Key('check-in-line-out-${DaybookSamples.lina}')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(Key('check-in-line-${DaybookSamples.sara}')),
+            matching: find.text(l10n.checkInMissed),
+          ),
+          findsOneWidget,
+        );
       });
 
       testWidgets('the day picker goes back to an earlier day', (tester) async {

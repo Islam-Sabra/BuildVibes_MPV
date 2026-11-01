@@ -20,12 +20,16 @@ abstract class CheckInRepository {
   Future<void> post(NewCheckIn checkIn);
 
   /// mark_check_in: In or Out for today. With no [lat] and [lng], the
-  /// mark says "location not shared".
+  /// mark says "location not shared". Y4: the reading's [accuracy] in
+  /// metres and Android's [mocked] flag go with it; the server counts a
+  /// mocked or unsure (over 100 m) reading as not shared.
   Future<CheckInResult> mark(
     String postId,
     CheckInMarkKind kind, {
     double? lat,
     double? lng,
+    double? accuracy,
+    bool mocked = false,
   });
 
   /// stop_check_in: the creator stops a repeating one.
@@ -54,6 +58,7 @@ class NewCheckIn {
     this.outTime,
     this.outAllow,
     this.daily = false,
+    this.timeZone,
   });
 
   final String id;
@@ -74,6 +79,10 @@ class NewCheckIn {
   final int? outAllow;
   final bool daily;
 
+  /// Y1: the creator's phone's IANA time zone, always sent; the server
+  /// uses it when the Space has none.
+  final String? timeZone;
+
   Map<String, Object?> toParams() {
     final body = this.body?.trim() ?? '';
     final teams = teamIds;
@@ -90,6 +99,7 @@ class NewCheckIn {
       'p_out_time': outTime?.json,
       'p_out_allow': outTime == null ? null : outAllow,
       'p_daily': daily,
+      'p_time_zone': timeZone,
     };
   }
 }
@@ -127,6 +137,8 @@ class SupabaseCheckInRepository implements CheckInRepository {
     CheckInMarkKind kind, {
     double? lat,
     double? lng,
+    double? accuracy,
+    bool mocked = false,
   }) => _guard(() async {
     final shared = lat != null && lng != null;
     final result = await _client.rpc<Map<String, dynamic>>(
@@ -136,6 +148,8 @@ class SupabaseCheckInRepository implements CheckInRepository {
         'p_kind': kind.json,
         'p_lat': shared ? lat : null,
         'p_lng': shared ? lng : null,
+        'p_accuracy': shared ? accuracy : null,
+        'p_mocked': shared && mocked,
       },
     );
     return CheckInResult.fromJson(result);

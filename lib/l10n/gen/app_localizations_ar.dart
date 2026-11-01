@@ -6497,6 +6497,9 @@ class AppLocalizationsAr extends AppLocalizations {
       minutes,
       locale: localeName,
       other: 'سماح $minutes دقيقة',
+      few: 'سماح $minutes دقائق',
+      two: 'سماح دقيقتين',
+      one: 'سماح دقيقة واحدة',
       zero: 'بدون سماح',
     );
     return '$time · $_temp0';
@@ -6537,6 +6540,9 @@ class AppLocalizationsAr extends AppLocalizations {
       minutes,
       locale: localeName,
       other: 'سماح $minutes دقيقة',
+      few: 'سماح $minutes دقائق',
+      two: 'سماح دقيقتين',
+      one: 'سماح دقيقة واحدة',
       zero: 'بدون سماح',
     );
     return 'خروج $time · $_temp0';
@@ -6670,9 +6676,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checkInRefusedAlready => 'سجّلت حضورك اليوم من قبل.';
 
   @override
-  String get checkInRefusedInFirst => 'سجّل حضورك أولًا ثم خروجك.';
-
-  @override
   String get checkInRefusedNetwork =>
       'لا توجد إشارة. حاول مرة أخرى عند عودة الاتصال.';
 
@@ -6753,4 +6756,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkInReadingOnce => 'قراءة موقعك مرة واحدة لتسجيل الحضور.';
+
+  @override
+  String get checkInRefusedTooMany => 'محاولات كثيرة اليوم. اسأل المسؤول.';
+
+  @override
+  String get checkInInMissed => 'دخول: لم يسجّل';
 }

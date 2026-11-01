@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/bv_time.dart';
 import '../../core/routing/app_routes.dart';
@@ -32,6 +33,20 @@ const checkInCategoryOut = 'CHECK_IN_OUT';
 /// A notification's actions.
 const checkInActionMark = 'check_in_mark';
 const checkInActionOpen = 'check_in_open';
+
+/// Y11: the phone's 24-hour setting, kept whenever the app is open, for
+/// the result notification drawn with the app closed (a background
+/// isolate has no MediaQuery).
+const checkInClock24Key = 'clock_24h';
+
+/// The app's clock words in a background isolate: the 24-hour setting the
+/// app last saw on this phone (12-hour until it has seen one).
+BvTime checkInBackgroundTime(AppLocalizations l10n, SharedPreferences prefs) =>
+    BvTime(
+      l10n,
+      l10n.localeName,
+      use24: prefs.getBool(checkInClock24Key) ?? false,
+    );
 
 /// A payload of ours starts with this, so a reminder's never mixes in.
 const checkInPayloadPrefix = 'check_in:';

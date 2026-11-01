@@ -99,18 +99,14 @@ void main() {
       composerKindsFor(s.detail(pass: SpacePass.lead, admin: false)),
       contains(DaybookKind.checkIn),
     );
-    final crew = composerKindsFor(
-      s.detail(pass: SpacePass.crew, admin: false),
-    );
+    final crew = composerKindsFor(s.detail(pass: SpacePass.crew, admin: false));
     expect(crew, isNot(contains(DaybookKind.checkIn)));
     expect(crew, contains(DaybookKind.workItem));
     expect(
       composerKindsFor(s.detail(pass: SpacePass.viewer, admin: false)),
       const [DaybookKind.thanks],
     );
-    SharedPreferences.setMockInitialValues({
-      composerKindKey('s1'): 'check_in',
-    });
+    SharedPreferences.setMockInitialValues({composerKindKey('s1'): 'check_in'});
     final prefs = await SharedPreferences.getInstance();
     expect(composerStartKind(prefs, 's1', crew), DaybookKind.note);
     expect(
@@ -144,8 +140,11 @@ void main() {
     expect(back.siteSet, isTrue);
     expect(back.canPost(_now), isTrue);
     expect(
-      const DaybookPostDraft(id: 'p', kind: DaybookKind.checkIn, title: 'x')
-          .readyToTry,
+      const DaybookPostDraft(
+        id: 'p',
+        kind: DaybookKind.checkIn,
+        title: 'x',
+      ).readyToTry,
       isFalse,
     );
     expect(
@@ -269,7 +268,9 @@ void main() {
         await _tap(tester, _key('writing-check-in-time'));
         await _tap(tester, _key('check-in-sheet-time'));
         await _tap(tester, _key('check-in-sheet-done'));
-        var bar = tester.widget<BvWritingToolbar>(find.byType(BvWritingToolbar));
+        var bar = tester.widget<BvWritingToolbar>(
+          find.byType(BvWritingToolbar),
+        );
         expect(bar.onPost, isNull);
         expect(location.reads, 0);
         await _tap(tester, _key('writing-check-in-place'));
@@ -398,6 +399,8 @@ void main() {
         expect(sent.daily, isTrue);
         expect(sent.siteLat, 29.3759);
         expect(sent.siteLng, 47.9774);
+        // Y1: the phone's time zone, always sent.
+        expect(sent.timeZone, 'Asia/Kuwait');
       });
 
       testWidgets('with no time, Send asks for it first', (tester) async {
@@ -422,6 +425,7 @@ void main() {
         expect(sent.params['p_in_time'], '07:00');
         expect(sent.params['p_site_lat'], 29.3759);
         expect(sent.params['p_teams'], isNull);
+        expect(sent.params['p_time_zone'], 'Asia/Kuwait');
         expect(app.checkIns.posted, isEmpty);
       });
     });

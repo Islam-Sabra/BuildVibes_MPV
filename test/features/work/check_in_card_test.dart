@@ -323,6 +323,79 @@ void main() {
         expect(_key('check-in-$_id'), findsNothing);
       });
 
+      testWidgets('Y5: no In, Check out is still offered in its window; '
+          'In: missed', (tester) async {
+        final app = await openCard(
+          tester,
+          lang,
+          CheckInSamples.card(lang),
+          h: 14,
+          accepted: true,
+        );
+        expect(find.text(l10n.checkInInMissed), findsOneWidget);
+        expect(_label(tester, 'check-out-$_id'), l10n.checkOutButton);
+        await _tap(tester, _key('check-out-$_id'));
+        expect(app.checkIns.marks.single.kind, CheckInMarkKind.checkOut);
+        expect(find.text(l10n.checkInRefusedNotAllowed), findsNothing);
+      });
+
+      testWidgets('Y5: checked out without an In: In: missed plus the Out '
+          'stamp', (tester) async {
+        await openCard(
+          tester,
+          lang,
+          CheckInSamples.card(lang, myOut: CheckInSamples.mark(14, 5)),
+          h: 14,
+          m: 10,
+        );
+        expect(find.text(l10n.checkInInMissed), findsOneWidget);
+        expect(_key('check-in-stamp-out-$_id'), findsOneWidget);
+        expect(_key('check-out-$_id'), findsNothing);
+      });
+
+      testWidgets('Y4: the reading’s accuracy and mock flag go with the '
+          'mark', (tester) async {
+        final app = await openCard(
+          tester,
+          lang,
+          CheckInSamples.card(lang),
+          accepted: true,
+          location: FakeLocationReader([
+            const LocationRead.point(29.37, 47.97, 12, mocked: true),
+          ]),
+        );
+        await _tap(tester, _key('check-in-$_id'));
+        expect(app.checkIns.marks.single.accuracy, 12);
+        expect(app.checkIns.marks.single.mocked, isTrue);
+      });
+
+      testWidgets('Y4: too many tries says so', (tester) async {
+        await openCard(
+          tester,
+          lang,
+          CheckInSamples.card(lang),
+          accepted: true,
+          checkIns: FakeCheckInRepository()
+            ..refuseMark = const SpaceException(
+              SpaceFailure.badInput,
+              'too many tries',
+            ),
+        );
+        await _tap(tester, _key('check-in-$_id'));
+        expect(find.text(l10n.checkInRefusedTooMany), findsOneWidget);
+      });
+
+      testWidgets('Y1: times show in the check-in’s own clock (tz), not the '
+          'Space’s', (tester) async {
+        // Dubai is an hour ahead of Kuwait.
+        await openCard(
+          tester,
+          lang,
+          CheckInSamples.card(lang, tz: 'Asia/Dubai'),
+        );
+        expect(_label(tester, 'check-in-$_id'), l10n.checkInBy(t('8:15')));
+      });
+
       testWidgets('a past once-only check-in keeps its stamps and missed', (
         tester,
       ) async {

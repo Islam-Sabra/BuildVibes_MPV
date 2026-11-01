@@ -9440,10 +9440,6 @@
   "@checkInRefusedAlready": {
     "description": "Review 109: mark_check_in said already checked in."
   },
-  "checkInRefusedInFirst": "Check in first, then check out.",
-  "@checkInRefusedInFirst": {
-    "description": "Review 109: mark_check_in said check in first."
-  },
   "checkInRefusedNetwork": "No signal. Try again when you're back online.",
   "@checkInRefusedNetwork": {
     "description": "Review 109: no connection."
@@ -9548,5 +9544,13 @@
   "checkInReadingOnce": "Reading your location once to check in.",
   "@checkInReadingOnce": {
     "description": "Review 109 CI2: the short Android foreground notice while the Check in action reads the location."
+  },
+  "checkInRefusedTooMany": "Too many tries today. Ask your Lead.",
+  "@checkInRefusedTooMany": {
+    "description": "Review 109 Y4: mark_check_in said too many tries (10 a day per kind)."
+  },
+  "checkInInMissed": "In: missed",
+  "@checkInInMissed": {
+    "description": "Review 109 Y5: a check-out with no check-in that day."
   }
 }

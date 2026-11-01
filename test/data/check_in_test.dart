@@ -4,6 +4,9 @@ import 'package:buildvibes/data/models/check_in.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/check_in_repository.dart';
+import 'package:buildvibes/features/work/check_in_words.dart';
+import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
 /// 7:00 · 15 min, out 14:00 · 15 min, on 15 Oct 2026 (UTC times).
@@ -41,6 +44,7 @@ Map<String, dynamic> _json({
   'my_in': myIn,
   'my_out': myOut,
   'missed': missed,
+  'tz': 'Asia/Kuwait',
 };
 
 DateTime _at(int h, int m) => DateTime.utc(2026, 10, 15, h, m);
@@ -68,6 +72,9 @@ void main() {
     expect(c.myIn!.place, CheckInPlace.onSite);
     expect(c.myIn!.onTime, isTrue);
     expect(c.myOut, isNull);
+    // Y1: the check-in's own clock.
+    expect(c.zone, 'Asia/Kuwait');
+    expect(CheckInSetup.fromJson({..._json(), 'tz': null})!.zone, isNull);
     expect(CheckInSetup.fromJson(null), isNull);
     expect(
       DaybookPost.fromJson({
@@ -101,8 +108,28 @@ void main() {
       expect(at(7, 15).action, CheckInAction.checkIn);
       expect(at(13, 44).action, CheckInAction.checkIn);
     });
-    test('once check-out opens with no In: missed', () {
+    test('Y5: once check-out opens with no In: In missed, and Check out '
+        'is still offered', () {
       final s = at(13, 45);
+      expect(s.missed, isTrue);
+      expect(s.action, CheckInAction.checkOut);
+      expect(at(13, 44).action, CheckInAction.checkIn);
+      expect(at(13, 44).missed, isFalse);
+    });
+    test('Y5: checked out without an In: missed, nothing more to do', () {
+      final json = _json(
+        myOut: {
+          'at': '2026-10-15T14:05:00Z',
+          'on_time': true,
+          'place': 'on_site',
+        },
+      );
+      final s = at(14, 10, json);
+      expect(s.missed, isTrue);
+      expect(s.action, CheckInAction.none);
+    });
+    test('Y5: no check-out and no In after the day: missed only', () {
+      final s = at(21, 0, _json(withOut: false));
       expect(s.missed, isTrue);
       expect(s.action, CheckInAction.none);
     });
@@ -218,7 +245,11 @@ void main() {
       of(SpaceFailure.badInput, 'already checked in'),
       CheckInRefusal.already,
     );
-    expect(of(SpaceFailure.badInput, 'check in first'), CheckInRefusal.inFirst);
+    expect(of(SpaceFailure.badInput, 'too many tries'), CheckInRefusal.tooMany);
+    expect(
+      of(SpaceFailure.badInput, 'no check-out'),
+      CheckInRefusal.noCheckOut,
+    );
     expect(of(SpaceFailure.network, 'x'), CheckInRefusal.network);
     expect(of(SpaceFailure.unknown, 'x'), CheckInRefusal.unknown);
   });
@@ -237,6 +268,7 @@ void main() {
       outTime: DayTime(15, 0),
       outAllow: 10,
       daily: true,
+      timeZone: 'Asia/Kuwait',
     );
     expect(c.toParams(), {
       'p_id': 'p1',
@@ -251,6 +283,8 @@ void main() {
       'p_out_time': '15:00',
       'p_out_allow': 10,
       'p_daily': true,
+      // Y1: the phone's time zone, always sent.
+      'p_time_zone': 'Asia/Kuwait',
     });
     const whole = NewCheckIn(
       id: 'p2',
@@ -260,7 +294,9 @@ void main() {
       siteLng: 2,
       inTime: DayTime(6, 30),
       inAllow: 0,
+      timeZone: 'Africa/Cairo',
     );
+    expect(whole.toParams()['p_time_zone'], 'Africa/Cairo');
     expect(whole.toParams()['p_teams'], isNull);
     expect(whole.toParams()['p_out_time'], isNull);
     expect(whole.toParams()['p_out_allow'], isNull);
@@ -270,5 +306,34 @@ void main() {
   test('the allowance is one of 0, 10, 15 and 30 minutes; 100 m is fixed', () {
     expect(checkInAllowances, const [0, 10, 15, 30]);
     expect(checkInSiteMetres, 100);
+  });
+
+  test('Y10: Arabic minutes: 0 no allowance, 10 دقائق (few), 15 and 30 '
+      'دقيقة', () {
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    expect(ar.checkInTimeAllow('7:00', 0), '7:00 · بدون سماح');
+    expect(ar.checkInTimeAllow('7:00', 10), '7:00 · سماح 10 دقائق');
+    expect(ar.checkInTimeAllow('7:00', 15), '7:00 · سماح 15 دقيقة');
+    expect(ar.checkInTimeAllow('7:00', 30), '7:00 · سماح 30 دقيقة');
+    expect(ar.checkInOutChip('3:00', 10), 'خروج 3:00 · سماح 10 دقائق');
+    expect(ar.checkInOutChip('3:00', 15), 'خروج 3:00 · سماح 15 دقيقة');
+    expect(ar.checkInOutChip('3:00', 0), 'خروج 3:00 · بدون سماح');
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(en.checkInTimeAllow('7:00', 10), '7:00 · 10 min allowance');
+    expect(en.checkInTimeAllow('7:00', 0), '7:00 · no allowance');
+  });
+
+  test('Y4: too many tries has its own line, in both languages', () {
+    for (final lang in ['en', 'ar']) {
+      final l10n = lookupAppLocalizations(Locale(lang));
+      expect(
+        checkInRefusalText(l10n, CheckInRefusal.tooMany),
+        l10n.checkInRefusedTooMany,
+      );
+    }
+    expect(
+      lookupAppLocalizations(const Locale('en')).checkInRefusedTooMany,
+      'Too many tries today. Ask your Lead.',
+    );
   });
 }

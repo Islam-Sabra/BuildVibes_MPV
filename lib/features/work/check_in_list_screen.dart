@@ -138,7 +138,10 @@ class _CheckInListScreenState extends ConsumerState<CheckInListScreen> {
     final card = ref.watch(daybookChildCardProvider(widget.postId)).value;
     final post = card?.post;
     final setup = post?.checkIn;
-    final zone = ref.watch(spaceDetailProvider(widget.spaceId)).value?.timeZone;
+    // Y1: the check-in's own clock, else the Space's.
+    final zone =
+        setup?.zone ??
+        ref.watch(spaceDetailProvider(widget.spaceId)).value?.timeZone;
     final days =
         ref.watch(checkInDaysProvider(widget.postId)).value ??
         const <DateTime>[];
@@ -299,6 +302,12 @@ class _Line extends StatelessWidget {
                     inMark,
                     key: Key('check-in-line-in-${line.userId}'),
                   ),
+                if (inMark == null && line.missed)
+                  CheckInStamp.missed(
+                    l10n,
+                    inOnly: outMark != null,
+                    key: Key('check-in-line-missed-${line.userId}'),
+                  ),
                 if (outMark != null)
                   CheckInStamp.of(
                     checkInStampText(
@@ -311,11 +320,6 @@ class _Line extends StatelessWidget {
                     ),
                     outMark,
                     key: Key('check-in-line-out-${line.userId}'),
-                  ),
-                if (inMark == null && line.missed)
-                  CheckInStamp.missed(
-                    l10n,
-                    key: Key('check-in-line-missed-${line.userId}'),
                   ),
               ],
             ),

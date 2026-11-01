@@ -58,6 +58,8 @@ class CheckInMarker {
       kind,
       lat: point ? read.lat : null,
       lng: point ? read.lng : null,
+      accuracy: point ? read.accuracyM : null,
+      mocked: point && read.mocked,
     );
   }
 }

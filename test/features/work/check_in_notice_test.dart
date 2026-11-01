@@ -308,6 +308,31 @@ void main() {
         });
       });
 
+      test('Y11: with the app closed, the result’s time follows the phone’s '
+          '24-hour setting as stored when the app was last open', () async {
+        SharedPreferences.setMockInitialValues({checkInClock24Key: true});
+        final p24 = await SharedPreferences.getInstance();
+        final at = DateTime(2026, 10, 15, 14, 5);
+        expect(
+          checkInBackgroundTime(l10n, p24).clock(at),
+          BvTime(l10n, lang, use24: true).clock(at),
+        );
+        SharedPreferences.setMockInitialValues({});
+        final p12 = await SharedPreferences.getInstance();
+        expect(
+          checkInBackgroundTime(l10n, p12).clock(at),
+          BvTime(l10n, lang, use24: false).clock(at),
+        );
+      });
+
+      testWidgets('Y11: the app keeps the phone’s 24-hour setting for the '
+          'notification', (tester) async {
+        tester.platformDispatcher.alwaysUse24HourFormatTestValue = true;
+        addTearDown(tester.platformDispatcher.clearAlwaysUse24HourTestValue);
+        final app = await pumpApp(tester, language: lang);
+        expect(app.prefs.getBool(checkInClock24Key), isTrue);
+      });
+
       testWidgets('with the app open, the push is drawn as its notification', (
         tester,
       ) async {

@@ -214,6 +214,7 @@ class CheckInSetup {
     this.myIn,
     this.myOut,
     this.missed = false,
+    this.zone,
   });
 
   static CheckInSetup? fromJson(Object? json) {
@@ -245,8 +246,14 @@ class CheckInSetup {
       myIn: CheckInMark.fromJson(json['my_in']),
       myOut: CheckInMark.fromJson(json['my_out']),
       missed: json['missed'] == true,
+      zone: json['tz'] as String?,
     );
   }
+
+  /// Y1: the check-in's own clock (an IANA name): the Space's time zone,
+  /// or its creator's phone's when the Space has none. Its times show in
+  /// it.
+  final String? zone;
 
   final DayTime inTime;
   final int inAllow;
@@ -302,7 +309,20 @@ class CheckInSetup {
     final mine = myIn;
     if (mine == null) {
       if (missed || !now.isBefore(t.inClosesAt)) {
-        return (action: CheckInAction.none, tryAgain: false, missed: true);
+        // Y5: a check-out without a check-in is allowed: In is missed,
+        // and Check out is offered once its window opens.
+        final outOpens = t.outOpensAt;
+        final out =
+            outTime != null &&
+            outOpens != null &&
+            myOut == null &&
+            !now.isBefore(outOpens) &&
+            now.isBefore(t.dayEndsAt);
+        return (
+          action: out ? CheckInAction.checkOut : CheckInAction.none,
+          tryAgain: false,
+          missed: true,
+        );
       }
       return (
         action: inOpen ? CheckInAction.checkIn : CheckInAction.inSoon,
@@ -401,7 +421,9 @@ enum CheckInRefusal {
   notToday,
   stopped,
   already,
-  inFirst,
+
+  /// Y4: more than the day's tries for one person, post and kind.
+  tooMany,
 
   /// Check out on a check-in without one (the server's 'no check-out').
   noCheckOut,
@@ -414,7 +436,7 @@ enum CheckInRefusal {
     if (m.contains('not open yet')) return notOpenYet;
     if (m.contains('not a check-in day')) return notToday;
     if (m.contains('already checked in')) return already;
-    if (m.contains('check in first')) return inFirst;
+    if (m.contains('too many tries')) return tooMany;
     if (m.contains('no check-out')) return noCheckOut;
     if (m.contains('stopped')) return stopped;
     if (m.contains('closed')) return closed;

@@ -15,6 +15,7 @@ import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/check_in_repository.dart';
+import 'package:buildvibes/core/l10n/phone_zone.dart';
 import 'package:buildvibes/core/location/location_reader.dart';
 import 'package:buildvibes/features/work/check_in_phone.dart'
     show checkInNotifierProvider;
@@ -437,6 +438,8 @@ Future<TestApp> pumpApp(
         checkInRepositoryProvider.overrideWithValue(fakeCheckIns),
         locationReaderProvider.overrideWithValue(fakeLocation),
         checkInNotifierProvider.overrideWithValue(fakeNotices),
+        // Y1: the phone's time zone.
+        phoneTimeZoneProvider.overrideWithValue(() async => 'Asia/Kuwait'),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;

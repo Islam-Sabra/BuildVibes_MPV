@@ -66,6 +66,9 @@ dependencies:
   # runtime dependency because main() keeps the splash up (preserve) until
   # start-up knows the first screen (remove).
   flutter_native_splash: 2.4.8
+  # Review 109 Y1: the phone's IANA time zone, for a check-in in a Space
+  # with none (plain platform channels, no native-asset hooks).
+  flutter_timezone: 5.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

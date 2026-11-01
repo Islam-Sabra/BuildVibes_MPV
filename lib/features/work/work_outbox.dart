@@ -16,6 +16,7 @@ import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../core/l10n/phone_zone.dart';
 import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
@@ -1083,6 +1084,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           outTime: d.outTime,
           outAllow: d.outAllow,
           daily: d.daily,
+          // Y1: always sent; the server keeps it when the Space has none.
+          timeZone: await ref.read(phoneTimeZoneProvider)(),
         );
         // Hold Send = Post later, as for every kind.
         if (item.scheduleAt case final at?) {

@@ -11000,12 +11000,6 @@ abstract class AppLocalizations {
   /// **'You already checked in today.'**
   String get checkInRefusedAlready;
 
-  /// Review 109: mark_check_in said check in first.
-  ///
-  /// In en, this message translates to:
-  /// **'Check in first, then check out.'**
-  String get checkInRefusedInFirst;
-
   /// Review 109: no connection.
   ///
   /// In en, this message translates to:
@@ -11155,6 +11149,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading your location once to check in.'**
   String get checkInReadingOnce;
+
+  /// Review 109 Y4: mark_check_in said too many tries (10 a day per kind).
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries today. Ask your Lead.'**
+  String get checkInRefusedTooMany;
+
+  /// Review 109 Y5: a check-out with no check-in that day.
+  ///
+  /// In en, this message translates to:
+  /// **'In: missed'**
+  String get checkInInMissed;
 }
 
 class _AppLocalizationsDelegate

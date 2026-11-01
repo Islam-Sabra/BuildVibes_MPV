@@ -6623,9 +6623,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkInRefusedAlready => 'You already checked in today.';
 
   @override
-  String get checkInRefusedInFirst => 'Check in first, then check out.';
-
-  @override
   String get checkInRefusedNetwork =>
       'No signal. Try again when you\'re back online.';
 
@@ -6708,4 +6705,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkInReadingOnce => 'Reading your location once to check in.';
+
+  @override
+  String get checkInRefusedTooMany => 'Too many tries today. Ask your Lead.';
+
+  @override
+  String get checkInInMissed => 'In: missed';
 }
