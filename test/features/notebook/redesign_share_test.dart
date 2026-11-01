@@ -7,6 +7,7 @@ import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -237,6 +238,15 @@ void main() {
         // Review 110 W8: no Checklist; to-do lines go in as a work item's.
         expect(_key('share-kind-checklist'), findsNothing);
         await _tap(tester, _key('share-kind-work_item'));
+        // Review 112: a work item is for someone chosen, never me.
+        await _tap(tester, _key('share-for'));
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byType(BvGiveToPicker),
+            matching: find.text(d.omarName),
+          ),
+        );
         await _tap(tester, _key('share-send'));
         expect(
           repo.calls,

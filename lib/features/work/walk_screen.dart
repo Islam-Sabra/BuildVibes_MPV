@@ -26,7 +26,7 @@ import '../spaces/space_errors.dart';
 import 'daybook_draft.dart' show DaybookDraft, DaybookPostDraft;
 import 'daybook_photos.dart';
 import 'daybook_words.dart';
-import 'daybook_writing.dart' show assignablePeople;
+import 'daybook_writing.dart' show ownerPeople;
 import 'walk_saved.dart';
 import 'work_outbox.dart';
 
@@ -233,11 +233,10 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       title: l10n.walkOwner,
       builder: (sheet) => BvGiveToPicker(
         key: const Key('walk-owner-picker'),
-        people: assignablePeople(people, me: me),
+        // Review 112: each line is for someone else, never me.
+        people: ownerPeople(people, me: me),
         currentOwnerId: shot.owner?.id,
-        // You first, as in the writing card (F69).
-        meId: me,
-        meLabel: l10n.daybookYou,
+        emptyLine: l10n.workItemInviteSomeone,
         // Review 80: no "now" under the one chosen; it is only a choice.
         searchPlaceholder: l10n.daybookAssignSearch,
         inSheet: true,

@@ -13,6 +13,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart'
     show NoteTick;
 import 'package:buildvibes/features/notebook/notebook_state.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -200,8 +201,8 @@ void main() {
     });
 
     group('H11 a Space [$lang]', () {
-      testWidgets('its Team; a work item is mine by default; a checklist '
-          'asks who it is for', (tester) async {
+      testWidgets('its Team; a work item is for someone chosen (review 112: '
+          'never me by default)', (tester) async {
         final repo = await _open(tester, lang);
         await _share(tester, 'space');
         await _tap(tester, _key('share-space-${DaybookSamples.space}'));
@@ -211,9 +212,17 @@ void main() {
         await _tap(tester, _key('share-team-t-site'));
         await _tap(tester, _key('share-kind-work_item'));
         expect(_key('share-for'), findsOneWidget);
+        await _tap(tester, _key('share-for'));
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byType(BvGiveToPicker),
+            matching: find.text(DaybookSamples(lang).saraName),
+          ),
+        );
         await _tap(tester, _key('share-send'));
         expect(repo.spaceShares.last['team'], 't-site');
-        expect(repo.spaceShares.last['owner'], DaybookSamples.islam);
+        expect(repo.spaceShares.last['owner'], DaybookSamples.sara);
       });
     });
 

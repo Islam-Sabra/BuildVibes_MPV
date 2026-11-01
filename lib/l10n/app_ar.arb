@@ -1762,5 +1762,7 @@
   "cpPeople": "الأشخاص",
   "notebookShareSpacesCode": "الرمز: {code}",
   "rmFiveWaiting": "على هذا البند 5 تذكيرات بالانتظار.",
-  "rmOnlyWhoSees": "يمكن تذكير من يرى هذا البند فقط."
+  "rmOnlyWhoSees": "يمكن تذكير من يرى هذا البند فقط.",
+  "workItemInviteSomeone": "ادعُ شخصًا لتعطيه بنود العمل.",
+  "workItemForSomeoneElse": "بند العمل لشخص آخر. لنفسك استخدم دفترك."
 }

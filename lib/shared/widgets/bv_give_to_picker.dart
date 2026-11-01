@@ -45,6 +45,7 @@ class BvGiveToPicker extends StatefulWidget {
     this.footer,
     this.meId,
     this.meLabel,
+    this.emptyLine,
   });
 
   final List<BvGiveToPerson> people;
@@ -72,6 +73,10 @@ class BvGiveToPicker extends StatefulWidget {
   /// them only when their own name matches.
   final String? meId;
   final String? meLabel;
+
+  /// With nobody to list, this line instead of the search and the list
+  /// (review 112: "Invite someone to give work items to.").
+  final String? emptyLine;
 
   @override
   State<BvGiveToPicker> createState() => _BvGiveToPickerState();
@@ -172,20 +177,35 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                BvGiveToSpec.searchPaddingHorizontal,
-                BvGiveToSpec.paddingTop,
-                BvGiveToSpec.searchPaddingHorizontal,
-                BvGiveToSpec.searchPaddingBottom,
+            if (widget.people.isEmpty && widget.emptyLine != null)
+              Padding(
+                key: const Key('give-to-empty'),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  BvGiveToSpec.searchPaddingHorizontal,
+                  BvGiveToSpec.paddingTop,
+                  BvGiveToSpec.searchPaddingHorizontal,
+                  BvGiveToSpec.searchPaddingBottom,
+                ),
+                child: Text(
+                  widget.emptyLine!,
+                  style: type.bodyMd.copyWith(color: BvColors.textSecondary),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  BvGiveToSpec.searchPaddingHorizontal,
+                  BvGiveToSpec.paddingTop,
+                  BvGiveToSpec.searchPaddingHorizontal,
+                  BvGiveToSpec.searchPaddingBottom,
+                ),
+                child: BvPickerSearch(
+                  controller: _search,
+                  focusNode: _searchFocus,
+                  placeholder: widget.searchPlaceholder,
+                  autofocus: widget.autofocus,
+                ),
               ),
-              child: BvPickerSearch(
-                controller: _search,
-                focusNode: _searchFocus,
-                placeholder: widget.searchPlaceholder,
-                autofocus: widget.autofocus,
-              ),
-            ),
             // On a sheet, the sheet scrolls the rows.
             if (sheet)
               ...rows

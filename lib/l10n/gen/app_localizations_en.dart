@@ -6416,4 +6416,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rmOnlyWhoSees =>
       'Only people who can see this item can be reminded.';
+
+  @override
+  String get workItemInviteSomeone => 'Invite someone to give work items to.';
+
+  @override
+  String get workItemForSomeoneElse =>
+      'A work item is for someone else. For yourself, use My notebook.';
 }

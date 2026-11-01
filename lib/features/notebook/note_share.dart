@@ -45,7 +45,7 @@ import '../work/daybook_draft.dart' show DaybookKind;
 import '../work/daybook_words.dart';
 import '../work/post_later_sheet.dart';
 import '../work/daybook_writing.dart'
-    show assignablePeople, kindIcon, kindName, newPostIdProvider;
+    show kindIcon, kindName, newPostIdProvider, ownerPeople;
 import 'note_filter.dart' show byName;
 import 'note_outline.dart' show numberAt, numberLabel;
 import 'note_page_editor.dart' show NoteTick;
@@ -542,20 +542,18 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   }
 
   /// Who it is for, as the Space's Give to picker lists them: the chosen
-  /// Team's people first, then the rest A–Z (I come first, as You).
+  /// Team's people first, then the rest A–Z; never me (review 112).
   List<BvGiveToPerson> _forList(SpacePeople people, String? me) {
     final lang = Localizations.localeOf(context).languageCode;
     final team = people.teams.where((t) => t.id == _team).firstOrNull;
-    final all = assignablePeople(people, me: me)
+    final all = ownerPeople(people, me: me)
       ..sort((a, b) => byName(lang)(a.name, b.name));
     bool inTeam(BvGiveToPerson p) => team?.memberIds.contains(p.id) ?? false;
     return [
       for (final p in all)
-        if (p.id == me) p,
+        if (inTeam(p)) p,
       for (final p in all)
-        if (p.id != me && inTeam(p)) p,
-      for (final p in all)
-        if (p.id != me && !inTeam(p)) p,
+        if (!inTeam(p)) p,
     ];
   }
 
@@ -575,9 +573,8 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
         key: const Key('share-for-picker'),
         people: list,
         currentOwnerId: forWhom.firstOrNull,
-        meId: me,
-        meLabel: l10n.daybookYou,
         searchPlaceholder: l10n.daybookAssignSearch,
+        emptyLine: l10n.workItemInviteSomeone,
         inSheet: true,
         onPick: (p) => Navigator.of(sheet).pop(p),
       ),
@@ -585,19 +582,19 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     if (picked != null && mounted) setState(() => _people = {picked.id});
   }
 
-  /// The For row's words: me as You, a member by name; "Omar Haddad + 2"
-  /// for several.
-  String _forLabel(SpacePeople people, String? me, Set<String> forWhom) {
+  /// The For row's words: Choose until someone is chosen (review 112),
+  /// then their name; "Omar Haddad + 2" for several.
+  String _forLabel(SpacePeople people, Set<String> forWhom) {
     final l10n = AppLocalizations.of(context);
-    String name(String id) => id == me
-        ? l10n.daybookYou
-        : people.members
-                  .where((m) => m.person.id == id)
-                  .firstOrNull
-                  ?.person
-                  .fullName ??
-              '';
-    final first = forWhom.contains(me) ? me! : forWhom.first;
+    if (forWhom.isEmpty) return l10n.daybookRowChoose;
+    String name(String id) =>
+        people.members
+            .where((m) => m.person.id == id)
+            .firstOrNull
+            ?.person
+            .fullName ??
+        '';
+    final first = forWhom.first;
     return forWhom.length == 1
         ? name(first)
         : l10n.notebookShareForMore(name(first), forWhom.length - 1);
@@ -666,8 +663,11 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     final people = space == null
         ? null
         : ref.watch(spacePeopleProvider(space.id)).value;
-    // A work item is mine by default.
-    final forWhom = _people ?? {?me};
+    // Review 112: a work item is for someone else, chosen; never me by
+    // default.
+    final forWhom = _people ?? const <String>{};
+    final needsFor =
+        space != null && _kind == ShareKind.workItem && forWhom.isEmpty;
     // What Send (or Post later, with its time) carries.
     _Sent sent({DateTime? at}) => _Sent(
       to,
@@ -746,10 +746,10 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               ),
               onTap: () => unawaited(_pickTeam(people)),
             ),
-          if (_kind != ShareKind.note && people != null && forWhom.isNotEmpty)
+          if (_kind != ShareKind.note && people != null)
             BvListRow(
               key: const Key('share-for'),
-              title: l10n.notebookShareForRow(_forLabel(people, me, forWhom)),
+              title: l10n.notebookShareForRow(_forLabel(people, forWhom)),
               onTap: () => unawaited(_pickFor(people, me, forWhom)),
             ),
         ],
@@ -888,7 +888,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
             // Review 110 CP5: Post later for the Feed and a Space, on
             // holding Post; no clock on the bar.
             BvHoldMenu(
-              action: person != null || _sending || tooLong
+              action: person != null || _sending || tooLong || needsFor
                   ? null
                   : BvHoldAction(
                       key: const Key('share-later'),
@@ -902,7 +902,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
                 icon: BvIcons.send,
                 style: BvButtonStyle.tertiary,
                 size: BvButtonSize.medium,
-                onPressed: _sending || tooLong
+                onPressed: _sending || tooLong || needsFor
                     ? null
                     : () => unawaited(_go(sent())),
               ),

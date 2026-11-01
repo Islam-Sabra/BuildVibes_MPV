@@ -26,6 +26,7 @@ import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_send_back_card.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
+import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
@@ -39,7 +40,8 @@ import 'daybook_target_card.dart' show showDaybookChild;
 import 'daybook_state.dart';
 import 'daybook_templates.dart';
 import 'daybook_words.dart';
-import 'daybook_writing.dart' show assignablePeople, pickDueProvider;
+import 'daybook_writing.dart'
+    show assignablePeople, ownerPeople, pickDueProvider;
 import 'proof_camera.dart';
 import 'work_outbox.dart';
 import '../../core/routing/open_thread.dart';
@@ -766,8 +768,9 @@ class DaybookLoop {
       lifted: lifted,
       popover: (pickerContext) => BvGiveToPicker(
         key: const Key('give-to'),
-        // Only the author gives it away: they are the reader.
-        people: assignablePeople(people, me: p.authorId),
+        // Only the author gives it away (or an admin for them); never to
+        // themselves (review 112).
+        people: ownerPeople(people, me: ref.read(authUserIdProvider).value),
         currentOwnerId: p.item?.ownerId,
         currentLabel: l10n.daybookOwnerNow,
         searchPlaceholder: l10n.daybookGiveToSearch,
@@ -789,7 +792,7 @@ class DaybookLoop {
       title: l10n.daybookGiveTo,
       builder: (sheet) => BvGiveToPicker(
         key: const Key('give-to'),
-        people: assignablePeople(people, me: p.authorId),
+        people: ownerPeople(people, me: ref.read(authUserIdProvider).value),
         currentOwnerId: p.item?.ownerId,
         currentLabel: l10n.daybookOwnerNow,
         searchPlaceholder: l10n.daybookGiveToSearch,
@@ -836,6 +839,8 @@ class DaybookLoop {
       RefusedAction.remove => l10n.spacesCouldNotRemove,
     };
     var why = r.why;
+    // Review 112: its own sentence, which says where to go instead.
+    if (why == RefusalWhy.forSomeoneElse) return l10n.workItemForSomeoneElse;
     if (why == RefusalWhy.changed) {
       final post = cards.where((c) => c.id == r.postId).firstOrNull?.post;
       if (post?.cancelled ?? false) {
@@ -851,7 +856,7 @@ class DaybookLoop {
       RefusalWhy.removed => l10n.daybookWhyRemoved,
       RefusalWhy.notAllowed => l10n.daybookWhyNotAllowed,
       RefusalWhy.openWork => l10n.daybookWhyOpenWork,
-      RefusalWhy.unknown => null,
+      RefusalWhy.forSomeoneElse || RefusalWhy.unknown => null,
     };
     return reason == null
         ? l10n.daybookRefusedPlain(action)

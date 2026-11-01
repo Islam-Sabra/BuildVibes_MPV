@@ -12,6 +12,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -279,6 +280,12 @@ void main() {
         find.descendant(of: picker, matching: find.text(s.saraName)),
         findsNothing,
       );
+      // Review 112: each line is for someone else, never me.
+      expect(
+        tester.widget<BvGiveToPicker>(picker).people.map((p) => p.id),
+        isNot(contains(DaybookSamples.islam)),
+      );
+      expect(_key('give-to-me'), findsNothing);
     });
 
     testWidgets('R3: no signal keeps the ticks; trying again is the same '

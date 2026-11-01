@@ -3,14 +3,15 @@
 // and "Post" is gone. N10: "Team" and "For" are one row each that open a
 // picker, never a chip row of members: Team lists the Space's Teams; For
 // opens the Space's Give to picker (search; the chosen Team's people
-// first, then the rest A–Z); a work item takes exactly one person (me by
-// default), a checklist several ("Omar Haddad + 2"). It works with 120
-// members. In English and Arabic.
+// first, then the rest A–Z); a work item takes exactly one person. Review
+// 112: never me, so For starts at Choose and Post waits for someone. It
+// works with 120 members. In English and Arabic.
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart' show DaybookKind;
 import 'package:buildvibes/features/work/daybook_writing.dart'
     show kindIcon, kindName;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
@@ -174,21 +175,37 @@ void main() {
         expect(repo.spaceShares.last['team'], 't-site');
       });
 
-      testWidgets('a Note asks no For; a work item shows one For row, me by '
-          'default, and no chip of any member', (tester) async {
-        await _open(tester, lang);
+      testWidgets('a Note asks no For; a work item shows one For row at '
+          'Choose (review 112: never me), Post off until someone is chosen, '
+          'and no chip of any member', (tester) async {
+        final repo = await _open(tester, lang);
         expect(_key('share-for'), findsNothing);
         await _tap(tester, _key('share-kind-work_item'));
         expect(_key('share-for'), findsOneWidget);
         expect(
           _row(tester, 'share-for'),
-          l10n.notebookShareForRow(l10n.daybookYou),
+          l10n.notebookShareForRow(l10n.daybookRowChoose),
         );
         expect(_key('share-for-${DaybookSamples.omar}'), findsNothing);
+        expect(tester.widget<BvButton>(_key('share-send')).onPressed, isNull);
+        await _tap(tester, _key('share-send'));
+        expect(repo.spaceShares, isEmpty);
+        await _tap(tester, _key('share-for'));
+        await _tap(
+          tester,
+          find.descendant(
+            of: find.byType(BvGiveToPicker),
+            matching: find.text(d.omarName),
+          ),
+        );
+        expect(
+          tester.widget<BvButton>(_key('share-send')).onPressed,
+          isNotNull,
+        );
       });
 
-      testWidgets('For opens the Give to picker: me first, the chosen '
-          'Team\'s people, then the rest A–Z; no Viewer', (tester) async {
+      testWidgets('For opens the Give to picker: the chosen Team\'s people, '
+          'then the rest A–Z; never me, no Viewer', (tester) async {
         await _open(tester, lang);
         await _tap(tester, _key('share-team'));
         await _tap(tester, _key('share-team-t-mep'));
@@ -202,7 +219,8 @@ void main() {
           ..sort((a, b) => names[a]!.compareTo(names[b]!));
         final team = [DaybookSamples.omar, DaybookSamples.rakesh]
           ..sort((a, b) => names[a]!.compareTo(names[b]!));
-        expect(_listed(tester), [DaybookSamples.islam, ...team, ...rest]);
+        expect(_listed(tester), [...team, ...rest]);
+        expect(find.byKey(const Key('give-to-me')), findsNothing);
         expect(_listed(tester), isNot(contains(DaybookSamples.mona)));
       });
 
@@ -245,8 +263,9 @@ void main() {
         expect(_key('share-for'), findsOneWidget);
         expect(find.byType(BvChip), findsNWidgets(2)); // the two kinds
         await _tap(tester, _key('share-for'));
-        // Viewers can't own a work item: 120 less 11 Viewers.
-        expect(_listed(tester), hasLength(120 - 11));
+        // Viewers can't own a work item, nor can I: 120 less 11 Viewers
+        // and me.
+        expect(_listed(tester), hasLength(120 - 11 - 1));
         await tester.enterText(
           find.descendant(
             of: _key('give-to-search'),

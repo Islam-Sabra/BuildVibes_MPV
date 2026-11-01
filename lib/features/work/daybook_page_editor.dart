@@ -32,7 +32,7 @@ import 'daybook_attach.dart';
 import 'daybook_loop.dart';
 import 'daybook_marks.dart' show checklistPointsProvider, postFilesProvider;
 import 'daybook_page.dart';
-import 'daybook_writing.dart' show assignablePeople;
+import 'daybook_writing.dart' show ownerPeople;
 import 'page_block_editing.dart';
 import 'work_outbox.dart';
 
@@ -830,7 +830,8 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
       builder: (sheet) => _ItemSheet(
         key: const Key('page-item-sheet'),
         text: text,
-        people: assignablePeople(people, me: me),
+        // Review 112: never me.
+        people: ownerPeople(people, me: me),
         me: me,
         onPick: (title, owner) =>
             Navigator.of(sheet).pop((title: title, owner: owner)),
@@ -1514,10 +1515,8 @@ class _ItemSheetState extends State<_ItemSheet> {
           key: const Key('page-item-owner'),
           people: widget.people,
           currentOwnerId: null,
-          // You first, as in the writing card (F69).
-          meId: widget.me,
-          meLabel: l10n.daybookYou,
           currentLabel: l10n.daybookOwnerNow,
+          emptyLine: l10n.workItemInviteSomeone,
           searchPlaceholder: l10n.daybookAssignSearch,
           inSheet: true,
           onPick: (p) {

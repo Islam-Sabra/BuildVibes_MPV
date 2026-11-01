@@ -6463,4 +6463,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rmOnlyWhoSees => 'يمكن تذكير من يرى هذا البند فقط.';
+
+  @override
+  String get workItemInviteSomeone => 'ادعُ شخصًا لتعطيه بنود العمل.';
+
+  @override
+  String get workItemForSomeoneElse =>
+      'بند العمل لشخص آخر. لنفسك استخدم دفترك.';
 }

@@ -1592,8 +1592,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     required String? me,
   }) {
     final kind = cardDraft?.kind ?? DaybookKind.note;
+    // Review 112: alone in the Space (nobody else can own a work item),
+    // a work item can't go: Post stays off and For says to invite someone.
+    final people = ref.watch(spacePeopleProvider(widget.space.id)).value;
+    final alone =
+        !_editing &&
+        kind == DaybookKind.workItem &&
+        people != null &&
+        people.members.isNotEmpty &&
+        ownerPeople(people, me: me).isEmpty;
     final postReady =
-        _editing || (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false);
+        !alone &&
+        (_editing || (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false));
     final extras = composerOffered(kind, editing: _editing);
     // W11: what # offers is what this person may post; who may only thank
     // (a Viewer) has no # at all.
@@ -1643,7 +1653,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // what it still needs opens first.
       onPost: _editing
           ? (cardDraft?.titleFits ?? false ? _save : null)
-          : (cardDraft?.readyToTry ?? false
+          : (!alone && (cardDraft?.readyToTry ?? false)
                 ? () => unawaited(_postOrAsk(myName))
                 : null),
       // F56: grey until the "who" is chosen too; a tap asks.
@@ -2267,7 +2277,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       return;
     }
     await notifier.put(
-      DaybookPostDraft.of(post, id: ref.read(newPostIdProvider)()),
+      DaybookPostDraft.of(
+        post,
+        id: ref.read(newPostIdProvider)(),
+        me: ref.read(authUserIdProvider).value,
+      ),
     );
     if (!mounted) return;
     _startWriting();
