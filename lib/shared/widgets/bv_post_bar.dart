@@ -90,30 +90,28 @@ class BvPostBar extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsetsDirectional.all(BvPostBarSpec.viewerPadding),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // Review 110 X1: a Wrap, so nothing is cut; when the words don't
+          // fit on one line (a larger text size), Thank someone goes under.
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             spacing: BvPostBarSpec.viewerGap,
+            runSpacing: BvPostBarSpec.viewerGap,
             children: [
               BvPassChip(label: passLabel!, tone: passTone),
               if (readOnly != null)
-                Flexible(
-                  child: Text(
-                    readOnly!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.metadata.copyWith(
-                      color: BvColors.textSecondary,
-                    ),
-                  ),
+                Text(
+                  readOnly!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.metadata.copyWith(color: BvColors.textSecondary),
                 ),
               if (thankLabel != null && onThank != null)
-                Flexible(
-                  child: BvChip(
-                    key: const Key('post-bar-thank'),
-                    label: thankLabel!,
-                    icon: BvIcons.thanks,
-                    onTap: onThank,
-                  ),
+                BvChip(
+                  key: const Key('post-bar-thank'),
+                  label: thankLabel!,
+                  icon: BvIcons.thanks,
+                  onTap: onThank,
                 ),
             ],
           ),
