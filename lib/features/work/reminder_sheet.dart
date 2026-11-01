@@ -416,6 +416,9 @@ String reminderErrorText(AppLocalizations l10n, SpaceException e) =>
     switch (e.message) {
       'not allowed' => l10n.rmOnlyWhoMay,
       'only an open work item' => l10n.rmOnlyOpen,
+      // Review 110 W5.
+      'at most 5 reminders wait on an item' => l10n.rmFiveWaiting,
+      'only people in the Space who can see it' => l10n.rmOnlyWhoSees,
       // Review 108 V4: 20 a day.
       'the most reminders for today' => l10n.rmDailyMost,
       _ when e.failure == SpaceFailure.limit => l10n.rmDailyMost,

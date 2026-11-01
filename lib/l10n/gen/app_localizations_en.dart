@@ -6406,4 +6406,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String notebookShareSpacesCode(String code) {
     return 'Code: $code';
   }
+
+  @override
+  String get rmFiveWaiting => 'This item already has 5 reminders waiting.';
+
+  @override
+  String get rmOnlyWhoSees =>
+      'Only people who can see this item can be reminded.';
 }

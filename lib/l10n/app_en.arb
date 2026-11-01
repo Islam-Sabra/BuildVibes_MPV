@@ -9120,5 +9120,13 @@
         "type": "String"
       }
     }
+  },
+  "rmFiveWaiting": "This item already has 5 reminders waiting.",
+  "@rmFiveWaiting": {
+    "description": "Review 110 W5: set_work_reminder refused \"at most 5 reminders wait on an item\"."
+  },
+  "rmOnlyWhoSees": "Only people who can see this item can be reminded.",
+  "@rmOnlyWhoSees": {
+    "description": "Review 110 W5: set_work_reminder refused \"only people in the Space who can see it\"."
   }
 }

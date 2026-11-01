@@ -10657,6 +10657,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Code: {code}'**
   String notebookShareSpacesCode(String code);
+
+  /// Review 110 W5: set_work_reminder refused "at most 5 reminders wait on an item".
+  ///
+  /// In en, this message translates to:
+  /// **'This item already has 5 reminders waiting.'**
+  String get rmFiveWaiting;
+
+  /// Review 110 W5: set_work_reminder refused "only people in the Space who can see it".
+  ///
+  /// In en, this message translates to:
+  /// **'Only people who can see this item can be reminded.'**
+  String get rmOnlyWhoSees;
 }
 
 class _AppLocalizationsDelegate

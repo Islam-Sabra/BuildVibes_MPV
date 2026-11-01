@@ -1759,5 +1759,7 @@
   "cpAddPoint": "إضافة بند",
   "cpChecklistChip": "قائمة تحقق · {count}",
   "cpPeople": "الأشخاص",
-  "notebookShareSpacesCode": "الرمز: {code}"
+  "notebookShareSpacesCode": "الرمز: {code}",
+  "rmFiveWaiting": "على هذا البند 5 تذكيرات بالانتظار.",
+  "rmOnlyWhoSees": "يمكن تذكير من يرى هذا البند فقط."
 }

@@ -139,6 +139,17 @@ void main() {
       for (final (failure, message, line) in [
         (SpaceFailure.notAllowed, 'not allowed', l10n.rmOnlyWhoMay),
         (SpaceFailure.badInput, 'only an open work item', l10n.rmOnlyOpen),
+        // Review 110 W5.
+        (
+          SpaceFailure.badInput,
+          'at most 5 reminders wait on an item',
+          l10n.rmFiveWaiting,
+        ),
+        (
+          SpaceFailure.badInput,
+          'only people in the Space who can see it',
+          l10n.rmOnlyWhoSees,
+        ),
         (SpaceFailure.unknown, 'something new', l10n.errorGeneric),
       ]) {
         testWidgets('"$message" → its own line', (tester) async {

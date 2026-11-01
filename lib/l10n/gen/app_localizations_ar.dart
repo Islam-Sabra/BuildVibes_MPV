@@ -6454,4 +6454,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String notebookShareSpacesCode(String code) {
     return 'الرمز: $code';
   }
+
+  @override
+  String get rmFiveWaiting => 'على هذا البند 5 تذكيرات بالانتظار.';
+
+  @override
+  String get rmOnlyWhoSees => 'يمكن تذكير من يرى هذا البند فقط.';
 }
