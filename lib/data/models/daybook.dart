@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'check_in.dart';
 import 'work_item.dart';
 
 DateTime? _time(Object? value) =>
@@ -467,6 +468,7 @@ class DaybookPost {
     this.tableCount = 0,
     this.tag,
     this.thanks,
+    this.checkIn,
     this.parentId,
     this.children,
     this.blocks = const [],
@@ -534,6 +536,7 @@ class DaybookPost {
       tableCount: (json['table_count'] as num?)?.toInt() ?? 0,
       tag: DaybookTag.fromJson(json['tag']),
       thanks: DaybookThanks.fromJson(json['thanks']),
+      checkIn: CheckInSetup.fromJson(json['check_in']),
       parentId: json['parent_id'] as String?,
       children: DaybookChildren.fromJson(json['children']),
       // A report draws its page on its card (R2); other kinds open it.
@@ -567,6 +570,9 @@ class DaybookPost {
   /// Review 110 TH1: Thanks, to a person or a Team.
   static const thanksKind = 'thanks';
 
+  /// Review 109: a Check-in, for Leads to post.
+  static const checkInKind = 'check_in';
+
   /// The kinds the daybook draws; a kind this version doesn't know is
   /// kept for paging only.
   static const shownKinds = {
@@ -578,6 +584,7 @@ class DaybookPost {
     fileKind,
     reportKind,
     thanksKind,
+    checkInKind,
   };
 
   final String id;
@@ -681,6 +688,11 @@ class DaybookPost {
 
   bool get isThanks => kind == thanksKind;
 
+  /// Review 109: a Check-in's facts and the reader's own marks.
+  final CheckInSetup? checkIn;
+
+  bool get isCheckIn => kind == checkInKind;
+
   /// The work item it is under (slice 6), if any.
   final String? parentId;
 
@@ -774,6 +786,7 @@ class DaybookPost {
     tableCount: tableCount,
     tag: tag,
     thanks: thanks,
+    checkIn: checkIn,
     parentId: parentId,
     children: children ?? this.children,
     blocks: blocks,

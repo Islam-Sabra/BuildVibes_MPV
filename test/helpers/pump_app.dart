@@ -14,6 +14,8 @@ import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/data/repositories/check_in_repository.dart';
+import 'package:buildvibes/core/location/location_reader.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/dm_repository.dart';
 import 'package:buildvibes/features/work/composer_kinds.dart';
@@ -56,6 +58,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
+import 'check_in_fakes.dart';
+import 'location_fakes.dart';
 import 'daybook_fakes.dart';
 import 'dm_fakes.dart';
 import 'daybook_samples.dart';
@@ -138,6 +142,8 @@ class TestApp {
     required this.tips,
     required this.workReminders,
     required this.schedule,
+    required this.checkIns,
+    required this.location,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -200,6 +206,10 @@ class TestApp {
   final FakeWorkReminderRepository workReminders;
   final FakeScheduleRepository schedule;
 
+  /// Review 109: Check-in's calls, and the phone's location.
+  final FakeCheckInRepository checkIns;
+  final FakeLocationReader location;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -254,6 +264,8 @@ Future<TestApp> pumpApp(
   FakeTipsRepository? tips,
   FakeWorkReminderRepository? workReminders,
   FakeScheduleRepository? schedule,
+  FakeCheckInRepository? checkIns,
+  FakeLocationReader? location,
 
   /// The market pack; [testMarkets] by default.
   List<Market>? markets,
@@ -356,6 +368,9 @@ Future<TestApp> pumpApp(
   final fakeTips = tips ?? FakeTipsRepository();
   final fakeWorkReminders = workReminders ?? FakeWorkReminderRepository();
   final fakeSchedule = schedule ?? FakeScheduleRepository();
+  final fakeCheckIns =
+      checkIns ?? FakeCheckInRepository(now: clock ?? () => now ?? testNow);
+  final fakeLocation = location ?? FakeLocationReader();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -414,6 +429,8 @@ Future<TestApp> pumpApp(
         tipsRepositoryProvider.overrideWithValue(fakeTips),
         workReminderRepositoryProvider.overrideWithValue(fakeWorkReminders),
         scheduleRepositoryProvider.overrideWithValue(fakeSchedule),
+        checkInRepositoryProvider.overrideWithValue(fakeCheckIns),
+        locationReaderProvider.overrideWithValue(fakeLocation),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;
@@ -544,6 +561,8 @@ Future<TestApp> pumpApp(
     tips: fakeTips,
     workReminders: fakeWorkReminders,
     schedule: fakeSchedule,
+    checkIns: fakeCheckIns,
+    location: fakeLocation,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,
