@@ -5,7 +5,8 @@
 -- a Lead in the Team "Steel fixers" and posts the check-ins. In that Team
 -- too: Rakesh (b2), Tariq (c3), Sami (b3) and Noor (b4), all Crew, and Vera
 -- (e5), a Viewer. Lina (d4) is Crew outside it, alone in the Team "Solo".
--- Hana (a8) is another Lead. Eve (f6) is not in the Space.
+-- Hana (a8) is another Lead. Eve (f6) is not in the Space. Rakesh and
+-- Gus turned lock-screen text on; nobody else did.
 --
 -- The clock: the public functions use now(); each has an internal twin
 -- that takes the time (p_now), which only the database itself may call
@@ -15,7 +16,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(188);
+select plan(209);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000059' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -151,6 +152,9 @@ insert into public.push_tokens (token, profile_id, platform)
 select repeat(x.c, 40), pg_temp.uid(x.id), 'android'
 from (values ('a1', 'a'), ('b2', 'b'), ('c3', 'c'), ('b3', 'd'), ('b4', 'e'), ('d4', 'f'),
              ('e5', 'g'), ('a7', 'h'), ('a8', 'i')) x(id, c);
+-- Lock-screen text (push_settings.message_text): on for Rakesh and Gus only.
+insert into public.push_settings (profile_id, message_text)
+values (pg_temp.uid('b2'), true), (pg_temp.uid('a7'), true);
 
 -- The tables ----------------------------------------------------------------------------------------
 
@@ -333,6 +337,14 @@ select is(pg_temp.card('a7', 'c101') -> 'check_in' -> 'sees_list', 'true'::jsonb
   'the creator sees the list');
 select is(pg_temp.card('a1', 'c101') -> 'check_in' -> 'sees_list', 'false'::jsonb,
   'the admin doesn''t, while the creator is in the Space');
+select is(pg_temp.card('a7', 'c101') -> 'check_in' -> 'can_stop', 'true'::jsonb,
+  'the creator may stop an every-day check-in');
+select is(pg_temp.card('a1', 'c101') -> 'check_in' -> 'can_stop', 'false'::jsonb,
+  'the admin may not while the creator is in the Space');
+select is(pg_temp.card('b2', 'c101') -> 'check_in' -> 'can_stop', 'false'::jsonb, 'nor Crew');
+select is(pg_temp.card('a8', 'c102') -> 'check_in' -> 'can_stop', 'false'::jsonb, 'nor another Lead');
+select is(pg_temp.card('a7', 'c102') -> 'check_in' -> 'can_stop', 'false'::jsonb,
+  'a once-only check-in has no Stop');
 select is(pg_temp.card('e5', 'c102') -> 'check_in' -> 'asked', 'false'::jsonb,
   'a Viewer is never asked');
 select is(pg_temp.card('d4', 'c102') -> 'check_in' -> 'asked', 'true'::jsonb,
@@ -565,6 +577,12 @@ select is((select data - 'tz' from public.push_queue
                      'title', 'Roll call', 'space_name', 'Check-in tower',
                      'until', pg_temp.at(0, '07:15')),
   'what it carries: the post, the Space, In, its title and Space, and the on-time limit');
+select is((select data - 'tz' from public.push_queue
+           where kind = 'check_in_open' and data ->> 'post_id' = pg_temp.id('c104')::text
+             and profile_id = pg_temp.uid('b3')),
+  jsonb_build_object('post_id', pg_temp.id('c104'), 'space_id', pg_temp.sp(), 'mark', 'in',
+                     'until', pg_temp.at(0, '07:15')),
+  'lock-screen text off: no title and no Space, only what the actions need');
 select is(public.check_in_notify(pg_temp.at(0, '06:45')), 0, 'a second run in the same minute sends nothing');
 select is((select count(*)::int from public.push_queue where kind = 'check_in_open'
            and data ->> 'post_id' = pg_temp.id('c104')::text), 4, 'still four');
@@ -603,6 +621,10 @@ select is(public.check_in_notify(pg_temp.at(2, '00:00')) >= 1, true, 'the next d
 select is((select array_agg(profile_id) from public.push_queue
            where kind = 'check_in_summary' and data ->> 'post_id' = pg_temp.id('c105')::text),
   array[pg_temp.uid('a1')], 'the creator left: the summary goes to the admin');
+select is((select data from public.push_queue
+           where kind = 'check_in_summary' and data ->> 'post_id' = pg_temp.id('c105')::text),
+  jsonb_build_object('post_id', pg_temp.id('c105'), 'space_id', pg_temp.sp()),
+  'lock-screen text off: the summary says only that it is ready');
 update public.space_members set left_at = null
 where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
 
@@ -716,6 +738,26 @@ select lives_ok($$select public.stop_check_in(pg_temp.id('c101'))$$, 'again is n
 reset role;
 select isnt((select stopped_at from public.check_in_posts where post_id = pg_temp.id('c101')), null,
   'stopped');
+select is(pg_temp.card('a7', 'c101') -> 'check_in' -> 'can_stop', 'false'::jsonb,
+  'a stopped check-in offers no Stop');
+update public.space_members set left_at = now()
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
+select is(pg_temp.card('a1', 'c104') -> 'check_in' -> 'can_stop', 'true'::jsonb,
+  'the creator left: the admin may stop it');
+select pg_temp.as_user('a8');
+set local role authenticated;
+select throws_ok($$select public.stop_check_in(pg_temp.id('c104'))$$, '42501', null,
+  'another Lead never can');
+reset role;
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok($$select public.stop_check_in(pg_temp.id('c104'))$$,
+  'the admin stops it once the creator has left');
+reset role;
+select isnt((select stopped_at from public.check_in_posts where post_id = pg_temp.id('c104')), null,
+  'stopped by the admin');
+update public.space_members set left_at = null
+where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
 select throws_ok($$select pg_temp.mark('b4', 'c101', 'in', pg_temp.at(7, '07:00'))$$,
   '22023', 'stopped', 'nobody marks a stopped check-in');
 select is(pg_temp.card('b2', 'c101') -> 'check_in' -> 'stopped', 'true'::jsonb, 'its card says so');
@@ -732,6 +774,45 @@ select is((select count(*)::int from public.push_queue where kind = 'check_in_op
 select is((select count(*)::int from public.push_queue
            where data::text like '%29.376%' or data::text like '%47.977%'), 0,
   'no point in any push');
+
+-- My data: my own marks, nobody else's -------------------------------------------------------------
+
+insert into public.data_requests (id, profile_id) values (pg_temp.id('f101'), pg_temp.uid('d4'));
+select is(jsonb_array_length(public.export_my_data(pg_temp.id('f101')) -> 'check_in_marks'),
+  (select count(*)::int from public.check_in_marks where user_id = pg_temp.uid('d4')),
+  'export_my_data has every one of Lina''s marks');
+select ok((select count(*) from public.check_in_marks where user_id = pg_temp.uid('d4')) >= 3,
+  'and she has several');
+select is((select array_agg(k order by k) from jsonb_object_keys(
+             public.export_my_data(pg_temp.id('f101')) -> 'check_in_marks' -> 0) k),
+  array['at', 'check_in', 'day', 'kind', 'on_time', 'place', 'space'],
+  'each: the check-in, its Space, the day, in or out, the time, on time and the place result');
+select ok((public.export_my_data(pg_temp.id('f101')) -> 'check_in_marks')::text
+            not like '%' || pg_temp.uid('b2')::text || '%'
+          and not exists (
+            select 1 from jsonb_array_elements(public.export_my_data(pg_temp.id('f101')) -> 'check_in_marks') e
+            where (e ->> 'at')::timestamptz = pg_temp.at(0, '06:45')),
+  'nobody else''s (not Rakesh''s 06:45)');
+
+-- Account deletion: the only-me reports and their stored files go -----------------------------
+
+insert into storage.objects (bucket_id, name)
+select 'space-files', storage_path from public.library_files where id = current_setting('test.file')::uuid;
+update public.profiles set deletion_scheduled_at = now() - interval '31 days' where id = pg_temp.uid('a7');
+select ok(exists (select 1 from public.accounts_due_for_purge()
+                  where profile_id = pg_temp.uid('a7') and bucket = 'space-files'
+                    and name = (select storage_path from public.library_files
+                                where id = current_setting('test.file')::uuid)),
+  'due: the creator''s check-in report file');
+select is((select count(*)::int from public.accounts_due_for_purge()
+           where bucket = 'space-files'), 1, 'and no other Space file');
+select ok(not public.purge_account(pg_temp.uid('a7')), 'not purged while the file is still stored');
+set local storage.allow_delete_query = 'true';
+delete from storage.objects where bucket_id = 'space-files'
+  and name = (select storage_path from public.library_files where id = current_setting('test.file')::uuid);
+select ok(public.purge_account(pg_temp.uid('a7')), 'once the file is gone, purged');
+select is((select count(*)::int from public.library_files where id = current_setting('test.file')::uuid), 0,
+  'and the report''s Library row with it');
 
 select * from finish();
 rollback;
