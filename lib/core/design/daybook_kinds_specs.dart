@@ -140,10 +140,6 @@ abstract final class BvShortCardSpec {
 
   /// A checklist's first lines, then "4 of 9 ticked".
   static const points = 3;
-
-  /// Words longer than this (or on more than one line) may run past the
-  /// details' 2 lines: See more shows.
-  static const detailChars = 90;
 }
 
 abstract final class BvPhotoStripSpec {

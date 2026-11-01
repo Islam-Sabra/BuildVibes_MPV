@@ -29,8 +29,9 @@ final _now = DaybookSamples.thursday;
 Future<void> _open(
   WidgetTester tester,
   String lang,
-  List<DaybookCard> posts,
-) async {
+  List<DaybookCard> posts, {
+  List<SpacePlace> places = const [],
+}) async {
   final s = DaybookSamples(lang);
   await pumpApp(
     tester,
@@ -44,7 +45,8 @@ Future<void> _open(
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: FakeDaybookRepository()
       ..posts[DaybookSamples.space] = posts
-      ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints(),
+      ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
+      ..placesBySpace[DaybookSamples.space] = [...places],
     now: _now,
   );
   GoRouter.of(
@@ -131,6 +133,87 @@ void main() {
           _key('card-see-more-${DaybookSamples.handoverId}'),
           findsOneWidget,
         );
+      });
+    });
+
+    group('Review 110 W10 [$lang]', () {
+      DaybookPost plain({String? body, String? placeId}) => DaybookPost(
+        id: 'post-plain',
+        kind: DaybookPost.workItemKind,
+        createdAt: _now.subtract(const Duration(hours: 1)),
+        title: s.t('Edge guard at the L4 slab', 'حاجز الحافة في بلاطة الدور 4'),
+        body: body,
+        authorId: DaybookSamples.islam,
+        authorName: s.nameOf(DaybookSamples.islam),
+        placeId: placeId,
+        item: DaybookItem(
+          status: WorkStatus.open,
+          ownerId: DaybookSamples.omar,
+          ownerName: s.nameOf(DaybookSamples.omar),
+        ),
+        tag: const DaybookTag(
+          id: 'safety',
+          name: {'en': 'Safety', 'ar': 'السلامة'},
+          danger: true,
+        ),
+      );
+
+      testWidgets('details that fit 2 lines: no See more, even on 2 lines', (
+        tester,
+      ) async {
+        await _open(tester, lang, [
+          s.card(plain(body: s.t('Bay 2\nBay 3', 'الجزء 2\nالجزء 3'))),
+        ]);
+        await scrollToRow(tester, _card('post-plain'));
+        expect(_key('card-see-more-post-plain'), findsNothing);
+      });
+
+      testWidgets('details past 2 lines: See more', (tester) async {
+        await _open(tester, lang, [
+          s.card(
+            plain(
+              body: s.t('Bay 2\nBay 3\nBay 4', 'الجزء 2\nالجزء 3\nالجزء 4'),
+            ),
+          ),
+        ]);
+        await scrollToRow(tester, _card('post-plain'));
+        expect(_key('card-see-more-post-plain'), findsOneWidget);
+      });
+
+      testWidgets('the place and the tag on one line; when they do not fit, '
+          'the tag becomes +1', (tester) async {
+        final longPlace = SpacePlace(
+          id: 'place-long',
+          name: List.filled(
+            8,
+            s.t('North stair core', 'درج القلب الشمالي'),
+          ).join(' '),
+        );
+        await _open(
+          tester,
+          lang,
+          [s.card(plain(placeId: longPlace.id))],
+          places: [longPlace],
+        );
+        await scrollToRow(tester, _card('post-plain'));
+        expect(_key('card-tag-post-plain'), findsNothing);
+        expect(_key('card-tags-more-post-plain'), findsOneWidget);
+        final site = tester.getRect(_key('site-tag-post-plain'));
+        final more = tester.getRect(_key('card-tags-more-post-plain'));
+        expect(more.top, site.top);
+      });
+
+      testWidgets('a short place: both chips show [$lang]', (tester) async {
+        const place = SpacePlace(id: 'place-l3', name: 'L3');
+        await _open(
+          tester,
+          lang,
+          [s.card(plain(placeId: place.id))],
+          places: [place],
+        );
+        await scrollToRow(tester, _card('post-plain'));
+        expect(_key('card-tag-post-plain'), findsOneWidget);
+        expect(_key('card-tags-more-post-plain'), findsNothing);
       });
     });
 

@@ -7,8 +7,6 @@ import '../models/market.dart';
 import '../models/profile.dart';
 import '../supabase/supabase_provider.dart';
 
-/// Profile pages (R1, R5) and the edit screens (R8). What a viewer may see
-/// is decided by RLS: hidden parts simply come back empty.
 /// Review 110 TH2: one Thanks shown on a profile. No counts (rule 3).
 class ProfileThanks {
   const ProfileThanks({
@@ -34,6 +32,8 @@ class ProfileThanks {
   final String? projectName;
 }
 
+/// Profile pages (R1, R5) and the edit screens (R8). What a viewer may see
+/// is decided by RLS: hidden parts simply come back empty.
 abstract class ProfilePageRepository {
   /// Null when the profile does not exist or is hidden by a block.
   Future<ProfileView?> fetch(String profileId);

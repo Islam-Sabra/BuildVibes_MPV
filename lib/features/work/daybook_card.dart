@@ -363,22 +363,71 @@ class DaybookCardView extends StatelessWidget {
       danger: tag.danger,
       onTap: lifted || waiting ? null : onTag,
     );
-    return Wrap(
-      spacing: BvSpace.s8,
-      runSpacing: BvSpace.s4,
-      children: [?site, chip],
+    if (site == null) return chip;
+    // W10: on one line; when the place and the tag don't both fit, the
+    // tag becomes "+1".
+    final siteName = this.site!.name;
+    final more = AppLocalizations.of(context).cardMorePhotos(1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final both =
+            _tagWidth(context, siteName) +
+            BvSpace.s8 +
+            _tagWidth(context, tag.nameIn(lang));
+        return Row(
+          spacing: BvSpace.s8,
+          children: [
+            Flexible(child: site),
+            if (both <= constraints.maxWidth)
+              chip
+            else
+              BvSiteTag(
+                key: Key('card-tags-more-${_post.id}'),
+                name: more,
+                icon: BvIcons.tag,
+                danger: tag.danger,
+                onTap: lifted || waiting ? null : onTag,
+              ),
+          ],
+        );
+      },
     );
+  }
+
+  /// A site tag's width for [name]: its words, its icon, its gap and its
+  /// padding, in the phone's text size.
+  static double _tagWidth(BuildContext context, String name) {
+    final painter = TextPainter(
+      text: TextSpan(text: name, style: BvType.of(context).labelSm),
+      maxLines: 1,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    return painter.width +
+        BvSlipSpec.tagIcon +
+        BvSlipSpec.tagGap +
+        BvSlipSpec.tagPadding.horizontal;
   }
 
   /// The typed place of an older post (no site tag).
   String? get _typedPlace =>
       site == null && (_post.place ?? '').isNotEmpty ? _post.place : null;
 
+  // W10: the card's inner width, for what fits its short lines.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => _card(
+      context,
+      constraints.hasBoundedWidth
+          ? constraints.maxWidth - 2 * BvSlipSpec.paddingSide
+          : null,
+    ),
+  );
+
+  Widget _card(BuildContext context, double? width) {
     final l10n = AppLocalizations.of(context);
     final post = _post;
-    if (!post.isWorkItem) return _kindCard(context, l10n);
+    if (!post.isWorkItem) return _kindCard(context, l10n, width);
     final proof = card.proof;
     final hasPhoto = localPhoto != null || (proof?.photos.isNotEmpty ?? false);
     final stamp = _stamp(l10n);
@@ -487,7 +536,7 @@ class DaybookCardView extends StatelessWidget {
               child: stamp,
             ),
           ),
-        if (!post.isTarget) ?_rest(l10n),
+        if (!post.isTarget) ?_rest(context, l10n, width),
         ?history,
         if (couldNotSend)
           BvSlipError(l10n.daybookCouldNotSend)
@@ -501,7 +550,7 @@ class DaybookCardView extends StatelessWidget {
   /// Review 110 F (HV1): the rest in one quiet line, "2 files · 1 table
   /// · 6 tasks", with See more ›, which opens the whole post in place
   /// (HV2). None while there is nothing more to see.
-  Widget? _rest(AppLocalizations l10n) {
+  Widget? _rest(BuildContext context, AppLocalizations l10n, double? width) {
     final post = _post;
     // A daily report shows its page on its card (R2).
     if (post.isReport) return null;
@@ -513,20 +562,26 @@ class DaybookCardView extends StatelessWidget {
       if (post.pointsTotal > 0)
         l10n.daybookTicked(post.pointsTicked, post.pointsTotal),
     ];
-    final more =
-        parts.isNotEmpty ||
-        post.hasPage ||
-        (post.body ?? '').contains('\n') ||
-        (post.body ?? '').length > BvShortCardSpec.detailChars;
-    if (!more) return null;
+    final body = post.body ?? '';
     final open = actions.onOpenPage ?? actions.onOpen;
-    return BvSlipRest(
+    BvSlipRest rest() => BvSlipRest(
       key: Key('card-rest-${post.id}'),
       text: parts.join(' · '),
       seeMore: l10n.cardSeeMore,
       seeMoreKey: Key('card-see-more-${post.id}'),
       onSeeMore: lifted || waiting ? null : open,
     );
+    if (parts.isNotEmpty || post.hasPage) return rest();
+    if (body.isEmpty || width == null) return null;
+    // W10: See more only when the details really run past their 2 lines,
+    // measured at the card's inner width.
+    final painter = TextPainter(
+      text: TextSpan(text: body, style: BvType.of(context).bodyMd),
+      maxLines: BvShortCardSpec.detailLines,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: width);
+    return painter.didExceedMaxLines ? rest() : null;
   }
 
   /// F73: "Sending · 3.1 of 8.7 MB" with a thin line while a file goes up,
@@ -587,7 +642,7 @@ class DaybookCardView extends StatelessWidget {
 
   /// A checklist, an announcement, an activity or a file post (K1–K3
   /// v13): the same paper, header and history as a work item's card.
-  Widget _kindCard(BuildContext context, AppLocalizations l10n) {
+  Widget _kindCard(BuildContext context, AppLocalizations l10n, double? width) {
     final post = _post;
     final authorId = post.authorId;
     final history = _history(l10n);
@@ -629,7 +684,7 @@ class DaybookCardView extends StatelessWidget {
                 : BvAvatarTints.forId(authorId),
           ),
           ..._kindBody(context, l10n),
-          ?_rest(l10n),
+          ?_rest(context, l10n, width),
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
