@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 2 Nov 2026 — review 113 live: migration, `notebook-purge`, build 961 on the founder's phone; `push` not deployed; the phone checks wait
+## PC update: 2 Nov 2026 — review 113 live: migration, `notebook-purge`, `push` v15, 12 cron jobs, build 961 on the founder's phone; the phone checks wait
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -14,11 +14,12 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Build 961** (versionCode 961, 0.9.0, commit 0321e068): `Desktop/BuildVibes-961.apk`, the same certificate (SHA-256 9d02b7db…b1df9f). `google-services.json` and `env/prod.json` copied in and deleted after.
 - **On the founder's phone:** the old address 192.168.8.33:40853 refused; adb found the phone by itself as `adb-jn85bqrc79s8mb8t-L6zNcc`. Model 22120RN86G, Android 14, 919 on it; `adb install -r`: Success; versionCode 961; disconnected, adb stopped.
 
-**Not live, and needs the founder's yes first:**
-- **`push` is still v14 (1 Nov), without review 113's texts.** It throws "no text for …" on `need_you`, `need_you_answer`, `post_reaction`, `work_item_archived`, `check_in_nudge` and `scheduled_expiring`, so those pushes won't reach a phone. None had been queued at the check after the deploy.
-- **Two schedules were not run:** `check-in-nudge` (`check_in_cron.sql`) and `expire-failed-posts` (`reminders_post_later_cron.sql`).
+**Added after the founder's yes (same day):**
+- **`push` v15** deployed from `slice2-app` at 6f8bead2. One test of each type went to the founder's account through `push_queue`: `need_you` (row 135) and `post_reaction` (row 136), both sent on the first attempt with no error. The `need_you` test has a made-up call id, so its On my way and Can't now buttons won't record an answer.
+- **Cron:** `check-in-nudge` (every minute) and `expire-failed-posts` (`7 * * * *`) added, with only their two `cron.schedule` lines. `cron.job` has 12 jobs, all active: the 7 the reviews track (`check-in-notify`, `check-in-daily-report`, `work-reminders`, `publish-scheduled-posts`, `notebook-purge` and these two), plus `account-purge`, `activity-reminders`, `push-prune`, `push-retry` and `reports-prune`.
+- **First runs:** `check-in-nudge` first ran at 13:15:00 UTC, succeeded, and had 3 runs with no failure at 13:17. `expire-failed-posts`: first run at 14:07 UTC, to be confirmed; 0 posts are in state `failed`, so it has nothing to do yet.
 
-**Phone checks, open (the founder's). Need you now and the Reactions channel need `push` deployed first:**
+**Phone checks, open (the founder's):**
 - [ ] A voice note recorded and played.
 - [ ] Need you now with the app closed: On my way and Can't now on MIUI.
 - [ ] The Reactions channel is quiet.
