@@ -195,3 +195,24 @@
    - a 38 MB PDF refused before upload, and a 3 MB PDF that uploads;
    - Library folders and a OneDrive link opening in the browser;
    - the 109 checks still open (one notification, Android 14 location from the button, the stamp, Autostart).
+
+## The lead's second check: `slice2-app` at `49fbef93` (2 Nov)
+**What was run:**
+- The SQL stand-in on `49fbef93`, four full runs: **59 files, 4,199 checks, PASS** each time. Cursor's one unexplained FAIL did not come back here, so it is watched, not open.
+- The CRLF fix is accepted. The text patches strip `chr(13)` before comparing and still raise if a function has changed.
+- Z1–Z13 are accepted as reported, including Z6 (up to 5 minutes late, through `archive_pushes`) and the narrower Z13.
+
+**One new fix before live:**
+- **Z14. An attached private file is broken for everyone but its owner.**
+  - `can_read_library_file` lets others open an attached file only once `proof_kept_at` is set, which happens only after the owner leaves.
+  - While the owner is a member, a file from their "Only me", person or Team folder attached to a work item or posted in a file post can't be opened by the people who see that post. The attachment looks broken.
+  - **Rule (the lead's call):** attaching or posting a file is sharing it with that post's audience.
+  - Fix:
+    - Anyone who can see a post (`can_see_space_post`) can open a Library file attached to it or posted in it, whatever its folder and whether `proof_kept_at` is set or not.
+    - The folder still decides who sees the file in the **Library** itself.
+  - In the app: when the picked file sits in a folder narrower than the post's audience, one line under its chip says "People who see this post can open this file." («كل من يرى هذا المنشور يمكنه فتح هذا الملف.»).
+  - Tests:
+    - pgTAP: a Crew member opens an only-me file attached to a Whole Space work item, and still can't see it in the Library or in search.
+    - A widget test for the line.
+
+**Note:** a read-only query on live is fine when it is needed to find a fault, but say so in the report before the next step, as was done here.
