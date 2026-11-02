@@ -1638,6 +1638,229 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- A check-in at the same place as an earlier one (the lead, 2 Nov)
+-- ---------------------------------------------------------------------------
+
+-- post_check_in (migration 59), as it was, and [p_same_place_as]: an earlier
+-- check-in of this Space whose site the server copies, for the nudge's
+-- composer, which never sees the point. Then the site's two parameters
+-- stay null; giving both is refused.
+drop function public.post_check_in(uuid, uuid, text, text, uuid[], double precision,
+                                   double precision, time, integer, time, integer, boolean, text);
+create function public.post_check_in(
+  p_id uuid,
+  p_space uuid,
+  p_title text,
+  p_body text default null,
+  p_teams uuid[] default null,
+  p_site_lat double precision default null,
+  p_site_lng double precision default null,
+  p_in_time time default null,
+  p_in_allow integer default 15,
+  p_out_time time default null,
+  p_out_allow integer default null,
+  p_daily boolean default false,
+  p_time_zone text default null,
+  p_same_place_as uuid default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_post public.space_posts;
+  v_title text := trim(coalesce(p_title, ''));
+  v_body text := nullif(trim(coalesce(p_body, '')), '');
+  v_teams uuid[];
+  v_in_allow integer := coalesce(p_in_allow, 15);
+  v_out_allow integer;
+  v_c public.check_in_posts;
+  v_today date;
+  v_day date;
+  v_in_min numeric;
+  v_out_min numeric;
+  v_zone text := nullif(trim(coalesce(p_time_zone, '')), '');
+  v_lat double precision := p_site_lat;
+  v_lng double precision := p_site_lng;
+  v_from public.space_posts;
+begin
+  if v_me is null then
+    raise exception 'sign in first' using errcode = '42501';
+  end if;
+  if p_id is null then
+    raise exception 'its id is the app''s' using errcode = '22023';
+  end if;
+  -- The same id again (a retry): the same post, if it is the caller's.
+  select * into v_post from public.space_posts where id = p_id;
+  if v_post.id is not null then
+    if v_post.author_id = v_me and v_post.space_id = p_space and v_post.kind = 'check_in' then
+      return v_post.id;
+    end if;
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+
+  -- Leads only, or the Space admin.
+  if not public.is_member(p_space) or public.is_hidden_account(v_me)
+     or not (public.member_pass(p_space) = 'lead' or public.is_space_admin(p_space)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+
+  -- The earlier check-in's point, copied here and never shown. A Lead or
+  -- the Space admin only, by the check above; its creator is no exception.
+  if p_same_place_as is not null then
+    if p_site_lat is not null or p_site_lng is not null then
+      raise exception 'a place or the same place, not both' using errcode = '22023';
+    end if;
+    select * into v_from from public.space_posts where id = p_same_place_as;
+    if v_from.id is null or v_from.space_id <> p_space or v_from.deleted_at is not null then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
+    if v_from.kind <> 'check_in' then
+      raise exception 'not a check-in' using errcode = '22023';
+    end if;
+    select c.site_lat, c.site_lng into v_lat, v_lng
+    from public.check_in_posts c where c.post_id = p_same_place_as;
+  end if;
+
+  if length(v_title) not between 1 and 200 then
+    raise exception 'a title of up to 200 characters' using errcode = '22023';
+  end if;
+  if length(v_body) > 5000 then
+    raise exception 'at most 5000 characters' using errcode = '22023';
+  end if;
+  if v_lat is null or v_lng is null
+     or v_lat not between -90 and 90 or v_lng not between -180 and 180 then
+    raise exception 'set the place first' using errcode = '22023';
+  end if;
+  if p_in_time is null then
+    raise exception 'a check-in time' using errcode = '22023';
+  end if;
+  if v_in_allow not in (0, 10, 15, 30) then
+    raise exception 'an allowance of 0, 10, 15 or 30 minutes' using errcode = '22023';
+  end if;
+  if p_out_time is not null then
+    v_out_allow := coalesce(p_out_allow, 15);
+    if v_out_allow not in (0, 10, 15, 30) then
+      raise exception 'an allowance of 0, 10, 15 or 30 minutes' using errcode = '22023';
+    end if;
+  end if;
+  -- Its windows stay inside the day, and check-out opens after check-in's
+  -- on-time limit.
+  v_in_min := extract(epoch from p_in_time) / 60;
+  if v_in_min - v_in_allow < 0 or v_in_min + v_in_allow >= 24 * 60 then
+    raise exception 'the check-in time and its allowance fit in the day' using errcode = '22023';
+  end if;
+  if p_out_time is not null then
+    v_out_min := extract(epoch from p_out_time) / 60;
+    if v_out_min - v_out_allow <= v_in_min + v_in_allow then
+      raise exception 'check-out opens after check-in''s allowance' using errcode = '22023';
+    end if;
+    if v_out_min + v_out_allow >= 24 * 60 then
+      raise exception 'the check-out time and its allowance fit in the day' using errcode = '22023';
+    end if;
+  end if;
+
+  -- Y1: a real zone name; required when the Space has no zone of its own.
+  if v_zone is not null
+     and not exists (select 1 from pg_catalog.pg_timezone_names z where z.name = v_zone) then
+    raise exception 'a time zone' using errcode = '22023';
+  end if;
+  v_zone := coalesce(public.check_in_space_zone(p_space), v_zone);
+  if v_zone is null then
+    raise exception 'a time zone' using errcode = '22023';
+  end if;
+
+  v_teams := (select array_agg(distinct t) from unnest(p_teams) t where t is not null);
+  if v_teams is not null and exists (
+       select 1 from unnest(v_teams) t
+       where not exists (select 1 from public.teams tm where tm.id = t and tm.space_id = p_space)) then
+    raise exception 'team not in this Space' using errcode = '22023';
+  end if;
+
+  insert into public.space_posts (id, space_id, team_id, kind, author_id, title, body)
+  values (p_id, p_space, case when cardinality(v_teams) = 1 then v_teams[1] end, 'check_in', v_me,
+          v_title, v_body)
+  returning * into v_post;
+
+  v_c.post_id := p_id;
+  v_c.space_id := p_space;
+  v_c.site_lat := v_lat;
+  v_c.site_lng := v_lng;
+  v_c.team_ids := v_teams;
+  v_c.in_time := p_in_time;
+  v_c.in_allow_min := v_in_allow;
+  v_c.out_time := p_out_time;
+  v_c.out_allow_min := v_out_allow;
+  v_c.repeat := case when coalesce(p_daily, false) then 'daily' else 'once' end;
+  v_c.time_zone := v_zone;
+  v_today := (now() at time zone public.check_in_zone(v_c))::date;
+  v_c.start_day := v_today;
+  if not public.check_in_runs_on(v_c, v_today)
+     or now() >= (public.check_in_times(v_c, v_today)).in_closes_at then
+    v_day := v_today + 1;
+    if v_c.repeat = 'daily' then
+      for i in 1..14 loop
+        v_c.start_day := v_day;
+        exit when public.check_in_runs_on(v_c, v_day);
+        v_day := v_day + 1;
+      end loop;
+    end if;
+    v_c.start_day := v_day;
+  end if;
+  v_c.created_at := now();
+  insert into public.check_in_posts select v_c.*;
+  return p_id;
+exception
+  when invalid_text_representation then
+    raise exception 'an id is not valid' using errcode = '22023';
+end;
+$$;
+
+-- scheduled_call_sql (migration 59), as it was, with post_check_in's new
+-- signature.
+create or replace function public.scheduled_call_sql(p_fn text, p_params jsonb)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with fn as (
+    select to_regprocedure(case p_fn
+      when 'create_space_post' then 'public.create_space_post(uuid, uuid, text, text, text, uuid, text, date, timestamptz, timestamptz, timestamptz, uuid, uuid[], jsonb, uuid, jsonb, jsonb, uuid, jsonb, timestamptz)'
+      when 'create_work_item' then 'public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb, jsonb, uuid, jsonb, jsonb, timestamptz, text)'
+      when 'create_post' then 'public.create_post(uuid, text, text, uuid, jsonb)'
+      when 'share_note_to_feed' then 'public.share_note_to_feed(uuid, uuid, text, text[], uuid, boolean, jsonb)'
+      when 'share_note_to_space' then 'public.share_note_to_space(uuid, uuid, uuid, text, text[], uuid, uuid, boolean, jsonb, uuid[])'
+      when 'create_thanks' then 'public.create_thanks(uuid, uuid, text, uuid, uuid, uuid, jsonb)'
+      when 'post_check_in' then 'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean, text, uuid)'
+    end) as oid
+  ),
+  args as (
+    select a.name, format_type(a.typ, null) as typ
+    from fn
+    join pg_proc p on p.oid = fn.oid
+    cross join lateral unnest(p.proargnames[1:p.pronargs], p.proargtypes::oid[]) a(name, typ)
+  )
+  select case
+    when (select oid from fn) is null then null
+    when exists (select 1 from jsonb_object_keys(p_params) k
+                 where k not in (select name from args)) then null
+    else format('select public.%I(%s)', p_fn, coalesce((
+      select string_agg(format('%I => %s', a.name, case
+        when a.typ like '%[]' then format(
+          '(case when jsonb_typeof($1 -> %L) = ''array'' then array(select jsonb_array_elements_text($1 -> %L))::%s end)',
+          a.name, a.name, a.typ)
+        when a.typ in ('jsonb', 'json') then format('nullif($1 -> %L, ''null''::jsonb)', a.name)
+        else format('($1 ->> %L)::%s', a.name, a.typ)
+      end), ', ')
+      from args a where p_params ? a.name), ''))
+  end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Push kinds
 -- ---------------------------------------------------------------------------
 
@@ -1862,6 +2085,9 @@ revoke all on function public.refuse_archived_reminder() from public, anon, auth
 revoke all on function public.item_needs_me(public.work_items, public.space_posts) from public, anon, authenticated;
 revoke all on function public.space_post_json(public.space_posts, boolean) from public, anon, authenticated;
 revoke all on function public.check_in_nudge(timestamptz) from public, anon, authenticated;
+revoke all on function public.post_check_in(uuid, uuid, text, text, uuid[], double precision,
+                                            double precision, time, integer, time, integer, boolean, text, uuid) from public, anon;
+revoke all on function public.scheduled_call_sql(text, jsonb) from public, anon, authenticated;
 revoke all on function public.send_need_you(uuid, uuid, uuid, text, text) from public, anon;
 revoke all on function public.answer_need_you(uuid, text) from public, anon;
 revoke all on function public.my_need_you_calls(uuid) from public, anon;
@@ -1900,6 +2126,8 @@ grant execute on function public.delete_library_folder(uuid) to authenticated;
 grant execute on function public.space_library_folders(uuid) to authenticated;
 grant execute on function public.add_library_file(uuid, uuid, text, text, text, bigint, uuid, text, text, uuid, uuid)
   to authenticated;
+grant execute on function public.post_check_in(uuid, uuid, text, text, uuid[], double precision,
+                                            double precision, time, integer, time, integer, boolean, text, uuid) to authenticated;
 grant execute on function public.check_in_nudge(timestamptz) to service_role;
 grant execute on function public.claim_private_file_purges(integer) to service_role;
 grant execute on function public.purge_deleted_library_files(timestamptz, integer) to service_role;

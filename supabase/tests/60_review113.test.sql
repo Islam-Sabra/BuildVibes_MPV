@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(268);
+select plan(284);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1252,6 +1252,67 @@ select is((select array_agg(c.name order by c.name) from public.claim_private_fi
   'the job gets both objects');
 reset role;
 select is(public.purge_deleted_library_files(), 0, 'a second run has nothing to do');
+
+-- Post a check-in at the same place as an earlier one (the lead, 2 Nov) -------------------------------
+
+update public.check_in_posts set site_lat = 29.5, site_lng = 48.1 where post_id = pg_temp.id('c001');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select is(public.post_check_in(pg_temp.id('c010'), pg_temp.sp(), 'Same place', null, null, null, null,
+  '07:00', 15, p_same_place_as => pg_temp.id('c001')), pg_temp.id('c010'),
+  'the Space admin posts one at the place of Gus''s check-in, with no point of her own');
+reset role;
+select is((select array[n.site_lat, n.site_lng] from public.check_in_posts n
+           where n.post_id = pg_temp.id('c010')), array[29.5, 48.1]::double precision[],
+  'the server copied the site');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select is(public.post_check_in(pg_temp.id('c011'), pg_temp.sp(), 'Mine again', null, null, null, null,
+  '07:00', 15, p_same_place_as => pg_temp.id('c001')), pg_temp.id('c011'), 'its creator too');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Other Space', null, null,
+                   null, null, '07:00', 15, p_same_place_as => pg_temp.id('c002'))$$,
+  '42501', 'not allowed', 'not a check-in of another Space, even my own');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Unknown', null, null,
+                   null, null, '07:00', 15, p_same_place_as => pg_temp.id('c0ff'))$$,
+  '42501', 'not allowed', 'an unknown id says the same');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Not one', null, null,
+                   null, null, '07:00', 15, p_same_place_as => pg_temp.id('a001'))$$,
+  '22023', 'not a check-in', 'not a post that isn''t a check-in');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Both', null, null,
+                   29.3, 47.9, '07:00', 15, p_same_place_as => pg_temp.id('c001'))$$,
+  '22023', 'a place or the same place, not both', 'never both a point and an earlier check-in');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Half', null, null,
+                   29.3, null, '07:00', 15, p_same_place_as => pg_temp.id('c001'))$$,
+  '22023', 'a place or the same place, not both', 'nor half a point');
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Neither', null, null,
+                   null, null, '07:00', 15)$$, '22023', 'set the place first', 'neither: the place is needed');
+reset role;
+select pg_temp.as_user('b2');
+set local role authenticated;
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Crew', null, null,
+                   null, null, '07:00', 15, p_same_place_as => pg_temp.id('c001'))$$,
+  '42501', 'not allowed', 'Crew can''t');
+select throws_ok($$select site_lat from public.check_in_posts where post_id = pg_temp.id('c010')$$,
+  '42501', null, 'the point stays unreadable by the app');
+reset role;
+select ok(pg_temp.card('a7', 'c010')::text !~ '29\.5|48\.1|site_lat|site_lng|same_place',
+  'the card has no point');
+select is(pg_temp.card('a7', 'c010') -> 'check_in' -> 'site_set', 'true'::jsonb, 'only that it is set');
+
+-- Post later takes it.
+select ok(public.scheduled_call_sql('post_check_in',
+            jsonb_build_object('p_id', pg_temp.id('c012'), 'p_same_place_as', pg_temp.id('c001')))
+          like '%p_same_place_as%', 'Post later''s call carries it');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select lives_ok($$select public.schedule_post(pg_temp.id('c012'), 'post_check_in',
+                   jsonb_build_object('p_id', pg_temp.id('c012'), 'p_space', pg_temp.sp(), 'p_title', 'Later here',
+                                      'p_in_time', '07:00', 'p_in_allow', 15,
+                                      'p_same_place_as', pg_temp.id('c001')),
+                   now() + interval '1 day', 'Later here')$$, 'Post later accepts it');
+reset role;
+select is(public.scheduled_call_sql('post_check_in', '{"p_id": "x", "p_unknown": 1}'::jsonb), null,
+  'and still refuses what it doesn''t know');
 
 select * from finish();
 rollback;

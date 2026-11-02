@@ -203,7 +203,7 @@ select ok(not has_function_privilege('authenticated',
           and not has_function_privilege('authenticated', 'public.finish_check_in_report(uuid, date, bigint, text)', 'execute'),
   'the clock''s twins, the cron jobs and the report''s calls are never the app''s');
 select ok(has_function_privilege('authenticated',
-            'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean, text)', 'execute')
+            'public.post_check_in(uuid, uuid, text, text, uuid[], double precision, double precision, time, integer, time, integer, boolean, text, uuid)', 'execute')
           and has_function_privilege('authenticated', 'public.mark_check_in(uuid, text, double precision, double precision, double precision, boolean)', 'execute')
           and has_function_privilege('authenticated', 'public.stop_check_in(uuid)', 'execute')
           and has_function_privilege('authenticated', 'public.check_in_list(uuid, date)', 'execute')
