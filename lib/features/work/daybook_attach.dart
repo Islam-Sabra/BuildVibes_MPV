@@ -153,6 +153,7 @@ Future<DraftFile?> chooseDaybookFile(
       mime: picked.mime,
       bytes: picked.bytes,
       revLabel: picked.revLabel,
+      folderId: picked.folderId,
     );
   }
   if (picked != _fromPhone || !context.mounted) return null;

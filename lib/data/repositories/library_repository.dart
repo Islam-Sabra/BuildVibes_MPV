@@ -122,10 +122,10 @@ class SupabaseLibraryRepository implements LibraryRepository {
 
   @override
   Future<LibraryFileDetail?> detail(String fileId) => _guard(() async {
+    // Z14: opened from a post, a file may sit in a folder I can't read.
     final row = await _client
-        .from('library_files')
+        .rpc<dynamic>('open_library_file', params: {'p_file': fileId})
         .select(_file)
-        .eq('id', fileId)
         .maybeSingle();
     if (row == null) return null;
     final file = LibraryFile.fromJson(row);

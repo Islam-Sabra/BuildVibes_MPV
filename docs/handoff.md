@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — review 113 Z14 fixed and merged into `slice2-app`; waits for the lead's check; nothing live, deployed or built
+
+- **Z14:** `can_open_library_file` is the new rule for opening a file (cards, storage, `post_files` and `work_item_attachments` reads): anyone who sees a post opens its files. `can_read_library_file` stays the Library's rule, so the Library list and search don't change, and it no longer has Z3's proof branch.
+- **New RPCs the app needs:** `open_library_file` (a file's own screen) and `post_files_for` (an opened post's files). An older build still works, but shows a private attached file as missing.
+- **The line** "People who see this post can open this file." shows in the composer, under the chips, for a folder narrower than the post. No golden changed.
+- **Live order (the lead's), each with his yes:** db push; read-only `orphan_space_files()` count; time a run and set `NIGHTLY_CAP`; deploy `notebook-purge`; check cron; release build; install on the Xiaomi 22120RN86G.
+
 ## PC update: 2 Nov 2026 — review 113 Z1–Z13 fixed and merged into `slice2-app`; nothing live, deployed or built
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

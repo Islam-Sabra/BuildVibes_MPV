@@ -7049,4 +7049,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fileGoneLine => 'هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي.';
+
+  @override
+  String get postFileAudienceLine =>
+      'كل من يرى هذا المنشور يمكنه فتح هذا الملف.';
 }
