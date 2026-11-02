@@ -2,6 +2,37 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — review 113 live: migration, `notebook-purge`, build 961 on the founder's phone; `push` not deployed; the phone checks wait
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Live now:**
+  - Migration `20261121120000_review113` is the last of 59 on live. `supabase db push` from a clean worktree at 0321e068; the usual pg-delta cache warning only.
+  - `orphan_space_files()`: 0. `NIGHTLY_CAP` stays 1000.
+  - `notebook-purge` deployed (v3) and invoked once by hand: 200 in 3.1 s; purged 0, files 0, waiting 0, library 0, private 0, orphans 0, space waiting 0. With nothing to delete, that time says little about a full night.
+  - Cron, all succeeding: `check-in-notify` every minute; `check-in-daily-report` every 15 minutes; `work-reminders` and `publish-scheduled-posts` every 5 minutes; `notebook-purge` at 03:15 UTC.
+- **Build 961** (versionCode 961, 0.9.0, commit 0321e068): `Desktop/BuildVibes-961.apk`, the same certificate (SHA-256 9d02b7db…b1df9f). `google-services.json` and `env/prod.json` copied in and deleted after.
+- **On the founder's phone:** the old address 192.168.8.33:40853 refused; adb found the phone by itself as `adb-jn85bqrc79s8mb8t-L6zNcc`. Model 22120RN86G, Android 14, 919 on it; `adb install -r`: Success; versionCode 961; disconnected, adb stopped.
+
+**Not live, and needs the founder's yes first:**
+- **`push` is still v14 (1 Nov), without review 113's texts.** It throws "no text for …" on `need_you`, `need_you_answer`, `post_reaction`, `work_item_archived`, `check_in_nudge` and `scheduled_expiring`, so those pushes won't reach a phone. None had been queued at the check after the deploy.
+- **Two schedules were not run:** `check-in-nudge` (`check_in_cron.sql`) and `expire-failed-posts` (`reminders_post_later_cron.sql`).
+
+**Phone checks, open (the founder's). Need you now and the Reactions channel need `push` deployed first:**
+- [ ] A voice note recorded and played.
+- [ ] Need you now with the app closed: On my way and Can't now on MIUI.
+- [ ] The Reactions channel is quiet.
+- [ ] Long-press menu: Date & time · Bullets · Table first.
+- [ ] A 38 MB PDF refused before upload, and a 3 MB PDF that uploads.
+- [ ] Library folders, and a OneDrive link opening in the browser.
+- [ ] As Test Lead, open an only-me file attached to a work item, from the card and from the file's screen.
+- [ ] As a Viewer, open a file post's file.
+- [ ] Still open from review 109: one notification, the location read from the button, the stamp, Autostart.
+
+**Watched:** the one unexplained pgTAP FAIL (review 113, Z1–Z13) has not come back.
+
+**Who has which branch:** PC has `slice2-app` and `claude/r113` (merged).
+
 ## PC update: 2 Nov 2026 — review 113 Z14 fixed and merged into `slice2-app`; waits for the lead's check; nothing live, deployed or built
 
 - **Z14:** `can_open_library_file` is the new rule for opening a file (cards, storage, `post_files` and `work_item_attachments` reads): anyone who sees a post opens its files. `can_read_library_file` stays the Library's rule, so the Library list and search don't change, and it no longer has Z3's proof branch.
