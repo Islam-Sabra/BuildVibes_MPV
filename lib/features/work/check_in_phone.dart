@@ -10,6 +10,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/routing/open_thread.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -365,7 +367,8 @@ class _CheckInHostState extends ConsumerState<CheckInHost> {
       'post_id': tap.push.postId,
       'space_id': tap.push.spaceId,
     });
-    if (route != null) GoRouter.of(context).go(route);
+    // Review 114 B1: over the tabs, so ← has them to go back to.
+    if (route != null) unawaited(openRoute(GoRouter.of(context), route));
     if (!tap.mark) return;
     await checkInFromCard(
       context,
