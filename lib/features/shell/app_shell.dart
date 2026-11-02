@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,28 +73,29 @@ class AppShell extends ConsumerWidget {
             initialLocation: i == navigationShell.currentIndex,
           );
         },
-        createLabel: l10n.navCreate,
+        // Review 114: with the feed hidden there is no +; it comes back
+        // with the feed.
+        spaceTabs: false,
+        createLabel: feed ? l10n.navCreate : null,
         // Create (F1): "Post to everyone" writes a post in place on Home,
         // at Now (H2), from every tab; "Work item in a Space" opens that
         // Space's daybook with its card open. Creating needs an account:
         // guests see the join wall.
-        onCreate: () {
-          if (guest) {
-            showJoinWall(context);
-            return;
-          }
-          if (!feed) {
-            unawaited(showCreateWorkItem(context));
-            return;
-          }
-          showCreateChoice(
-            context,
-            onPost: () {
-              ref.read(postWritingProvider.notifier).write();
-              navigationShell.goBranch(homeTab, initialLocation: true);
-            },
-          );
-        },
+        onCreate: !feed
+            ? null
+            : () {
+                if (guest) {
+                  showJoinWall(context);
+                  return;
+                }
+                showCreateChoice(
+                  context,
+                  onPost: () {
+                    ref.read(postWritingProvider.notifier).write();
+                    navigationShell.goBranch(homeTab, initialLocation: true);
+                  },
+                );
+              },
         items: [
           BvBottomBarItem(
             key: Key(feed ? 'nav-home' : 'nav-spaces'),
