@@ -112,3 +112,86 @@
 | ST1 | Spaces tab: one needs-you line, each Space with its mark, small **New Space · Join with a code**, no Search; bottom bar without Home | `2730:40062` | `2730:40522` |
 | LB1 | Library folders with who sees each (Whole Space · a Team · a person · Only me), and a linked OneDrive folder | `2730:40149` | `2730:40609` |
 | LB2 | + → **Link folder**: paste, service found, name, who sees it, the warning, Add folder | `2730:40228` | `2730:40688` |
+
+## The lead's check of `claude/r113` at `e96e9bf5` (2 Nov)
+**What was run:**
+- The SQL stand-in (`git archive` of e96e9bf5 → `/srv/bvdb/run.sh`): **59 files, 4,130 checks, PASS**.
+- Two independent code reviews: spec, and security/standards.
+- All 38 new shots, viewed in English and Arabic.
+
+**Verdict: not ready to merge.** Fix Z1–Z13 test-first on `claude/r113`, then go to the steps below. The screens are good. Two privacy holes must close before the migration goes live.
+
+### Blockers
+- **Z1. Search shows file names from private folders.**
+  - `search_space` (last in `20261114120000_place_filter.sql`) filters Library files with `(f.team_id is null or can_read_library_file(f.id))`. A folder file has no team, so any member sees the name, uploader and revision of files in "Only me", person and Team folders.
+  - Fix: redefine `search_space` in the 113 migration to call `public.can_read_library_file(f.id)` for **every** file.
+  - pgTAP: a member searches for a file in someone's only-me folder, in a person folder for someone else, and in a Team folder they're not in. All three get 0 rows. The owner, the person and the Team member get 1 row.
+- **Z2. The Space admin can open someone's "Only me" folder.**
+  - `update_library_folder` lets the admin change sharing on any folder, so they can set "Only me" to the whole Space and read every file in it.
+  - Fix: the admin may rename or delete a folder they didn't make. They may **not** change its sharing when it is `only_me`, or when it is `person` and its creator is still an active member. Only the creator changes those.
+  - pgTAP for each case.
+
+### Fix before merge
+- **Z3. Proof on shared work survives a member leaving and the 30-day Library purge** (the lead's call; rule: proof comes from checked and closed work).
+  - A file that is attached to a work item or posted (`post_files`, `work_item_attachments`) is **never** deleted by `drop_only_me_folders`, `library_gone` or `purge_deleted_library_files`. Only its Library row and folder go; the attachment and the storage object stay.
+  - Unreferenced only-me files of someone who **left or was removed** get the same **7-day grace** as the sweep, then go. If the person rejoins inside 7 days, their folder comes back.
+  - pgTAP:
+    - an only-me file attached to a Checked item keeps its attachment after the owner is removed;
+    - a soft-deleted Library file attached to a post keeps its attachment after 30 days;
+    - an unreferenced only-me file is still there on day 6 and gone on day 8.
+- **Z4. `forget_cleanup_claims` lost `'dm-files'`.** Put the bucket back, and test that a dm-files claim is cleared.
+- **Z5. Copying the place of a check-in you can't see** (`post_check_in` with `p_same_place_as`).
+  - Require `public.can_see_space_post(p_same_place_as)`.
+  - Return **one** error (42501, "not allowed") for every failure: missing, other Space, not a check-in, deleted, not visible.
+  - pgTAP: a Lead copies from a check-in limited to another Team → refused.
+- **Z6. Archive push before the Undo window ends.**
+  - The owner's "… archived: no longer needed" push goes only after the Undo window closes. Queue it with `send_after = now() + undo window` on the existing per-minute reminders job.
+  - `unarchive_space_post` cancels the queued push and restores the item's reminders.
+  - Test both.
+- **Z7. Lock-screen rule for the new pushes.** `post_reaction` and `work_item_archived` name the actor only when the person has lock-screen text on, as the migration's own header says and as Need you now already does. Older reminder pushes stay as they are (after the pilot).
+- **Z8. Long-press menu.** Put **Date & time · Bullets · Table first**, then the phone's own items, so ours never fall under ⋮. Widget test: the three are the first three buttons. Phone check on the Xiaomi.
+- **Z9. Share errors.** In `work_share.dart`, show the "Team only" line only for the server's team-only refusal (match its errcode or message). Any other bad-input error gets the plain "Couldn't share. Try again." line. Test both.
+- **Z10. Link folder hosts.**
+  - Remove `docs.google.com` from both lists (server and `library_folder.dart`). A folder link is `drive.google.com`.
+  - Keep `*.sharepoint.com`, because OneDrive for work lives there and the warning line covers it.
+  - Run `linkServiceOf` again before `launchUrl`, and refuse with the "wrong link" line if it fails.
+  - Tests on both sides.
+- **Z11. Blocked people.**
+  - In `react_to_post`, refuse a reaction to the post of someone who blocked you, or whom you blocked (the same rule as Need you now).
+  - `post_reactions_json` leaves out people blocked either way for the viewer.
+  - pgTAP.
+- **Z12. Small server gaps.**
+  - `answer_need_you` checks that the person called is still a member of that Space.
+  - Writes to `scheduled_posts.params` take `lock_file_path` on each file path, as the sweep does.
+  - The check-in nudge respects the Lead's mute on that Space.
+  - Tests.
+- **Z13. Old drafts.** When a draft is opened or sent and one of its files is gone (the 7-day sweep), the file chip shows the existing "Couldn't send" line with Remove. Never a silent failure. Widget test.
+
+### Accepted as built
+- **NN3/NN4.** The Need you now line under Work · Chat has no frame of its own, but it uses the same needs-you strip and the NN2 buttons (On my way · Can't now). The sender sees Waiting, then the answer. Accepted.
+- **Check-in shows four pinned lines** (Type · For · Check-in · Place). A check-in needs both its time and its place. Accepted.
+- **The CV3_long_press labels draw as blocks** only in the shot renderer (the phone's own menu text). Phone check.
+- **A Space admin may Stop someone else's repeating Check-in** (109 Y6), so the hold bar shows only Stop on those. Accepted.
+- **A Lead can still archive their own Checked item** (105B). Accepted.
+- **The needs-you number on each Space row** counts things waiting for you, not a quality signal. Accepted.
+- **A Space row says "new today" with no number.** Accepted.
+- **When a file's size is unknown,** storage's refusal is mapped instead. Accepted.
+
+### Next steps (each live step is from the PC, with the founder's yes)
+1. Fix Z1–Z13 on `claude/r113`. Then run `flutter analyze`, `flutter test` and the pgTAP run, and update the goldens (`--update-goldens`) for the 113 shots, including Z8's menu order.
+2. Merge into `slice2-app` and push.
+3. **Live, in this order:**
+   - `supabase db push` (20261121120000);
+   - the read-only `select count(*) from public.orphan_space_files()`;
+   - time one run on a copy of that count and set `NIGHTLY_CAP`;
+   - only then deploy `notebook-purge`;
+   - check the cron list.
+4. A release build, installed on the Xiaomi 22120RN86G.
+5. **Phone checks:**
+   - a voice note, recorded and played;
+   - Need you now from the app closed, with On my way and Can't now (MIUI);
+   - the Reactions channel is quiet;
+   - the long-press menu order;
+   - a 38 MB PDF refused before upload, and a 3 MB PDF that uploads;
+   - Library folders and a OneDrive link opening in the browser;
+   - the 109 checks still open (one notification, Android 14 location from the button, the stamp, Autostart).
