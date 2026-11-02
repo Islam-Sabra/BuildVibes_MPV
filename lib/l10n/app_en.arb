@@ -9680,6 +9680,15 @@
       }
     }
   },
+  "fileTooBigPlain": "This file is too big. The most is {most} MB.",
+  "@fileTooBigPlain": {
+    "description": "Review 113 (7): storage said too big and the phone has no size over the limit to quote.",
+    "placeholders": {
+      "most": {
+        "type": "String"
+      }
+    }
+  },
   "fileWrongTypeLine": "This kind of file can't go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.",
   "@fileWrongTypeLine": {
     "description": "Review 113 (7): a type the bucket refuses."

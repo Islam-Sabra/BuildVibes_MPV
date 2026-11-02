@@ -6840,6 +6840,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String fileTooBigPlain(String most) {
+    return 'الملف كبير جدًا. الحد الأقصى $most ميجابايت.';
+  }
+
+  @override
   String get fileWrongTypeLine =>
       'لا يمكن إضافة هذا النوع من الملفات إلى المساحة. أرسل ملف PDF أو صورة أو رسالة صوتية أو جدول Excel.';
 

@@ -6791,6 +6791,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String fileTooBigPlain(String most) {
+    return 'This file is too big. The most is $most MB.';
+  }
+
+  @override
   String get fileWrongTypeLine =>
       'This kind of file can\'t go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.';
 

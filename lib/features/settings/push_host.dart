@@ -28,6 +28,9 @@ final pushPermissionProvider = FutureProvider.autoDispose<PushPermission>(
   (ref) => ref.watch(pushMessagingProvider).permission(),
 );
 
+/// The push kind that opens Scheduled whatever its route says.
+const scheduledExpiringKind = 'scheduled_expiring';
+
 /// Asked once, the first time the tabs open after onboarding.
 const pushAskedKey = 'push_asked';
 
@@ -278,7 +281,10 @@ class _PushHostState extends ConsumerState<PushHost> {
       return;
     }
     // Review 109: a check-in's push opens its card, or the creator's list.
-    final sent = checkInPushRoute(data) ?? data['route'];
+    // Review 113: a scheduled post about to be cancelled opens Scheduled.
+    final sent = data['kind'] == scheduledExpiringKind
+        ? AppRoutes.scheduledPosts
+        : checkInPushRoute(data) ?? data['route'];
     if (!mounted || sent == null) return;
     final route = pushRoute(sent, eventId: data['event_id']);
     final router = GoRouter.of(context);

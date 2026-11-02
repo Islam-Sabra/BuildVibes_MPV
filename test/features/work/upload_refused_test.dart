@@ -2,7 +2,6 @@
 // "Couldn't send · Tap to fix" opens what is wrong, with Try again or
 // Remove: never a dead end.
 import 'package:buildvibes/data/models/library.dart';
-import 'package:buildvibes/data/models/upload_rules.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -142,7 +141,6 @@ void main() {
         statusCode: '413',
       );
       await _filePost(tester);
-      final file = _draft(tester)!.files.single;
       await _tap(tester, _key('writing-post'));
       // Back as the Draft, refused, saying so.
       expect(daybook.createdPosts, isEmpty);
@@ -151,17 +149,8 @@ void main() {
       expect(_key('writing-could-not-send'), findsOneWidget);
       await _tap(tester, _key('writing-could-not-send'));
       expect(_key('could-not-send-fix'), findsOneWidget);
-      // The test PDF is a few bytes: storage's word decides, its size as
-      // the phone has it (4.8 MB from the picker).
-      expect(
-        find.text(
-          l10n.fileTooBigLine(
-            '${FileRefused(UploadProblem.tooBig, bytes: file.bytes).megabytes}',
-            '25',
-          ),
-        ),
-        findsOneWidget,
-      );
+      // The phone's size (4.8 MB) is under the limit: no number claimed.
+      expect(find.text(l10n.fileTooBigPlain('25')), findsOneWidget);
       expect(_key('could-not-send-link-folder'), findsOneWidget);
       await _tap(tester, _key('could-not-send-remove'));
       expect(_draft(tester)!.files, isEmpty);

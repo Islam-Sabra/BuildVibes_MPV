@@ -506,6 +506,22 @@ void main() {
         expect(_key('scheduled-screen'), findsOneWidget);
       });
 
+      testWidgets('Review 113: scheduled_expiring opens Scheduled', (
+        tester,
+      ) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          schedule: two(),
+          now: _now,
+          push: FakePushMessaging(
+            current: PushPermission.granted,
+            firstTap: {'kind': 'scheduled_expiring', 'scheduled_id': 'sch-1'},
+          ),
+        );
+        expect(_key('scheduled-screen'), findsOneWidget);
+      });
+
       testWidgets('no Scheduled on Profile with none waiting', (tester) async {
         await pumpApp(tester, language: lang, now: _now);
         _router(tester).go('/profile');

@@ -11276,6 +11276,12 @@ abstract class AppLocalizations {
   /// **'This file is {size} MB. The most is {most} MB.'**
   String fileTooBigLine(String size, String most);
 
+  /// Review 113 (7): storage said too big and the phone has no size over the limit to quote.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too big. The most is {most} MB.'**
+  String fileTooBigPlain(String most);
+
   /// Review 113 (7): a type the bucket refuses.
   ///
   /// In en, this message translates to:

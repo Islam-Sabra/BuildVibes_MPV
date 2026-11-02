@@ -1863,6 +1863,7 @@
   "needYouWaiting": "بانتظار {name}",
   "needYouAnswerLine": "{name}: {answer}",
   "fileTooBigLine": "حجم الملف {size} ميجابايت. الحد الأقصى {most} ميجابايت.",
+  "fileTooBigPlain": "الملف كبير جدًا. الحد الأقصى {most} ميجابايت.",
   "fileWrongTypeLine": "لا يمكن إضافة هذا النوع من الملفات إلى المساحة. أرسل ملف PDF أو صورة أو رسالة صوتية أو جدول Excel.",
   "fileNotPdfOrPhotoLine": "المكتبة تقبل ملف PDF أو صورة. أرسل هذا الملف في المحادثة.",
   "fileBigDrawingsHint": "للمخططات الكبيرة، اربط مجلدًا من OneDrive أو Google Drive أو Dropbox.",

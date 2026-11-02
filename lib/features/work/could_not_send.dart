@@ -19,10 +19,11 @@ import '../library/library_folders.dart' show showFolderSheet;
 /// "This file is 38 MB. The most is 25 MB.", or the type line.
 String fileRefusedText(AppLocalizations l10n, FileRefused r) =>
     switch (r.problem) {
-      UploadProblem.tooBig => l10n.fileTooBigLine(
-        '${r.megabytes ?? spaceFilesMaxMegabytes + 1}',
-        '$spaceFilesMaxMegabytes',
-      ),
+      // The size is said only when the phone knows it is over; storage's
+      // own word with a smaller size on the phone never claims a number.
+      UploadProblem.tooBig when (r.bytes ?? 0) > spaceFilesMaxBytes =>
+        l10n.fileTooBigLine('${r.megabytes}', '$spaceFilesMaxMegabytes'),
+      UploadProblem.tooBig => l10n.fileTooBigPlain('$spaceFilesMaxMegabytes'),
       UploadProblem.wrongType => l10n.fileWrongTypeLine,
       UploadProblem.notPdfOrPhoto => l10n.fileNotPdfOrPhotoLine,
     };
