@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(338);
+select plan(363);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -853,8 +853,8 @@ reset role;
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f008')), 0, 'gone');
 
 -- When a folder's creator leaves or is removed (the lead, 2 Nov): "only me"
--- folders go with their files, never opened to the admin; a person's
--- folder passes to the Space admin.
+-- folders go with their files after 7 days (Z3), never opened to the admin;
+-- a person's folder passes to the Space admin.
 select pg_temp.as_user('d4');
 set local role authenticated;
 select public.create_library_folder(pg_temp.id('f009'), pg_temp.sp(), 'Lina private', 'only_me');
@@ -882,8 +882,12 @@ select pg_temp.as_user('d4');
 set local role authenticated;
 select public.leave_space(pg_temp.sp());
 reset role;
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f009')), 1,
+  'its creator leaves: the only-me folder waits 7 days');
+select is(pg_temp.seers('library_folders', pg_temp.id('f009')), '{}'::text[], 'read by nobody meanwhile');
+select public.purge_left_only_me_folders(now() + interval '8 days');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f009')), 0,
-  'its creator leaves: the only-me folder is deleted');
+  'then the only-me folder is deleted');
 select is((select count(*)::int from public.library_files where id = pg_temp.id('f106')), 0,
   'with its files');
 select ok(not public.is_referenced_file(pg_temp.sp()::text || '/library/' || pg_temp.id('f106')::text || '/x.pdf'),
@@ -899,8 +903,9 @@ select pg_temp.as_user('a1');
 set local role authenticated;
 select public.remove_member(pg_temp.sp(), pg_temp.uid('b9'));
 reset role;
+select public.purge_left_only_me_folders(now() + interval '8 days');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00b')), 0,
-  'removed from the Space: the only-me folder is deleted');
+  'removed from the Space: the same');
 select is((select count(*)::int from public.library_files where id = pg_temp.id('f108')), 0,
   'with its files');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f001')), 1,
@@ -1012,22 +1017,25 @@ select pg_temp.as_user('c3');
 set local role authenticated;
 select public.leave_space(pg_temp.sp());
 reset role;
+select public.purge_left_only_me_folders(now() + interval '8 days');
 select ok(not pg_temp.opens('c3', 'f109'), 'after leaving he can''t open it by its path');
-select ok(not pg_temp.opens('c3', 'f10b'), 'nor the one a post carried');
+select ok(pg_temp.opens('c3', 'f10b'), 'the one a post carries is his delivered work, and stays');
+select ok(pg_temp.opens('a1', 'f10b'), 'and whoever sees the post opens it');
 select ok(not pg_temp.opens('a1', 'f109'), 'nor can the admin');
 -- An orphan upload of someone who left, which never was in a folder.
 select pg_temp.obj('f10e', 'c3', interval '0');
 select ok(not pg_temp.opens('c3', 'f10e'), 'nor any orphan of his, once he has left');
 select is((select array_agg(storage_path order by storage_path) from public.private_file_purges),
   (select array_agg(p order by p) from unnest(array[replace(pg_temp.path('f106'), '.jpg', '.pdf'), replace(pg_temp.path('f108'), '.jpg', '.pdf'), pg_temp.path('f109'),
-                                                    pg_temp.path('f10a'), pg_temp.path('f10b')]) p),
-  'the folder''s paths wait in the queue at once');
-select ok((select deleted_at is not null and private_gone_at is not null and folder_id is null
+                                                    pg_temp.path('f10a')]) p),
+  'the folder''s paths wait in the queue at once, not the one a post carries');
+select ok((select deleted_at is not null and private_gone_at is null and proof_kept_at is not null
+                  and folder_id is null
            from public.library_files where id = pg_temp.id('f10b')),
-  'a file a post carries: its row stays, gone');
-select ok(not public.is_referenced_file(pg_temp.path('f10b')), 'and it references its object no more');
-select is((select count(*)::int from public.post_files where library_file_id = pg_temp.id('f10b')), 0,
-  'the post''s link to it goes');
+  'a file a post carries: out of the Library, kept as proof');
+select ok(public.is_referenced_file(pg_temp.path('f10b')), 'and it holds its object');
+select is((select count(*)::int from public.post_files where library_file_id = pg_temp.id('f10b')), 1,
+  'the post''s link to it stays');
 select ok(public.is_referenced_file(pg_temp.path('f10a')), 'a chat still uses the other');
 
 select ok(not has_table_privilege('authenticated', 'public.private_file_purges', 'select')
@@ -1041,7 +1049,7 @@ select ok(not has_function_privilege('authenticated', 'public.claim_private_file
 set local role service_role;
 select is((select array_agg(c.name order by c.name) from public.claim_private_file_purges() c),
   (select array_agg(p order by p) from unnest(array[replace(pg_temp.path('f106'), '.jpg', '.pdf'), replace(pg_temp.path('f108'), '.jpg', '.pdf'),
-                                                    pg_temp.path('f109'), pg_temp.path('f10b')]) p),
+                                                    pg_temp.path('f109')]) p),
   'the job gets them with no grace period; the one still referenced is never given');
 reset role;
 select is((select count(*)::int from public.private_file_purges where storage_path = pg_temp.path('f10a')), 0,
@@ -1092,10 +1100,11 @@ update public.profiles set deletion_scheduled_at = now() - interval '31 days' wh
 select ok(public.purge_account(pg_temp.uid('f6')), 'the account is purged');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00e')), 0,
   'its only-me folder goes');
-select ok((select private_gone_at is not null from public.library_files where id = pg_temp.id('f10d')),
-  'the row its post needs stays, gone');
-select ok(exists (select 1 from public.claim_private_file_purges() c where c.name = pg_temp.path('f10d')),
-  'and its object is claimed, so it actually goes');
+select ok((select proof_kept_at is not null and private_gone_at is null
+           from public.library_files where id = pg_temp.id('f10d')),
+  'the file its post carries stays as proof');
+select ok(not exists (select 1 from public.claim_private_file_purges() c where c.name = pg_temp.path('f10d')),
+  'and its object is never claimed');
 
 -- A failed Post later nobody retries or cancels (the lead, 2 Nov) -------------------------------------
 
@@ -1229,7 +1238,7 @@ select public.create_space_post(pg_temp.id('a005'), pg_temp.sp(), 'announcement'
 reset role;
 update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f417') where id = pg_temp.id('a005');
 
-select is(public.purge_deleted_library_files(), 3, 'three purged');
+select is(public.purge_deleted_library_files(), 2, 'two purged');
 select is(pg_temp.file_rows('f411'), 1, 'not before day 30');
 select is(pg_temp.queued('f411'), 0, 'nor its object');
 select is(pg_temp.file_rows('f412'), 0, 'day 30: the row goes');
@@ -1240,16 +1249,15 @@ select is((select deleted_at from public.library_files where id = pg_temp.id('f4
 select ok(public.is_referenced_file(pg_temp.path('f413')), 'and keeps its object');
 select is(pg_temp.file_rows('f415'), 1, 'a superseded revision stays as it is, deleted or not');
 select is(pg_temp.queued('f415'), 0, 'with its object');
-select ok((select private_gone_at is not null from public.library_files where id = pg_temp.id('f417')),
-  'a row a post points at stays, gone');
-select is(pg_temp.queued('f417'), 1, 'but its object goes');
+select ok((select private_gone_at is null from public.library_files where id = pg_temp.id('f417')),
+  'Z3: a file on a post stays');
+select is(pg_temp.queued('f417'), 0, 'Z3: with its object');
 select is((select count(*)::int from public.space_posts where id = pg_temp.id('a005') and deleted_at is null), 1,
   'the post stays');
 set local role service_role;
 select is((select array_agg(c.name order by c.name) from public.claim_private_file_purges() c
            where c.name in (pg_temp.path('f412'), pg_temp.path('f417'))),
-  (select array_agg(p order by p) from unnest(array[pg_temp.path('f412'), pg_temp.path('f417')]) p),
-  'the job gets both objects');
+  array[pg_temp.path('f412')], 'the job gets the purged file''s object only');
 reset role;
 select is(public.purge_deleted_library_files(), 0, 'a second run has nothing to do');
 
@@ -1527,6 +1535,81 @@ select gen_random_uuid(), pg_temp.sp(), 'crowdstone ' || n || '.jpg', pg_temp.pa
        pg_temp.uid('a7'), pg_temp.id('f510')
 from generate_series(1, 30) n;
 select is(pg_temp.finds('b2', 'f530', 'crowdstone'), 1, 'Z1: others'' private files don''t push out one I can read');
+
+-- Z3. Proof on shared work outlives the Library. Cleo (c7) is a new Crew.
+insert into auth.users (id, aud, role, email, raw_user_meta_data)
+values (pg_temp.uid('c7'), 'authenticated', 'authenticated', 'c7@r113.example.com', '{"home_market_id": "kw"}'::jsonb);
+insert into public.space_members (space_id, profile_id, pass, confirmed_by)
+values (pg_temp.sp(), pg_temp.uid('c7'), 'crew', pg_temp.uid('a1'));
+select pg_temp.as_user('c7');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f540'), pg_temp.sp(), 'Cleo private', 'only_me');
+reset role;
+select pg_temp.obj(x.f, 'c7', interval '0') from (values ('f541'), ('f542')) x(f);
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select pg_temp.id(x.f), pg_temp.sp(), 'x.jpg', pg_temp.path(x.f), 'image/jpeg', pg_temp.uid('c7'), pg_temp.id('f540')
+from (values ('f541'), ('f542')) x(f);
+select is((select status from public.work_items where id = pg_temp.id('b003')), 'checked', 'Z3: b003 is Checked');
+insert into public.work_item_attachments (work_item_id, library_file_id, added_by)
+values (pg_temp.id('b003'), pg_temp.id('f541'), pg_temp.uid('c7'));
+
+select pg_temp.as_user('c7');
+set local role authenticated;
+select public.leave_space(pg_temp.sp());
+reset role;
+select public.purge_left_only_me_folders(now() + interval '6 days');
+select is(pg_temp.file_rows('f542'), 1, 'Z3: an unreferenced only-me file is there on day 6');
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f540')), 1, 'Z3: and its folder');
+update public.space_members set left_at = null where space_id = pg_temp.sp() and profile_id = pg_temp.uid('c7');
+select pg_temp.as_user('c7');
+set local role authenticated;
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f540')), 1,
+  'Z3: she rejoins inside 7 days: her folder is back');
+reset role;
+select public.purge_left_only_me_folders(now() + interval '8 days');
+select is(pg_temp.file_rows('f542'), 1, 'Z3: and no longer counts down');
+
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.remove_member(pg_temp.sp(), pg_temp.uid('c7'));
+reset role;
+select is((select count(*)::int from public.work_item_attachments
+           where library_file_id = pg_temp.id('f541')), 1, 'Z3: removed: the Checked item keeps its attachment');
+select public.purge_left_only_me_folders(now() + interval '8 days');
+select is(pg_temp.file_rows('f542'), 0, 'Z3: the unreferenced file is gone on day 8');
+select is(pg_temp.queued('f542'), 1, 'Z3: with its object');
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f540')), 0, 'Z3: and its folder');
+select is((select count(*)::int from public.work_item_attachments
+           where library_file_id = pg_temp.id('f541')), 1, 'Z3: the attachment stays after the 7 days');
+select is(pg_temp.queued('f541'), 0, 'Z3: and its object');
+select ok(public.is_referenced_file(pg_temp.path('f541')), 'Z3: which nothing may sweep');
+select ok(pg_temp.opens('a7', 'f541'), 'Z3: whoever sees the item opens it');
+select ok(pg_temp.card('a7', 'b003')::text like '%' || pg_temp.id('f541')::text || '%', 'Z3: and its card shows it');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select is((select count(*)::int from public.search_space(pg_temp.sp(), 'x.jpg') s where s.id = pg_temp.id('f541')), 0,
+  'Z3: out of the Library''s search');
+reset role;
+
+-- A soft-deleted Library file attached to a post.
+select pg_temp.obj('f543', 'a1', interval '0');
+select pg_temp.file_row('f543', interval '31 days');
+insert into public.post_files (post_id, library_file_id, sort, added_by)
+values (pg_temp.id('a001'), pg_temp.id('f543'), 70, pg_temp.uid('a1'));
+select is(public.purge_deleted_library_files(), 0, 'Z3: an attached file isn''t purged after 30 days');
+select is((select count(*)::int from public.post_files where library_file_id = pg_temp.id('f543')), 1,
+  'Z3: it keeps its attachment');
+select is(pg_temp.queued('f543'), 0, 'Z3: and its object');
+-- Once nothing carries it, it goes as any other.
+update public.space_posts set deleted_at = now() where id = pg_temp.id('a005');
+select is(public.purge_deleted_library_files(), 1, 'Z3: its post deleted, the file goes after all');
+select is(pg_temp.queued('f417'), 1, 'Z3: with its object');
+-- The nightly call takes left folders too.
+select ok(pg_catalog.pg_get_functiondef('public.purge_deleted_library_files(timestamptz, integer)'::regprocedure)
+          like '%purge_left_only_me_folders%', 'Z3: the nightly purge runs the 7 days');
+select ok(not has_function_privilege('authenticated', 'public.purge_left_only_me_folders(timestamptz, integer)', 'execute')
+          and has_function_privilege('service_role', 'public.purge_left_only_me_folders(timestamptz, integer)', 'execute'),
+  'Z3: the purge is the job''s');
 
 select * from finish();
 rollback;

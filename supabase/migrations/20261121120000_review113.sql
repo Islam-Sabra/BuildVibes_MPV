@@ -949,6 +949,8 @@ create table public.library_folders (
   share_team uuid references public.teams (id) on delete set null,
   created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
+  -- Z3: an only-me folder's creator left or was removed: 7 days to rejoin.
+  owner_left_at timestamptz,
   check ((kind = 'link') = (url is not null)),
   check ((kind = 'link') = (service is not null)),
   check (share = 'person' or share_person is null),
@@ -966,6 +968,9 @@ create index library_files_folder_idx on public.library_files (folder_id) where 
 -- days after its deletion) that a post still carries: its row stays for the
 -- post's foreign key, and references its object no more.
 alter table public.library_files add column private_gone_at timestamptz;
+
+-- Z3: out of the Library, and kept for the post or work item that carries it.
+alter table public.library_files add column proof_kept_at timestamptz;
 
 -- Paths of files gone for good (see library_gone), for the purge job to
 -- delete from storage at once. Service role only.
@@ -1007,12 +1012,31 @@ as $$
     from public.library_folders f where f.id = p_folder), false);
 $$;
 
--- Library files [p_ids] go for good. Their paths (and a model view's
--- thumb) go in private_file_purges, for the purge job to delete at once,
--- with no grace period. A file a post still carries
+-- Z3: a live post or work item carries [p_file].
+create or replace function public.library_file_carried(p_file uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.post_files f
+                 join public.space_posts p on p.id = f.post_id
+                 where f.library_file_id = p_file and p.deleted_at is null)
+      or exists (select 1 from public.work_item_attachments a
+                 join public.space_posts p on p.id = a.work_item_id
+                 where a.library_file_id = p_file and p.deleted_at is null)
+      or exists (select 1 from public.space_posts p
+                 where p.library_file_id = p_file and p.deleted_at is null);
+$$;
+
+-- Library files [p_ids] go for good. Z3: one a live post or work item
+-- carries is proof: only its Library row and folder go; its attachment and
+-- stored file stay (proof_kept_at). The paths of the rest (and a model
+-- view's thumb) go in private_file_purges, for the purge job to delete at
+-- once, with no grace period. A file only a deleted post still points at
 -- (space_posts.library_file_id) can't lose its row: it stays as deleted and
--- private_gone_at, read by nobody and referencing its object no more, and
--- the post's links to it go.
+-- private_gone_at, read by nobody and referencing its object no more.
 create or replace function public.library_gone(p_ids uuid[])
 returns void
 language plpgsql
@@ -1020,30 +1044,54 @@ security definer
 set search_path = ''
 as $$
 declare
+  v_proof uuid[];
+  v_ids uuid[];
   v_kept uuid[];
 begin
+  v_proof := array(select x from unnest(p_ids) x where public.library_file_carried(x));
+  update public.library_files f
+  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, proof_kept_at = now()
+  where f.id = any (v_proof);
+  v_ids := array(select x from unnest(p_ids) x where not (x = any (v_proof)));
+
   insert into public.private_file_purges (storage_path)
-  select f.storage_path from public.library_files f where f.id = any (p_ids)
+  select f.storage_path from public.library_files f where f.id = any (v_ids)
   union
-  select mv.thumb_path from public.model_views mv where mv.library_file_id = any (p_ids)
+  select mv.thumb_path from public.model_views mv where mv.library_file_id = any (v_ids)
   on conflict do nothing;
   v_kept := array(select f.id from public.library_files f
-                  where f.id = any (p_ids)
+                  where f.id = any (v_ids)
                     and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id));
   update public.library_files f
-  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, private_gone_at = now()
+  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, private_gone_at = now(),
+      proof_kept_at = null
   where f.id = any (v_kept);
   delete from public.post_files f where f.library_file_id = any (v_kept);
   delete from public.work_item_attachments a where a.library_file_id = any (v_kept);
   delete from public.model_views mv where mv.library_file_id = any (v_kept);
   -- A check-in report's job would hold the path for ever.
-  delete from public.check_in_reports r where r.library_file_id = any (p_ids);
-  delete from public.library_files f where f.id = any (p_ids) and not (f.id = any (v_kept));
+  delete from public.check_in_reports r where r.library_file_id = any (v_ids);
+  delete from public.library_files f where f.id = any (v_ids) and not (f.id = any (v_kept));
 end;
 $$;
 
--- The lead (2 Nov): [p_profile]'s only-me folders in [p_space] go when they
--- leave or are removed (and any whose creator is gone), with their files.
+-- Only-me folders [p_folders] go, with their files (library_gone).
+create or replace function public.drop_folders(p_folders uuid[])
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.library_gone(array(select f.id from public.library_files f
+                                    where f.folder_id = any (p_folders)));
+  delete from public.library_folders f where f.id = any (p_folders);
+end;
+$$;
+
+-- The lead (2 Nov): [p_profile]'s account is gone: their only-me folders in
+-- [p_space] go at once (and any whose creator is gone). Someone who left or
+-- was removed gets 7 days instead (handle_member_gone_folders).
 create or replace function public.drop_only_me_folders(p_space uuid, p_profile uuid)
 returns void
 language plpgsql
@@ -1057,12 +1105,34 @@ begin
                      where f.space_id = p_space and f.share = 'only_me'
                        and (f.created_by = p_profile or f.created_by is null)
                      for update);
-  if cardinality(v_folders) = 0 then
-    return;
+  if cardinality(v_folders) > 0 then
+    perform public.drop_folders(v_folders);
   end if;
-  perform public.library_gone(array(select f.id from public.library_files f
-                                    where f.folder_id = any (v_folders)));
-  delete from public.library_folders f where f.id = any (v_folders);
+end;
+$$;
+
+-- Z3: 7 days after their creator left or was removed, the same grace as the
+-- sweep, only-me folders go. Run nightly by purge_deleted_library_files.
+create or replace function public.purge_left_only_me_folders(
+  p_now timestamptz default now(),
+  p_limit integer default 1000
+)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_folders uuid[];
+begin
+  v_folders := array(select f.id from public.library_folders f
+                     where f.owner_left_at <= p_now - interval '7 days'
+                     order by f.owner_left_at, f.id
+                     limit greatest(p_limit, 0)
+                     for update);
+  perform public.drop_folders(v_folders);
+  return cardinality(v_folders);
 end;
 $$;
 
@@ -1080,7 +1150,11 @@ begin
     return old;
   end if;
   if old.left_at is null and new.left_at is not null then
-    perform public.drop_only_me_folders(new.space_id, new.profile_id);
+    update public.library_folders f set owner_left_at = now()
+    where f.space_id = new.space_id and f.created_by = new.profile_id and f.share = 'only_me';
+  elsif old.left_at is not null and new.left_at is null then
+    update public.library_folders f set owner_left_at = null
+    where f.space_id = new.space_id and f.created_by = new.profile_id;
   end if;
   return new;
 end;
@@ -1099,7 +1173,8 @@ grant select on public.library_folders to authenticated;
 grant all on public.library_folders to service_role;
 
 -- can_read_library_file (migration 59), as it was, and a file in a folder
--- reads only where its folder does.
+-- reads only where its folder does. Z3: a file kept as proof reads for
+-- whoever sees a post or work item that carries it.
 create or replace function public.can_read_library_file(p_file uuid)
 returns boolean
 language sql
@@ -1121,6 +1196,13 @@ as $$
                  or public.is_hidden_account(f.only_profile_id))
                 and public.is_space_admin(f.space_id)))
        and (f.folder_id is null or public.can_read_library_folder(f.folder_id))
+       or f.proof_kept_at is not null and public.is_member(f.space_id)
+          and (exists (select 1 from public.post_files pf
+                       where pf.library_file_id = f.id and public.can_see_space_post(pf.post_id))
+               or exists (select 1 from public.work_item_attachments a
+                          where a.library_file_id = f.id and public.can_see_space_post(a.work_item_id))
+               or exists (select 1 from public.space_posts sp
+                          where sp.library_file_id = f.id and public.can_see_space_post(sp.id)))
     from public.library_files f where f.id = p_file
   ), false);
 $$;
@@ -1687,7 +1769,9 @@ $do$;
 -- The lead (2 Nov): a Library file goes for good 30 days after its deletion,
 -- row and stored file. A superseded revision stays as it is, deleted or
 -- not: only the newest of a chain goes, so an older deleted one follows on
--- a later night. Run by notebook-purge, before its queue. Returns how many.
+-- a later night. Z3: one a live post or work item carries stays. Run by
+-- notebook-purge, before its queue, with the only-me folders whose 7 days
+-- are over. Returns how many files.
 create or replace function public.purge_deleted_library_files(
   p_now timestamptz default now(),
   p_limit integer default 1000
@@ -1701,9 +1785,11 @@ as $$
 declare
   v_ids uuid[];
 begin
+  perform public.purge_left_only_me_folders(p_now, p_limit);
   v_ids := array(select f.id from public.library_files f
                  where f.deleted_at <= p_now - interval '30 days'
                    and f.private_gone_at is null
+                   and not public.library_file_carried(f.id)
                    and not exists (select 1 from public.library_files n
                                    where n.supersedes_id = f.id)
                  order by f.deleted_at, f.id
@@ -2335,6 +2421,9 @@ revoke all on function public.can_read_library_folder(uuid) from public, anon;
 revoke all on function public.can_read_library_file(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
 revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.drop_folders(uuid[]) from public, anon, authenticated;
+revoke all on function public.library_file_carried(uuid) from public, anon, authenticated;
+revoke all on function public.purge_left_only_me_folders(timestamptz, integer) from public, anon, authenticated;
 revoke all on function public.library_gone(uuid[]) from public, anon, authenticated;
 revoke all on function public.purge_deleted_library_files(timestamptz, integer) from public, anon, authenticated;
 revoke all on function public.scheduled_failed_clock() from public, anon, authenticated;
@@ -2369,4 +2458,5 @@ grant execute on function public.post_check_in(uuid, uuid, text, text, uuid[], d
 grant execute on function public.check_in_nudge(timestamptz) to service_role;
 grant execute on function public.claim_private_file_purges(integer) to service_role;
 grant execute on function public.purge_deleted_library_files(timestamptz, integer) to service_role;
+grant execute on function public.purge_left_only_me_folders(timestamptz, integer) to service_role;
 grant execute on function public.expire_failed_posts(timestamptz) to service_role;
