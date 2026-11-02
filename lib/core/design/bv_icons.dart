@@ -470,4 +470,16 @@ abstract final class BvIcons {
   static const repeat = IconData(0xe3f6, fontFamily: _family);
   // Phosphor: sign-out (Check-out). An arrow leaving, so it mirrors.
   static const checkOut = signOut;
+
+  // Review 113 RX1: React and the reactions. Phosphor: smiley (React),
+  // thumbs-up (Like), heart (Heart), hands-clapping (Bravo).
+  static const react = IconData(0xe436, fontFamily: _family);
+  static const like = IconData(0xe48e, fontFamily: _family);
+  static const heart = IconData(0xe2a8, fontFamily: _family);
+  static const bravo = IconData(0xe6a0, fontFamily: _family);
+
+  // Review 113 CV3: the composer's long-press menu. Phosphor:
+  // calendar-dots (Date & time); stop-circle (a repeating Check-in's Stop).
+  static const dateTime = IconData(0xe7b4, fontFamily: _family);
+  static const stop = IconData(0xe46e, fontFamily: _family);
 }

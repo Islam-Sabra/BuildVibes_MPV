@@ -271,7 +271,7 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// person, a direct message thread, your profile, or Scheduled.
   void _open(Map<String, String> data) {
     // Review 109: a check-in's push opens its card, or the creator's list.
-    final sent = checkInPushRoute(data) ?? data['route'];
+    final sent = checkInPushRoute(data) ?? data['route'] ?? postPushRoute(data);
     if (!mounted || sent == null) return;
     final route = pushRoute(sent, eventId: data['event_id']);
     final router = GoRouter.of(context);
@@ -307,6 +307,19 @@ class _PushHostState extends ConsumerState<PushHost> {
     });
     return widget.child;
   }
+}
+
+/// Review 113: a reaction's push (`post_reaction`) and an archived work
+/// item's (`work_item_archived`) open the post, at its card in its Space,
+/// when the push names no route of its own.
+String? postPushRoute(Map<String, String> data) {
+  final space = data['space_id'];
+  final post = data['post_id'];
+  if (space == null || post == null) return null;
+  return switch (data['kind']) {
+    'post_reaction' || 'work_item_archived' => AppRoutes.spaceCard(space, post),
+    _ => null,
+  };
 }
 
 /// Where a push's route opens. A work item's push names its card

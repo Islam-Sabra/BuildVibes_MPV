@@ -16,6 +16,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/location/location_reader.dart';
 import '../../core/push/push_state.dart';
+import '../../core/push/reaction_channel.dart';
 import '../../core/push/reminders.dart' show PhoneNotificationHooks;
 import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/push_repository.dart';
@@ -50,6 +51,16 @@ class LocalCheckInNotifier implements CheckInNotifier {
 
   @override
   Future<void> ensureChannel() async {
+    try {
+      // Review 113: the quiet Reactions channel, made with this one.
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(reactionsChannel(l10n));
+    } on Object catch (e) {
+      debugPrint('reactions channel: ${e.runtimeType}');
+    }
     try {
       await _plugin
           .resolvePlatformSpecificImplementation<

@@ -32,6 +32,7 @@ import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError;
+import 'card_react.dart';
 import 'check_in_card.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
@@ -60,7 +61,35 @@ class DaybookCardActions {
     this.onOpenQuote,
     this.onOpenNewer,
     this.onShareReport,
+    this.onReact,
+    this.onReactors,
+    this.onShare,
   });
+
+  /// The same, with React, the names of who reacted, and Share (review
+  /// 113 RX1).
+  DaybookCardActions withSocial({
+    ValueChanged<Rect>? react,
+    VoidCallback? reactors,
+    VoidCallback? share,
+  }) => DaybookCardActions(
+    onOpen: onOpen,
+    onHold: onHold,
+    onCheck: onCheck,
+    onSignDone: onSignDone,
+    onGiveTo: onGiveTo,
+    onTick: onTick,
+    onAck: onAck,
+    onOpenFile: onOpenFile,
+    onOpenPage: onOpenPage,
+    onOpenChild: onOpenChild,
+    onOpenQuote: onOpenQuote,
+    onOpenNewer: onOpenNewer,
+    onShareReport: onShareReport,
+    onReact: react,
+    onReactors: reactors,
+    onShare: share,
+  );
 
   /// The same, with [onOpenQuote] (F87) and [onOpenNewer] (F76).
   DaybookCardActions withLinks({
@@ -80,6 +109,9 @@ class DaybookCardActions {
     onOpenQuote: openQuote ?? onOpenQuote,
     onOpenNewer: openNewer ?? onOpenNewer,
     onShareReport: onShareReport,
+    onReact: onReact,
+    onReactors: onReactors,
+    onShare: onShare,
   );
 
   /// A tap opens it (review 105 Part 2): its page, with what the old
@@ -122,6 +154,13 @@ class DaybookCardActions {
 
   /// A daily report's Share as PDF (slice 7).
   final VoidCallback? onShareReport;
+
+  /// Review 113 RX1: React (the picker over where React is), who reacted,
+  /// and Share into the Space's Chat. The row shows while [onShare] is
+  /// there: on every post the server has.
+  final ValueChanged<Rect>? onReact;
+  final VoidCallback? onReactors;
+  final VoidCallback? onShare;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -552,7 +591,20 @@ class DaybookCardView extends StatelessWidget {
         else if (waiting || changeWaiting)
           _waitingLine(context, l10n),
         ?action,
+        ?_react(),
       ],
+    );
+  }
+
+  /// Review 113 RX1: React · Share and the reactions, on every post the
+  /// server has.
+  Widget? _react() {
+    if (lifted || actions.onShare == null) return null;
+    return DaybookCardReact(
+      post: _post,
+      onReact: actions.onReact,
+      onReactors: actions.onReactors,
+      onShare: actions.onShare,
     );
   }
 
@@ -699,6 +751,7 @@ class DaybookCardView extends StatelessWidget {
             BvSlipError(l10n.daybookCouldNotSend)
           else if (waiting || changeWaiting)
             _waitingLine(context, l10n),
+          ?_react(),
         ],
       ),
     );

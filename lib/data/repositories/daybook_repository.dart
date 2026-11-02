@@ -163,6 +163,11 @@ abstract class DaybookRepository {
     required String postId,
     required String threadId,
   });
+
+  /// react_to_post (review 113 RX1): my reaction [kind] on [postId]; the
+  /// same kind again takes it off, another replaces it. The reaction I now
+  /// hold, or null.
+  Future<PostReaction?> reactToPost(String postId, PostReaction kind);
 }
 
 /// One post_history call: the lines, newest first, and whether older ones
@@ -854,6 +859,16 @@ class SupabaseDaybookRepository implements DaybookRepository {
       params: {'p_id': messageId, 'p_post': postId, 'p_thread': threadId},
     ),
   );
+
+  @override
+  Future<PostReaction?> reactToPost(String postId, PostReaction kind) =>
+      _guard(() async {
+        final held = await _client.rpc<String?>(
+          'react_to_post',
+          params: {'p_post': postId, 'p_kind': kind.json},
+        );
+        return PostReaction.fromJson(held);
+      });
 }
 
 final daybookRepositoryProvider = Provider<DaybookRepository>(

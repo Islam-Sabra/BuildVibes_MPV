@@ -40,6 +40,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_live.dart';
+import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
 import '../../data/models/template.dart';
@@ -85,6 +86,7 @@ import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'check_in_words.dart' show checkInRefusalText;
 import 'composer_check_in.dart';
 import 'composer_thanks.dart';
 import 'post_later_sheet.dart';
@@ -2263,9 +2265,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// The bottom bar while cards are held (SP6): Share (from 105B) ·
-  /// Duplicate (one card) · Delete (mine, not Checked). No Move: work stays
-  /// in its Space (rule 8).
+  /// The bottom bar while cards are held (review 113 (14, 16)): Unpin
+  /// for my pins; Delete while nobody has acted on any of them; Archive
+  /// once someone has; Stop for one repeating Check-in I may stop. The
+  /// server says which ("hold", "can_stop"). Share is on every card now;
+  /// Duplicate is gone. No Move: work stays in its Space (rule 8).
   Widget _selectionBar(
     List<DaybookPost> shown,
     Set<String> selected, {
@@ -2276,10 +2280,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final p in shown)
         if (selected.contains(p.id)) p.id: p,
     }.values.toList();
-    final share = ref.watch(workLaterProvider).share;
-    final canPost = widget.space.myRights.createItems;
     final deletes =
-        posts.isNotEmpty && posts.every((p) => mayDeletePost(p, me: me));
+        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.delete);
+    final archives =
+        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.archive);
+    final stop =
+        posts.length == 1 &&
+        posts.single.isCheckIn &&
+        (posts.single.checkIn?.canStop ?? false);
     // L9: held, my pinned ones can be unpinned here.
     final mineIds = _mineIds();
     final myPinned = [
@@ -2299,28 +2307,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               unawaited(_unpinAll(myPinned));
             },
           ),
-        if (share != null)
+        if (stop)
           SelectionAction(
-            key: const Key('select-share'),
-            icon: BvIcons.share,
-            label: l10n.workShare,
-            onTap: posts.isEmpty
-                ? null
-                : () {
-                    _endSelection();
-                    unawaited(share(context, _spaceId, posts));
-                  },
+            key: const Key('select-stop'),
+            icon: BvIcons.stop,
+            label: l10n.checkInStop,
+            destructive: true,
+            onTap: () => unawaited(_stop(posts.single)),
           ),
-        SelectionAction(
-          key: const Key('select-duplicate'),
-          icon: BvIcons.duplicate,
-          label: l10n.workDuplicate,
-          onTap: canPost && posts.length == 1
-              ? () => unawaited(_duplicate(posts.single))
-              : null,
-        ),
-        // Hidden, not greyed, when one held can't be deleted (a Checked
-        // item; H4).
+        if (archives)
+          SelectionAction(
+            key: const Key('select-archive'),
+            icon: BvIcons.archive,
+            label: l10n.workArchive,
+            onTap: () => unawaited(_archiveHeld(posts)),
+          ),
+        // Hidden, not greyed, when one held can't be deleted (H4).
         if (deletes)
           SelectionAction(
             key: const Key('select-delete'),
@@ -2336,27 +2338,79 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void _endSelection() =>
       ref.read(workSelectionProvider(_spaceId).notifier).clear();
 
-  /// Duplicate (SP6): a new card at Now with the same kind, words, owner
-  /// and place, to post as a new one; its due and pin are chosen again.
-  Future<void> _duplicate(DaybookPost post) async {
+  /// Archive (review 113 (16)): it leaves the daily view and stays in the
+  /// record. An open work item asks first: archiving stops it, and its
+  /// owner is told it's no longer needed. Then "Archived · Undo".
+  Future<void> _archiveHeld(List<DaybookPost> posts) async {
     final l10n = AppLocalizations.of(context);
+    final open = posts.where((p) => p.isWorkItem && p.isOpen).toList();
+    if (open.isNotEmpty) {
+      final owner = open.first.item?.ownerName;
+      final sure = await showBvDialog(
+        context: context,
+        title: l10n.holdArchiveOpenTitle,
+        body: l10n.holdArchiveOpenBody(personName(l10n, owner)),
+        cancelLabel: l10n.commonCancel,
+        confirmLabel: l10n.workArchive,
+      );
+      if (!sure || !mounted) return;
+    }
     _endSelection();
-    final notifier = ref.read(daybookDraftProvider(_spaceId).notifier);
-    final kept = ref.read(daybookDraftProvider(_spaceId));
-    if (kept != null && !kept.isEmpty) {
-      showSpaceMessage(context, l10n.daybookDuplicateDraftFirst);
-      _startWriting();
+    final repository = ref.read(daybookRepositoryProvider);
+    final done = <DaybookPost>[];
+    for (final p in posts) {
+      try {
+        await repository.archivePost(p.id);
+        done.add(p);
+      } on SpaceException catch (e) {
+        if (mounted) showSpaceError(context, e);
+      }
+    }
+    if (!mounted) return;
+    if (done.isNotEmpty) {
+      showBvUndoBar(
+        context,
+        message: l10n.workArchived,
+        actionLabel: l10n.daybookUndo,
+        onAction: () => unawaited(_unarchiveAll(done)),
+      );
+    }
+    await _loop.refresh();
+  }
+
+  Future<void> _unarchiveAll(List<DaybookPost> posts) async {
+    for (final p in posts) {
+      await _unarchive(p);
+      if (!mounted) return;
+    }
+  }
+
+  /// Stop (review 113): a repeating Check-in, asked first, as on its list.
+  Future<void> _stop(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final yes = await showBvDialog(
+      context: context,
+      title: l10n.checkInStopTitle,
+      body: l10n.checkInStopBody,
+      cancelLabel: l10n.checkInKeep,
+      confirmLabel: l10n.checkInStop,
+      destructive: true,
+    );
+    if (!yes || !mounted) return;
+    _endSelection();
+    try {
+      await ref.read(checkInRepositoryProvider).stop(post.id);
+    } on SpaceException catch (e) {
+      if (mounted) {
+        showSpaceMessage(
+          context,
+          checkInRefusalText(l10n, CheckInRefusal.of(e)),
+        );
+      }
       return;
     }
-    await notifier.put(
-      DaybookPostDraft.of(
-        post,
-        id: ref.read(newPostIdProvider)(),
-        me: ref.read(authUserIdProvider).value,
-      ),
-    );
-    if (!mounted) return;
-    _startWriting();
+    if (mounted) showSpaceMessage(context, l10n.checkInStoppedDone);
+    await _loop.refresh();
   }
 
   /// Delete (SP6), asked first: each is gone from Work for everyone. The
@@ -2382,7 +2436,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       try {
         await repository.deletePost(p.id);
       } on SpaceException catch (e) {
-        if (e.failure == SpaceFailure.rule) {
+        // Review 113: the server keeps a post someone has acted on.
+        if (e.failure == SpaceFailure.rule || isActedOn(e)) {
           kept++;
         } else {
           failed.add(p);
@@ -2396,7 +2451,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         l10n.daybookDeleteFailed(joinMeta(failed.map((p) => p.title))),
       );
     } else if (kept > 0) {
-      showSpaceMessage(context, l10n.daybookDeleteKept(kept));
+      showSpaceMessage(context, l10n.holdDeleteActed);
     }
     await _loop.refresh();
   }
@@ -3584,10 +3639,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                         view,
                         me: me,
                         signing: signing,
-                        // A hold selects (SP6), for who may post.
-                        onHold: widget.space.myRights.createItems
-                            ? () => select(c.id)
-                            : null,
+                        // A hold selects (SP6) what the server says may be
+                        // held (review 113): my post to Delete or Archive,
+                        // a repeating Check-in to Stop.
+                        onHold: mayHoldPost(c.post) ? () => select(c.id) : null,
                       ),
                     ),
             ),

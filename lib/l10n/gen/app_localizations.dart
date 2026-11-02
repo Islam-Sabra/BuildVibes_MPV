@@ -9212,12 +9212,6 @@ abstract class AppLocalizations {
   /// **'Walk'**
   String get daybookKindWalk;
 
-  /// Review 105 SP6: Duplicate while another card is being written.
-  ///
-  /// In en, this message translates to:
-  /// **'Post or discard the card you\'re writing first.'**
-  String get daybookDuplicateDraftFirst;
-
   /// Review 105 SP6: confirm Delete from the hold bar.
   ///
   /// In en, this message translates to:
@@ -9229,12 +9223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It goes from Work for everyone in this Space.'**
   String get daybookDeleteBody;
-
-  /// Review 105 SP6: posts the server kept because others added to them.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}'**
-  String daybookDeleteKept(int count);
 
   /// Review 105 SP2: the words' hint on a work item being written, under its title.
   ///
@@ -9433,12 +9421,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This post isn\'t in Work any more'**
   String get chatPostGone;
-
-  /// Review 105 H8: the selection bar's Duplicate in Work.
-  ///
-  /// In en, this message translates to:
-  /// **'Duplicate'**
-  String get workDuplicate;
 
   /// Review 105 H8: a Work reminder picked in the past.
   ///
@@ -11179,6 +11161,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'quiet'**
   String get spacesTabQuiet;
+
+  /// Review 113 RX1: the card's React, which opens Like · Heart · Bravo.
+  ///
+  /// In en, this message translates to:
+  /// **'React'**
+  String get reactReact;
+
+  /// Review 113 RX1: the card's Share, into this Space's Chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get reactShare;
+
+  /// Review 113 RX1: the Like reaction (thumbs up).
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get reactLike;
+
+  /// Review 113 RX1: the Heart reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart'**
+  String get reactHeart;
+
+  /// Review 113 RX1: the Bravo reaction (hands clapping).
+  ///
+  /// In en, this message translates to:
+  /// **'Bravo'**
+  String get reactBravo;
+
+  /// Review 113 RX1: the sheet of names a tap on the reactions' faces opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Who reacted'**
+  String get reactWho;
+
+  /// Review 113 RX1: react_to_post failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t react. Try again.'**
+  String get reactFailed;
+
+  /// Review 113 (16): archiving an open work item asks first.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this work item?'**
+  String get holdArchiveOpenTitle;
+
+  /// Review 113 (16): what archiving an open work item does; {owner} is its owner.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops: nobody can sign it, check it or be reminded of it. {owner} is told it\'s no longer needed. It stays in the record, in the Archive.'**
+  String holdArchiveOpenBody(String owner);
+
+  /// Review 113 (14): delete_space_post said 'someone has acted on it'.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone has acted on it, so it can\'t be deleted. Archive it instead.'**
+  String get holdDeleteActed;
+
+  /// Review 113 (16): a sign, send back or check refused with 'archived: no longer needed'.
+  ///
+  /// In en, this message translates to:
+  /// **'This work item was archived: it\'s no longer needed.'**
+  String get holdArchivedNoLonger;
+
+  /// Review 113: share_post_to_thread refused a Team post into another thread.
+  ///
+  /// In en, this message translates to:
+  /// **'A Team\'s post goes only into that Team\'s chat.'**
+  String get shareTeamOnly;
+
+  /// Review 113: the Android notification channel for reactions on my posts (quiet: no sound, no pop-up).
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions'**
+  String get reactionsChannel;
+
+  /// Review 113: the Reactions channel's description in the phone's settings.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone reacts to your post. Quiet.'**
+  String get reactionsChannelAbout;
 }
 
 class _AppLocalizationsDelegate

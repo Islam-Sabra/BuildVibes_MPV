@@ -7892,10 +7892,6 @@
   "@daybookKindWalk": {
     "description": "Review 105 H3: the writing card's last kind chip, Walk (one photo, one work item, keep walking); shown to who may post work."
   },
-  "daybookDuplicateDraftFirst": "Post or discard the card you're writing first.",
-  "@daybookDuplicateDraftFirst": {
-    "description": "Review 105 SP6: Duplicate while another card is being written."
-  },
   "daybookDeleteTitle": "{count, plural, =1{Delete this post?} other{Delete {count} posts?}}",
   "@daybookDeleteTitle": {
     "description": "Review 105 SP6: confirm Delete from the hold bar.",
@@ -7908,15 +7904,6 @@
   "daybookDeleteBody": "It goes from Work for everyone in this Space.",
   "@daybookDeleteBody": {
     "description": "Review 105 SP6: what Delete does."
-  },
-  "daybookDeleteKept": "{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}",
-  "@daybookDeleteKept": {
-    "description": "Review 105 SP6: posts the server kept because others added to them.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
   },
   "daybookWritingDetails": "Details, or + for lists and tables",
   "@daybookWritingDetails": {
@@ -8077,10 +8064,6 @@
   "chatPostGone": "This post isn't in Work any more",
   "@chatPostGone": {
     "description": "Review 105B: a shared card whose post was deleted, or that the reader can no longer see."
-  },
-  "workDuplicate": "Duplicate",
-  "@workDuplicate": {
-    "description": "Review 105 H8: the selection bar's Duplicate in Work."
   },
   "workRemindPast": "Pick a time still to come.",
   "@workRemindPast": {
@@ -9569,5 +9552,66 @@
   "spacesTabQuiet": "quiet",
   "@spacesTabQuiet": {
     "description": "Review 113 ST1: a Space's line on the Spaces tab, after its pass, when nothing happened there today."
+  },
+  "reactReact": "React",
+  "@reactReact": {
+    "description": "Review 113 RX1: the card's React, which opens Like · Heart · Bravo."
+  },
+  "reactShare": "Share",
+  "@reactShare": {
+    "description": "Review 113 RX1: the card's Share, into this Space's Chat."
+  },
+  "reactLike": "Like",
+  "@reactLike": {
+    "description": "Review 113 RX1: the Like reaction (thumbs up)."
+  },
+  "reactHeart": "Heart",
+  "@reactHeart": {
+    "description": "Review 113 RX1: the Heart reaction."
+  },
+  "reactBravo": "Bravo",
+  "@reactBravo": {
+    "description": "Review 113 RX1: the Bravo reaction (hands clapping)."
+  },
+  "reactWho": "Who reacted",
+  "@reactWho": {
+    "description": "Review 113 RX1: the sheet of names a tap on the reactions' faces opens."
+  },
+  "reactFailed": "Couldn't react. Try again.",
+  "@reactFailed": {
+    "description": "Review 113 RX1: react_to_post failed."
+  },
+  "holdArchiveOpenTitle": "Archive this work item?",
+  "@holdArchiveOpenTitle": {
+    "description": "Review 113 (16): archiving an open work item asks first."
+  },
+  "holdArchiveOpenBody": "It stops: nobody can sign it, check it or be reminded of it. {owner} is told it's no longer needed. It stays in the record, in the Archive.",
+  "@holdArchiveOpenBody": {
+    "description": "Review 113 (16): what archiving an open work item does; {owner} is its owner.",
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      }
+    }
+  },
+  "holdDeleteActed": "Someone has acted on it, so it can't be deleted. Archive it instead.",
+  "@holdDeleteActed": {
+    "description": "Review 113 (14): delete_space_post said 'someone has acted on it'."
+  },
+  "holdArchivedNoLonger": "This work item was archived: it's no longer needed.",
+  "@holdArchivedNoLonger": {
+    "description": "Review 113 (16): a sign, send back or check refused with 'archived: no longer needed'."
+  },
+  "shareTeamOnly": "A Team's post goes only into that Team's chat.",
+  "@shareTeamOnly": {
+    "description": "Review 113: share_post_to_thread refused a Team post into another thread."
+  },
+  "reactionsChannel": "Reactions",
+  "@reactionsChannel": {
+    "description": "Review 113: the Android notification channel for reactions on my posts (quiet: no sound, no pop-up)."
+  },
+  "reactionsChannelAbout": "When someone reacts to your post. Quiet.",
+  "@reactionsChannelAbout": {
+    "description": "Review 113: the Reactions channel's description in the phone's settings."
   }
 }

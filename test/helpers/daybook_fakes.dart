@@ -427,9 +427,65 @@ class FakeDaybookRepository implements DaybookRepository {
     calls.add('share $postId $threadId');
   }
 
+  /// Review 113 RX1: who reacts, as react_to_post sees them.
+  String reactorId = 'user-1';
+  String reactorName = 'Omar Haddad';
+
+  /// react_to_post: as the server, one per person, the same kind again
+  /// takes it off; the card is read back with its reactions.
+  @override
+  Future<PostReaction?> reactToPost(String postId, PostReaction kind) async {
+    _check();
+    calls.add('react $postId ${kind.json}');
+    PostReaction? held;
+    for (final MapEntry(key: space, value: cards) in posts.entries) {
+      for (final c in [...cards]) {
+        if (c.id != postId) continue;
+        final p = c.post;
+        held = p.myReaction == kind ? null : kind;
+        final groups = <PostReaction, List<DaybookPerson>>{
+          for (final g in p.reactions)
+            g.kind: [
+              for (final who in g.people)
+                if (who.id != reactorId) who,
+            ],
+        };
+        if (held != null) {
+          groups[held] = [
+            DaybookPerson(id: reactorId, name: reactorName),
+            ...?groups[held],
+          ];
+        }
+        put(
+          space,
+          c.copyWith(
+            post: p.shownAs(
+              reactions: [
+                for (final MapEntry(key: k, value: people) in groups.entries)
+                  if (people.isNotEmpty)
+                    DaybookReactionGroup(kind: k, people: people),
+              ],
+              myReaction: () => held,
+            ),
+          ),
+        );
+      }
+    }
+    return held;
+  }
+
+  /// Review 113: delete_space_post refuses these, 22023.
+  final actedOn = <String>{};
+
   @override
   Future<void> deletePost(String postId) async {
     _check();
+    if (actedOn.contains(postId)) {
+      throw const SpaceException(
+        SpaceFailure.badInput,
+        'someone has acted on it',
+      );
+    }
     if (othersAdded.contains(postId)) {
       throw const SpaceException(SpaceFailure.rule);
     }

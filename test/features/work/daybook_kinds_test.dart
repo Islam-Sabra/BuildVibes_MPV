@@ -535,6 +535,9 @@ void main() {
         expect(above, lessThan(tester.getTopLeft(_card('post-rebar')).dy));
         final hold = Completer<void>();
         daybook.holdMarks = hold;
+        // Below the fold now that cards carry React · Share (review 113).
+        await tester.ensureVisible(find.byKey(const Key('ack-got_it')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('ack-got_it')));
         await tester.pump();
         expect(

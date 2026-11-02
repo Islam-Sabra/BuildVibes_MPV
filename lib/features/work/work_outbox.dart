@@ -1361,6 +1361,10 @@ enum RefusalWhy {
 
   /// A work item for yourself (review 112).
   forSomeoneElse,
+
+  /// Review 113 (16): its author archived it ("archived: no longer
+  /// needed"): nobody signs, sends back or checks it any more.
+  archived,
   unknown;
 
   static RefusalWhy of(SpaceException e) {
@@ -1369,6 +1373,7 @@ enum RefusalWhy {
       SpaceFailure.notAllowed => notAllowed,
       SpaceFailure.openWork => openWork,
       _ when m.contains(workItemForSomeoneElse) => forSomeoneElse,
+      _ when m.contains('archived: no longer needed') => archived,
       SpaceFailure.rule when m.contains('checked work') => checked,
       SpaceFailure.rule when m.contains('cancelled') => cancelled,
       SpaceFailure.rule when m.contains('removed') => removed,

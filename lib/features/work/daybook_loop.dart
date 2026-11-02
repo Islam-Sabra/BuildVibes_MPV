@@ -30,7 +30,9 @@ import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
+import 'card_react.dart';
 import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
+import 'work_gestures.dart' show workLaterProvider;
 import 'daybook_marks.dart';
 import 'daybook_page.dart'
     show DaybookPageActions, DaybookPageMore, mayEditPage, showDaybookPage;
@@ -105,6 +107,26 @@ class DaybookLoop {
       signing: signing,
       onHold: _viewer ? null : onHold,
     );
+    final post = v.card.post;
+    final share = ref.read(workLaterProvider).share;
+    final social = v.copyWith(
+      actions: v.actions.withSocial(
+        // No reactions on a Check-in (RX1); Viewers may react too.
+        react: post.isCheckIn
+            ? null
+            : (at) => unawaited(
+                pickReaction(context, post, at, (r) => react(context, post, r)),
+              ),
+        reactors: () => unawaited(showReactors(context, post)),
+        share: share == null
+            ? null
+            : () => unawaited(share(context, _spaceId, [post])),
+      ),
+    );
+    return _linked(context, social);
+  }
+
+  DaybookCardView _linked(BuildContext context, DaybookCardView v) {
     final message = v.card.post.sourceMessageId;
     final newer = v.card.post.file?.newerPostId;
     if (message == null && newer == null) return v;
@@ -841,6 +863,8 @@ class DaybookLoop {
     var why = r.why;
     // Review 112: its own sentence, which says where to go instead.
     if (why == RefusalWhy.forSomeoneElse) return l10n.workItemForSomeoneElse;
+    // Review 113 (16): a plain line of its own.
+    if (why == RefusalWhy.archived) return l10n.holdArchivedNoLonger;
     if (why == RefusalWhy.changed) {
       final post = cards.where((c) => c.id == r.postId).firstOrNull?.post;
       if (post?.cancelled ?? false) {
@@ -856,11 +880,30 @@ class DaybookLoop {
       RefusalWhy.removed => l10n.daybookWhyRemoved,
       RefusalWhy.notAllowed => l10n.daybookWhyNotAllowed,
       RefusalWhy.openWork => l10n.daybookWhyOpenWork,
-      RefusalWhy.forSomeoneElse || RefusalWhy.unknown => null,
+      RefusalWhy.forSomeoneElse ||
+      RefusalWhy.archived ||
+      RefusalWhy.unknown => null,
     };
     return reason == null
         ? l10n.daybookRefusedPlain(action)
         : l10n.daybookRefusedBecause(action, reason);
+  }
+
+  /// Review 113 RX1: my reaction [kind] on [post] (the same again takes
+  /// it off), then the page read again; a failure is said.
+  Future<void> react(
+    BuildContext context,
+    DaybookPost post,
+    PostReaction kind,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      await ref.read(daybookRepositoryProvider).reactToPost(post.id, kind);
+    } on SpaceException {
+      if (context.mounted) showSpaceMessage(context, l10n.reactFailed);
+      return;
+    }
+    await refresh();
   }
 
   Future<void> refresh() async {

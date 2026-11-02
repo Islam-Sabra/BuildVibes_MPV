@@ -8,7 +8,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/daybook.dart';
-import '../../data/models/space.dart' show SpaceException;
+import '../../data/models/space.dart' show SpaceException, SpaceFailure;
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -73,6 +73,7 @@ Future<void> shareToThread(
   Future<void> send(List<DaybookPost> those) async {
     // Every one is tried; what failed is said after (L10, as H5).
     final failed = <DaybookPost>[];
+    var teamOnly = false;
     for (final p in those) {
       try {
         await repo.sharePost(
@@ -80,12 +81,21 @@ Future<void> shareToThread(
           postId: p.id,
           threadId: thread.id,
         );
-      } on SpaceException {
-        failed.add(p);
+      } on SpaceException catch (e) {
+        // Review 113: a Team's post goes only into that Team's thread.
+        if (e.failure == SpaceFailure.badInput) {
+          teamOnly = true;
+        } else {
+          failed.add(p);
+        }
       }
     }
     ref.invalidate(spaceThreadsProvider(spaceId));
     messenger.hideCurrentSnackBar();
+    if (teamOnly && failed.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.shareTeamOnly)));
+      return;
+    }
     if (failed.isEmpty) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.workSharedIn(threadName(l10n, thread)))),

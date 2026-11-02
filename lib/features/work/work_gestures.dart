@@ -9,6 +9,7 @@ import '../../core/l10n/locale_controller.dart';
 import '../../core/push/reminders.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/space.dart' show SpaceException;
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../entry/entry_state.dart';
@@ -69,13 +70,20 @@ class WorkSelection extends Notifier<Set<String>> {
   void clear() => state = const {};
 }
 
-/// Delete is offered on my own post that isn't Checked or cancelled; the
-/// server refuses it once someone else has added to it.
-bool mayDeletePost(DaybookPost post, {required String? me}) =>
-    post.authorId != null &&
-    post.authorId == me &&
-    !post.cancelled &&
-    post.item?.status != WorkStatus.checked;
+/// Review 113: a card is held only when the server says it can be
+/// (Delete or Archive, "hold"), or for a repeating Check-in I may stop.
+/// Someone else's post has nothing to hold.
+bool mayHoldPost(DaybookPost post) =>
+    post.hold != null || (post.isCheckIn && (post.checkIn?.canStop ?? false));
+
+/// Review 113: delete_space_post said someone has acted on it (22023).
+bool isActedOn(SpaceException e) =>
+    (e.message ?? '').contains('someone has acted on it');
+
+/// Review 113 (16): a sign, a send-back or a check on an archived work
+/// item (22023).
+bool isArchivedNoLonger(SpaceException e) =>
+    (e.message ?? '').contains('archived: no longer needed');
 
 /// A Lead may archive a Checked work item (105B, behind [WorkLater]).
 bool mayArchivePost(DaybookPost post, {required bool lead}) =>

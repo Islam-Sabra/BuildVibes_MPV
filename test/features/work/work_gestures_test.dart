@@ -3,7 +3,7 @@
 // what the old long-press menu held is there (tap the title to edit, the
 // For line to give it, "Add an update" at the bottom, Send back for the
 // checker, ⋯ for Unpin · Save as template · Cancel). A hold selects, and
-// the bottom bar offers Duplicate · Delete (Share from 105B). Swipe toward
+// the bottom bar offers Delete or Archive (review 113). Swipe toward
 // the end: Reminder (Pin from 105B); toward the start: Archive for a Lead
 // on a Checked item (from 105B), round like the others. Signatures are
 // never on a swipe or a hold. In English and Arabic.
@@ -11,7 +11,6 @@ import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_tab.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/proof_camera.dart';
@@ -118,8 +117,14 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 }
 
 /// The sleeves, sent back and Open again: Islam's own, for Omar.
-DaybookCard _openSleeves(DaybookSamples s) =>
-    s.sleevesCard(upTo: DaybookSamples.sleevesSentBackAt);
+/// As the server says (review 113 "hold"): what holding it offers me.
+DaybookCard _held(DaybookCard c, PostHold hold) =>
+    c.copyWith(post: c.post.shownAs(hold: hold));
+
+DaybookCard _openSleeves(DaybookSamples s) => _held(
+  s.sleevesCard(upTo: DaybookSamples.sleevesSentBackAt),
+  PostHold.delete,
+);
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -217,15 +222,22 @@ void main() {
     });
 
     group('Part 2 hold selects [$lang]', () {
-      testWidgets('a hold selects: "1 selected" with ✕ up top, Duplicate · '
-          'Delete at the bottom, no Share and no Move', (tester) async {
-        await _open(tester, lang, posts: [_openSleeves(s), s.gate()]);
+      testWidgets('a hold selects: "1 selected" with ✕ up top, Delete at '
+          'the bottom; no Share, no Duplicate and no Move (review 113)', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_openSleeves(s), _held(s.gate(), PostHold.delete)],
+        );
         await _holdCard(tester, 'post-sleeves');
         expect(_key('space-selection-header'), findsOneWidget);
         expect(find.text(l10n.workSelected(1)), findsOneWidget);
         expect(_key('selection-bar'), findsOneWidget);
-        expect(_key('select-duplicate'), findsOneWidget);
         expect(_key('select-delete'), findsOneWidget);
+        expect(_key('select-archive'), findsNothing);
+        expect(_key('select-duplicate'), findsNothing);
         expect(_key('select-share'), findsNothing);
         expect(_key('select-move'), findsNothing);
         expect(tester.widget<BvSlip>(_slip('post-sleeves')).selected, isTrue);
@@ -238,19 +250,60 @@ void main() {
         expect(_key('selection-bar'), findsNothing);
       });
 
-      testWidgets('Duplicate only for one card; Delete is hidden, not '
-          'greyed, on a Checked one (H4)', (tester) async {
-        await _open(tester, lang, posts: [_openSleeves(s), s.gate()]);
+      testWidgets('review 113: nothing to hold on someone else\'s post, or '
+          'a Checked one ("hold" null)', (tester) async {
+        await _open(tester, lang, posts: [s.gate()]);
         await _holdCard(tester, 'post-gate');
-        InkWell bar(String k) => tester.widget<InkWell>(_key(k));
+        expect(_key('selection-bar'), findsNothing);
+      });
+
+      testWidgets('review 113: Delete and Archive show only when every '
+          'held post offers it', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_openSleeves(s), _held(s.gate(), PostHold.archive)],
+        );
+        await _holdCard(tester, 'post-gate');
+        expect(_key('select-archive'), findsOneWidget);
         expect(_key('select-delete'), findsNothing);
-        expect(bar('select-duplicate').onTap, isNotNull);
-        await _tapCard(tester, 'post-gate');
-        await _holdCard(tester, 'post-sleeves');
-        expect(bar('select-delete').onTap, isNotNull);
-        await _tapCard(tester, 'post-gate');
-        expect(bar('select-duplicate').onTap, isNull);
+        await _tapCard(tester, 'post-sleeves');
+        expect(_key('select-archive'), findsNothing);
         expect(_key('select-delete'), findsNothing);
+      });
+
+      testWidgets('review 113: Archive of an open work item says what it '
+          'does first, then archives it, with Undo', (tester) async {
+        final daybook = FakeDaybookRepository();
+        await _open(
+          tester,
+          lang,
+          posts: [_held(s.rebar(), PostHold.archive)],
+          daybook: daybook,
+        );
+        await _holdCard(tester, 'post-rebar');
+        await _tap(tester, _key('select-archive'));
+        expect(find.text(l10n.holdArchiveOpenTitle), findsOneWidget);
+        expect(daybook.calls, isNot(contains('archive post-rebar')));
+        await _tap(tester, find.text(l10n.workArchive).last);
+        expect(daybook.calls, contains('archive post-rebar'));
+        expect(find.text(l10n.workArchived), findsOneWidget);
+        expect(_entry('post-rebar'), findsNothing);
+      });
+
+      testWidgets('review 113: Archive of a post that isn\'t an open work '
+          'item goes without asking', (tester) async {
+        final daybook = FakeDaybookRepository();
+        await _open(
+          tester,
+          lang,
+          posts: [_held(s.gate(), PostHold.archive)],
+          daybook: daybook,
+        );
+        await _holdCard(tester, 'post-gate');
+        await _tap(tester, _key('select-archive'));
+        expect(find.text(l10n.holdArchiveOpenTitle), findsNothing);
+        expect(daybook.calls, contains('archive post-gate'));
       });
 
       testWidgets('Delete my item asks, then deletes it on the server', (
@@ -266,16 +319,15 @@ void main() {
         expect(_key('selection-bar'), findsNothing);
       });
 
-      testWidgets('one someone else added to stays, and says so', (
+      testWidgets('one someone has acted on stays, and says so (review 113)', (
         tester,
       ) async {
-        final daybook = FakeDaybookRepository()
-          ..othersAdded.add('post-sleeves');
+        final daybook = FakeDaybookRepository()..actedOn.add('post-sleeves');
         await _open(tester, lang, posts: [_openSleeves(s)], daybook: daybook);
         await _holdCard(tester, 'post-sleeves');
         await _tap(tester, _key('select-delete'));
         await _tap(tester, find.text(l10n.delete).last);
-        expect(find.text(l10n.daybookDeleteKept(1)), findsOneWidget);
+        expect(find.text(l10n.holdDeleteActed), findsOneWidget);
         expect(_entry('post-sleeves'), findsOneWidget);
       });
 
@@ -286,7 +338,7 @@ void main() {
         await _open(
           tester,
           lang,
-          posts: [_openSleeves(s), s.traysForOmar()],
+          posts: [_openSleeves(s), _held(s.traysForOmar(), PostHold.delete)],
           daybook: daybook,
         );
         await _holdCard(tester, 'post-sleeves');
@@ -304,36 +356,6 @@ void main() {
         expect(_entry('post-sleeves'), findsOneWidget);
       });
 
-      testWidgets('Duplicate writes a new card with the same words', (
-        tester,
-      ) async {
-        await _open(tester, lang, posts: [s.gate()]);
-        await _holdCard(tester, 'post-gate');
-        await _tap(tester, _key('select-duplicate'));
-        final container = ProviderScope.containerOf(
-          tester.element(find.byType(Scaffold).first),
-        );
-        final draft = container.read(
-          daybookDraftProvider(DaybookSamples.space),
-        );
-        expect(draft, isNotNull);
-        expect(draft!.id, isNot('post-gate'));
-        expect(draft.title, s.gate().post.title);
-        expect(draft.dueDate, isNull);
-        expect(_key('selection-bar'), findsNothing);
-      });
-
-      testWidgets('Share shows once 105B brings it', (tester) async {
-        await _open(
-          tester,
-          lang,
-          posts: [_openSleeves(s)],
-          later: WorkLater(share: (context, spaceId, posts) async {}),
-        );
-        await _holdCard(tester, 'post-sleeves');
-        expect(_key('select-share'), findsOneWidget);
-      });
-
       testWidgets('a Viewer\'s hold selects nothing', (tester) async {
         await _open(
           tester,
@@ -348,7 +370,7 @@ void main() {
 
       testWidgets('no signature on a hold: the owner\'s hold selects, and '
           'never opens the proof', (tester) async {
-        await _open(tester, lang, posts: [s.rebar()]);
+        await _open(tester, lang, posts: [_held(s.rebar(), PostHold.delete)]);
         await _holdCard(tester, 'post-rebar');
         expect(find.byType(ProofCamera), findsNothing);
         expect(_key('selection-bar'), findsOneWidget);

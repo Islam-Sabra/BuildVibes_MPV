@@ -5563,10 +5563,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindWalk => 'جولة';
 
   @override
-  String get daybookDuplicateDraftFirst =>
-      'انشر البطاقة التي تكتبها أو احذفها أولاً.';
-
-  @override
   String daybookDeleteTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -5579,17 +5575,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookDeleteBody => 'سيُحذف من العمل لكل من في هذه المساحة.';
-
-  @override
-  String daybookDeleteKept(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'أضاف أحدهم إلى $count منشورات، فبقيت. افتح كلاً منها لإلغائه.',
-      one: 'أضاف أحدهم إلى منشور، فبقي. افتحه لإلغائه.',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get daybookWritingDetails => 'التفاصيل، أو + للقوائم والجداول';
@@ -5705,9 +5690,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatPostGone => 'لم يعد هذا المنشور في العمل';
-
-  @override
-  String get workDuplicate => 'تكرار';
 
   @override
   String get workRemindPast => 'اختر وقتًا لم يأتِ بعد.';
@@ -6781,4 +6763,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesTabQuiet => 'هادئة';
+
+  @override
+  String get reactReact => 'تفاعل';
+
+  @override
+  String get reactShare => 'مشاركة';
+
+  @override
+  String get reactLike => 'إعجاب';
+
+  @override
+  String get reactHeart => 'قلب';
+
+  @override
+  String get reactBravo => 'برافو';
+
+  @override
+  String get reactWho => 'من تفاعل';
+
+  @override
+  String get reactFailed => 'تعذّر التفاعل. حاول مرة أخرى.';
+
+  @override
+  String get holdArchiveOpenTitle => 'أرشفة بند العمل هذا؟';
+
+  @override
+  String holdArchiveOpenBody(String owner) {
+    return 'سيتوقف: لا أحد يستطيع توقيعه أو التحقق منه أو التذكير به. سيُبلَّغ $owner أنه لم يعد مطلوبًا. يبقى في السجل، في الأرشيف.';
+  }
+
+  @override
+  String get holdDeleteActed =>
+      'تفاعل أحدهم معه، لذلك لا يمكن حذفه. أرشفه بدلًا من ذلك.';
+
+  @override
+  String get holdArchivedNoLonger => 'أُرشف بند العمل هذا: لم يعد مطلوبًا.';
+
+  @override
+  String get shareTeamOnly => 'منشور الفريق يُرسل فقط إلى محادثة ذلك الفريق.';
+
+  @override
+  String get reactionsChannel => 'التفاعلات';
+
+  @override
+  String get reactionsChannelAbout => 'عندما يتفاعل أحدهم مع منشورك. بدون صوت.';
 }

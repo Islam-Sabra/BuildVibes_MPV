@@ -5518,10 +5518,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindWalk => 'Walk';
 
   @override
-  String get daybookDuplicateDraftFirst =>
-      'Post or discard the card you\'re writing first.';
-
-  @override
   String daybookDeleteTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -5535,18 +5531,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get daybookDeleteBody =>
       'It goes from Work for everyone in this Space.';
-
-  @override
-  String daybookDeleteKept(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other:
-          'Someone has added to $count, so they stay. Open each to cancel it.',
-      one: 'Someone has added to one, so it stays. Open it to cancel it.',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get daybookWritingDetails => 'Details, or + for lists and tables';
@@ -5662,9 +5646,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatPostGone => 'This post isn\'t in Work any more';
-
-  @override
-  String get workDuplicate => 'Duplicate';
 
   @override
   String get workRemindPast => 'Pick a time still to come.';
@@ -6728,4 +6709,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesTabQuiet => 'quiet';
+
+  @override
+  String get reactReact => 'React';
+
+  @override
+  String get reactShare => 'Share';
+
+  @override
+  String get reactLike => 'Like';
+
+  @override
+  String get reactHeart => 'Heart';
+
+  @override
+  String get reactBravo => 'Bravo';
+
+  @override
+  String get reactWho => 'Who reacted';
+
+  @override
+  String get reactFailed => 'Couldn\'t react. Try again.';
+
+  @override
+  String get holdArchiveOpenTitle => 'Archive this work item?';
+
+  @override
+  String holdArchiveOpenBody(String owner) {
+    return 'It stops: nobody can sign it, check it or be reminded of it. $owner is told it\'s no longer needed. It stays in the record, in the Archive.';
+  }
+
+  @override
+  String get holdDeleteActed =>
+      'Someone has acted on it, so it can\'t be deleted. Archive it instead.';
+
+  @override
+  String get holdArchivedNoLonger =>
+      'This work item was archived: it\'s no longer needed.';
+
+  @override
+  String get shareTeamOnly =>
+      'A Team\'s post goes only into that Team\'s chat.';
+
+  @override
+  String get reactionsChannel => 'Reactions';
+
+  @override
+  String get reactionsChannelAbout =>
+      'When someone reacts to your post. Quiet.';
 }

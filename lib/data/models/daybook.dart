@@ -226,6 +226,75 @@ enum DaybookAck {
       values.where((a) => a.json == value).firstOrNull;
 }
 
+/// Review 113 RX1: the three reactions, one per person per post.
+enum PostReaction {
+  like,
+  heart,
+  bravo;
+
+  String get json => name;
+
+  static PostReaction? fromJson(Object? value) =>
+      values.where((r) => r.name == value).firstOrNull;
+}
+
+/// One kind of reaction on a post and who gave it, newest first (at most
+/// 20; space_post_json "reactions"). Never a count.
+@immutable
+class DaybookReactionGroup {
+  const DaybookReactionGroup({required this.kind, required this.people});
+
+  final PostReaction kind;
+  final List<DaybookPerson> people;
+
+  static List<DaybookReactionGroup> listFromJson(Object? json) => [
+    for (final g in json as List? ?? const [])
+      if (PostReaction.fromJson((g as Map<String, dynamic>)['kind'])
+          case final kind?)
+        DaybookReactionGroup(
+          kind: kind,
+          people: [
+            for (final p in g['people'] as List? ?? const [])
+              DaybookPerson(
+                id: (p as Map<String, dynamic>)['id'] as String,
+                name: p['name'] as String?,
+              ),
+          ],
+        ),
+  ];
+}
+
+/// Review 113 (14, 16): what holding my post offers ("hold"): Delete while
+/// nobody has acted on it, Archive once someone has. Null: nothing to hold
+/// (someone else's post, a Checked work item).
+enum PostHold {
+  delete,
+  archive;
+
+  static PostHold? fromJson(Object? value) =>
+      values.where((h) => h.name == value).firstOrNull;
+}
+
+/// Review 113 (11): the voice note a post carries ("voice": its audio
+/// file in the post's folder, and its length).
+@immutable
+class DaybookVoice {
+  const DaybookVoice({required this.path, this.durationMs = 0});
+
+  static DaybookVoice? fromJson(Object? json) => switch (json) {
+    {'path': final String path} => DaybookVoice(
+      path: path,
+      durationMs: (json['duration_ms'] as num?)?.toInt() ?? 0,
+    ),
+    _ => null,
+  };
+
+  final String path;
+  final int durationMs;
+
+  Duration get duration => Duration(milliseconds: durationMs);
+}
+
 /// The Library file a file post shares (space_post_json "file").
 @immutable
 class DaybookFile {
@@ -474,6 +543,10 @@ class DaybookPost {
     this.blocks = const [],
     this.refs = const {},
     this.archivedAt,
+    this.reactions = const [],
+    this.myReaction,
+    this.hold,
+    this.voice,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -552,6 +625,10 @@ class DaybookPost {
           e.key: DaybookRef.fromJson(e.value as Map<String, dynamic>),
       },
       archivedAt: _time(json['archived_at']),
+      reactions: DaybookReactionGroup.listFromJson(json['reactions']),
+      myReaction: PostReaction.fromJson(json['my_reaction']),
+      hold: PostHold.fromJson(json['hold']),
+      voice: DaybookVoice.fromJson(json['voice']),
     );
   }
 
@@ -646,6 +723,17 @@ class DaybookPost {
 
   /// When a Lead archived it (review 105B): out of Work, found by Search.
   final DateTime? archivedAt;
+
+  /// Review 113 RX1: the reactions by kind, with who gave them, and the
+  /// reader's own. None on a Check-in.
+  final List<DaybookReactionGroup> reactions;
+  final PostReaction? myReaction;
+
+  /// Review 113: what holding it offers the reader.
+  final PostHold? hold;
+
+  /// Review 113 (11): its voice note, if it has one.
+  final DaybookVoice? voice;
 
   /// A scheduled activity's start and optional end.
   final DateTime? startsAt;
@@ -743,6 +831,10 @@ class DaybookPost {
     int? pointsTicked,
     Set<DaybookAck>? myAcks,
     DaybookChildren? children,
+    List<DaybookReactionGroup>? reactions,
+    PostReaction? Function()? myReaction,
+    PostHold? hold,
+    DaybookVoice? voice,
   }) => DaybookPost(
     id: id,
     kind: kind,
@@ -792,6 +884,10 @@ class DaybookPost {
     blocks: blocks,
     refs: refs,
     archivedAt: archivedAt,
+    reactions: reactions ?? this.reactions,
+    myReaction: myReaction == null ? this.myReaction : myReaction(),
+    hold: hold ?? this.hold,
+    voice: voice ?? this.voice,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
