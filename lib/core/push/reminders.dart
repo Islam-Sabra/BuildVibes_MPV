@@ -151,6 +151,26 @@ abstract final class PhoneNotificationHooks {
   static bool Function(NotificationResponse response)? claim;
 }
 
+/// Review 114 B1: the notification that started the app. The plugin gives
+/// the same one for as long as the app runs, and every new shell asks, so
+/// it is taken once: set before [PhoneNotificationHooks.claim], never reset.
+var _launchTapTaken = false;
+
+@visibleForTesting
+void forgetLaunchTap() => _launchTapTaken = false;
+
+/// [response], the first time: another kind's claim takes it, or its note
+/// id comes back. Null ever after.
+String? takeLaunchTap(NotificationResponse? response) {
+  if (_launchTapTaken) return null;
+  _launchTapTaken = true;
+  if (response == null ||
+      (PhoneNotificationHooks.claim?.call(response) ?? false)) {
+    return null;
+  }
+  return response.payload;
+}
+
 class LocalReminders implements PhoneReminders {
   final _plugin = FlutterLocalNotificationsPlugin();
   var _channel = '';
@@ -201,12 +221,7 @@ class LocalReminders implements PhoneReminders {
     try {
       final details = await _plugin.getNotificationAppLaunchDetails();
       if (!(details?.didNotificationLaunchApp ?? false)) return null;
-      final response = details?.notificationResponse;
-      if (response != null &&
-          (PhoneNotificationHooks.claim?.call(response) ?? false)) {
-        return null;
-      }
-      return response?.payload;
+      return takeLaunchTap(details?.notificationResponse);
     } on Object catch (e) {
       debugPrint('reminders: $e');
       return null;
