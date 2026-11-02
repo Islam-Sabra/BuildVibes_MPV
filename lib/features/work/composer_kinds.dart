@@ -168,7 +168,7 @@ List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
         !extras.contains(ComposerExtra.checklist))
       ComposerDrop.checklist,
     if (kind != DaybookKind.checkIn &&
-        (draft.siteSet ||
+        (draft.placeReady ||
             draft.inTime != null ||
             draft.outTime != null ||
             draft.daily ||

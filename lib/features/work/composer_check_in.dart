@@ -92,9 +92,11 @@ List<BvWritingRow> checkInLines(
           ? l10n.checkInReading
           : draft.siteSet
           ? l10n.checkInPlaceSet
+          : draft.samePlaceAs != null
+          ? l10n.checkInSamePlace
           : l10n.checkInSetPlace,
-      icon: draft.siteSet ? BvIcons.check : BvIcons.place,
-      call: !draft.siteSet,
+      icon: draft.placeReady ? BvIcons.check : BvIcons.place,
+      call: !draft.placeReady,
       onTap: reading ? null : () => onPick(CheckInPick.place),
     ),
   ];

@@ -22,6 +22,8 @@ import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/push_repository.dart';
 import '../../data/supabase/supabase_provider.dart' show initSupabase;
 import '../../l10n/gen/app_localizations.dart';
+import '../spaces/need_you_notice.dart' show NeedYouPush;
+import '../spaces/need_you_phone.dart';
 import 'check_in_marking.dart';
 import 'check_in_notice.dart';
 
@@ -178,16 +180,22 @@ bool claimCheckInTap(NotificationResponse r) {
 /// Before runApp: the hooks of the one notification start, and FCM's
 /// handler for a data push with the app closed.
 void registerCheckInNotifications(SharedPreferences prefs) {
-  final l10n = lookupAppLocalizations(_appLocale(prefs));
-  PhoneNotificationHooks.categories = () => checkInDarwinCategories(l10n);
+  final l10n = lookupAppLocalizations(appLocaleOf(prefs));
+  // Review 113: Need you now shares the one start, the one background
+  // handler and FCM's one handler (each process has only one).
+  PhoneNotificationHooks.categories = () => [
+    ...checkInDarwinCategories(l10n),
+    ...needYouDarwinCategories(l10n),
+  ];
   PhoneNotificationHooks.background = checkInNotificationResponse;
-  PhoneNotificationHooks.claim = claimCheckInTap;
+  PhoneNotificationHooks.claim = (r) =>
+      claimNeedYouTap(r) || claimCheckInTap(r);
   if (Firebase.apps.isNotEmpty) {
     FirebaseMessaging.onBackgroundMessage(checkInBackgroundPush);
   }
 }
 
-Locale _appLocale(SharedPreferences prefs) {
+Locale appLocaleOf(SharedPreferences prefs) {
   final code = prefs.getString('app_language');
   if (code != null && AppLocalizations.delegate.isSupported(Locale(code))) {
     return Locale(code);
@@ -197,7 +205,7 @@ Locale _appLocale(SharedPreferences prefs) {
 
 /// The person on this phone, in a background isolate: Supabase started
 /// there, its session read from the phone. Null when signed out.
-Future<String?> _backgroundUser() async {
+Future<String?> backgroundUser() async {
   try {
     await initSupabase();
   } on Object {
@@ -212,13 +220,11 @@ Future<String?> _backgroundUser() async {
 Future<void> checkInBackgroundPush(RemoteMessage message) async {
   final data = {for (final e in message.data.entries) e.key: '${e.value}'};
   final push = CheckInPush.fromData(data);
-  if (push == null) return;
+  final needYou = NeedYouPush.fromData(data);
+  if (push == null && needYou == null) return;
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final l10n = lookupAppLocalizations(_appLocale(prefs));
-  final user = await _backgroundUser();
-  final accepted =
-      user != null && (prefs.getBool(checkInConsentKey(user)) ?? false);
+  final l10n = lookupAppLocalizations(appLocaleOf(prefs));
   await FlutterLocalNotificationsPlugin().initialize(
     settings: const InitializationSettings(
       android: AndroidInitializationSettings('@drawable/ic_stat_buildvibes'),
@@ -230,9 +236,16 @@ Future<void> checkInBackgroundPush(RemoteMessage message) async {
     ),
     onDidReceiveBackgroundNotificationResponse: checkInNotificationResponse,
   );
+  if (needYou != null) {
+    await needYouBackgroundPush(needYou, prefs);
+    return;
+  }
+  final user = await backgroundUser();
+  final accepted =
+      user != null && (prefs.getBool(checkInConsentKey(user)) ?? false);
   final notifier = LocalCheckInNotifier(l10n);
   await notifier.ensureChannel();
-  await notifier.show(checkInOpenNotice(l10n, push, accepted: accepted));
+  await notifier.show(checkInOpenNotice(l10n, push!, accepted: accepted));
 }
 
 /// Android's Check in, without opening the app (a background isolate):
@@ -240,14 +253,15 @@ Future<void> checkInBackgroundPush(RemoteMessage message) async {
 /// the result in place of the notification.
 @pragma('vm:entry-point')
 Future<void> checkInNotificationResponse(NotificationResponse r) async {
+  if (await needYouNotificationResponse(r)) return;
   if (r.actionId != checkInActionMark) return;
   final push = CheckInPush.fromPayload(r.payload);
   if (push == null) return;
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final l10n = lookupAppLocalizations(_appLocale(prefs));
-  final user = await _backgroundUser();
+  final l10n = lookupAppLocalizations(appLocaleOf(prefs));
+  final user = await backgroundUser();
   if (user == null) return;
   final client = Supabase.instance.client;
   await markFromNotice(

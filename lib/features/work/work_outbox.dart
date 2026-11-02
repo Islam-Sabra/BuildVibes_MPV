@@ -12,6 +12,7 @@ import '../../core/network/signal_state.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
@@ -887,6 +888,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         // Refused photos from an earlier try: upload them again, once. A
         // cleaned-up upload reads as not allowed (is_my_upload).
         if (reused &&
+            e is! FileRefused &&
             (e.failure == SpaceFailure.badInput ||
                 e.failure == SpaceFailure.notAllowed)) {
           reused = false;
@@ -983,13 +985,19 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   Future<void> _addToLibrary(String spaceId, DraftFile f, String itemId) async {
     final library = ref.read(libraryRepositoryProvider);
     final shown = ref.read(outboxSendingProvider.notifier);
-    final path = await library.upload(
-      spaceId,
-      f.libraryId,
-      PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
-      // F73: "Sending · 3.1 of 8.7 MB".
-      onProgress: (sent, total) => shown.progress(itemId, sent, total),
-    );
+    final String path;
+    try {
+      path = await library.upload(
+        spaceId,
+        f.libraryId,
+        PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+        // F73: "Sending · 3.1 of 8.7 MB".
+        onProgress: (sent, total) => shown.progress(itemId, sent, total),
+      );
+    } on FileRefused catch (e) {
+      // Review 113 bug 7: which file, so Tap to fix can take it off.
+      throw e.withFile(f.libraryId);
+    }
     try {
       await library.add(
         id: f.libraryId,
@@ -1000,6 +1008,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         bytes: f.bytes,
         revLabel: f.revLabel,
         supersedesId: f.supersedesId,
+        folderId: f.folderId,
       );
     } on SpaceException catch (e) {
       if (e.failure != SpaceFailure.badInput ||
@@ -1115,8 +1124,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           title: d.title,
           body: d.body,
           teamIds: [for (final t in d.checkInTeams) t.id],
-          siteLat: d.siteLat!,
-          siteLng: d.siteLng!,
+          siteLat: d.siteLat,
+          siteLng: d.siteLng,
+          samePlaceAs: d.samePlaceAs,
           inTime: d.inTime!,
           inAllow: d.inAllow,
           outTime: d.outTime,
@@ -1241,10 +1251,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                 (item.sourceMessageId ?? item.draft?.sourceMessageId) != null
             ? item.withoutSource()
             : item;
-        if (await reopenRefused(_withRefusal(back, e))) return;
+        final kept = _withRefusal(back, e);
+        if (await reopenRefused(kept)) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
-        await _put(back.copyWith(refused: true));
+        await _put(kept.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
       case PendingKind.check ||
@@ -1282,6 +1293,27 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// does a work item refused for its own author (review 112).
   static PendingItem _withRefusal(PendingItem item, SpaceException e) {
     final d = item.draft;
+    // Review 113 (17): the server wouldn't copy the last place: the draft
+    // goes back to Set place here, saying so.
+    if (d?.samePlaceAs != null &&
+        (e.failure == SpaceFailure.notAllowed ||
+            e.failure == SpaceFailure.badInput)) {
+      return item.copyWith(
+        draft: d!.copyWith(
+          samePlaceAs: () => null,
+          refusal: () => samePlaceRefused,
+        ),
+      );
+    }
+    // Review 113 bug 7: a file the bucket refused keeps what was wrong
+    // and which file, for Tap to fix's plain line.
+    if (e is FileRefused) {
+      return item.copyWith(
+        draft: (d ?? DaybookPostDraft.refused(item)).copyWith(
+          refusal: () => e.code,
+        ),
+      );
+    }
     if (d?.kind == DaybookKind.thanks) {
       return item.copyWith(
         draft: d!.copyWith(refusal: () => ThanksRefusal.of(e).name),

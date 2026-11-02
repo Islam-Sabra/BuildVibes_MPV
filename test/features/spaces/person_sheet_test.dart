@@ -106,7 +106,7 @@ void main() {
       final spaces = await _open(tester, lang);
       await _tap(tester, _key('member-${DaybookSamples.omar}'));
       await _tap(tester, _key('person-remove'));
-      expect(find.text(l10n.spacesRemoveBody), findsOneWidget);
+      expect(find.textContaining(l10n.spacesRemoveBody), findsOneWidget);
       expect(find.text(l10n.holdToRemove), findsOneWidget);
       await hold(tester, holdOnSheet);
       expect(_key('member-${DaybookSamples.omar}'), findsNothing);

@@ -66,6 +66,7 @@ class DraftFile {
     this.supersedesId,
     this.supersedesRev,
     this.added = false,
+    this.folderId,
   });
 
   factory DraftFile.fromJson(Map<String, dynamic> json) => DraftFile(
@@ -78,6 +79,7 @@ class DraftFile {
     supersedesId: json['supersedes_id'] as String?,
     supersedesRev: json['supersedes_rev'] as String?,
     added: json['added'] as bool? ?? false,
+    folderId: json['folder_id'] as String?,
   );
 
   final String libraryId;
@@ -97,6 +99,10 @@ class DraftFile {
   /// again.
   final bool added;
 
+  /// Review 113 (8): the Library folder it goes into (add_library_file's
+  /// p_folder); null, the Space's Library.
+  final String? folderId;
+
   bool get isNew => local != null;
 
   /// The same file as a new one, not a new version (F71's ✕).
@@ -108,6 +114,7 @@ class DraftFile {
     local: local,
     revLabel: revLabel,
     added: added,
+    folderId: folderId,
   );
 
   DraftFile get inLibrary => DraftFile(
@@ -120,6 +127,7 @@ class DraftFile {
     supersedesId: supersedesId,
     supersedesRev: supersedesRev,
     added: true,
+    folderId: folderId,
   );
 
   Map<String, dynamic> toJson() => {
@@ -132,6 +140,7 @@ class DraftFile {
     'supersedes_id': supersedesId,
     'supersedes_rev': supersedesRev,
     'added': added,
+    'folder_id': folderId,
   };
 }
 
@@ -193,6 +202,7 @@ class DaybookPostDraft {
     this.daily = false,
     this.siteLat,
     this.siteLng,
+    this.samePlaceAs,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -280,6 +290,7 @@ class DaybookPostDraft {
         daily: json['daily'] as bool? ?? false,
         siteLat: (json['site_lat'] as num?)?.toDouble(),
         siteLng: (json['site_lng'] as num?)?.toDouble(),
+        samePlaceAs: json['same_place_as'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -337,6 +348,28 @@ class DaybookPostDraft {
       placeId: post.placeId,
       dueDate: id == null ? post.dueDate : null,
       dueAt: id == null ? post.dueAt : null,
+    );
+  }
+
+  /// Review 113 (17): a new check-in made from the last one, for the
+  /// nudge: its words, For, times and Every day, and its site by
+  /// reference: the server copies the point and never shows it.
+  factory DaybookPostDraft.fromCheckIn(DaybookPost post, {required String id}) {
+    final c = post.checkIn;
+    return DaybookPostDraft(
+      id: id,
+      kind: DaybookKind.checkIn,
+      title: post.title,
+      body: post.body ?? '',
+      place: post.place,
+      placeId: post.placeId,
+      checkInTeams: c?.teams ?? const [],
+      inTime: c?.inTime,
+      inAllow: c?.inAllow ?? checkInDefaultAllowance,
+      outTime: c?.outTime,
+      outAllow: c?.outAllow,
+      daily: c?.daily ?? false,
+      samePlaceAs: post.id,
     );
   }
 
@@ -468,7 +501,13 @@ class DaybookPostDraft {
   final double? siteLat;
   final double? siteLng;
 
+  /// Review 113 (17): the earlier check-in whose site this one takes.
+  final String? samePlaceAs;
+
   bool get siteSet => siteLat != null && siteLng != null;
+
+  /// Send's condition: a site read here, or the last check-in's.
+  bool get placeReady => siteSet || samePlaceAs != null;
 
   /// The server's other rules for a Check-in, checked before Send can
   /// hit them: the time and its allowance fit in the day, and a check-out
@@ -542,7 +581,7 @@ class DaybookPostDraft {
             inTime == null &&
             outTime == null &&
             !daily &&
-            !siteSet &&
+            !placeReady &&
             checkInTeams.isEmpty;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
@@ -566,7 +605,7 @@ class DaybookPostDraft {
     DaybookKind.file => files.isNotEmpty && titleFits,
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
     // Review 109: Send stays off until the place is set.
-    DaybookKind.checkIn => titleFits && siteSet && checkInTimesFit,
+    DaybookKind.checkIn => titleFits && placeReady && checkInTimesFit,
     _ => titleFits,
   };
 
@@ -628,6 +667,7 @@ class DaybookPostDraft {
     int? Function()? outAllow,
     bool? daily,
     ({double lat, double lng})? Function()? site,
+    String? Function()? samePlaceAs,
     bool refused = false,
   }) => DaybookPostDraft(
     checkInTeams: checkInTeams ?? this.checkInTeams,
@@ -638,6 +678,7 @@ class DaybookPostDraft {
     daily: daily ?? this.daily,
     siteLat: site == null ? siteLat : site()?.lat,
     siteLng: site == null ? siteLng : site()?.lng,
+    samePlaceAs: samePlaceAs == null ? this.samePlaceAs : samePlaceAs(),
     thanksToId: thanksTo == null ? thanksToId : thanksTo()?.id,
     thanksToName: thanksTo == null ? thanksToName : thanksTo()?.name,
     thanksToTeam: thanksTo == null ? thanksToTeam : thanksTo()?.team ?? false,
@@ -741,8 +782,13 @@ class DaybookPostDraft {
     'daily': daily,
     'site_lat': siteLat,
     'site_lng': siteLng,
+    'same_place_as': samePlaceAs,
   };
 }
+
+/// [DaybookPostDraft.refusal] when the server wouldn't copy the last
+/// check-in's place (review 113).
+const samePlaceRefused = 'same_place';
 
 /// What Post still needs before it can send: it opens that picker.
 enum DaybookMissing { owner, people, start, to, checkInTime }
@@ -768,8 +814,9 @@ class DaybookDraft extends DaybookWritingNotifier {
   final String spaceId;
   String? _key;
 
-  /// The card was just made from a note (review 84 N2): new, not a Draft
-  /// from before, until the person leaves it unsent.
+  /// The card was just made from a note (review 84 N2) or a check-in
+  /// (review 113): new, not a Draft from before, until the person leaves
+  /// it unsent.
   bool _fromNote = false;
 
   /// True once after [fromNote] made a new card; the daybook asks when it
@@ -954,6 +1001,15 @@ class DaybookDraft extends DaybookWritingNotifier {
     if (text.length <= max) return (text, false);
     final space = text.lastIndexOf(' ', max);
     return (text.substring(0, space > 0 ? space : max).trim(), true);
+  }
+
+  /// Review 113 (17): the nudge's card, from the last check-in. A card
+  /// already half-written stays: it is never overwritten.
+  Future<void> fromCheckIn(String id, DaybookPost post) async {
+    final current = state;
+    if (current != null && !current.isEmpty) return;
+    _fromNote = true;
+    await put(DaybookPostDraft.fromCheckIn(post, id: id));
   }
 
   /// Sets the card and saves it once anything is entered.

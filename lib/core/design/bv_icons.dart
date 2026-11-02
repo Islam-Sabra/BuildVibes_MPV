@@ -482,4 +482,17 @@ abstract final class BvIcons {
   // calendar-dots (Date & time); stop-circle (a repeating Check-in's Stop).
   static const dateTime = IconData(0xe7b4, fontFamily: _family);
   static const stop = IconData(0xe46e, fontFamily: _family);
+  // Review 113 Part B (NN1, LB1, LB2): Need you now, the Library's
+  // folders and linked folders. Phosphor: bell-ringing (Need you now)
+  static const needYou = IconData(0xe5e8, fontFamily: _family);
+  // Phosphor: folder (a Library folder)
+  static const folder = IconData(0xe24a, fontFamily: _family);
+  // Phosphor: link (Link folder, a pasted link)
+  static const link = IconData(0xe2e2, fontFamily: _family);
+  // Phosphor: cloud (a OneDrive folder)
+  static const cloud = IconData(0xe1aa, fontFamily: _family);
+  // Phosphor: google-drive-logo
+  static const googleDrive = IconData(0xe8f6, fontFamily: _family);
+  // Phosphor: dropbox-logo
+  static const dropbox = IconData(0xe7d0, fontFamily: _family);
 }

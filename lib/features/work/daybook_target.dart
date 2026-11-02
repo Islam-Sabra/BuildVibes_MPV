@@ -48,10 +48,13 @@ class DaybookReportStart {
 /// Received).
 @immutable
 class DaybookFileStart {
-  const DaybookFileStart({this.replaces});
+  const DaybookFileStart({this.replaces, this.folderId});
 
   /// The version in use that the new one replaces.
   final LibraryFile? replaces;
+
+  /// Review 113 (8): the Library folder the new file goes into.
+  final String? folderId;
 }
 
 /// Opens a work item where it lives: its Space's daybook, at its card,

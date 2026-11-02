@@ -13,6 +13,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
+import '../../data/models/upload_rules.dart' show FileRefused;
 import '../../data/repositories/daybook_repository.dart'
     show spaceWorkTagsProvider;
 import '../../data/repositories/space_repository.dart';
@@ -32,6 +33,7 @@ import '../spaces/former_member.dart' show personName;
 import 'composer_check_in.dart';
 import 'composer_kinds.dart';
 import 'composer_thanks.dart' show thanksRefusalText;
+import 'could_not_send.dart';
 import 'daybook_draft.dart';
 import 'daybook_photos.dart';
 import 'daybook_report.dart';
@@ -105,6 +107,8 @@ class DaybookComposer extends ConsumerStatefulWidget {
     this.askWho,
     this.onWalk,
     this.onCheckIn,
+    this.onTryAgain,
+    this.onLinkFolder,
   });
 
   final String spaceId;
@@ -152,6 +156,11 @@ class DaybookComposer extends ConsumerStatefulWidget {
 
   /// A Check-in's lines (review 109 CI1): For, Check-in and Place.
   final ValueChanged<CheckInPick>? onCheckIn;
+
+  /// Review 113 bug 7: Tap to fix's Try again (Send again, when it may
+  /// go) and Link folder (for a file too big for a Space).
+  final VoidCallback? onTryAgain;
+  final VoidCallback? onLinkFolder;
 
   @override
   ConsumerState<DaybookComposer> createState() => DaybookComposerState();
@@ -205,6 +214,53 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     _titleFocus.dispose();
     _bodyFocus.dispose();
     super.dispose();
+  }
+
+  /// Review 113 bug 7: "Couldn't send · Tap to fix" says what is wrong,
+  /// with Try again or Remove: Remove takes off the refused file, or puts
+  /// the post away when no file was the problem.
+  Future<void> _fix(DaybookPostDraft draft) async {
+    // Review 113 (17): the last place was refused: the fix is a place.
+    if (draft.refusal == samePlaceRefused) {
+      widget.onCheckIn?.call(CheckInPick.place);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final refused = FileRefused.fromCode(draft.refusal);
+    final why = refused != null
+        ? fileRefusedText(l10n, refused)
+        : draft.kind == DaybookKind.thanks
+        ? thanksRefusalText(l10n, draft.refusal)
+        : draft.refusal == RefusalWhy.forSomeoneElse.name
+        ? l10n.workItemForSomeoneElse
+        : l10n.couldNotSendGeneric;
+    final picked = await showCouldNotSendFix(
+      context,
+      why: why,
+      refused: refused,
+      tryAgain: widget.onTryAgain != null,
+      linkFolder: widget.onLinkFolder != null,
+    );
+    if (!mounted) return;
+    runCouldNotSendFix(
+      picked,
+      tryAgain: widget.onTryAgain,
+      linkFolder: widget.onLinkFolder,
+      remove: () async {
+        final file = refused == null
+            ? null
+            : draft.files
+                  .where((f) => f.libraryId == refused.fileId)
+                  .firstOrNull;
+        if (refused != null) {
+          if (file != null) await _writer.removeFile(file);
+          await _writer.clearRefusal();
+          return;
+        }
+        await ref.read(daybookDraftProvider(widget.spaceId).notifier).discard();
+        widget.onClose();
+      },
+    );
   }
 
   /// Bullets (CP3): a new line in the details that starts with a bullet.
@@ -1107,15 +1163,16 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                     ],
                     if (draft.couldNotSend) ...[
                       const SizedBox(height: BvSpace.s8),
-                      Text(
-                        kind == DaybookKind.thanks
+                      // Review 113 bug 7: Tap to fix opens what is wrong.
+                      CouldNotSendLine(
+                        text: kind == DaybookKind.thanks
                             ? thanksRefusalText(l10n, draft.refusal)
+                            : draft.refusal == samePlaceRefused
+                            ? l10n.checkInSamePlaceRefused
                             : draft.refusal == RefusalWhy.forSomeoneElse.name
                             ? l10n.workItemForSomeoneElse
                             : l10n.daybookCouldNotSend,
-                        style: type.metadata.copyWith(
-                          color: BvColors.textDestructive,
-                        ),
+                        onTap: () => unawaited(_fix(draft)),
                       ),
                     ],
                   ],

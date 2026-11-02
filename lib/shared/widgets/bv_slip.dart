@@ -207,7 +207,13 @@ class BvSlipHeader extends StatelessWidget {
     this.time,
     this.tint,
     this.image,
+    this.onFace,
+    this.faceLabel,
   });
+
+  /// Review 113 (18): a tap on the face (Need you now), said [faceLabel].
+  final VoidCallback? onFace;
+  final String? faceLabel;
 
   /// The person's name; the avatar's initials come from it.
   final String name;
@@ -234,7 +240,29 @@ class BvSlipHeader extends StatelessWidget {
       child: Row(
         spacing: BvSlipSpec.headerGap,
         children: [
-          BvAvatar(name: name, size: BvAvatarSize.xs, tint: tint, image: image),
+          if (onFace == null)
+            BvAvatar(
+              name: name,
+              size: BvAvatarSize.xs,
+              tint: tint,
+              image: image,
+            )
+          else
+            Semantics(
+              button: true,
+              label: faceLabel,
+              child: GestureDetector(
+                key: const Key('slip-face'),
+                behavior: HitTestBehavior.opaque,
+                onTap: onFace,
+                child: BvAvatar(
+                  name: name,
+                  size: BvAvatarSize.xs,
+                  tint: tint,
+                  image: image,
+                ),
+              ),
+            ),
           // The name gives way first; the ref is short.
           Expanded(
             child: LayoutBuilder(

@@ -4,6 +4,7 @@
 // (remove_member_with_handover). Leaving by oneself shows the same sheet
 // (leave_space_with_handover).
 import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/data/models/library_folder.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/library_fakes.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -296,6 +298,77 @@ void main() {
       expect(find.text(l10n.spacesLeaveBodyPrivate), findsOneWidget);
       await _tap(tester, 'bv-dialog-confirm');
       expect(spaces.calls.last, 'leave $_space');
+    });
+
+    testWidgets('Review 113: leaving says my private folders go, only when '
+        'I have one [$lang]', (tester) async {
+      final spaces = _spaces(iAmAdmin: false);
+      final library = FakeLibraryRepository()
+        ..foldersBySpace[_space] = [
+          const LibraryFolder(
+            id: 'f1',
+            name: 'Shared',
+            share: FolderShare.space,
+            mine: true,
+          ),
+        ];
+      await pumpApp(tester, language: lang, spaces: spaces, library: library);
+      await _openInfo(tester);
+      await _tap(tester, 'info-leave');
+      expect(find.textContaining(l10n.spacesLeaveFoldersNote), findsNothing);
+      await tester.tap(find.text(l10n.commonCancel));
+      await tester.pumpAndSettle();
+      library.foldersBySpace[_space]!.add(
+        const LibraryFolder(
+          id: 'f2',
+          name: 'Mine',
+          share: FolderShare.onlyMe,
+          mine: true,
+        ),
+      );
+      await _tap(tester, 'info-leave');
+      expect(find.textContaining(l10n.spacesLeaveFoldersNote), findsOneWidget);
+    });
+
+    testWidgets('Review 113: leaving with Open work says it on the sheet '
+        '[$lang]', (tester) async {
+      final spaces = _spaces(iAmAdmin: false)
+        ..openWorkBy['user-1'] = const [_sleeves];
+      final library = FakeLibraryRepository()
+        ..foldersBySpace[_space] = [
+          const LibraryFolder(
+            id: 'f2',
+            name: 'Mine',
+            share: FolderShare.onlyMe,
+            mine: true,
+          ),
+        ];
+      await pumpApp(tester, language: lang, spaces: spaces, library: library);
+      await _openInfo(tester);
+      await _tap(tester, 'info-leave');
+      expect(find.text(l10n.spacesLeaveFoldersNote), findsOneWidget);
+    });
+
+    testWidgets('Review 113: Remove always says their private folders go, '
+        'held or on the sheet [$lang]', (tester) async {
+      final spaces = _spaces()..openWorkBy['p-omar'] = const [_sleeves];
+      await pumpApp(tester, language: lang, spaces: spaces);
+      await _openMember(tester, 'p-omar');
+      await _tap(tester, 'member-remove');
+      expect(find.text(l10n.spacesRemoveFoldersNote), findsOneWidget);
+      await _tap(tester, 'handover-cancel');
+      await _tap(tester, 'member-remove');
+      await tester.tap(find.byKey(const Key('handover-cancel')));
+      await tester.pumpAndSettle();
+      spaces.openWorkBy['p-omar'] = const [];
+      await _tap(tester, 'member-remove');
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('hold-sheet')),
+          matching: find.textContaining(l10n.spacesRemoveFoldersNote),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('SP9 mirrored: Cancel at the ${lang == 'ar' ? 'right' : 'left'}'

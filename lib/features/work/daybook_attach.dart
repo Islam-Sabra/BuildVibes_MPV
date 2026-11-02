@@ -8,6 +8,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
@@ -18,6 +19,7 @@ import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../library/library_parts.dart';
+import 'could_not_send.dart' show showFileRefused;
 import '../spaces/space_errors.dart';
 import 'daybook_draft.dart';
 
@@ -96,6 +98,7 @@ Future<DraftFile?> chooseDaybookFile(
   required String spaceId,
   LibraryFile? replaces,
   DaybookFileSource? source,
+  String? folderId,
 }) async {
   final l10n = AppLocalizations.of(context);
   final all = replaces != null
@@ -158,8 +161,11 @@ Future<DraftFile?> chooseDaybookFile(
   // Review 74 H1: a photo nobody could open doesn't go.
   if (refused) showSpaceMessage(context, l10n.photoCannotOpen);
   if (phone == null) return null;
-  if ((phone.bytes ?? 0) > maxFileBytes) {
-    showSpaceMessage(context, l10n.chatFileTooBig);
+  // Review 113 bug 7: over the bucket's limit, said before it goes, with
+  // Link folder for big drawings.
+  final cannot = checkSpaceFile(phone, library: true);
+  if (cannot != null) {
+    await showFileRefused(context, ref, spaceId: spaceId, refused: cannot);
     return null;
   }
   // Kept in the app's folder until it is in the Library.
@@ -183,6 +189,8 @@ Future<DraftFile?> chooseDaybookFile(
     mime: phone.mime,
     bytes: phone.bytes,
     local: kept,
+    // A new version stays in its folder.
+    folderId: folderId ?? replaced?.folderId,
     supersedesId: replaced?.id,
     // "Replaces A-501 · V2" (F71, F75).
     supersedesRev: replaced == null

@@ -23,6 +23,8 @@ import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
 import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
+import 'need_you_notice.dart';
+import 'need_you_sheet.dart';
 import 'pass_words.dart';
 import 'remove_member.dart';
 import 'space_errors.dart';
@@ -151,6 +153,19 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final l10n = AppLocalizations.of(context);
     final router = GoRouter.of(context);
     final admin = widget.space.iAmAdmin && !isMe;
+    // Review 113 (18): hidden where the server would refuse.
+    final people = ref.read(spacePeopleProvider(_spaceId)).value;
+    final blocked = await needYouBlocked(ref);
+    if (!mounted) return;
+    final mayCall =
+        people != null &&
+        mayCallNeedYou(
+          space: widget.space,
+          people: people,
+          me: ref.read(authUserIdProvider).value,
+          target: m.person.id,
+          blocked: blocked,
+        );
     final picked = await showBvSheet<_PersonAction>(
       context: context,
       builder: (sheet) => Column(
@@ -166,6 +181,13 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
             title: l10n.settingsViewProfile,
             onTap: () => Navigator.of(sheet).pop(_PersonAction.profile),
           ),
+          if (mayCall)
+            BvListRow(
+              key: const Key('person-need-you'),
+              leading: const BvRowIcon(BvIcons.needYou),
+              title: l10n.needYouNow,
+              onTap: () => Navigator.of(sheet).pop(_PersonAction.needYou),
+            ),
           if (!isMe)
             BvListRow(
               key: const Key('person-message'),
@@ -197,6 +219,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     switch (picked) {
       case _PersonAction.profile:
         await router.push(AppRoutes.person(m.person.id));
+      case _PersonAction.needYou:
+        await showNeedYouSheet(context, spaceId: _spaceId, member: m);
       case _PersonAction.message:
         await openDmThread(router, AppRoutes.messagesWith(m.person.id));
       case _PersonAction.pass:
@@ -842,7 +866,7 @@ class _InviteRow extends StatelessWidget {
   }
 }
 
-enum _PersonAction { profile, message, pass, remove }
+enum _PersonAction { profile, needYou, message, pass, remove }
 
 /// F79: the top of a person's sheet: face, name, role · company, pass.
 class _PersonHead extends StatelessWidget {
