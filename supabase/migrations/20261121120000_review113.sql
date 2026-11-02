@@ -336,7 +336,7 @@ $$;
 -- post is archived, and the archive pushes due go with it (Z6).
 do $do$
 declare
-  v_def text := pg_get_functiondef('public.due_work_reminders()'::regprocedure);
+  v_def text := replace(pg_get_functiondef('public.due_work_reminders()'::regprocedure), chr(13), '');
   v_due text := $old$where r.sent_at is null and r.remind_at <= now()
     for update skip locked$old$;
   v_begin text := $old$begin
@@ -2206,7 +2206,9 @@ begin
   end if;
   execute replace(v_def, v_old, '(jpe?g|png|webp|heic|pdf|m4a)$''');
 
-  v_def := pg_get_functiondef('public.add_post_files(public.space_posts, jsonb)'::regprocedure);
+  -- Live, some functions came from files with CRLF line ends: compare without.
+  v_def := replace(pg_get_functiondef('public.add_post_files(public.space_posts, jsonb)'::regprocedure),
+                   chr(13), '');
   if position('photos and PDFs only' in v_def) = 0 then
     raise exception 'add_post_files changed';
   end if;
