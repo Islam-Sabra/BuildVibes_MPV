@@ -470,7 +470,7 @@ void main() {
     testWidgets('A1 the Space list loading [$lang]', (tester) async {
       await shareSpace(
         tester,
-        FakeSpaceRepository()..spacesGate = Completer<void>().future,
+        FakeSpaceRepository()..postableGate = Completer<void>().future,
       );
       await _snap(tester, 'A1-spaces-loading', lang);
       await tester.pump(const Duration(seconds: 16));

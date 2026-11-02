@@ -1,4 +1,13 @@
-# Review 113 Part A: shots
+# Review 113 shots (claude/r113)
+
+English and Arabic, 390 × 844, in the app's fonts. Rendered by `test_screens/r113_test.dart` and `r113b_test.dart` on the merged branch (parts A, B and the server), so the images show the parts together. No goldens were changed: these wait for the lead.
+
+- `new/`: 38 screens, `<name>_<lang>.png` (76 images).
+- `changed/`: 154 existing screens that differ from their goldens (308 old/new pairs), compared in full colour, one test file at a time so same-named goldens can't overwrite each other. Named `<folder>__<name>_<lang>_old.png` (the golden) and `_new.png` (now).
+- **The Need you now line under Work · Chat has no frame:** NN3-sender-waiting, NN3-sender-answered, NN4-call-in-space, for the lead to judge.
+- **Check-in's pinned lines are four,** not three: Type · For · Check-in · Place (NUDGE-composer).
+
+Part A's section below names changed files as it found them; part B's five screens (F70-library-empty, LV1-library, F79-person-sheet, N3-refused-for-yourself, SP9-removal-sheet) are in `changed/` under their folders too.
 
 Rendered by `test_screens/r113_test.dart`, English and Arabic, 390 × 844, in the app's fonts. `new/` holds this part's screens; `changed/` holds every existing golden that now differs. Part B's images and `README-b.md` are its own.
 
@@ -336,3 +345,44 @@ Each pair was compared in full colour (RGBA arrays): all differ. Three causes:
 | slice7 | T3-name-template_en | 3.71% | cards: React · Share row (and the voice/reactions space it takes) |
 | slice8 | H1-notebook-icon_ar | 6.0% | feed hidden: the app opens on the Spaces tab |
 | slice8 | H1-notebook-icon_en | 5.81% | feed hidden: the app opens on the Spaces tab |
+
+
+---
+
+# Review 113 Part B: shots
+
+Rendered from `test_screens/r113b_test.dart` on branch `claude/r113-b`, 390 × 844, English and Arabic. Every image was looked at.
+
+## new/ (30 tests, 42 images, each `_en` and `_ar`)
+| Shot | What |
+|---|---|
+| NN0-person-sheet | The person sheet from People, with Need you now |
+| NN1-sheet, NN1-sheet-filled | NN1: the sheet empty; with a reason and Add place used |
+| NN1-refusal | The 3-an-hour refusal, inside the sheet |
+| NN3-sender-waiting, NN3-sender-answered | The sender's line in the Space |
+| NN4-call-in-space | A call I got, with On my way · Can't now, for when the notification has gone |
+| LB1-folders, LB1-add-menu, LB1-inside-folder | LB1, + menu, a folder's files |
+| LB1-share-team-picker, LB1-share-team-picked | The sharing choice with its Team pick |
+| LB2-link-folder, LB2-wrong-link | LB2: service found; a link of another service, Add off |
+| B7-too-big | 38 MB refused before it goes, with Link folder |
+| B7-draft-could-not-send, B7-composer-line | The refused Draft on Work, and the line in the composer |
+| B7-tap-to-fix, B7-tap-to-fix-generic | Tap to fix: storage said too big; another refusal |
+| NUDGE-composer | The composer opened from the nudge: Place · Same as last check-in, Send on |
+| NUDGE-same-place-refused | The server refused the same place: back to Set place here, with the plain line |
+
+**NN2 isn't here:** it is the phone's own notification, not a widget. Its words, tag, id, channel and buttons are tested in `test/features/need_you/need_you_notice_test.dart`.
+
+## changed/ (10 existing goldens, `_old` and `_new`; full-colour RGBA comparison)
+| Golden | Why it changed | Expected? |
+|---|---|---|
+| F70-library-empty, LV1-library | LB1: Space name under Library; + for folders (LV1) | Yes |
+| F79-person-sheet | Need you now row added | Yes |
+| N3-refused-for-yourself | The refused line is now tappable: 4 px padding moves it down | Yes |
+| SP9-removal-sheet | "Their private folders … will be deleted." added | Yes (the lead's ruling) |
+
+## Where these differ from the frames, for the lead
+- LB1 keeps **Search files** above the folders (the frame has none): existing files and search needed a place.
+- LB2: the link icon is at the field's end, not its start (`BvTextField` has only an end icon).
+- The four sharing choices now share one line in both languages (`BvChip.tight`: 8 px side padding, 6 px gap, same type; a test in `r113b_test.dart` checks it in the real fonts).
+- **The Space line (NN3, NN4) has no frame.** The review only says "the sender sees the answer". It uses the brand-soft box under Work · Chat; my own calls show for 2 hours, unanswered calls I got for 24 hours.
+- B7-tap-to-fix says "This file is too big. The most is 25 MB." without a size: the sample file is 4.8 MB, and the app quotes a number only when the phone's size is over the limit.
