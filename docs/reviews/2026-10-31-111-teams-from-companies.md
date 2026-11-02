@@ -123,3 +123,9 @@
 - Check the live Postgres version (15 or later is needed for `on delete set null (admin_id)`).
 - Check that `fuzzystrmatch` isn't already installed in `public`. If it is, stop and report.
 - Then: `db push` → the build → install.
+
+### Cloud session, 2 Nov evening: the server side done on `claude/r111-cloud`
+- **Done, test first:** V1, V2, V3, V4 (server: `similar_teams`), V6 (server: `admin_name`), V8 and V9. The failing tests were committed first (`62_review111_lead.test.sql`). pgTAP: **61 files, 4,363 checks, PASS**.
+- **V7 reversed by the lead:** kept as built. Loosening it broke an older rule (27_model_views): out of the Team, your Team view closes. An uploader reads a Team file only while they are a member of that Team or some Team's admin.
+- **V14 decided:** a Team admin outside a Team **posts** to it but doesn't read its chat or templates. They stay with the Team's members and the Space admin. Tested.
+- **For the PC:** merge `claude/r111-cloud` into `claude/r111` first, then the app side (V4–V6, V10–V13), choice 3 and the goldens.
