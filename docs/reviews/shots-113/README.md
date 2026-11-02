@@ -1,6 +1,6 @@
 # Review 113 shots (claude/r113)
 
-English and Arabic, 390 × 844, in the app's fonts. Rendered by `test_screens/r113_test.dart` and `r113b_test.dart` on the merged branch (parts A, B and the server), so the images show the parts together. No goldens were changed: these wait for the lead.
+English and Arabic, 390 × 844, in the app's fonts. Rendered by `test_screens/r113_test.dart` and `r113b_test.dart` on the merged branch (parts A, B and the server), so the images show the parts together. After the lead's check (Z1–Z13) the goldens were updated to these images; CV3_long_press has the Z8 menu order. `changed/` keeps each old golden beside its new one.
 
 - `new/`: 38 screens, `<name>_<lang>.png` (76 images).
 - `changed/`: 154 existing screens that differ from their goldens (308 old/new pairs), compared in full colour, one test file at a time so same-named goldens can't overwrite each other. Named `<folder>__<name>_<lang>_old.png` (the golden) and `_new.png` (now).

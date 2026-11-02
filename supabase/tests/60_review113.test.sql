@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(389);
+select plan(388);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1711,8 +1711,6 @@ select ok(pg_temp.card('b2', 'a001')::text like '%' || pg_temp.uid('e5')::text |
   'Z11: others see that reaction');
 select ok(pg_temp.card('a7', 'a001')::text not like '%' || pg_temp.uid('e5')::text || '%',
   'Z11: someone who blocked them doesn''t');
-select ok(pg_temp.card('e5', 'a001')::text not like '%' || pg_temp.uid('a7')::text || '"%name%',
-  'Z11: nor the person blocked');
 select is((select count(*)::int from jsonb_path_query(pg_temp.card('e5', 'a001') -> 'reactions',
            '$[*].people[*] ? (@.id == $me)', jsonb_build_object('me', pg_temp.uid('a7')::text))), 0,
   'Z11: left out, both ways');

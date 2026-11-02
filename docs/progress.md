@@ -906,6 +906,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **2 Nov (PC): review 113 on `claude/r113`**, for the lead; nothing merged, live, deployed or built:
   - The feed hidden, the Spaces tab, Work first, React · Share, hold Delete / Archive, the new composer with voice notes, the check-in nudge, Need you now, Library folders and Link folder, bug 7, the `space-files` sweep. Migration 20261121120000 (not live).
   - Checks: analyze clean; 3,436 app tests; 59 files, 4,130 checks, PASS; shots 314 pass, 348 expected, in `docs/reviews/shots-113/`.
+- **2 Nov (PC): review 113 Z1–Z13 fixed, merged into `slice2-app`**; nothing live, deployed or built. Goldens updated. `flutter analyze` clean; 3,446 app tests; 662 shots pass; 59 files, 4,199 checks, PASS (one earlier run failed and was not reproduced in 12 reruns; see the report).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

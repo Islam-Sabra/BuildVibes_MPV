@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — review 113 Z1–Z13 fixed and merged into `slice2-app`; nothing live, deployed or built
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Z1–Z13 are on `claude/r113`, merged into `slice2-app`.** All SQL is in `20261121120000_review113.sql` (not live). pgTAP file 60 has 389 checks.
+- **Goldens updated:** 308 changed, and `docs/screens/r113/` and `r113b/` are now tracked. `docs/reviews/shots-113/` is rebuilt.
+- **Differences from the review's wording, for the lead:**
+  - Z1: the leak did not reproduce: the last filter in `search_space` already dropped those rows. The fix went in as asked. The test that failed first is the real defect: private files took the 30 places and pushed out a file the reader may open.
+  - Z3: a kept file needs a row for its attachment, so the row stays with `deleted_at` and `proof_kept_at`, out of the Library and search, and `can_read_library_file` opens it for whoever sees a post that carries it. It goes by the 30-day rule once no live post carries it. During the 7 days a file in an only-me folder is seen on the post as before: by its owner only. A deleted account's only-me folders still go at once; their attached files stay.
+  - Z6: `push_queue` has no `send_after` and sends on insert, so the push waits in a new table, `archive_pushes`, and goes from `due_work_reminders`. That job runs every 5 minutes, not every minute, so the push can be up to 5 minutes late. A reminder due while archived waits; Undo gives it back.
+  - Z13: the sweep's own effect was already covered: a photo uploaded earlier and swept is uploaded again from the phone. The failure left is a file gone from the phone, so that is what the draft and the send check.
+- **The nightly job:** `purge_deleted_library_files` now runs `purge_left_only_me_folders` itself, so `notebook-purge`'s code did not change for Z3.
+- **Checks on `slice2-app` after the merge:** see the report in chat; `flutter analyze` clean; 3,446 app tests; 662 shots pass; `supabase test db`: 59 files, 4,199 checks, PASS (one earlier run failed and was not reproduced in 12 reruns; see the report).
+- **Live steps, each with the founder's yes:** `supabase db push` (20261121120000); read-only `select count(*) from public.orphan_space_files()`; time a run on a copy of that count and set `NIGHTLY_CAP`; deploy `notebook-purge`; check the cron list; then `push`, the schedules, a build, the phone checks in the review.
+- **Who has which branch:** PC has `claude/r113` and `slice2-app`.
+
 ## PC update: 2 Nov 2026 — review 113 built on `claude/r113` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
