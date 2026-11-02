@@ -291,9 +291,9 @@ select lives_ok($$select public.add_comment(pg_temp.item('a007'), 'Crew note')$$
 -- Delete while nothing was added; Cancel after ----------------------------------------------------
 
 select pg_temp.as_user('e3');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a007'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a007'))$$, '22023', null,
   'delete is refused once someone else added an update');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a008'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a008'))$$, '22023', null,
   'and once a work item is under it, even the author''s own');
 select pg_temp.as_user('e1');
 select throws_ok($$select public.delete_space_post(pg_temp.item('a006'))$$, '42501', null,
@@ -306,7 +306,7 @@ select lives_ok($$select public.delete_space_post(pg_temp.item('a006'))$$,
 select pg_temp.as_user('e2');
 select public.sign_done(pg_temp.item('a017'), 'Signed.');
 select pg_temp.as_user('e3');
-select throws_ok($$select public.delete_space_post(pg_temp.item('a017'))$$, 'P0001', null,
+select throws_ok($$select public.delete_space_post(pg_temp.item('a017'))$$, '22023', null,
   'a sign-off by the owner ends Delete');
 select pg_temp.as_user('e2');
 select is((select count(*) from public.space_posts where id = pg_temp.item('a006')), 0::bigint,

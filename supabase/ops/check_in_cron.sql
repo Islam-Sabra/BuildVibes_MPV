@@ -40,6 +40,14 @@ select cron.schedule(
   $job$
 );
 
+-- Review 113 (17), after migration 60 (20261121120000) is live and the push
+-- function with the check_in_nudge text is deployed. Every minute: the
+-- Lead's nudge when a Space that used check-in has none 30 minutes before
+-- its usual time, once per Space per day. Only fills push_queue.
+select cron.schedule('check-in-nudge', '* * * * *',
+  $job$ select public.check_in_nudge(); $job$);
+
 -- To check:   select jobname, schedule, active from cron.job;
 -- To undo:    select cron.unschedule('check-in-notify');
 --             select cron.unschedule('check-in-daily-report');
+--             select cron.unschedule('check-in-nudge');

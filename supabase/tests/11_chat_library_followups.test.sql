@@ -17,15 +17,15 @@ insert into storage.objects (bucket_id, name, owner_id, metadata, created_at)
 select 'space-files', current_setting('test.space') || '/' || gen_random_uuid() || '/' || f.name,
        '00000000-0000-0000-0000-0000000011c1',
        '{"mimetype": "image/jpeg", "size": 100}'::jsonb, now() - f.age
-from (values ('hour.jpg', interval '1 hour'), ('twodays.jpg', interval '2 days')) as f(name, age);
+from (values ('sixdays.jpg', interval '6 days'), ('eightdays.jpg', interval '8 days')) as f(name, age);
 
 set local role service_role;
 select is((select count(*) from public.claim_orphan_files(interval '0 seconds')), 1::bigint,
-  'asking for any age still skips files younger than a day');
-select ok((select storage_path from public.file_cleanup_claims) like '%/twodays.jpg',
-  'only the two-day-old file is claimed');
-select is((select count(*) from public.claim_orphan_files()), 0::bigint,
-  'by default (7 days) a two-day-old file is not claimed');
+  'asking for any age still skips files younger than 7 days');
+select ok((select storage_path from public.file_cleanup_claims) like '%/eightdays.jpg',
+  'only the eight-day-old file is claimed');
+select is((select count(*) from public.claim_orphan_files()), 1::bigint,
+  'the default is the same 7 days');
 reset role;
 
 -- Sharing a Library file in chat ------------------------------------------------------
