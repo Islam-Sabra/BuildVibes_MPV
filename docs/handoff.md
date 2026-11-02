@@ -2,6 +2,30 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 2 Nov 2026, evening — review 111's server fixes on `claude/r111-cloud` (pushed); not merged, not live
+
+- **Branch:** `claude/r111-cloud`, from `claude/r111` at 5f541fa4. **The PC merges it into `claude/r111`** before doing the app part. Nobody else works on `claude/r111-cloud`.
+- **Done, test first** (the lead's check V1–V14 in `docs/reviews/2026-10-31-111-teams-from-companies.md`). The failing tests were committed first (a1e81495), in a new `supabase/tests/62_review111_lead.test.sql`.
+  - **V1:** a child work item keeps the Team post rule. The Team is skipped only when it really came from the parent or the Team chat message.
+  - **V2:** `company_team_for` works only for someone with a pending join request, or a member. Never across a block, and never for an account going away.
+  - **V3:** a Viewer is never a Team admin:
+    - `set_team_admin` and `create_company_teams` refuse one;
+    - the suggestion skips Viewers;
+    - a trigger clears the role when a pass becomes Viewer;
+    - new `is_space_viewer`.
+  - **V4 (server):** the preview has `similar_teams`: `[{key, team_id, team_name}]`, a group that looks like an existing Team.
+  - **V6 (server):** each preview group has `admin_name`, the name of whoever Create will set.
+  - **V8:** `create_company_teams` locks the Space only after the admin check.
+  - **V9:** `r111_patch` refuses text that appears more than once.
+  - **V14:** tested that a Team admin outside a Team posts to it but doesn't read its chat. That stays as is, the lead's call: chat and templates stay with the Team's members.
+  - **V7, the lead's reversal:** kept as built (uploader reads only while some Team's admin). Loosening it broke `27_model_views` test 139: out of the Team, your Team view closes.
+  - **61's fixture:** Zaki now has a pending join request (V2). Vera, a Viewer, is no longer used as a Team admin.
+- **Checks (local Postgres 16 with the repo's shim):** all migrations; pgTAP **61 files, 4,363 checks, PASS**.
+- **Left for the PC:**
+  - **The app side:** V4 (show `similar_teams` as a merge into that Team; an unmerged look-alike is its own ticked row), V5, V6 (show `admin_name`), V10–V13, the 24 goldens.
+  - **The founder's answer** on choice 3 (Crew preselected).
+  - **Not done here:** no Flutter in the cloud session, so `flutter analyze` and `flutter test` weren't run. Nothing in `lib/` changed.
+
 ## PC update: 2 Nov 2026 — review 111 ready on `claude/r111`, waiting for the lead's check; not merged, not live, not built
 
 - **Branch:** `claude/r111` (app, server merged in, `slice2-app` with B1 merged in). Migration `20261122120000_review111.sql`, not live. It adds the `fuzzystrmatch` extension, so live gets that too.
