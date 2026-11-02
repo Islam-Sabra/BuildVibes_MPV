@@ -216,3 +216,18 @@
     - A widget test for the line.
 
 **Note:** a read-only query on live is fine when it is needed to find a fault, but say so in the report before the next step, as was done here.
+
+## The lead's third check: `slice2-app` at `0321e068` (2 Nov)
+**What was run:** the SQL stand-in on `0321e068`, two runs: 59 files, 4,216 checks, PASS. The Z14 diff was read line by line.
+
+**Accepted:**
+- `can_open_library_file` opens a file for whoever sees a post that carries it. `can_read_library_file` stays the Library and search rule.
+- The new `open_library_file` and `post_files_for` are security definer, with `search_path=''`, and only signed-in users can run them.
+- The `post_files` and `work_item_attachments` read policies were updated, and so was `may_read_file`.
+- **Older Team-tagged files:** a Team file attached to a post that the whole Space sees opens for everyone who sees that post. This is the same rule (attaching is sharing); the changed check in `23_daybook_extras` is accepted.
+
+**Phone checks to add:**
+- From another account (Test Lead), open an only-me file attached to a work item, both from the card and from the file's own screen.
+- Open a file post's file as a Viewer.
+
+**Verdict: review 113 is ready to go live.** Steps in the agreed order, each from the PC.
