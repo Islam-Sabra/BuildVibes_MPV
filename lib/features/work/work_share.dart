@@ -74,6 +74,7 @@ Future<void> shareToThread(
     // Every one is tried; what failed is said after (L10, as H5).
     final failed = <DaybookPost>[];
     var teamOnly = false;
+    var refused = false;
     for (final p in those) {
       try {
         await repo.sharePost(
@@ -84,7 +85,11 @@ Future<void> shareToThread(
       } on SpaceException catch (e) {
         // Review 113: a Team's post goes only into that Team's thread.
         if (e.failure == SpaceFailure.badInput) {
-          teamOnly = true;
+          if ((e.message ?? '').contains(_teamOnlyRefusal)) {
+            teamOnly = true;
+          } else {
+            refused = true;
+          }
         } else {
           failed.add(p);
         }
@@ -94,6 +99,10 @@ Future<void> shareToThread(
     messenger.hideCurrentSnackBar();
     if (teamOnly && failed.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.shareTeamOnly)));
+      return;
+    }
+    if (refused && failed.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.shareFailedPlain)));
       return;
     }
     if (failed.isEmpty) {
@@ -117,3 +126,6 @@ Future<void> shareToThread(
 
   await send(posts);
 }
+
+/// share_post_to_thread's words when a Team's post goes to another thread.
+const _teamOnlyRefusal = "only in that Team's thread";

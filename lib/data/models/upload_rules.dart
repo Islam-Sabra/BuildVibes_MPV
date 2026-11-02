@@ -82,8 +82,9 @@ const libraryFileTypes = {
 };
 
 /// What is wrong with a file the bucket (or the Library) refuses:
-/// [notPdfOrPhoto] is a type the bucket takes but the Library doesn't.
-enum UploadProblem { tooBig, wrongType, notPdfOrPhoto }
+/// [notPdfOrPhoto] is a type the bucket takes but the Library doesn't;
+/// [gone] is a draft's file no longer on the phone (review 113 Z13).
+enum UploadProblem { tooBig, wrongType, notPdfOrPhoto, gone }
 
 /// A file the bucket refuses, said before it goes or read from storage's
 /// answer. A [SpaceException], so every caller that catches those still
@@ -97,7 +98,8 @@ class FileRefused extends SpaceException {
   /// The file's size, when known.
   final int? bytes;
 
-  /// The post's file (its Library id), so Remove takes that one off.
+  /// The post's file (its Library id; a photo's or a voice note's place on
+  /// the phone), so Remove takes that one off.
   final String? fileId;
 
   /// Whole megabytes, rounded up ("38 MB"): the phone's megabyte.

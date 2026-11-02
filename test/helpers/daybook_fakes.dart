@@ -423,6 +423,7 @@ class FakeDaybookRepository implements DaybookRepository {
 
   /// Shares that fail with no signal, by post; every try, in order.
   final shareFails = <String>{};
+  SpaceException? shareError;
   final shareTries = <({String postId, String messageId})>[];
 
   @override
@@ -433,6 +434,7 @@ class FakeDaybookRepository implements DaybookRepository {
   }) async {
     _check();
     shareTries.add((postId: postId, messageId: messageId));
+    if (shareError case final e?) throw e;
     if (shareFails.contains(postId)) {
       throw const SpaceException(SpaceFailure.network);
     }

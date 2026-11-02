@@ -9948,5 +9948,13 @@
   "libraryServiceDropbox": "Dropbox",
   "@libraryServiceDropbox": {
     "description": "A service name, as written."
+  },
+  "shareFailedPlain": "Couldn't share. Try again.",
+  "@shareFailedPlain": {
+    "description": "Sharing a post into Chat was refused, for no reason worth saying (review 113 Z9)."
+  },
+  "fileGoneLine": "This file is no longer on your phone. Remove it to send the rest.",
+  "@fileGoneLine": {
+    "description": "A draft's file has gone from the phone, in the Couldn't send sheet (review 113 Z13)."
   }
 }

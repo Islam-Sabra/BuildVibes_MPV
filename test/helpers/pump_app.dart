@@ -54,6 +54,7 @@ import 'package:buildvibes/features/chat/voice.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -312,6 +313,7 @@ Future<TestApp> pumpApp(
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
+  bool Function(String path)? localFileThere,
 
   /// How many photos the gallery gives (up to the room left).
   int galleryPhotos = 2,
@@ -465,6 +467,7 @@ Future<TestApp> pumpApp(
           return true;
         }),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
+        localFileThereProvider.overrideWithValue(localFileThere ?? (_) => true),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async => (
             file:

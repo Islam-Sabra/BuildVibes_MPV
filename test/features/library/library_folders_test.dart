@@ -253,6 +253,26 @@ void main() {
       expect(app.opened, [Uri.parse('https://1drv.ms/f/s!Ab3xYz')]);
     });
 
+    testWidgets('Z10: a link that no longer passes is refused, not opened '
+        '[$lang]', (tester) async {
+      final app = await openLibrary(
+        tester,
+        lang,
+        folders: const [
+          LibraryFolder(
+            id: 'f-old',
+            name: 'Old link',
+            share: FolderShare.space,
+            url: 'https://docs.google.com/document/d/1',
+            service: LinkService.googleDrive,
+          ),
+        ],
+      );
+      await _tap(tester, _key('folder-f-old'));
+      expect(app.opened, isEmpty);
+      expect(find.text(l10n.libraryLinkWrong), findsOneWidget);
+    });
+
     testWidgets('LB1: no + for who may not add files [$lang]', (tester) async {
       await openLibrary(tester, lang, addFiles: false);
       expect(_key('library-add'), findsNothing);

@@ -11641,6 +11641,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropbox'**
   String get libraryServiceDropbox;
+
+  /// Sharing a post into Chat was refused, for no reason worth saying (review 113 Z9).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share. Try again.'**
+  String get shareFailedPlain;
+
+  /// A draft's file has gone from the phone, in the Couldn't send sheet (review 113 Z13).
+  ///
+  /// In en, this message translates to:
+  /// **'This file is no longer on your phone. Remove it to send the rest.'**
+  String get fileGoneLine;
 }
 
 class _AppLocalizationsDelegate

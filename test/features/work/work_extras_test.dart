@@ -458,6 +458,35 @@ void main() {
       });
     });
 
+    group('Z9 Share refused [$lang]', () {
+      Future<void> share(WidgetTester tester, String? message) async {
+        final daybook = FakeDaybookRepository()
+          ..shareError = SpaceException(SpaceFailure.badInput, message);
+        await _open(
+          tester,
+          lang,
+          posts: [s.rebar(), s.gate()],
+          daybook: daybook,
+        );
+        await _show(tester, 'post-rebar');
+        await _tap(tester, _key('card-share-post-rebar'));
+        await _tap(tester, _key('share-thread-$_everyone'));
+      }
+
+      testWidgets('the server\'s team-only refusal says Team only', (
+        tester,
+      ) async {
+        await share(tester, 'a Team\'s post only in that Team\'s thread');
+        expect(find.text(l10n.shareTeamOnly), findsOneWidget);
+      });
+
+      testWidgets('any other bad input is the plain line', (tester) async {
+        await share(tester, 'a thread of the post\'s own Space');
+        expect(find.text(l10n.shareFailedPlain), findsOneWidget);
+        expect(find.text(l10n.shareTeamOnly), findsNothing);
+      });
+    });
+
     group('105B L7 Undo and Unarchive [$lang]', () {
       testWidgets('"Archived · Undo": Undo brings it back', (tester) async {
         final app = await _open(tester, lang, posts: [s.gate(), s.rebar()]);

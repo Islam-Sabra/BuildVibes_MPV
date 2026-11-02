@@ -23,7 +23,8 @@ void main() {
       );
       expect(
         linkServiceOf('https://docs.google.com/document/d/1'),
-        LinkService.googleDrive,
+        isNull,
+        reason: 'Z10: a document, not a folder',
       );
     });
 

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart';
@@ -669,6 +670,7 @@ class DaybookPostDraft {
     ({double lat, double lng})? Function()? site,
     String? Function()? samePlaceAs,
     bool refused = false,
+    bool notRefused = false,
   }) => DaybookPostDraft(
     checkInTeams: checkInTeams ?? this.checkInTeams,
     inTime: inTime == null ? this.inTime : inTime(),
@@ -723,7 +725,7 @@ class DaybookPostDraft {
     files: files ?? this.files,
     teamId: team == null ? teamId : team()?.id,
     teamName: team == null ? teamName : team()?.name,
-    couldNotSend: refused || couldNotSend,
+    couldNotSend: !notRefused && (refused || couldNotSend),
   );
 
   Map<String, dynamic> toJson() => {
@@ -784,6 +786,33 @@ class DaybookPostDraft {
     'site_lng': siteLng,
     'same_place_as': samePlaceAs,
   };
+}
+
+/// Review 113 Z13: whether the phone still has a file a draft keeps.
+final localFileThereProvider = Provider<bool Function(String path)>(
+  (ref) =>
+      (path) => File(path).existsSync(),
+);
+
+/// The first file still to go that is no longer on the phone, or null.
+FileRefused? goneDraftFile(
+  bool Function(String path) there, {
+  required List<String> photos,
+  String? voice,
+  required List<DraftFile> files,
+}) {
+  for (final p in photos) {
+    if (!there(p)) return FileRefused(UploadProblem.gone, fileId: p);
+  }
+  if (voice != null && !there(voice)) {
+    return FileRefused(UploadProblem.gone, fileId: voice);
+  }
+  for (final f in files) {
+    if (f.local case final local? when !f.added && !there(local)) {
+      return FileRefused(UploadProblem.gone, fileId: f.libraryId);
+    }
+  }
+  return null;
 }
 
 /// [DaybookPostDraft.refusal] when the server wouldn't copy the last

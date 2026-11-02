@@ -43,6 +43,7 @@ Future<_App> _open(
   WidgetTester tester,
   String lang, {
   PhoneFile? picked,
+  bool Function(String path)? there,
 }) async {
   final s = DaybookSamples(lang);
   final daybook = FakeDaybookRepository()..posts[_space] = const [];
@@ -56,6 +57,7 @@ Future<_App> _open(
     library: FakeLibraryRepository(now: DaybookSamples.thursday),
     now: DaybookSamples.thursday,
     pickDocument: picked == null ? null : () => picked,
+    localFileThere: there,
   );
   GoRouter.of(
     tester.element(find.byType(Navigator).first),
@@ -189,6 +191,37 @@ void main() {
       await _tap(tester, _key('could-not-send-remove'));
       expect(_draft(tester), isNull);
       expect(_key('composer'), findsNothing);
+    });
+
+    testWidgets('Z13: a file gone when the draft is sent: Tap to fix says '
+        'so, Remove takes it off, and the line goes [$lang]', (tester) async {
+      var there = true;
+      final (:app, :daybook) = await _open(tester, lang, there: (_) => there);
+      await _filePost(tester);
+      there = false;
+      await _tap(tester, _key('writing-post'));
+      expect(daybook.createdPosts, isEmpty);
+      expect(app.library.uploads, isEmpty);
+      await _openDraft(tester, l10n);
+      await _tap(tester, _key('writing-could-not-send'));
+      expect(find.text(l10n.fileGoneLine), findsOneWidget);
+      await _tap(tester, _key('could-not-send-remove'));
+      expect(_draft(tester)?.files, isEmpty);
+      expect(_draft(tester)?.couldNotSend, isFalse);
+      expect(_key('writing-could-not-send'), findsNothing);
+    });
+
+    testWidgets('Z13: a file gone when the draft is opened: the same line '
+        '[$lang]', (tester) async {
+      var there = true;
+      await _open(tester, lang, there: (_) => there);
+      await _filePost(tester);
+      expect(_key('writing-could-not-send'), findsNothing);
+      await _tap(tester, _key('composer-close'));
+      there = false;
+      await tester.tap(_key('daybook-draft'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(_key('writing-could-not-send'), findsOneWidget);
     });
   }
 }

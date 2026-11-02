@@ -280,10 +280,12 @@ void main() {
         expect(menu, isA<AdaptiveTextSelectionToolbar>());
         final items = (menu as AdaptiveTextSelectionToolbar).buttonItems!;
         final labels = [for (final i in items) i.label];
-        expect(
-          labels,
-          containsAll([l10n.cpDateTime, l10n.cpBullets, l10n.pageTable]),
-        );
+        // Z8: ours first, so they never fall under the phone's ⋮.
+        expect(labels.take(3), [
+          l10n.cpDateTime,
+          l10n.cpBullets,
+          l10n.pageTable,
+        ]);
         expect(
           items.length,
           greaterThan(3),

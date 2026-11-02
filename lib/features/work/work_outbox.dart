@@ -837,6 +837,19 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         current.voicePath != null;
     for (;;) {
       try {
+        // Z13: a file gone from the phone goes back to the draft, saying so.
+        if (item.isNewPost) {
+          final gone = goneDraftFile(
+            ref.read(localFileThereProvider),
+            photos: [
+              for (final p in current.photos)
+                if (p.remote == null) p.local,
+            ],
+            voice: current.voicePath == null ? current.voiceLocal : null,
+            files: current.files,
+          );
+          if (gone != null) throw gone;
+        }
         final photos = <PendingPhoto>[];
         for (final (i, p) in current.photos.indexed) {
           if (p.remote != null) {

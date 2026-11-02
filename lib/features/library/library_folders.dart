@@ -197,6 +197,11 @@ Future<T?> openLibraryFolder<T>(
 }) async {
   final url = folder.url;
   if (url != null) {
+    // Z10: checked again here: only a link that still passes opens.
+    if (linkServiceOf(url) == null) {
+      showSpaceMessage(context, AppLocalizations.of(context).libraryLinkWrong);
+      return null;
+    }
     final uri = Uri.tryParse(url);
     final opened = uri != null && await ref.read(openLinkProvider)(uri);
     if (!opened && context.mounted) {

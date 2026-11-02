@@ -13,7 +13,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
-import '../../data/models/upload_rules.dart' show FileRefused;
+import '../../data/models/upload_rules.dart' show FileRefused, UploadProblem;
 import '../../data/repositories/daybook_repository.dart'
     show spaceWorkTagsProvider;
 import '../../data/repositories/space_repository.dart';
@@ -193,6 +193,20 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         if (f.hasFocus && widget.panel != null) widget.onPanel(null);
       });
     }
+    // Z13: a file gone from the phone says so as the draft opens.
+    if (draft != null && !draft.couldNotSend) {
+      final gone = goneDraftFile(
+        ref.read(localFileThereProvider),
+        photos: draft.photos,
+        voice: draft.voiceLocal,
+        files: draft.files,
+      );
+      if (gone != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_writer.fileGone(gone));
+        });
+      }
+    }
   }
 
   @override
@@ -238,7 +252,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       context,
       why: why,
       refused: refused,
-      tryAgain: widget.onTryAgain != null,
+      tryAgain:
+          widget.onTryAgain != null && refused?.problem != UploadProblem.gone,
       linkFolder: widget.onLinkFolder != null,
     );
     if (!mounted) return;
@@ -254,6 +269,12 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                   .firstOrNull;
         if (refused != null) {
           if (file != null) await _writer.removeFile(file);
+          // Z13: a photo or a voice note is named by its place on the phone.
+          final photo = draft.photos.indexOf(refused.fileId ?? '');
+          if (photo >= 0) await _writer.removePhoto(photo);
+          if (draft.voiceLocal != null && draft.voiceLocal == refused.fileId) {
+            await _writer.removeVoice();
+          }
           await _writer.clearRefusal();
           return;
         }
@@ -330,8 +351,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     EditableTextState state,
   ) => AdaptiveTextSelectionToolbar.buttonItems(
     anchors: state.contextMenuAnchors,
+    // Z8: ours first, so they never fall under the phone's ⋮.
     buttonItems: [
-      ...state.contextMenuButtonItems,
       for (final q in _quick(kind))
         ContextMenuButtonItem(
           label: _quickName(l10n, q),
@@ -340,6 +361,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
             _doQuick(q, field);
           },
         ),
+      ...state.contextMenuButtonItems,
     ],
   );
 

@@ -13,6 +13,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart'
     show photosPreparingProvider, PhotosPreparing;
+import '../../data/models/upload_rules.dart' show FileRefused;
 import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/post_page.dart' show PageChecklist;
@@ -866,7 +867,12 @@ class DaybookWriter {
   }
 
   /// Review 113 bug 7: the refused file is off; its reason goes with it.
-  Future<void> clearRefusal() => _put((d) => d.copyWith(refusal: () => null));
+  Future<void> clearRefusal() =>
+      _put((d) => d.copyWith(refusal: () => null, notRefused: true));
+
+  /// Z13: a file of this draft is gone from the phone.
+  Future<void> fileGone(FileRefused gone) =>
+      _put((d) => d.copyWith(refusal: () => gone.code, refused: true));
 
   /// Review 105B L6: an announcement pinned to the end of a day ends at
   /// midnight in the Space's time zone, worked out on Post with the Space's

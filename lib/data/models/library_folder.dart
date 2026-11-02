@@ -36,8 +36,8 @@ enum LinkService {
 /// The service a pasted share link is from, as the server works it out
 /// (create_library_folder): https only, and the host one of OneDrive's
 /// (onedrive.live.com, 1drv.ms, any *.sharepoint.com), Google Drive's
-/// (drive.google.com, docs.google.com) or Dropbox's (www.dropbox.com,
-/// dropbox.com). Null for anything else.
+/// (drive.google.com) or Dropbox's (www.dropbox.com, dropbox.com). Null for
+/// anything else.
 LinkService? linkServiceOf(String text) {
   final uri = Uri.tryParse(text.trim());
   // As the server: https, no user@, no port but 443.
@@ -54,7 +54,7 @@ LinkService? linkServiceOf(String text) {
       host.endsWith('.sharepoint.com')) {
     return LinkService.oneDrive;
   }
-  if (host == 'drive.google.com' || host == 'docs.google.com') {
+  if (host == 'drive.google.com') {
     return LinkService.googleDrive;
   }
   if (host == 'www.dropbox.com' || host == 'dropbox.com') {

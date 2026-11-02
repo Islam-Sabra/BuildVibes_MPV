@@ -7043,4 +7043,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get libraryServiceDropbox => 'Dropbox';
+
+  @override
+  String get shareFailedPlain => 'تعذّرت المشاركة. حاول مرة أخرى.';
+
+  @override
+  String get fileGoneLine => 'هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي.';
 }

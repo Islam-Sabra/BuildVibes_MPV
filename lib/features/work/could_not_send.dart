@@ -26,6 +26,7 @@ String fileRefusedText(AppLocalizations l10n, FileRefused r) =>
       UploadProblem.tooBig => l10n.fileTooBigPlain('$spaceFilesMaxMegabytes'),
       UploadProblem.wrongType => l10n.fileWrongTypeLine,
       UploadProblem.notPdfOrPhoto => l10n.fileNotPdfOrPhotoLine,
+      UploadProblem.gone => l10n.fileGoneLine,
     };
 
 /// The bucket's limit in whole megabytes (25).

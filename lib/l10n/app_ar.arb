@@ -1923,5 +1923,7 @@
   "libraryAddToFolder": "أضف ملفًا هنا",
   "libraryServiceOneDrive": "OneDrive",
   "libraryServiceGoogleDrive": "Google Drive",
-  "libraryServiceDropbox": "Dropbox"
+  "libraryServiceDropbox": "Dropbox",
+  "shareFailedPlain": "تعذّرت المشاركة. حاول مرة أخرى.",
+  "fileGoneLine": "هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي."
 }

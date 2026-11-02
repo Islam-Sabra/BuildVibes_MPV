@@ -6995,4 +6995,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryServiceDropbox => 'Dropbox';
+
+  @override
+  String get shareFailedPlain => 'Couldn\'t share. Try again.';
+
+  @override
+  String get fileGoneLine =>
+      'This file is no longer on your phone. Remove it to send the rest.';
 }
