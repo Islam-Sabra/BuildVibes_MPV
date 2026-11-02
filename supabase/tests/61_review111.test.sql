@@ -96,6 +96,9 @@ select pg_temp.sp(), pg_temp.uid(x.id), x.pass, pg_temp.uid('a1'), now() - x.d *
 from (values ('b2', 'crew', 9), ('c3', 'crew', 8), ('a7', 'lead', 2), ('a8', 'crew', 7),
              ('d4', 'crew', 3), ('e5', 'viewer', 6), ('b9', 'crew', 5), ('c9', 'crew', 4),
              ('ca', 'crew', 1)) x(id, pass, d);
+-- Zaki asks to join (V2: company_team_for is for someone asking, or a member).
+insert into public.space_join_requests (space_id, profile_id, via)
+values (pg_temp.sp(), pg_temp.uid('cb'), 'code');
 insert into public.companies (id, name, kind_id, market_id)
 values (pg_temp.id('c001'), 'Gulf Mech', 'contractor', 'kw');
 update public.profiles set company_id = pg_temp.id('c001'), company_name_text = null
