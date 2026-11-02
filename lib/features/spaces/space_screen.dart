@@ -77,8 +77,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   /// The Space menu's Daily report (slice 7), opened once.
   DaybookReportStart? _reportStart;
 
-  void _addFile({LibraryFile? replaces}) => setState(() {
-    _fileStart = DaybookFileStart(replaces: replaces);
+  void _addFile({LibraryFile? replaces, String? folderId}) => setState(() {
+    _fileStart = DaybookFileStart(replaces: replaces, folderId: folderId);
     _tab = SpaceScreen.workTab;
   });
 
@@ -237,7 +237,9 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     final ask = await context.push<SpaceFileAsk>(
       AppRoutes.spaceLibrary(widget.spaceId),
     );
-    if (ask != null && mounted) _addFile(replaces: ask.replaces);
+    if (ask != null && mounted) {
+      _addFile(replaces: ask.replaces, folderId: ask.folderId);
+    }
   }
 
   /// Back (SP1, review 105 J1) is always there: with nothing under the

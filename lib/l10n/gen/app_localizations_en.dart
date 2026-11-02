@@ -6711,4 +6711,209 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkInInMissed => 'In: missed';
+
+  @override
+  String get needYouNow => 'Need you now';
+
+  @override
+  String get needYouReasonHint =>
+      'Why (optional): Gate 2, concrete truck waiting';
+
+  @override
+  String get needYouAddPlace => 'Add place';
+
+  @override
+  String get needYouPlaceHint => 'Place: Gate 2';
+
+  @override
+  String needYouStrongNote(String name) {
+    return '$name gets a strong notification, even with the app closed.';
+  }
+
+  @override
+  String needYouTooMany(String name) {
+    return 'You called $name 3 times in the last hour. Try again later.';
+  }
+
+  @override
+  String needYouRefused(String name) {
+    return '$name can\'t be called here.';
+  }
+
+  @override
+  String needYouSent(String name) {
+    return 'Sent to $name.';
+  }
+
+  @override
+  String get needYouOnMyWay => 'On my way';
+
+  @override
+  String get needYouCantNow => 'Can\'t now';
+
+  @override
+  String get needYouChannelAbout =>
+      'When someone in a Space needs you there now.';
+
+  @override
+  String get needYouSomeone => 'Someone needs you now';
+
+  @override
+  String needYouYouAnswered(String answer) {
+    return 'You answered: $answer';
+  }
+
+  @override
+  String get needYouAlreadyAnswered => 'Already answered.';
+
+  @override
+  String get needYouAnswerFailed =>
+      'Couldn\'t send your answer. Open the app to answer.';
+
+  @override
+  String needYouFrom(String name) {
+    return '$name needs you now';
+  }
+
+  @override
+  String needYouWaiting(String name) {
+    return 'Waiting for $name';
+  }
+
+  @override
+  String needYouAnswerLine(String name, String answer) {
+    return '$name: $answer';
+  }
+
+  @override
+  String fileTooBigLine(String size, String most) {
+    return 'This file is $size MB. The most is $most MB.';
+  }
+
+  @override
+  String get fileWrongTypeLine =>
+      'This kind of file can\'t go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.';
+
+  @override
+  String get fileNotPdfOrPhotoLine =>
+      'The Library takes a PDF or a photo. Send this one in Chat.';
+
+  @override
+  String get fileBigDrawingsHint =>
+      'For big drawings, link a folder from OneDrive, Google Drive or Dropbox.';
+
+  @override
+  String get couldNotSendTitle => 'Couldn\'t send';
+
+  @override
+  String get couldNotSendGeneric =>
+      'The Space didn\'t take this post. Try again, or remove it.';
+
+  @override
+  String get couldNotSendRemove => 'Remove';
+
+  @override
+  String get spacesLeaveFoldersNote =>
+      'Your private folders in this Space will be deleted.';
+
+  @override
+  String get spacesRemoveFoldersNote =>
+      'Their private folders in this Space will be deleted.';
+
+  @override
+  String get libraryNewFolder => 'New folder';
+
+  @override
+  String get libraryLinkFolder => 'Link folder';
+
+  @override
+  String get libraryFolderNameHint => 'Folder name';
+
+  @override
+  String get libraryWhoSees => 'Who sees it';
+
+  @override
+  String get libraryShareOnlyMe => 'Only me';
+
+  @override
+  String get librarySharePerson => 'A person';
+
+  @override
+  String get libraryShareTeam => 'A Team';
+
+  @override
+  String libraryShareTeamLine(String name) {
+    return 'Team · $name';
+  }
+
+  @override
+  String get libraryShareSpace => 'Whole Space';
+
+  @override
+  String get libraryChoosePerson => 'Choose a person';
+
+  @override
+  String get libraryChooseTeam => 'Choose a Team';
+
+  @override
+  String get libraryLinkPasteHint =>
+      'Paste a OneDrive, Google Drive or Dropbox link';
+
+  @override
+  String libraryLinkFound(String service) {
+    return '$service folder found';
+  }
+
+  @override
+  String get libraryLinkWrong =>
+      'This isn\'t a OneDrive, Google Drive or Dropbox link.';
+
+  @override
+  String get libraryLinkWarning =>
+      'Anyone with this link can open it, even outside BuildVibes.';
+
+  @override
+  String libraryLinkLine(String service) {
+    return '$service link';
+  }
+
+  @override
+  String get libraryAddFolder => 'Add folder';
+
+  @override
+  String get librarySaveFolder => 'Save';
+
+  @override
+  String get libraryEditFolder => 'Edit folder';
+
+  @override
+  String get libraryDeleteFolder => 'Delete folder';
+
+  @override
+  String get libraryDeleteFolderAsk => 'Delete this folder?';
+
+  @override
+  String get libraryDeleteFolderBody =>
+      'Only the folder goes. Its link is not touched.';
+
+  @override
+  String get libraryFolderNotEmpty => 'Take its files out first.';
+
+  @override
+  String get libraryFolderEmpty => 'Nothing in this folder yet.';
+
+  @override
+  String get libraryLinkOpenFailed => 'Couldn\'t open the link.';
+
+  @override
+  String get libraryAddToFolder => 'Add a file here';
+
+  @override
+  String get libraryServiceOneDrive => 'OneDrive';
+
+  @override
+  String get libraryServiceGoogleDrive => 'Google Drive';
+
+  @override
+  String get libraryServiceDropbox => 'Dropbox';
 }

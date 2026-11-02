@@ -20,6 +20,7 @@ import 'package:flutter/rendering.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../library/library_folders.dart' show showFolderSheet;
 import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
@@ -1008,9 +1009,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ref,
       spaceId: _spaceId,
       replaces: start.replaces,
+      folderId: start.folderId,
     );
     if (file != null) await _card.addFile(file);
   }
+
+  /// Review 113 bug 7: Link folder from Tap to fix, for a drawing too big
+  /// for a Space.
+  Future<void> _linkFolder() =>
+      showFolderSheet(context, ref, space: widget.space, link: true);
 
   /// Daily report (slice 7, review 78 §4): today's own draft if there is
   /// one; otherwise a new report for today, titled with the day, from the
@@ -1780,6 +1787,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           onPickThanksTo: () => unawaited(_pickThanksTo()),
           onPickThanksFor: () => unawaited(_pickThanksFor()),
           onCheckIn: (p) => unawaited(_checkIn(p)),
+          // Review 113 bug 7: Tap to fix's Try again sends as Post does;
+          // Link folder opens the Library's, for big drawings.
+          onTryAgain: _editing || alone || !(cardDraft?.readyToTry ?? false)
+              ? null
+              : () => unawaited(_postOrAsk(myName)),
+          onLinkFolder: _editing || !widget.space.myRights.addFiles
+              ? null
+              : () => unawaited(_linkFolder()),
           // H3: Walk is for who may post work (a Lead or Crew).
           onWalk: _editing || !widget.space.mayPostWork
               ? null

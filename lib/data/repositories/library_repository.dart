@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/library.dart';
+import '../models/library_folder.dart';
 import '../models/space.dart';
+import '../models/upload_rules.dart';
 import '../supabase/supabase_provider.dart';
 import '../supabase/upload_progress.dart';
 import 'space_repository.dart';
@@ -41,7 +43,22 @@ abstract class LibraryRepository {
     String? revLabel,
     String? note,
     String? supersedesId,
+    String? folderId,
   });
+
+  /// Review 113 LB1: the folders I can see (space_library_folders).
+  Future<List<LibraryFolder>> folders(String spaceId);
+
+  /// LB1, LB2: a folder, or a linked folder when [FolderChange.url] is
+  /// set (create_library_folder).
+  Future<void> createFolder(FolderChange folder);
+
+  /// Its name and who sees it (update_library_folder): its creator or the
+  /// Space admin.
+  Future<void> updateFolder(FolderChange folder);
+
+  /// delete_library_folder: refused while it holds files.
+  Future<void> deleteFolder(String folderId);
 
   /// LV1: per file in use, NEW VERSION for me and up to 4 receivers
   /// (library_overview), by file id.
@@ -71,12 +88,14 @@ class SupabaseLibraryRepository implements LibraryRepository {
   static const _file =
       'id, space_id, team_id, name, storage_path, mime, bytes, rev_label, '
       'note, supersedes_id, source, uploaded_by, created_at, version_no, '
-      'chain_id, team:teams(name), '
+      'chain_id, folder_id, team:teams(name), '
       'uploader:profiles!library_files_uploaded_by_fkey(first_name, last_name)';
 
   Future<T> _guard<T>(Future<T> Function() run) async {
     try {
       return await run();
+    } on SpaceException {
+      rethrow;
     } on PostgrestException catch (e) {
       throw SpaceException(spaceFailureFor(e.code), e.message);
     } on StorageException catch (e) {
@@ -188,28 +207,33 @@ class SupabaseLibraryRepository implements LibraryRepository {
     String fileId,
     PhoneFile file, {
     UploadProgress? onProgress,
-  }) => _guard(() async {
-    final path = '$spaceId/library/$fileId/${newUuid()}.${file.extension}';
-    if (onProgress != null) {
-      await uploadWithProgress(
-        _client,
-        bucket: _bucket,
-        path: path,
-        file: File(file.local),
-        contentType: file.mime,
-        onProgress: onProgress,
-      );
-    } else {
-      await _client.storage
-          .from(_bucket)
-          .upload(
-            path,
-            File(file.local),
-            fileOptions: FileOptions(contentType: file.mime),
-          );
-    }
-    return path;
-  });
+  }) => _guard(
+    // Review 113 bug 7: the bucket's size and type checked first; the
+    // type from the file's extension; storage's refusal in plain words.
+    () => uploadSpaceFile(file, (type) async {
+      final path =
+          '$spaceId/library/$fileId/${newUuid()}.${spaceFileExtension(type)}';
+      if (onProgress != null) {
+        await uploadWithProgress(
+          _client,
+          bucket: _bucket,
+          path: path,
+          file: File(file.local),
+          contentType: type,
+          onProgress: onProgress,
+        );
+      } else {
+        await _client.storage
+            .from(_bucket)
+            .upload(
+              path,
+              File(file.local),
+              fileOptions: FileOptions(contentType: type),
+            );
+      }
+      return path;
+    }, library: true),
+  );
 
   @override
   Future<void> add({
@@ -223,10 +247,14 @@ class SupabaseLibraryRepository implements LibraryRepository {
     String? revLabel,
     String? note,
     String? supersedesId,
+    String? folderId,
   }) => _guard(
     () => _client.rpc(
       'add_library_file',
       params: {
+        // Review 113 (8): into a folder; left out for the Space's Library,
+        // so a server without folders takes it as before.
+        'p_folder': ?folderId,
         'p_id': id,
         'p_space': spaceId,
         'p_name': name,
@@ -239,6 +267,52 @@ class SupabaseLibraryRepository implements LibraryRepository {
         'p_supersedes': supersedesId,
       },
     ),
+  );
+
+  @override
+  Future<List<LibraryFolder>> folders(String spaceId) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'space_library_folders',
+        params: {'p_space': spaceId},
+      ),
+    );
+    return [for (final r in rows) LibraryFolder.fromJson(r)];
+  });
+
+  @override
+  Future<void> createFolder(FolderChange f) => _guard(
+    () => _client.rpc(
+      'create_library_folder',
+      params: {
+        'p_id': f.id,
+        'p_space': f.spaceId,
+        'p_name': f.name.trim(),
+        'p_share': f.share.json,
+        'p_share_person': f.share == FolderShare.person ? f.personId : null,
+        'p_share_team': f.share == FolderShare.team ? f.teamId : null,
+        'p_url': f.url?.trim(),
+      },
+    ),
+  );
+
+  @override
+  Future<void> updateFolder(FolderChange f) => _guard(
+    () => _client.rpc(
+      'update_library_folder',
+      params: {
+        'p_id': f.id,
+        'p_name': f.name.trim(),
+        'p_share': f.share.json,
+        'p_share_person': f.share == FolderShare.person ? f.personId : null,
+        'p_share_team': f.share == FolderShare.team ? f.teamId : null,
+      },
+    ),
+  );
+
+  @override
+  Future<void> deleteFolder(String folderId) => _guard(
+    () => _client.rpc('delete_library_folder', params: {'p_id': folderId}),
   );
 
   List<Map<String, dynamic>> _rows(Object? data) => [
@@ -293,6 +367,12 @@ final libraryRepositoryProvider = Provider<LibraryRepository>(
 final libraryFilesProvider = FutureProvider.autoDispose
     .family<List<LibraryFile>, String>(
       (ref, spaceId) => ref.watch(libraryRepositoryProvider).files(spaceId),
+    );
+
+/// Review 113 LB1: a Space's folders I can see.
+final libraryFoldersProvider = FutureProvider.autoDispose
+    .family<List<LibraryFolder>, String>(
+      (ref, spaceId) => ref.watch(libraryRepositoryProvider).folders(spaceId),
     );
 
 final libraryFileProvider = FutureProvider.autoDispose

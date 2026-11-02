@@ -410,6 +410,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 SpaceLibraryScreen(spaceId: state.pathParameters['id']!),
           ),
           _Screen(
+            path: 'folders/:folderId',
+            builder: (context, state) => LibraryFolderScreen(
+              spaceId: state.pathParameters['id']!,
+              folderId: state.pathParameters['folderId']!,
+            ),
+          ),
+          _Screen(
             path: 'transfer',
             builder: (context, state) =>
                 TransferScreen(spaceId: state.pathParameters['id']!),

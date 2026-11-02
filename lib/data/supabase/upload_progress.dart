@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -52,6 +53,21 @@ Future<void> uploadWithProgress(
         );
   final response = await http.Response.fromStream(await request.send());
   if (response.statusCode >= 300) {
-    throw StorageException(response.body, statusCode: '${response.statusCode}');
+    throw storageErrorOf(response.statusCode, response.body);
   }
+}
+
+/// Storage's answer as the storage client reads it: its JSON's message,
+/// error and inner status code (a 400 that holds a 413, review 113 bug 7);
+/// the raw words when it isn't JSON.
+StorageException storageErrorOf(int status, String body) {
+  try {
+    final json = jsonDecode(body);
+    if (json is Map<String, dynamic>) {
+      return StorageException.fromJson(json, '$status');
+    }
+  } on FormatException {
+    // Not JSON: the words as they came.
+  }
+  return StorageException(body, statusCode: '$status');
 }

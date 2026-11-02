@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/library.dart';
+import 'package:buildvibes/data/models/library_folder.dart';
+import 'package:buildvibes/data/models/upload_rules.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/supabase/upload_progress.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show StorageException;
 
 /// The Library with no network. Tests fill [filesBySpace] (newest first),
 /// and [usedIn].
@@ -62,13 +65,36 @@ class FakeLibraryRepository implements LibraryRepository {
   /// While set, an upload stops half way (F73) until it completes.
   Completer<void>? holdUpload;
 
+  /// Review 113 bug 7: what storage answers the next upload with (a 400
+  /// with an inner 413, an unsupported type); the bucket's own checks run
+  /// first, as the app's do.
+  StorageException? storageRefuses;
+
+  /// The types each upload went with, in order.
+  final uploadTypes = <String>[];
+
   @override
   Future<String> upload(
     String spaceId,
     String fileId,
     PhoneFile file, {
     UploadProgress? onProgress,
-  }) async {
+  }) => uploadSpaceFile(file, (type) async {
+    uploadTypes.add(type);
+    final refused = storageRefuses;
+    if (refused != null) {
+      storageRefuses = null;
+      throw refused;
+    }
+    return _upload(spaceId, fileId, file, onProgress);
+  }, library: true);
+
+  Future<String> _upload(
+    String spaceId,
+    String fileId,
+    PhoneFile file,
+    UploadProgress? onProgress,
+  ) async {
     final total = file.bytes ?? 0;
     onProgress?.call(0, total);
     final hold = holdUpload;
@@ -95,6 +121,7 @@ class FakeLibraryRepository implements LibraryRepository {
     String? revLabel,
     String? note,
     String? supersedesId,
+    String? folderId,
   }) async {
     // As add_library_file: an id is used once.
     if (_find(id) != null) {
@@ -102,7 +129,8 @@ class FakeLibraryRepository implements LibraryRepository {
     }
     calls.add(
       'add $name team:${teamId ?? '-'} rev:${revLabel ?? '-'} '
-      'supersedes:${supersedesId ?? '-'}',
+      'supersedes:${supersedesId ?? '-'}'
+      '${folderId == null ? '' : ' folder:$folderId'}',
     );
     // As library_file_number (F75): the next number in its chain.
     final older = supersedesId == null ? null : _find(supersedesId);
@@ -126,6 +154,7 @@ class FakeLibraryRepository implements LibraryRepository {
             versionNo: versionNo,
             uploadedById: 'user-1',
             uploadedByName: 'Omar Haddad',
+            folderId: folderId,
           ),
         );
     if (loseAnswer) {
@@ -166,5 +195,81 @@ class FakeLibraryRepository implements LibraryRepository {
   Future<Uint8List> download(String path) async {
     calls.add('download $path');
     return bytesByPath[path] ?? Uint8List.fromList(const [37, 80, 68, 70]);
+  }
+
+  /// Review 113 LB1: the folders by Space, as space_library_folders gives
+  /// them; [folderCalls] what was asked.
+  final foldersBySpace = <String, List<LibraryFolder>>{};
+  final folderCalls = <String>[];
+
+  /// The next folder call fails with this.
+  SpaceException? folderRefuses;
+
+  void _folderRefusal() {
+    final e = folderRefuses;
+    if (e != null) {
+      folderRefuses = null;
+      throw e;
+    }
+  }
+
+  @override
+  Future<List<LibraryFolder>> folders(String spaceId) async =>
+      List.of(foldersBySpace[spaceId] ?? const []);
+
+  @override
+  Future<void> createFolder(FolderChange f) async {
+    folderCalls.add(
+      'create ${f.name} ${f.share.json}'
+      '${f.personId == null ? '' : ' person:${f.personId}'}'
+      '${f.teamId == null ? '' : ' team:${f.teamId}'}'
+      '${f.url == null ? '' : ' url:${f.url}'}',
+    );
+    _folderRefusal();
+    foldersBySpace
+        .putIfAbsent(f.spaceId, () => [])
+        .add(
+          LibraryFolder(
+            id: f.id,
+            name: f.name.trim(),
+            share: f.share,
+            url: f.url,
+            service: f.url == null ? null : linkServiceOf(f.url!),
+            sharePersonId: f.personId,
+            shareTeamId: f.teamId,
+            mine: true,
+          ),
+        );
+  }
+
+  @override
+  Future<void> updateFolder(FolderChange f) async {
+    folderCalls.add('update ${f.id} ${f.name} ${f.share.json}');
+    _folderRefusal();
+    final list = foldersBySpace[f.spaceId];
+    if (list == null) return;
+    final i = list.indexWhere((x) => x.id == f.id);
+    if (i < 0) return;
+    final old = list[i];
+    list[i] = LibraryFolder(
+      id: old.id,
+      name: f.name.trim(),
+      share: f.share,
+      url: old.url,
+      service: old.service,
+      sharePersonId: f.personId,
+      shareTeamId: f.teamId,
+      mine: old.mine,
+      createdBy: old.createdBy,
+    );
+  }
+
+  @override
+  Future<void> deleteFolder(String folderId) async {
+    folderCalls.add('delete $folderId');
+    _folderRefusal();
+    for (final list in foldersBySpace.values) {
+      list.removeWhere((f) => f.id == folderId);
+    }
   }
 }

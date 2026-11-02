@@ -845,6 +845,9 @@ class DaybookWriter {
     if (file.local != null) unawaited(DaybookDraft.deleteKept(file.local!));
   }
 
+  /// Review 113 bug 7: the refused file is off; its reason goes with it.
+  Future<void> clearRefusal() => _put((d) => d.copyWith(refusal: () => null));
+
   /// Review 105B L6: an announcement pinned to the end of a day ends at
   /// midnight in the Space's time zone, worked out on Post with the Space's
   /// details read; with none known, the phone's.

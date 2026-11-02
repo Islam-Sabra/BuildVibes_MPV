@@ -11161,6 +11161,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In: missed'**
   String get checkInInMissed;
+
+  /// Review 113 (18) NN1: the action, the send button and the notification channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Need you now'**
+  String get needYouNow;
+
+  /// NN1: the one-line reason field.
+  ///
+  /// In en, this message translates to:
+  /// **'Why (optional): Gate 2, concrete truck waiting'**
+  String get needYouReasonHint;
+
+  /// NN1: the chip that adds a place.
+  ///
+  /// In en, this message translates to:
+  /// **'Add place'**
+  String get needYouAddPlace;
+
+  /// NN1: the place field once Add place is tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Place: Gate 2'**
+  String get needYouPlaceHint;
+
+  /// NN1: the line under the button.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets a strong notification, even with the app closed.'**
+  String needYouStrongNote(String name);
+
+  /// NN1: send_need_you refused, at most 3 an hour.
+  ///
+  /// In en, this message translates to:
+  /// **'You called {name} 3 times in the last hour. Try again later.'**
+  String needYouTooMany(String name);
+
+  /// NN1: send_need_you refused for another reason (left, Viewer, blocked).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can\'t be called here.'**
+  String needYouRefused(String name);
+
+  /// NN1: sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}.'**
+  String needYouSent(String name);
+
+  /// NN2: the answer button.
+  ///
+  /// In en, this message translates to:
+  /// **'On my way'**
+  String get needYouOnMyWay;
+
+  /// NN2: the answer button.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t now'**
+  String get needYouCantNow;
+
+  /// NN2: the Android channel description.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone in a Space needs you there now.'**
+  String get needYouChannelAbout;
+
+  /// NN2: the plain title when the push carries none (lock-screen text off).
+  ///
+  /// In en, this message translates to:
+  /// **'Someone needs you now'**
+  String get needYouSomeone;
+
+  /// NN2: in place of the notification once answered.
+  ///
+  /// In en, this message translates to:
+  /// **'You answered: {answer}'**
+  String needYouYouAnswered(String answer);
+
+  /// NN2: answer_need_you said already answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Already answered.'**
+  String get needYouAlreadyAnswered;
+
+  /// NN2: the answer could not go.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send your answer. Open the app to answer.'**
+  String get needYouAnswerFailed;
+
+  /// The Space line: a call I got.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs you now'**
+  String needYouFrom(String name);
+
+  /// The Space line: my call, not answered yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}'**
+  String needYouWaiting(String name);
+
+  /// The Space line and the in-app line: the answer to my call.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {answer}'**
+  String needYouAnswerLine(String name, String answer);
+
+  /// Review 113 (7): a file over the bucket limit, before it goes.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is {size} MB. The most is {most} MB.'**
+  String fileTooBigLine(String size, String most);
+
+  /// Review 113 (7): a type the bucket refuses.
+  ///
+  /// In en, this message translates to:
+  /// **'This kind of file can\'t go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.'**
+  String get fileWrongTypeLine;
+
+  /// Review 113 (7): a type the bucket takes but add_library_file does not.
+  ///
+  /// In en, this message translates to:
+  /// **'The Library takes a PDF or a photo. Send this one in Chat.'**
+  String get fileNotPdfOrPhotoLine;
+
+  /// Review 113 (7): under the too-big line, with Link folder.
+  ///
+  /// In en, this message translates to:
+  /// **'For big drawings, link a folder from OneDrive, Google Drive or Dropbox.'**
+  String get fileBigDrawingsHint;
+
+  /// Review 113 (7): the Tap to fix sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send'**
+  String get couldNotSendTitle;
+
+  /// Review 113 (7): a refusal with no plainer reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The Space didn\'t take this post. Try again, or remove it.'**
+  String get couldNotSendGeneric;
+
+  /// Review 113 (7): Remove the file (a file problem) or the post.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get couldNotSendRemove;
+
+  /// Review 113: Leave Space, when I have an only-me folder there.
+  ///
+  /// In en, this message translates to:
+  /// **'Your private folders in this Space will be deleted.'**
+  String get spacesLeaveFoldersNote;
+
+  /// Review 113: Remove from Space, always (the admin cannot see them).
+  ///
+  /// In en, this message translates to:
+  /// **'Their private folders in this Space will be deleted.'**
+  String get spacesRemoveFoldersNote;
+
+  /// Review 113 LB1: + menu and the sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get libraryNewFolder;
+
+  /// Review 113 LB2: + menu and the sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link folder'**
+  String get libraryLinkFolder;
+
+  /// LB1/LB2: the name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get libraryFolderNameHint;
+
+  /// LB1/LB2: the sharing choice label.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it'**
+  String get libraryWhoSees;
+
+  /// LB1/LB2: sharing choice and folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Only me'**
+  String get libraryShareOnlyMe;
+
+  /// LB1/LB2: sharing choice.
+  ///
+  /// In en, this message translates to:
+  /// **'A person'**
+  String get librarySharePerson;
+
+  /// LB1/LB2: sharing choice.
+  ///
+  /// In en, this message translates to:
+  /// **'A Team'**
+  String get libraryShareTeam;
+
+  /// LB1: a Team folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Team · {name}'**
+  String libraryShareTeamLine(String name);
+
+  /// LB1/LB2: sharing choice and folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get libraryShareSpace;
+
+  /// LB1/LB2: pick the person a folder is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person'**
+  String get libraryChoosePerson;
+
+  /// LB1/LB2: pick the Team a folder is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Team'**
+  String get libraryChooseTeam;
+
+  /// LB2: the link field.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a OneDrive, Google Drive or Dropbox link'**
+  String get libraryLinkPasteHint;
+
+  /// LB2: the service found from the link.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} folder found'**
+  String libraryLinkFound(String service);
+
+  /// LB2: a link of another service.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a OneDrive, Google Drive or Dropbox link.'**
+  String get libraryLinkWrong;
+
+  /// LB2: the warning line (review 113 (9)).
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this link can open it, even outside BuildVibes.'**
+  String get libraryLinkWarning;
+
+  /// LB1: a link folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} link'**
+  String libraryLinkLine(String service);
+
+  /// LB1/LB2: the sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get libraryAddFolder;
+
+  /// Edit folder: save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get librarySaveFolder;
+
+  /// A folder menu: edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit folder'**
+  String get libraryEditFolder;
+
+  /// A folder menu: delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get libraryDeleteFolder;
+
+  /// Delete folder: the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this folder?'**
+  String get libraryDeleteFolderAsk;
+
+  /// Delete folder: the line under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the folder goes. Its link is not touched.'**
+  String get libraryDeleteFolderBody;
+
+  /// delete_library_folder refused: empty it first.
+  ///
+  /// In en, this message translates to:
+  /// **'Take its files out first.'**
+  String get libraryFolderNotEmpty;
+
+  /// An empty folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this folder yet.'**
+  String get libraryFolderEmpty;
+
+  /// A link folder that would not open.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get libraryLinkOpenFailed;
+
+  /// Inside a folder: add a file into it.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a file here'**
+  String get libraryAddToFolder;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'OneDrive'**
+  String get libraryServiceOneDrive;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive'**
+  String get libraryServiceGoogleDrive;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropbox'**
+  String get libraryServiceDropbox;
 }
 
 class _AppLocalizationsDelegate

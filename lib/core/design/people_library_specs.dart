@@ -95,3 +95,24 @@ abstract final class BvHandoverSpec {
   static const rowPaddingVertical = BvSpace.s12;
   static const rowGap = BvSpace.s8;
 }
+
+/// Review 113 LB1, LB2 (2730:40149, 2730:40228): the Library's folders,
+/// their sheet, and the Need you now sheet (NN1, 2730:39983).
+abstract final class BvFolderSpec {
+  /// A folder row: the tile, the name over who sees it, the chevron.
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const tile = 36.0;
+  static const tileRadius = BorderRadius.all(Radius.circular(BvRadius.control));
+  static const tileIcon = BvSize.iconMd;
+  static const lineIcon = 12.0;
+  static const lineGap = BvSpace.s4;
+
+  /// A linked folder's service, in its own colour.
+  static const linkInk = BvProjectColors.slate;
+
+  /// LB2's sheet: the gaps between its parts, and the warning box.
+  static const sheetGap = BvSpace.s12;
+  static const warningPadding = EdgeInsetsDirectional.all(BvSpace.s12);
+  static const warningRadius = BvRadius.controlAll;
+}

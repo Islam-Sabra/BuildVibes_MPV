@@ -33,6 +33,7 @@ class LibraryFile {
     this.uploadedByName,
     this.versionNo,
     this.chainId,
+    this.folderId,
   });
 
   /// A row of library_files with `team:teams(name)` and
@@ -63,6 +64,7 @@ class LibraryFile {
       uploadedByName: _name(json['uploader']),
       versionNo: (json['version_no'] as num?)?.toInt(),
       chainId: json['chain_id'] as String?,
+      folderId: json['folder_id'] as String?,
     );
   }
 
@@ -91,6 +93,10 @@ class LibraryFile {
   /// the chain's first file, the same for every version of a file.
   final int? versionNo;
   final String? chainId;
+
+  /// Review 113 (8): its Library folder, whose sharing it has; null, the
+  /// Space's Library as before folders.
+  final String? folderId;
 
   bool get isPdf => mime == 'application/pdf';
   bool get isImage => mime.startsWith('image/');

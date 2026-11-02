@@ -9552,5 +9552,295 @@
   "checkInInMissed": "In: missed",
   "@checkInInMissed": {
     "description": "Review 109 Y5: a check-out with no check-in that day."
+  },
+  "needYouNow": "Need you now",
+  "@needYouNow": {
+    "description": "Review 113 (18) NN1: the action, the send button and the notification channel."
+  },
+  "needYouReasonHint": "Why (optional): Gate 2, concrete truck waiting",
+  "@needYouReasonHint": {
+    "description": "NN1: the one-line reason field."
+  },
+  "needYouAddPlace": "Add place",
+  "@needYouAddPlace": {
+    "description": "NN1: the chip that adds a place."
+  },
+  "needYouPlaceHint": "Place: Gate 2",
+  "@needYouPlaceHint": {
+    "description": "NN1: the place field once Add place is tapped."
+  },
+  "needYouStrongNote": "{name} gets a strong notification, even with the app closed.",
+  "@needYouStrongNote": {
+    "description": "NN1: the line under the button.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouTooMany": "You called {name} 3 times in the last hour. Try again later.",
+  "@needYouTooMany": {
+    "description": "NN1: send_need_you refused, at most 3 an hour.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouRefused": "{name} can't be called here.",
+  "@needYouRefused": {
+    "description": "NN1: send_need_you refused for another reason (left, Viewer, blocked).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouSent": "Sent to {name}.",
+  "@needYouSent": {
+    "description": "NN1: sent.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouOnMyWay": "On my way",
+  "@needYouOnMyWay": {
+    "description": "NN2: the answer button."
+  },
+  "needYouCantNow": "Can't now",
+  "@needYouCantNow": {
+    "description": "NN2: the answer button."
+  },
+  "needYouChannelAbout": "When someone in a Space needs you there now.",
+  "@needYouChannelAbout": {
+    "description": "NN2: the Android channel description."
+  },
+  "needYouSomeone": "Someone needs you now",
+  "@needYouSomeone": {
+    "description": "NN2: the plain title when the push carries none (lock-screen text off)."
+  },
+  "needYouYouAnswered": "You answered: {answer}",
+  "@needYouYouAnswered": {
+    "description": "NN2: in place of the notification once answered.",
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouAlreadyAnswered": "Already answered.",
+  "@needYouAlreadyAnswered": {
+    "description": "NN2: answer_need_you said already answered."
+  },
+  "needYouAnswerFailed": "Couldn't send your answer. Open the app to answer.",
+  "@needYouAnswerFailed": {
+    "description": "NN2: the answer could not go."
+  },
+  "needYouFrom": "{name} needs you now",
+  "@needYouFrom": {
+    "description": "The Space line: a call I got.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouWaiting": "Waiting for {name}",
+  "@needYouWaiting": {
+    "description": "The Space line: my call, not answered yet.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "needYouAnswerLine": "{name}: {answer}",
+  "@needYouAnswerLine": {
+    "description": "The Space line and the in-app line: the answer to my call.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooBigLine": "This file is {size} MB. The most is {most} MB.",
+  "@fileTooBigLine": {
+    "description": "Review 113 (7): a file over the bucket limit, before it goes.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "most": {
+        "type": "String"
+      }
+    }
+  },
+  "fileWrongTypeLine": "This kind of file can't go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.",
+  "@fileWrongTypeLine": {
+    "description": "Review 113 (7): a type the bucket refuses."
+  },
+  "fileNotPdfOrPhotoLine": "The Library takes a PDF or a photo. Send this one in Chat.",
+  "@fileNotPdfOrPhotoLine": {
+    "description": "Review 113 (7): a type the bucket takes but add_library_file does not."
+  },
+  "fileBigDrawingsHint": "For big drawings, link a folder from OneDrive, Google Drive or Dropbox.",
+  "@fileBigDrawingsHint": {
+    "description": "Review 113 (7): under the too-big line, with Link folder."
+  },
+  "couldNotSendTitle": "Couldn't send",
+  "@couldNotSendTitle": {
+    "description": "Review 113 (7): the Tap to fix sheet title."
+  },
+  "couldNotSendGeneric": "The Space didn't take this post. Try again, or remove it.",
+  "@couldNotSendGeneric": {
+    "description": "Review 113 (7): a refusal with no plainer reason."
+  },
+  "couldNotSendRemove": "Remove",
+  "@couldNotSendRemove": {
+    "description": "Review 113 (7): Remove the file (a file problem) or the post."
+  },
+  "spacesLeaveFoldersNote": "Your private folders in this Space will be deleted.",
+  "@spacesLeaveFoldersNote": {
+    "description": "Review 113: Leave Space, when I have an only-me folder there."
+  },
+  "spacesRemoveFoldersNote": "Their private folders in this Space will be deleted.",
+  "@spacesRemoveFoldersNote": {
+    "description": "Review 113: Remove from Space, always (the admin cannot see them)."
+  },
+  "libraryNewFolder": "New folder",
+  "@libraryNewFolder": {
+    "description": "Review 113 LB1: + menu and the sheet title."
+  },
+  "libraryLinkFolder": "Link folder",
+  "@libraryLinkFolder": {
+    "description": "Review 113 LB2: + menu and the sheet title."
+  },
+  "libraryFolderNameHint": "Folder name",
+  "@libraryFolderNameHint": {
+    "description": "LB1/LB2: the name field."
+  },
+  "libraryWhoSees": "Who sees it",
+  "@libraryWhoSees": {
+    "description": "LB1/LB2: the sharing choice label."
+  },
+  "libraryShareOnlyMe": "Only me",
+  "@libraryShareOnlyMe": {
+    "description": "LB1/LB2: sharing choice and folder line."
+  },
+  "librarySharePerson": "A person",
+  "@librarySharePerson": {
+    "description": "LB1/LB2: sharing choice."
+  },
+  "libraryShareTeam": "A Team",
+  "@libraryShareTeam": {
+    "description": "LB1/LB2: sharing choice."
+  },
+  "libraryShareTeamLine": "Team · {name}",
+  "@libraryShareTeamLine": {
+    "description": "LB1: a Team folder line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryShareSpace": "Whole Space",
+  "@libraryShareSpace": {
+    "description": "LB1/LB2: sharing choice and folder line."
+  },
+  "libraryChoosePerson": "Choose a person",
+  "@libraryChoosePerson": {
+    "description": "LB1/LB2: pick the person a folder is for."
+  },
+  "libraryChooseTeam": "Choose a Team",
+  "@libraryChooseTeam": {
+    "description": "LB1/LB2: pick the Team a folder is for."
+  },
+  "libraryLinkPasteHint": "Paste a OneDrive, Google Drive or Dropbox link",
+  "@libraryLinkPasteHint": {
+    "description": "LB2: the link field."
+  },
+  "libraryLinkFound": "{service} folder found",
+  "@libraryLinkFound": {
+    "description": "LB2: the service found from the link.",
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryLinkWrong": "This isn't a OneDrive, Google Drive or Dropbox link.",
+  "@libraryLinkWrong": {
+    "description": "LB2: a link of another service."
+  },
+  "libraryLinkWarning": "Anyone with this link can open it, even outside BuildVibes.",
+  "@libraryLinkWarning": {
+    "description": "LB2: the warning line (review 113 (9))."
+  },
+  "libraryLinkLine": "{service} link",
+  "@libraryLinkLine": {
+    "description": "LB1: a link folder line.",
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryAddFolder": "Add folder",
+  "@libraryAddFolder": {
+    "description": "LB1/LB2: the sheet button."
+  },
+  "librarySaveFolder": "Save",
+  "@librarySaveFolder": {
+    "description": "Edit folder: save."
+  },
+  "libraryEditFolder": "Edit folder",
+  "@libraryEditFolder": {
+    "description": "A folder menu: edit."
+  },
+  "libraryDeleteFolder": "Delete folder",
+  "@libraryDeleteFolder": {
+    "description": "A folder menu: delete."
+  },
+  "libraryDeleteFolderAsk": "Delete this folder?",
+  "@libraryDeleteFolderAsk": {
+    "description": "Delete folder: the question."
+  },
+  "libraryDeleteFolderBody": "Only the folder goes. Its link is not touched.",
+  "@libraryDeleteFolderBody": {
+    "description": "Delete folder: the line under the question."
+  },
+  "libraryFolderNotEmpty": "Take its files out first.",
+  "@libraryFolderNotEmpty": {
+    "description": "delete_library_folder refused: empty it first."
+  },
+  "libraryFolderEmpty": "Nothing in this folder yet.",
+  "@libraryFolderEmpty": {
+    "description": "An empty folder."
+  },
+  "libraryLinkOpenFailed": "Couldn't open the link.",
+  "@libraryLinkOpenFailed": {
+    "description": "A link folder that would not open."
+  },
+  "libraryAddToFolder": "Add a file here",
+  "@libraryAddToFolder": {
+    "description": "Inside a folder: add a file into it."
+  },
+  "libraryServiceOneDrive": "OneDrive",
+  "@libraryServiceOneDrive": {
+    "description": "A service name, as written."
+  },
+  "libraryServiceGoogleDrive": "Google Drive",
+  "@libraryServiceGoogleDrive": {
+    "description": "A service name, as written."
+  },
+  "libraryServiceDropbox": "Dropbox",
+  "@libraryServiceDropbox": {
+    "description": "A service name, as written."
   }
 }

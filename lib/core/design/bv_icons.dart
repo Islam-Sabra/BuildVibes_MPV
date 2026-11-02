@@ -470,4 +470,18 @@ abstract final class BvIcons {
   static const repeat = IconData(0xe3f6, fontFamily: _family);
   // Phosphor: sign-out (Check-out). An arrow leaving, so it mirrors.
   static const checkOut = signOut;
+
+  // Review 113 Part B (NN1, LB1, LB2): Need you now, the Library's
+  // folders and linked folders. Phosphor: bell-ringing (Need you now)
+  static const needYou = IconData(0xe5e8, fontFamily: _family);
+  // Phosphor: folder (a Library folder)
+  static const folder = IconData(0xe24a, fontFamily: _family);
+  // Phosphor: link (Link folder, a pasted link)
+  static const link = IconData(0xe2e2, fontFamily: _family);
+  // Phosphor: cloud (a OneDrive folder)
+  static const cloud = IconData(0xe1aa, fontFamily: _family);
+  // Phosphor: google-drive-logo
+  static const googleDrive = IconData(0xe8f6, fontFamily: _family);
+  // Phosphor: dropbox-logo
+  static const dropbox = IconData(0xe7d0, fontFamily: _family);
 }
