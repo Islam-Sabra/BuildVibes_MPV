@@ -132,6 +132,7 @@ Future<TestApp> _space(
     ..extrasBySpace[DaybookSamples.space] = extras;
   final app = await pumpApp(
     tester,
+    feed: true,
     language: lang,
     auth: FakeAuthRepository(userId: me, phone: '+96550000001'),
     spaces: FakeSpaceRepository()
@@ -309,6 +310,7 @@ void main() {
         );
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         dm: dm,
         push: push,
@@ -332,6 +334,7 @@ void main() {
       steadyCursor();
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         peopleSearch: FakePeopleSearchRepository(
           people: [

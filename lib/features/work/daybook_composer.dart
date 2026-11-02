@@ -218,6 +218,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       text: next,
       selection: TextSelection.collapsed(offset: next.length),
     );
+    _lastTyped = next;
     unawaited(_writer.setBody(next));
     _bodyFocus.requestFocus();
   }
@@ -236,6 +237,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       text: next,
       selection: TextSelection.collapsed(offset: at + stamp.length),
     );
+    if (identical(field, _body)) _lastTyped = next;
     unawaited(
       identical(field, _title) ? _writer.setTitle(next) : _writer.setBody(next),
     );
@@ -287,13 +289,14 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
 
   /// "/" typed at the start of a line (CV3 (12)): it goes, and the same
   /// short menu opens.
-  String _lastTyped = '';
+  late String _lastTyped = _body.text;
 
   void _slash(TextEditingController field, DaybookKind kind) {
     final v = field.value;
     final at = v.selection.baseOffset;
-    final typed = v.text.length == _lastTyped.length + 1;
-    _lastTyped = v.text;
+    final title = identical(field, _title);
+    final typed = v.text.length == (title ? 1 : _lastTyped.length + 1);
+    if (!title) _lastTyped = v.text;
     if (!typed || at < 1 || v.text[at - 1] != '/') return;
     if (at > 1 && v.text[at - 2] != '\n') return;
     final next = v.text.replaceRange(at - 1, at, '');
@@ -301,10 +304,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       text: next,
       selection: TextSelection.collapsed(offset: at - 1),
     );
-    _lastTyped = next;
-    unawaited(
-      identical(field, _title) ? _writer.setTitle(next) : _writer.setBody(next),
-    );
+    if (!title) _lastTyped = next;
+    unawaited(title ? _writer.setTitle(next) : _writer.setBody(next));
     unawaited(_openQuick(field, kind));
   }
 
@@ -1001,7 +1002,10 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ),
                         contextMenuBuilder: (_, state) =>
                             _textMenu(l10n, kind, _title, state),
-                        onChanged: _writer.setTitle,
+                        onChanged: (text) {
+                          unawaited(_writer.setTitle(text));
+                          _slash(_title, kind);
+                        },
                       ),
                       // W6: a Thanks too (TH1): Details (optional) under
                       // its words; both go as its one body.

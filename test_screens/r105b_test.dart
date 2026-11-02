@@ -215,8 +215,7 @@ void main() {
         folder: _folder,
         overrides: await _overrides(s, posts: [s.rebar(), s.gate()]),
         before: (tester) async {
-          await selectCard(tester, 'post-rebar');
-          await _tap(tester, find.byKey(const Key('select-share')));
+          await _tap(tester, find.byKey(const Key('card-share-post-rebar')));
         },
       );
     });

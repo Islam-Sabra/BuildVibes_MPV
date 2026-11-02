@@ -46,7 +46,10 @@ Future<void> _tap(WidgetTester tester, String key) async {
 }
 
 Future<void> _type(WidgetTester tester, String key, String text) async {
-  final field = find.descendant(of: _key(key), matching: find.byType(TextField));
+  final field = find.descendant(
+    of: _key(key),
+    matching: find.byType(TextField),
+  );
   await tester.enterText(field.first, text);
   await tester.pumpAndSettle();
 }

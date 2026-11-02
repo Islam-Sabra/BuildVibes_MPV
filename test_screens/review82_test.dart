@@ -18,7 +18,6 @@ import '../test/helpers/pump_app.dart';
 import '../test/helpers/space_fakes.dart';
 import 'shot.dart';
 
-
 Finder _key(String k) => find.byKey(Key(k));
 
 Future<void> _tap(WidgetTester tester, Finder f) async {

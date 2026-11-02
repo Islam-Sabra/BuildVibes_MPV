@@ -27,6 +27,7 @@ import '../../core/design/bv_specs.dart';
 import '../chat/voice.dart'
     show
         RecordingBar,
+        VoiceRecorder,
         maxVoice,
         minVoice,
         voicePlayerProvider,
@@ -539,7 +540,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   @override
   void dispose() {
     _recordTimer?.cancel();
-    if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
+    if (_recording) unawaited(_recorder?.cancel());
     _unpin?.cancel();
     _unflash?.cancel();
     _liveRead?.cancel();
@@ -1114,9 +1115,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   Stopwatch? _watch;
   Timer? _recordTimer;
 
+  /// Kept for dispose, when ref can no longer be read.
+  VoiceRecorder? _recorder;
+
   Future<void> _startRecording() async {
     final l10n = AppLocalizations.of(context);
     final recorder = ref.read(voiceRecorderProvider);
+    _recorder = recorder;
     _holding = true;
     await ref.read(voicePlayerProvider.notifier).pause();
     if (!await recorder.allowed()) {

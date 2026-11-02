@@ -129,7 +129,13 @@ void main() {
     final l10n = _l10n(lang);
 
     testWidgets('the mute sheet: For how long? [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, dm: _dm(lang), now: _now);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        dm: _dm(lang),
+        now: _now,
+      );
       await _go(tester, '/messages/t-sara');
       await _tap(tester, find.byKey(const Key('dm-more')));
       await _tap(tester, find.byKey(const Key('dm-menu-mute')));
@@ -139,14 +145,20 @@ void main() {
 
     testWidgets('Messages: muted rows with the bell-slash, the unread dot '
         'kept [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, dm: _dm(lang), now: _now);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        dm: _dm(lang),
+        now: _now,
+      );
       await _go(tester, '/messages');
       expect(find.byKey(const Key('messages-muted-t-omar')), findsOneWidget);
       await _snap(tester, 'messages_muted', lang);
     });
 
     testWidgets('Home → Spaces: a muted Space [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(lang));
+      await pumpApp(tester, feed: true, language: lang, spaces: _spaces(lang));
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('home-space-muted-space-1')), findsOneWidget);
@@ -154,7 +166,7 @@ void main() {
     });
 
     testWidgets('Long-press a Space: Mute [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(lang));
+      await pumpApp(tester, feed: true, language: lang, spaces: _spaces(lang));
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       await tester.longPress(find.byKey(const Key('home-space-space-2')));

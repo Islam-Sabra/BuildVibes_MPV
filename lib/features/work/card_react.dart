@@ -192,16 +192,16 @@ Future<PostReaction?> showReactPicker(
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: const Color(0x00000000),
+    barrierColor: BvColors.surfaceElevated.withValues(alpha: 0),
     pageBuilder: (menu, _, _) {
       final size = MediaQuery.sizeOf(menu);
       final rtl = Directionality.of(menu) == TextDirection.rtl;
       final pill = Material(
         key: const Key('react-picker'),
-        color: BvColors.surfaceElevated,
-        borderRadius: BvCardReactSpec.pickerRadius,
+        type: MaterialType.transparency,
         child: DecoratedBox(
           decoration: const BoxDecoration(
+            color: BvColors.surfaceElevated,
             borderRadius: BvCardReactSpec.pickerRadius,
             boxShadow: BvCardReactSpec.pickerShadow,
           ),

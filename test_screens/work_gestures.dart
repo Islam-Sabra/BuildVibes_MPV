@@ -25,15 +25,6 @@ Future<void> openCard(WidgetTester tester, String id) async {
   await tester.pumpAndSettle();
 }
 
-/// Selects post [id]'s Work card (a hold on its slip).
-Future<void> selectCard(WidgetTester tester, String id) async {
-  final slip = cardSlip(id);
-  await tester.ensureVisible(slip.first);
-  await tester.pumpAndSettle();
-  await tester.longPress(slip.first);
-  await tester.pumpAndSettle();
-}
-
 /// Review 105 SP2, as review 110 D left it: what the writing card's ⋯ menu
 /// set is a line on the composer (For · When) or a tile of + (Place, Due,
 /// Pin until, Template). Does what the old ⋯ row [label] did.
