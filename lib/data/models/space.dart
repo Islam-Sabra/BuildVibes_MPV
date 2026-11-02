@@ -422,11 +422,17 @@ class SpaceTeam {
     required this.id,
     required this.name,
     this.memberIds = const {},
+    this.adminId,
+    this.adminName,
   });
 
   final String id;
   final String name;
   final Set<String> memberIds;
+
+  /// The Team admin (review 111): one of its people, or none yet.
+  final String? adminId;
+  final String? adminName;
 }
 
 /// Everything the People tab shows. [requests] is empty for members who
@@ -450,6 +456,16 @@ class SpacePeople {
     for (final t in teams)
       if (t.memberIds.contains(profileId)) t,
   ];
+
+  /// Is the Team admin of any Team here (review 111).
+  bool isTeamAdmin(String? profileId) =>
+      profileId != null && teams.any((t) => t.adminId == profileId);
+
+  /// The Teams [profileId] may post to (review 111, the server's post
+  /// rule): their own; every Team for a Team admin of any, or a Space
+  /// [admin].
+  List<SpaceTeam> mayPostTo(String profileId, {required bool admin}) =>
+      admin || isTeamAdmin(profileId) ? teams : teamsOf(profileId);
 }
 
 /// The custom rights keys (S17k switches). Chat is always on and

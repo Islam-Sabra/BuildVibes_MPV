@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/widgets/bv_text_field.dart';
+import '../models/company_teams.dart';
 import '../models/market.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
@@ -140,6 +141,23 @@ abstract class SpaceRepository {
 
   /// The Team's members become exactly [memberIds].
   Future<void> setTeamMembers(String teamId, List<String> memberIds);
+
+  /// Review 111: who [teamId]'s Team admin is. Space admins only.
+  Future<void> setTeamAdmin(String teamId, String profileId);
+
+  /// The companies in [spaceId], for TM1 and TM2. Space admins only.
+  Future<CompanyTeamPreview> companyTeamPreview(String spaceId);
+
+  /// Makes or adds to every Team in [groups], all or nothing. [id] is made
+  /// once by the app, so a retry sends the same id. Returns the Teams' ids.
+  Future<List<String>> createCompanyTeams(
+    String id,
+    String spaceId,
+    List<CompanyTeamGroup> groups,
+  );
+
+  /// The Team [profileId]'s company matches (TM4), or null.
+  Future<CompanyTeamMatch?> companyTeamFor(String spaceId, String profileId);
 }
 
 /// How Space lists select a person: name, and role · company.
@@ -351,29 +369,33 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .order('created_at', ascending: true);
     final teams = await _client
         .from('teams')
-        .select('id, name, members:team_members(profile_id)')
+        .select('id, name, admin_id, members:team_members(profile_id)')
         .eq('space_id', spaceId)
         .order('name', ascending: true);
 
+    final loaded = [
+      for (final m in members)
+        if (m['person'] != null)
+          SpaceMember(
+            person: SpacePerson.fromJson(m['person'] as Map<String, dynamic>),
+            pass: SpacePass.fromJson(m['pass']),
+            isAdmin: m['is_admin'] as bool? ?? false,
+            custom: {
+              for (final e
+                  in (m['custom'] as Map<String, dynamic>? ?? const {}).entries)
+                if (e.value is bool) e.key: e.value as bool,
+            },
+            confirmedById: m['confirmed_by'] as String?,
+            confirmedByName: _nameOf(m['confirmer']),
+            confirmedAt: DateTime.parse(m['confirmed_at'] as String),
+          ),
+    ];
+    // The Team admin is one of the Team's people: their name is here.
+    String? nameOf(String? id) =>
+        loaded.where((m) => m.person.id == id).firstOrNull?.person.fullName;
+
     return SpacePeople(
-      members: [
-        for (final m in members)
-          if (m['person'] != null)
-            SpaceMember(
-              person: SpacePerson.fromJson(m['person'] as Map<String, dynamic>),
-              pass: SpacePass.fromJson(m['pass']),
-              isAdmin: m['is_admin'] as bool? ?? false,
-              custom: {
-                for (final e
-                    in (m['custom'] as Map<String, dynamic>? ?? const {})
-                        .entries)
-                  if (e.value is bool) e.key: e.value as bool,
-              },
-              confirmedById: m['confirmed_by'] as String?,
-              confirmedByName: _nameOf(m['confirmer']),
-              confirmedAt: DateTime.parse(m['confirmed_at'] as String),
-            ),
-      ],
+      members: loaded,
       requests: [
         for (final r in requests)
           if (r['person'] != null)
@@ -389,6 +411,8 @@ class SupabaseSpaceRepository implements SpaceRepository {
           SpaceTeam(
             id: t['id'] as String,
             name: t['name'] as String,
+            adminId: t['admin_id'] as String?,
+            adminName: nameOf(t['admin_id'] as String?),
             memberIds: {
               for (final m in (t['members'] as List? ?? const []))
                 (m as Map<String, dynamic>)['profile_id'] as String,
@@ -632,6 +656,53 @@ class SupabaseSpaceRepository implements SpaceRepository {
       params: {'p_team': teamId, 'p_members': memberIds},
     ),
   );
+
+  @override
+  Future<void> setTeamAdmin(String teamId, String profileId) => _guard(
+    () => _client.rpc<void>(
+      'set_team_admin',
+      params: {'p_team': teamId, 'p_profile': profileId},
+    ),
+  );
+
+  @override
+  Future<CompanyTeamPreview> companyTeamPreview(String spaceId) =>
+      _guard(() async {
+        final result = await _client.rpc<Map<String, dynamic>>(
+          'company_team_preview',
+          params: {'p_space': spaceId},
+        );
+        return CompanyTeamPreview.fromJson(result);
+      });
+
+  @override
+  Future<List<String>> createCompanyTeams(
+    String id,
+    String spaceId,
+    List<CompanyTeamGroup> groups,
+  ) => _guard(() async {
+    final result = await _client.rpc<Map<String, dynamic>>(
+      'create_company_teams',
+      params: {
+        'p_id': id,
+        'p_space': spaceId,
+        'p_groups': [for (final g in groups) g.toJson()],
+      },
+    );
+    return (result['team_ids'] as List? ?? const []).cast<String>();
+  });
+
+  @override
+  Future<CompanyTeamMatch?> companyTeamFor(String spaceId, String profileId) =>
+      _guard(() async {
+        final rows = _rows(
+          await _client.rpc<List<dynamic>>(
+            'company_team_for',
+            params: {'p_space': spaceId, 'p_profile': profileId},
+          ),
+        );
+        return rows.isEmpty ? null : CompanyTeamMatch.fromJson(rows.first);
+      });
 }
 
 /// Postgres error code → what the app says.
@@ -671,6 +742,12 @@ final spaceInviteProvider = FutureProvider.autoDispose
 final spacePeopleProvider = FutureProvider.autoDispose
     .family<SpacePeople, String>(
       (ref, id) => ref.watch(spaceRepositoryProvider).people(id),
+    );
+
+/// Review 111: the companies in a Space. Only a Space admin may ask.
+final companyTeamPreviewProvider = FutureProvider.autoDispose
+    .family<CompanyTeamPreview, String>(
+      (ref, id) => ref.watch(spaceRepositoryProvider).companyTeamPreview(id),
     );
 
 final memberRightsProvider = FutureProvider.autoDispose

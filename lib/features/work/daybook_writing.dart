@@ -61,15 +61,15 @@ final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 /// activity is for opens as a sheet ([DaybookPeopleSheet], F45).
 enum DaybookWritingMenu { more, kind, assign, audience }
 
-/// The Teams [me] may post to (F56, "To: Everyone"): their own, or every
-/// Team for a Space admin (create_space_post's rule).
+/// The Teams [me] may post to (F56, "To: Everyone"; review 111
+/// [SpacePeople.mayPostTo], create_space_post's rule).
 List<SpaceTeam> audienceTeams(
   SpacePeople? people, {
   required String? me,
   required bool admin,
 }) {
   if (people == null || me == null) return const [];
-  return admin ? people.teams : people.teamsOf(me);
+  return people.mayPostTo(me, admin: admin);
 }
 
 /// The kinds that go to an audience rather than to chosen people.

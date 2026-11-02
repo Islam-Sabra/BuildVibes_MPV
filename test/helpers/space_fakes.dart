@@ -1,3 +1,4 @@
+import 'package:buildvibes/data/models/company_teams.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 
@@ -609,7 +610,13 @@ class FakeSpaceRepository implements SpaceRepository {
       teams: [
         for (final t in _of(spaceId).teams)
           t.id == teamId
-              ? SpaceTeam(id: t.id, name: name, memberIds: t.memberIds)
+              ? SpaceTeam(
+                  id: t.id,
+                  name: name,
+                  memberIds: t.memberIds,
+                  adminId: t.adminId,
+                  adminName: t.adminName,
+                )
               : t,
       ],
     );
@@ -637,9 +644,94 @@ class FakeSpaceRepository implements SpaceRepository {
       teams: [
         for (final t in _of(spaceId).teams)
           t.id == teamId
-              ? SpaceTeam(id: t.id, name: t.name, memberIds: {...memberIds})
+              ? SpaceTeam(
+                  id: t.id,
+                  name: t.name,
+                  memberIds: {...memberIds},
+                  adminId: t.adminId,
+                  adminName: t.adminName,
+                )
               : t,
       ],
     );
   }
+
+  // Review 111 ---------------------------------------------------------------
+
+  /// What company_team_preview answers, per Space.
+  final previews = <String, CompanyTeamPreview>{};
+
+  /// What company_team_for answers, by person.
+  final companyMatches = <String, CompanyTeamMatch>{};
+
+  /// create_company_teams' calls, the id each came with.
+  final companyTeamCalls = <({String id, List<CompanyTeamGroup> groups})>[];
+
+  /// The next create_company_teams fails with this.
+  SpaceException? createCompanyTeamsError;
+
+  @override
+  Future<void> setTeamAdmin(String teamId, String profileId) async {
+    calls.add('team admin $teamId $profileId');
+    final spaceId = _spaceOfTeam(teamId);
+    _put(
+      spaceId,
+      teams: [
+        for (final t in _of(spaceId).teams)
+          t.id == teamId
+              ? SpaceTeam(
+                  id: t.id,
+                  name: t.name,
+                  memberIds: t.memberIds,
+                  adminId: profileId,
+                  adminName: _of(spaceId).member(profileId)?.person.fullName,
+                )
+              : t,
+      ],
+    );
+  }
+
+  @override
+  Future<CompanyTeamPreview> companyTeamPreview(String spaceId) async =>
+      previews[spaceId] ?? const CompanyTeamPreview();
+
+  @override
+  Future<List<String>> createCompanyTeams(
+    String id,
+    String spaceId,
+    List<CompanyTeamGroup> groups,
+  ) async {
+    companyTeamCalls.add((id: id, groups: groups));
+    final failure = createCompanyTeamsError;
+    if (failure != null) {
+      createCompanyTeamsError = null;
+      throw failure;
+    }
+    final made = [for (final g in groups) g.teamId ?? 'team-${g.name}'];
+    _put(
+      spaceId,
+      teams: [
+        ..._of(spaceId).teams,
+        for (final g in groups)
+          if (g.teamId == null)
+            SpaceTeam(
+              id: 'team-${g.name}',
+              name: g.name,
+              memberIds: {...g.people},
+              adminId: g.adminId,
+              adminName: g.adminId == null
+                  ? null
+                  : _of(spaceId).member(g.adminId!)?.person.fullName,
+            ),
+      ],
+    );
+    previews.remove(spaceId);
+    return made;
+  }
+
+  @override
+  Future<CompanyTeamMatch?> companyTeamFor(
+    String spaceId,
+    String profileId,
+  ) async => companyMatches[profileId];
 }
