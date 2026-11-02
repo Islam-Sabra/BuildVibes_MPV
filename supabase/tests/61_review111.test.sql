@@ -246,8 +246,8 @@ select is((select x ->> 'pass' from jsonb_array_elements(pg_temp.grp('deltasteel
 select is(pg_temp.grp('gulfmech') ->> 'name', 'Gulf Mech', 'a registered company gives the name');
 select is(pg_temp.names(pg_temp.grp('gulfmech')), array['Lina Saad', 'Vera Lane'],
   'a typed name matching a registered company joins it');
-select is((pg_temp.grp('gulfmech') ->> 'admin_id')::uuid, pg_temp.uid('e5'),
-  'no Lead there: the earliest member');
+select is((pg_temp.grp('gulfmech') ->> 'admin_id')::uuid, pg_temp.uid('d4'),
+  'no Lead there: the earliest member who isn''t a Viewer (V3)');
 select is((pg_temp.grp('nilebuild') ->> 'team_id')::uuid, pg_temp.nile(),
   'an existing Team of that name is found');
 select is(pg_temp.grp('nilebuild') ->> 'team_name', 'Nile Build', 'and its name given');
@@ -369,8 +369,8 @@ select lives_ok(format($$select public.create_company_teams(pg_temp.id('a003'), 
     repeat('Long', 15), pg_temp.uid('a8')), 'a long company name fits');
 -- No team_id, but a Team of that name was made since the preview.
 select lives_ok(format($$select public.create_company_teams(pg_temp.id('a004'), pg_temp.sp(),
-    '[{"name": "alpha co.", "team_id": null, "people": ["%s"], "admin_id": "%s"}]')$$,
-    pg_temp.uid('e5'), pg_temp.uid('e5')), 'the same name again');
+    '[{"name": "alpha co.", "team_id": null, "people": ["%s"], "admin_id": null}]')$$,
+    pg_temp.uid('e5')), 'the same name again');
 reset role;
 select is(cardinality(pg_temp.in_team(pg_temp.team_named('Alpha'))), 2, 'goes into the Team that has it');
 select is(length((select t.name from public.teams t where t.name like 'LongLong%')), 40, 'cut to fit');
@@ -547,14 +547,14 @@ update public.profiles set deletion_scheduled_at = null where id = pg_temp.uid('
 -- The record of being a Team admin is mine.
 select pg_temp.as_user('a1');
 set local role authenticated;
-select public.set_team_members(pg_temp.solo(), array[pg_temp.uid('e5')]);
-select public.set_team_admin(pg_temp.solo(), pg_temp.uid('e5'));
+select public.set_team_members(pg_temp.solo(), array[pg_temp.uid('ca')]);
+select public.set_team_admin(pg_temp.solo(), pg_temp.uid('ca'));
 reset role;
-insert into public.data_requests (id, profile_id) values (pg_temp.id('d001'), pg_temp.uid('e5'));
+insert into public.data_requests (id, profile_id) values (pg_temp.id('d001'), pg_temp.uid('ca'));
 select is(public.export_my_data(pg_temp.id('d001')) -> 'team_admin_of' -> 0 ->> 'team', 'Solo',
   'my data lists the Teams I am admin of');
 
-delete from auth.users where id = pg_temp.uid('e5');
+delete from auth.users where id = pg_temp.uid('ca');
 select is(pg_temp.admin_of(pg_temp.solo()), null, 'a deleted account clears it');
 
 select pg_temp.as_user('a1');

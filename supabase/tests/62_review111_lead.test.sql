@@ -12,7 +12,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(22);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000062' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -153,7 +153,7 @@ select is(pg_temp.preview() -> 'similar_teams',
 
 select is(pg_temp.grp('viperworks') ->> 'admin_name', 'Kim Crew', 'V6: the row names who Create will set');
 
--- V7: a Team file opens for its uploader, a member of the Space ----------------------------------
+-- V7 (kept as built): out of the Team and not a Team admin, a Team file closes ------------------
 
 insert into public.library_files (id, space_id, team_id, name, storage_path, mime, uploaded_by)
 values (pg_temp.id('f001'), pg_temp.sp(), pg_temp.alpha(), 'plan.pdf',
@@ -161,11 +161,8 @@ values (pg_temp.id('f001'), pg_temp.sp(), pg_temp.alpha(), 'plan.pdf',
         pg_temp.uid('c3'));
 select pg_temp.as_user('c3');
 set local role authenticated;
-select ok(public.can_read_library_file(pg_temp.id('f001')), 'V7: Cal opens the Team file he uploaded');
-reset role;
-select pg_temp.as_user('b3');
-set local role authenticated;
-select ok(not public.can_read_library_file(pg_temp.id('f001')), 'someone else outside the Team doesn''t');
+select ok(not public.can_read_library_file(pg_temp.id('f001')),
+  'V7: the uploader, out of the Team and no Team admin, doesn''t read it, as a Team view');
 reset role;
 
 -- V14: a Team admin outside a Team posts to it, and no more ------------------------------------------
