@@ -9613,5 +9613,33 @@
   "reactionsChannelAbout": "When someone reacts to your post. Quiet.",
   "@reactionsChannelAbout": {
     "description": "Review 113: the Reactions channel's description in the phone's settings."
+  },
+  "cpDiscard": "Discard",
+  "@cpDiscard": {
+    "description": "Review 113 (1): the composer's top bar; removes the draft."
+  },
+  "cpDiscardTitle": "Discard this draft?",
+  "@cpDiscardTitle": {
+    "description": "Review 113 (1): Discard asks once."
+  },
+  "cpDiscardBody": "What you wrote here will be removed.",
+  "@cpDiscardBody": {
+    "description": "Review 113 (1): under the question."
+  },
+  "cpDiscardKeep": "Keep writing",
+  "@cpDiscardKeep": {
+    "description": "Review 113 (1): the dialog's way back."
+  },
+  "cpType": "Type",
+  "@cpType": {
+    "description": "Review 113 CV3: the first pinned line; opens the kinds' grid."
+  },
+  "cpDateTime": "Date & time",
+  "@cpDateTime": {
+    "description": "Review 113 (12): in the text's menu and the / menu; inserts today's date and time as text."
+  },
+  "cpVoice": "Voice note",
+  "@cpVoice": {
+    "description": "Review 113 (11): the composer's mic; hold to record."
   }
 }

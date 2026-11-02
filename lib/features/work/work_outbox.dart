@@ -187,6 +187,9 @@ class PendingItem {
     this.handovers = const [],
     this.scheduleAt,
     this.tag,
+    this.voiceLocal,
+    this.voiceMs = 0,
+    this.voicePath,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -245,6 +248,9 @@ class PendingItem {
     ],
     scheduleAt: _time(json['schedule_at']),
     tag: DaybookTag.fromJson(json['tag']),
+    voiceLocal: json['voice_local'] as String?,
+    voiceMs: (json['voice_ms'] as num?)?.toInt() ?? 0,
+    voicePath: json['voice_path'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -264,6 +270,12 @@ class PendingItem {
   final String ownerId;
   final String ownerName;
   final List<PendingPhoto> photos;
+
+  /// Review 113 (11): a new post's voice note: on the phone, its length,
+  /// and where it went once uploaded.
+  final String? voiceLocal;
+  final int voiceMs;
+  final String? voicePath;
 
   /// The server said no (not a lost signal): it isn't tried again by
   /// itself.
@@ -358,6 +370,7 @@ class PendingItem {
 
   PendingItem copyWith({
     List<PendingPhoto>? photos,
+    String? Function()? voicePath,
     List<DraftFile>? files,
     bool? refused,
     bool? sent,
@@ -370,6 +383,9 @@ class PendingItem {
     ownerName: ownerName,
     kind: kind,
     photos: photos ?? this.photos,
+    voiceLocal: voiceLocal,
+    voiceMs: voiceMs,
+    voicePath: voicePath == null ? this.voicePath : voicePath(),
     refused: refused ?? this.refused,
     sent: sent ?? this.sent,
     note: note,
@@ -450,6 +466,9 @@ class PendingItem {
     'owner_id': ownerId,
     'owner_name': ownerName,
     'photos': [for (final p in photos) p.toJson()],
+    'voice_local': voiceLocal,
+    'voice_ms': voiceMs,
+    'voice_path': voicePath,
     'refused': refused,
     'sent': sent,
     'kind': kind.json,
@@ -812,7 +831,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
     // Photos uploaded by an earlier try. After a long wait the server may
     // have cleaned them up; the phone copies are still here.
-    var reused = current.photos.any((p) => p.remote != null);
+    var reused =
+        current.photos.any((p) => p.remote != null) ||
+        current.voicePath != null;
     for (;;) {
       try {
         final photos = <PendingPhoto>[];
@@ -835,6 +856,15 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           current = current.copyWith(
             photos: [...photos, ...current.photos.skip(photos.length)],
           );
+          await _put(current);
+        }
+        // Review 113 (11): the voice note, in the post's folder.
+        if (current.voiceLocal case final local?
+            when current.voicePath == null) {
+          final path = await withRetries(
+            () => daybook.uploadPostVoice(item.spaceId, item.id, File(local)),
+          );
+          current = current.copyWith(voicePath: () => path);
           await _put(current);
         }
         // New files go to the Library first, under the ids the app chose.
@@ -862,6 +892,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           reused = false;
           current = current.copyWith(
             photos: [for (final p in current.photos) p.notUploaded],
+            voicePath: () => null,
           );
           await _put(current);
           continue;
@@ -937,6 +968,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// The phone's copies of [item]'s photos and new files.
   void _deleteFiles(PendingItem item) {
     for (final path in [
+      ?item.voiceLocal,
       for (final p in item.photos) p.local,
       for (final f in item.files) ?f.local,
     ]) {
@@ -1012,6 +1044,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     final daybook = ref.read(daybookRepositoryProvider);
     final paths = [for (final p in photos) p.remote!];
     final fileIds = [for (final f in item.files) f.libraryId];
+    final PostVoiceFile? voice = switch (item.voicePath) {
+      final path? => (path: path, durationMs: item.voiceMs),
+      null => null,
+    };
     switch (item.kind) {
       case PendingKind.workItem:
         final made = NewWorkItem(
@@ -1026,6 +1062,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           dueDate: item.dueDate,
           dueAt: item.dueAt,
           photoPaths: paths,
+          voice: voice,
           libraryFileIds: fileIds,
           quote: item.quote,
           sourceMessageId: item.sourceMessageId,
@@ -1062,6 +1099,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           toTeamId: d.thanksToTeam ? d.thanksToId : null,
           forId: d.thanksForId,
           photoPaths: paths,
+          voice: voice,
         );
         // W7: Post later keeps create_thanks with the same params.
         if (item.scheduleAt case final at?) {
@@ -1115,6 +1153,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           people: [for (final p in d.people) p.id],
           points: d.writtenPoints,
           photoPaths: paths,
+          voice: voice,
           teamId: d.teamId,
           quote: d.quote,
           sourceMessageId: d.sourceMessageId,

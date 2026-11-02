@@ -103,9 +103,9 @@ void main() {
         expect(find.text('Drafts'), findsNothing);
         // No template here for a work item: no Templates either.
         expect(_key('composer-templates'), findsNothing);
-        // The kind's name once only: no kind chips over the title.
+        // Review 113 CV3: the kind's name on Type; no kind chips.
         expect(_key('writing-kinds'), findsNothing);
-        expect(find.text(l10n.daybookWorkItem), findsNothing);
+        expect(find.text(l10n.daybookWorkItem), findsOneWidget);
       });
 
       testWidgets('one bar: # (the kind\'s icon) · + · camera · Send; no '
@@ -307,8 +307,8 @@ void main() {
     });
 
     group('CP4 what was added [$lang]', () {
-      testWidgets('a due time as a chip with ×, under the default lines; × '
-          'takes it off', (tester) async {
+      testWidgets('a due time as a chip with ×, just above the pinned lines '
+          '(review 113 CV3); × takes it off', (tester) async {
         await _open(tester, lang, lastKind: 'work_item');
         await _tap(tester, _key('writing-add'));
         await _tap(tester, _key('composer-extra-due'));
@@ -316,7 +316,7 @@ void main() {
         expect(_key('writing-due-chip'), findsOneWidget);
         expect(
           tester.getTopLeft(_key('writing-due-chip')).dy,
-          greaterThan(tester.getTopLeft(_key('writing-to')).dy),
+          lessThan(tester.getTopLeft(_key('writing-to')).dy),
         );
         await _tap(tester, _key('writing-due-chip-clear'));
         expect(_key('writing-due-chip'), findsNothing);

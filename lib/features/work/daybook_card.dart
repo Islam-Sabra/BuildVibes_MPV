@@ -29,6 +29,7 @@ import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
+import '../chat/voice.dart' show VoiceNote;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError;
@@ -584,6 +585,7 @@ class DaybookCardView extends StatelessWidget {
               child: stamp,
             ),
           ),
+        ?_voice(),
         if (!post.isTarget) ?_rest(context, l10n, width),
         ?history,
         if (couldNotSend)
@@ -593,6 +595,18 @@ class DaybookCardView extends StatelessWidget {
         ?action,
         ?_react(),
       ],
+    );
+  }
+
+  /// Review 113 (11): its voice note, which plays on the card.
+  Widget? _voice() {
+    final voice = _post.voice;
+    if (voice == null) return null;
+    return VoiceNote(
+      key: Key('card-voice-${_post.id}'),
+      id: 'post-${_post.id}',
+      duration: voice.duration,
+      path: voice.path,
     );
   }
 
@@ -745,6 +759,7 @@ class DaybookCardView extends StatelessWidget {
                 : BvAvatarTints.forId(authorId),
           ),
           ..._kindBody(context, l10n),
+          ?_voice(),
           ?_rest(context, l10n, width),
           ?history,
           if (couldNotSend)

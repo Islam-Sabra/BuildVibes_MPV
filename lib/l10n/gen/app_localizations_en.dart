@@ -6757,4 +6757,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reactionsChannelAbout =>
       'When someone reacts to your post. Quiet.';
+
+  @override
+  String get cpDiscard => 'Discard';
+
+  @override
+  String get cpDiscardTitle => 'Discard this draft?';
+
+  @override
+  String get cpDiscardBody => 'What you wrote here will be removed.';
+
+  @override
+  String get cpDiscardKeep => 'Keep writing';
+
+  @override
+  String get cpType => 'Type';
+
+  @override
+  String get cpDateTime => 'Date & time';
+
+  @override
+  String get cpVoice => 'Voice note';
 }

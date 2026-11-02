@@ -1857,5 +1857,12 @@
   "holdArchivedNoLonger": "أُرشف بند العمل هذا: لم يعد مطلوبًا.",
   "shareTeamOnly": "منشور الفريق يُرسل فقط إلى محادثة ذلك الفريق.",
   "reactionsChannel": "التفاعلات",
-  "reactionsChannelAbout": "عندما يتفاعل أحدهم مع منشورك. بدون صوت."
+  "reactionsChannelAbout": "عندما يتفاعل أحدهم مع منشورك. بدون صوت.",
+  "cpDiscard": "تجاهل",
+  "cpDiscardTitle": "تجاهل هذه المسودة؟",
+  "cpDiscardBody": "سيُحذف ما كتبته هنا.",
+  "cpDiscardKeep": "متابعة الكتابة",
+  "cpType": "النوع",
+  "cpDateTime": "التاريخ والوقت",
+  "cpVoice": "ملاحظة صوتية"
 }

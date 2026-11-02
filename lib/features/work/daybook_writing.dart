@@ -811,6 +811,20 @@ class DaybookWriter {
     unawaited(DaybookDraft.deleteKept(old));
   }
 
+  /// Review 113 (11): the voice note held on the mic; a new one replaces
+  /// it.
+  Future<void> setVoice(String local, int ms) async {
+    final old = draft?.voiceLocal;
+    await _put((d) => d.copyWith(voice: () => (local: local, ms: ms)));
+    if (old != null) unawaited(DaybookDraft.deleteKept(old));
+  }
+
+  Future<void> removeVoice() async {
+    final old = draft?.voiceLocal;
+    await _put((d) => d.copyWith(voice: () => null));
+    if (old != null) unawaited(DaybookDraft.deleteKept(old));
+  }
+
   /// A file on the post: a file post's one file (a new one replaces it),
   /// or one more on a work item.
   Future<void> addFile(DraftFile file) async {
@@ -908,6 +922,8 @@ class DaybookWriter {
               madeAt: now,
               authorName: authorName,
               photos: photos,
+              voiceLocal: d.voiceLocal,
+              voiceMs: d.voiceMs,
               files: d.files,
               draft: workItem ? null : d,
               quote: workItem ? d.quote : null,

@@ -63,14 +63,15 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// The kind's lines, under Type (review 113 CV3).
 List<Key> _rows(WidgetTester tester) => [
   for (final r
-      in tester.widget<BvWritingPills>(find.byType(BvWritingPills)).rows)
-    r.key,
+      in tester.widget<BvWritingLines>(find.byType(BvWritingLines)).rows)
+    if (r.key != const Key('writing-kind')) r.key,
 ];
 
 BvWritingRow _row(WidgetTester tester, String key) => tester
-    .widget<BvWritingPills>(find.byType(BvWritingPills))
+    .widget<BvWritingLines>(find.byType(BvWritingLines))
     .rows
     .firstWhere((r) => r.key == Key(key));
 
@@ -84,7 +85,7 @@ void main() {
         await _write(tester, lang);
         final title = tester.getRect(_key('writing-title'));
         final body = tester.getRect(_key('writing-body'));
-        final rows = tester.getRect(_key('writing-pills'));
+        final rows = tester.getRect(_key('writing-lines'));
         expect(title.top, lessThan(body.top));
         expect(body.bottom, lessThanOrEqualTo(rows.top));
         expect(find.text(l10n.cpDetails), findsOneWidget);
@@ -188,26 +189,27 @@ void main() {
         ]);
       });
 
-      testWidgets('the bar: # · + · camera, then Send; no mic', (tester) async {
+      testWidgets('the bar (review 113 CV3): + · camera · mic, then Send; '
+          'no #', (tester) async {
         await _write(tester, lang);
         final bar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
         );
         expect(bar.tools!.map((t) => t.key), const [
-          Key('writing-kind'),
           Key('writing-add'),
           Key('writing-camera'),
+          Key('writing-mic'),
         ]);
-        expect(bar.tools!.any((t) => t.holds), isFalse, reason: 'no mic');
+        expect(bar.tools!.last.holds, isTrue, reason: 'hold to record');
         double x(String k) => tester.getCenter(_key(k)).dx;
         if (lang == 'ar') {
-          expect(x('writing-kind'), greaterThan(x('writing-add')));
           expect(x('writing-add'), greaterThan(x('writing-camera')));
-          expect(x('writing-camera'), greaterThan(x('writing-post')));
+          expect(x('writing-camera'), greaterThan(x('writing-mic')));
+          expect(x('writing-mic'), greaterThan(x('writing-post')));
         } else {
-          expect(x('writing-kind'), lessThan(x('writing-add')));
           expect(x('writing-add'), lessThan(x('writing-camera')));
-          expect(x('writing-camera'), lessThan(x('writing-post')));
+          expect(x('writing-camera'), lessThan(x('writing-mic')));
+          expect(x('writing-mic'), lessThan(x('writing-post')));
         }
       });
 

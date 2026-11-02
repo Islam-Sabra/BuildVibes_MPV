@@ -224,6 +224,9 @@ void main() {
         await _tap(tester, _key('later-workday'));
         await _tap(tester, _key('later-schedule'));
         expect(app.schedule.scheduled.single.at, _sunday7);
+        // Its message goes first: For is pinned where it shows (CV3).
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
 
         await _writeItem(tester, s);
         await openPostLater(tester);

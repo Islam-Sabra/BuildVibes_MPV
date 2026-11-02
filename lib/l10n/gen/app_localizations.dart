@@ -11245,6 +11245,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When someone reacts to your post. Quiet.'**
   String get reactionsChannelAbout;
+
+  /// Review 113 (1): the composer's top bar; removes the draft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get cpDiscard;
+
+  /// Review 113 (1): Discard asks once.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this draft?'**
+  String get cpDiscardTitle;
+
+  /// Review 113 (1): under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'What you wrote here will be removed.'**
+  String get cpDiscardBody;
+
+  /// Review 113 (1): the dialog's way back.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep writing'**
+  String get cpDiscardKeep;
+
+  /// Review 113 CV3: the first pinned line; opens the kinds' grid.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get cpType;
+
+  /// Review 113 (12): in the text's menu and the / menu; inserts today's date and time as text.
+  ///
+  /// In en, this message translates to:
+  /// **'Date & time'**
+  String get cpDateTime;
+
+  /// Review 113 (11): the composer's mic; hold to record.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get cpVoice;
 }
 
 class _AppLocalizationsDelegate

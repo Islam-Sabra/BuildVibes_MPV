@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -23,6 +24,13 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
+import '../chat/voice.dart'
+    show
+        RecordingBar,
+        maxVoice,
+        minVoice,
+        voicePlayerProvider,
+        voiceRecorderProvider;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
@@ -530,6 +538,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   @override
   void dispose() {
+    _recordTimer?.cancel();
+    if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
     _unpin?.cancel();
     _unflash?.cancel();
     _liveRead?.cancel();
@@ -1086,6 +1096,81 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _panel = null;
       _askWho = null;
     });
+  }
+
+  /// Discard (review 113 (1)): the draft is gone, with its photos.
+  Future<void> _discardDraft() async {
+    await ref.read(daybookDraftProvider(_spaceId).notifier).discard();
+    if (mounted) _stopWriting();
+  }
+
+  // Review 113 (11): hold the mic to record, as in WhatsApp: release
+  // attaches it to the post, slide away cancels. As in Chat and the
+  // notebook.
+  bool _recording = false;
+  bool _cancelling = false;
+  bool _holding = false;
+  Duration _elapsed = Duration.zero;
+  Stopwatch? _watch;
+  Timer? _recordTimer;
+
+  Future<void> _startRecording() async {
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    _holding = true;
+    await ref.read(voicePlayerProvider.notifier).pause();
+    if (!await recorder.allowed()) {
+      if (mounted) showSpaceMessage(context, l10n.chatMicDenied);
+      return;
+    }
+    if (!_holding || !mounted) return;
+    await recorder.start();
+    if (!_holding || !mounted) {
+      await recorder.cancel();
+      return;
+    }
+    _watch = clock.stopwatch()..start();
+    setState(() {
+      _recording = true;
+      _cancelling = false;
+      _elapsed = Duration.zero;
+    });
+    _recordTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      if (!mounted) return;
+      setState(() => _elapsed = _watch!.elapsed);
+      if (_elapsed >= maxVoice) unawaited(_endRecording());
+    });
+  }
+
+  void _slide(Offset offset) {
+    final cancelling = offset.distance > BvChatSpec.slideToCancel;
+    if (cancelling != _cancelling) setState(() => _cancelling = cancelling);
+  }
+
+  Future<void> _endRecording() async {
+    _holding = false;
+    _recordTimer?.cancel();
+    if (!_recording) return;
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    final measured = _watch?.elapsed ?? _elapsed;
+    final length = measured > maxVoice ? maxVoice : measured;
+    final cancel = _cancelling;
+    setState(() {
+      _recording = false;
+      _cancelling = false;
+    });
+    if (cancel) {
+      await recorder.cancel();
+      return;
+    }
+    final path = await recorder.stop();
+    if (!mounted || path == null) return;
+    if (length < minVoice) {
+      showSpaceMessage(context, l10n.notebookTooShort);
+      return;
+    }
+    await _writer.setVoice(path, length.inMilliseconds);
   }
 
   /// Review 110 CP1: the Space screen hides its header while writing.
@@ -1678,22 +1763,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // (a Viewer) has no # at all.
     final kinds = composerKindsFor(widget.space);
     final laterNote = l10n.plCantYet;
+    // Review 113 (11): a new post takes a voice note; a Check-in, a report
+    // and a file post don't.
+    final voice =
+        !_editing &&
+        kind != DaybookKind.checkIn &&
+        kind != DaybookKind.report &&
+        kind != DaybookKind.file;
     final bar = BvWritingToolbar.tools(
+      holdsInOrder: true,
+      field: _recording
+          ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
+          : null,
       tools: [
-        // # (CP2): the kind's icon; its grid of kinds.
-        if (kinds.length > 1)
-          BvWritingTool(
-            key: const Key('writing-kind'),
-            icon: DaybookComposerState.composerKindIcon(kind),
-            label: l10n.cpWhatPosting,
-            outlined: true,
-            active: _panel == ComposerPanel.kinds,
-            onTap: _editing || !kinds.contains(kind)
-                ? null
-                : () => _setPanel(
-                    _panel == ComposerPanel.kinds ? null : ComposerPanel.kinds,
-                  ),
-          ),
         // + (CP3): what this kind can take.
         BvWritingTool(
           key: const Key('writing-add'),
@@ -1719,6 +1801,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             onTap: _editing
                 ? null
                 : () => unawaited(_photos(_writer.addPhoto())),
+          ),
+        if (voice)
+          BvWritingTool(
+            key: const Key('writing-mic'),
+            icon: BvIcons.microphone,
+            label: l10n.cpVoice,
+            onTap: () => showSpaceMessage(context, l10n.notebookHoldToRecord),
+            onHoldStart: () => unawaited(_startRecording()),
+            onHoldMove: _slide,
+            onHoldEnd: () => unawaited(_endRecording()),
           ),
       ],
       postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
@@ -1770,6 +1862,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           kinds: kinds,
           onTemplates: _editing ? null : () => unawaited(_pickTemplate()),
           onClose: _stopWriting,
+          onDiscard: _editing ? null : () => unawaited(_discardDraft()),
           onKind: (k) => unawaited(_switchKind(k)),
           onExtra: (e) => unawaited(_extra(e)),
           onMenu: _setMenu,

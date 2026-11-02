@@ -155,6 +155,8 @@ class DaybookPostDraft {
     this.dueDate,
     this.dueAt,
     this.photos = const [],
+    this.voiceLocal,
+    this.voiceMs = 0,
     this.people = const [],
     this.points = const [],
     this.pinnedUntil,
@@ -210,6 +212,8 @@ class DaybookPostDraft {
           for (final p in json['photos'] as List? ?? const []) p as String,
           if (json['photo'] case final String one) one,
         ],
+        voiceLocal: json['voice_local'] as String?,
+        voiceMs: (json['voice_ms'] as num?)?.toInt() ?? 0,
         people: [
           for (final p in json['people'] as List? ?? const [])
             (
@@ -283,7 +287,14 @@ class DaybookPostDraft {
     final kept = item.draft;
     final photos = [for (final p in item.photos) p.local];
     if (kept != null) {
-      return kept.copyWith(photos: photos, files: item.files, refused: true);
+      return kept.copyWith(
+        photos: photos,
+        files: item.files,
+        refused: true,
+        voice: () => item.voiceLocal == null
+            ? null
+            : (local: item.voiceLocal!, ms: item.voiceMs),
+      );
     }
     return DaybookPostDraft(
       id: item.id,
@@ -296,6 +307,8 @@ class DaybookPostDraft {
       dueDate: item.dueDate,
       dueAt: item.dueAt,
       photos: photos,
+      voiceLocal: item.voiceLocal,
+      voiceMs: item.voiceMs,
       files: item.files,
       couldNotSend: true,
       quote: item.quote,
@@ -373,6 +386,11 @@ class DaybookPostDraft {
   /// Photos: copies kept in the app's folder, so they outlive the camera's
   /// cache and the app being closed. Up to ten (K4).
   final List<String> photos;
+
+  /// Review 113 (11): the voice note held on the mic, on the phone until
+  /// it is sent, and its length.
+  final String? voiceLocal;
+  final int voiceMs;
   final List<DraftPerson> people;
   final List<DraftPoint> points;
 
@@ -506,6 +524,7 @@ class DaybookPostDraft {
             refsOut.isEmpty
       : title.trim().isEmpty &&
             body.trim().isEmpty &&
+            voiceLocal == null &&
             ownerId == null &&
             place == null &&
             dueDate == null &&
@@ -578,6 +597,7 @@ class DaybookPostDraft {
     DateTime? Function()? dueDate,
     DateTime? Function()? dueAt,
     List<String>? photos,
+    ({String local, int ms})? Function()? voice,
     List<DraftPerson>? people,
     List<DraftPoint>? points,
     DateTime? Function()? pinnedUntil,
@@ -652,6 +672,8 @@ class DaybookPostDraft {
     dueDate: dueDate == null ? this.dueDate : dueDate(),
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     photos: photos ?? this.photos,
+    voiceLocal: voice == null ? voiceLocal : voice()?.local,
+    voiceMs: voice == null ? voiceMs : voice()?.ms ?? 0,
     people: people ?? this.people,
     points: points ?? this.points,
     pinnedUntil: pinnedUntil == null ? this.pinnedUntil : pinnedUntil(),
@@ -675,6 +697,8 @@ class DaybookPostDraft {
     'due_date': dueDate?.toIso8601String(),
     'due_at': dueAt?.toUtc().toIso8601String(),
     'photos': photos,
+    'voice_local': voiceLocal,
+    'voice_ms': voiceMs,
     'people': [
       for (final p in people) {'id': p.id, 'name': p.name},
     ],
@@ -974,6 +998,7 @@ class DaybookDraft extends DaybookWritingNotifier {
     if (keepFiles || draft == null) return;
     for (final path in [
       ...draft.photos,
+      ?draft.voiceLocal,
       for (final f in draft.files) ?f.local,
     ]) {
       unawaited(deleteKept(path));

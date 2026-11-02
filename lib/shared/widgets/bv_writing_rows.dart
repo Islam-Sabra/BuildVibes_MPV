@@ -108,6 +108,7 @@ class BvWritingRow {
     this.clearKey,
     this.icon,
     this.call = false,
+    this.accent = false,
   });
 
   final Key key;
@@ -139,6 +140,9 @@ class BvWritingRow {
   /// Review 109 CI1: a line still to do, said in the action colour on a
   /// soft brand pill ("Set place here").
   final bool call;
+
+  /// Review 113 CV3: the value in the action colour (Type's).
+  final bool accent;
 }
 
 /// For · Place · Due · Team (review 105 SP2, review 104 N10): each a row
@@ -320,6 +324,104 @@ class BvWritingPills extends StatelessWidget {
                     ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Review 113 CV3 (2730:39817): Type · For · Team, pinned just above the
+/// bar: full-width lines with a hairline between, always in the same place.
+class BvWritingLines extends StatelessWidget {
+  const BvWritingLines({super.key, required this.rows});
+
+  final List<BvWritingRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    const line = Divider(
+      height: BvStroke.thin,
+      thickness: BvStroke.thin,
+      color: BvColors.borderSubtle,
+    );
+    return Column(
+      key: const Key('writing-lines'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        line,
+        for (final r in rows) ...[_line(type, r), line],
+      ],
+    );
+  }
+
+  Widget _line(BvTypeSet type, BvWritingRow r) {
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final valueColor = r.call || r.accent
+        ? BvColors.textAction
+        : BvColors.textPrimary;
+    return Semantics(
+      button: r.onTap != null,
+      child: InkWell(
+        key: r.key,
+        onTap: r.onTap,
+        child: _Pulse(
+          ask: r.ask,
+          child: Padding(
+            padding: BvWritingLineSpec.padding,
+            child: Row(
+              spacing: BvWritingLineSpec.gap,
+              children: [
+                Text(r.label, style: quiet),
+                if (r.person != null)
+                  BvAvatar(
+                    name: r.person!,
+                    size: BvAvatarSize.xs,
+                    tint: r.tint,
+                  ),
+                if (r.icon case final icon?)
+                  Icon(
+                    icon,
+                    size: BvWritingLineSpec.caret,
+                    color: r.call ? BvColors.iconAction : valueColor,
+                  ),
+                Expanded(
+                  child: Text(
+                    r.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: r.empty && !r.call
+                        ? quiet
+                        : type.emphasisSm.copyWith(color: valueColor),
+                  ),
+                ),
+                if (r.onTap != null && r.onClear == null)
+                  const Icon(
+                    BvIcons.caretForward,
+                    size: BvWritingLineSpec.caret,
+                    color: BvColors.iconSecondary,
+                  ),
+                if (r.onClear case final clear?)
+                  Semantics(
+                    button: true,
+                    label: r.clearLabel,
+                    excludeSemantics: true,
+                    child: BvTapTarget(
+                      child: GestureDetector(
+                        key: r.clearKey,
+                        behavior: HitTestBehavior.opaque,
+                        onTap: clear,
+                        child: const Icon(
+                          BvIcons.close,
+                          size: BvWritingLineSpec.caret,
+                          color: BvColors.iconSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

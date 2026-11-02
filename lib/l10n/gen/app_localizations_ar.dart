@@ -6808,4 +6808,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reactionsChannelAbout => 'عندما يتفاعل أحدهم مع منشورك. بدون صوت.';
+
+  @override
+  String get cpDiscard => 'تجاهل';
+
+  @override
+  String get cpDiscardTitle => 'تجاهل هذه المسودة؟';
+
+  @override
+  String get cpDiscardBody => 'سيُحذف ما كتبته هنا.';
+
+  @override
+  String get cpDiscardKeep => 'متابعة الكتابة';
+
+  @override
+  String get cpType => 'النوع';
+
+  @override
+  String get cpDateTime => 'التاريخ والوقت';
+
+  @override
+  String get cpVoice => 'ملاحظة صوتية';
 }

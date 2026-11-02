@@ -166,6 +166,18 @@ class FakeDaybookRepository implements DaybookRepository {
   }
 
   @override
+  Future<String> uploadPostVoice(
+    String spaceId,
+    String postId,
+    File file,
+  ) async {
+    _check();
+    final path = '$spaceId/posts/$postId/${uploads.length}.m4a';
+    uploads.add(path);
+    return path;
+  }
+
+  @override
   Future<String> uploadPostPhoto(
     String spaceId,
     String postId,
