@@ -19,6 +19,9 @@ import 'package:buildvibes/core/l10n/phone_zone.dart';
 import 'package:buildvibes/core/location/location_reader.dart';
 import 'package:buildvibes/features/work/check_in_phone.dart'
     show checkInNotifierProvider;
+import 'package:buildvibes/features/spaces/need_you_phone.dart'
+    show needYouNotifierProvider;
+import 'package:buildvibes/data/repositories/need_you_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/dm_repository.dart';
 import 'package:buildvibes/features/work/composer_kinds.dart';
@@ -62,6 +65,7 @@ import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
 import 'check_in_fakes.dart';
+import 'need_you_fakes.dart';
 import 'location_fakes.dart';
 import 'daybook_fakes.dart';
 import 'dm_fakes.dart';
@@ -148,6 +152,8 @@ class TestApp {
     required this.checkIns,
     required this.location,
     required this.notices,
+    required this.needYou,
+    required this.needYouNotices,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -215,6 +221,10 @@ class TestApp {
   final FakeLocationReader location;
   final FakeCheckInNotifier notices;
 
+  /// Review 113: Need you now's server calls and notifications.
+  final FakeNeedYouRepository needYou;
+  final FakeCheckInNotifier needYouNotices;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -271,6 +281,7 @@ Future<TestApp> pumpApp(
   FakeScheduleRepository? schedule,
   FakeCheckInRepository? checkIns,
   FakeLocationReader? location,
+  FakeNeedYouRepository? needYou,
 
   /// The market pack; [testMarkets] by default.
   List<Market>? markets,
@@ -377,6 +388,8 @@ Future<TestApp> pumpApp(
       checkIns ?? FakeCheckInRepository(now: clock ?? () => now ?? testNow);
   final fakeLocation = location ?? FakeLocationReader();
   final fakeNotices = FakeCheckInNotifier();
+  final fakeNeedYou = needYou ?? FakeNeedYouRepository();
+  final fakeNeedYouNotices = FakeCheckInNotifier();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -438,6 +451,8 @@ Future<TestApp> pumpApp(
         checkInRepositoryProvider.overrideWithValue(fakeCheckIns),
         locationReaderProvider.overrideWithValue(fakeLocation),
         checkInNotifierProvider.overrideWithValue(fakeNotices),
+        needYouNotifierProvider.overrideWithValue(fakeNeedYouNotices),
+        needYouRepositoryProvider.overrideWithValue(fakeNeedYou),
         // Y1: the phone's time zone.
         phoneTimeZoneProvider.overrideWithValue(() async => 'Asia/Kuwait'),
         openLinkProvider.overrideWithValue((uri) async {
@@ -573,6 +588,8 @@ Future<TestApp> pumpApp(
     checkIns: fakeCheckIns,
     location: fakeLocation,
     notices: fakeNotices,
+    needYou: fakeNeedYou,
+    needYouNotices: fakeNeedYouNotices,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

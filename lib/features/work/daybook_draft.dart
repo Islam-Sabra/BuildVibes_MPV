@@ -336,6 +336,29 @@ class DaybookPostDraft {
     );
   }
 
+  /// Review 113 (17): a new check-in made from the last one, for the
+  /// nudge: its words, For, times, Every day and place. The site comes
+  /// only when the card gives it; else Set place here asks again.
+  factory DaybookPostDraft.fromCheckIn(DaybookPost post, {required String id}) {
+    final c = post.checkIn;
+    return DaybookPostDraft(
+      id: id,
+      kind: DaybookKind.checkIn,
+      title: post.title,
+      body: post.body ?? '',
+      place: post.place,
+      placeId: post.placeId,
+      checkInTeams: c?.teams ?? const [],
+      inTime: c?.inTime,
+      inAllow: c?.inAllow ?? checkInDefaultAllowance,
+      outTime: c?.outTime,
+      outAllow: c?.outAllow,
+      daily: c?.daily ?? false,
+      siteLat: c?.siteLat,
+      siteLng: c?.siteLng,
+    );
+  }
+
   static DateTime? _time(Object? value) =>
       value == null ? null : DateTime.parse(value as String).toLocal();
 
@@ -753,8 +776,9 @@ class DaybookDraft extends DaybookWritingNotifier {
   final String spaceId;
   String? _key;
 
-  /// The card was just made from a note (review 84 N2): new, not a Draft
-  /// from before, until the person leaves it unsent.
+  /// The card was just made from a note (review 84 N2) or a check-in
+  /// (review 113): new, not a Draft from before, until the person leaves
+  /// it unsent.
   bool _fromNote = false;
 
   /// True once after [fromNote] made a new card; the daybook asks when it
@@ -939,6 +963,15 @@ class DaybookDraft extends DaybookWritingNotifier {
     if (text.length <= max) return (text, false);
     final space = text.lastIndexOf(' ', max);
     return (text.substring(0, space > 0 ? space : max).trim(), true);
+  }
+
+  /// Review 113 (17): the nudge's card, from the last check-in. A card
+  /// already half-written stays: it is never overwritten.
+  Future<void> fromCheckIn(String id, DaybookPost post) async {
+    final current = state;
+    if (current != null && !current.isEmpty) return;
+    _fromNote = true;
+    await put(DaybookPostDraft.fromCheckIn(post, id: id));
   }
 
   /// Sets the card and saves it once anything is entered.

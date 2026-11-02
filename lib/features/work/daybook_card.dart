@@ -60,12 +60,14 @@ class DaybookCardActions {
     this.onOpenQuote,
     this.onOpenNewer,
     this.onShareReport,
+    this.onFace,
   });
 
-  /// The same, with [onOpenQuote] (F87) and [onOpenNewer] (F76).
+  /// The same, with [onOpenQuote] (F87), [onOpenNewer] (F76) and [onFace].
   DaybookCardActions withLinks({
     VoidCallback? openQuote,
     VoidCallback? openNewer,
+    VoidCallback? face,
   }) => DaybookCardActions(
     onOpen: onOpen,
     onHold: onHold,
@@ -80,7 +82,11 @@ class DaybookCardActions {
     onOpenQuote: openQuote ?? onOpenQuote,
     onOpenNewer: openNewer ?? onOpenNewer,
     onShareReport: onShareReport,
+    onFace: face ?? onFace,
   );
+
+  /// Review 113 (18): the author's face: Need you now.
+  final VoidCallback? onFace;
 
   /// A tap opens it (review 105 Part 2): its page, with what the old
   /// long-press menu held (the lead's ruling Q3).
@@ -465,6 +471,8 @@ class DaybookCardView extends StatelessWidget {
           tint: authorId == null
               ? BvAvatarTints.plain
               : BvAvatarTints.forId(authorId),
+          onFace: lifted ? null : actions.onFace,
+          faceLabel: l10n.needYouNow,
         ),
         BvSlipTitle(
           post.title,
@@ -691,6 +699,8 @@ class DaybookCardView extends StatelessWidget {
             tint: authorId == null
                 ? BvAvatarTints.plain
                 : BvAvatarTints.forId(authorId),
+            onFace: lifted ? null : actions.onFace,
+            faceLabel: l10n.needYouNow,
           ),
           ..._kindBody(context, l10n),
           ?_rest(context, l10n, width),

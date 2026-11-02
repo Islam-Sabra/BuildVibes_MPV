@@ -11,13 +11,16 @@ import '../../core/network/signal_state.dart';
 import '../../core/push/push_messaging.dart';
 import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/push_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
-import '../work/check_in_notice.dart' show checkInPushRoute;
+import '../work/check_in_notice.dart'
+    show checkInNudgeOpen, checkInPushRoute, fillFromLastCheckIn;
+import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../../core/routing/open_thread.dart';
 
 /// Whether the phone lets BuildVibes notify (S4 shows when it doesn't).
@@ -270,6 +273,10 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// Only the app's own pages: a Space, its item or thread, a post, a
   /// person, a direct message thread, your profile, or Scheduled.
   void _open(Map<String, String> data) {
+    if (data['open'] == checkInNudgeOpen) {
+      unawaited(_openNudge(data));
+      return;
+    }
     // Review 109: a check-in's push opens its card, or the creator's list.
     final sent = checkInPushRoute(data) ?? data['route'];
     if (!mounted || sent == null) return;
@@ -292,6 +299,24 @@ class _PushHostState extends ConsumerState<PushHost> {
         extra: data['open'] == 'people' ? SpaceOpen.people : null,
       );
     }
+  }
+
+  /// Review 113 (17): "No check-in posted for today": the composer opens
+  /// filled from the last check-in.
+  Future<void> _openNudge(Map<String, String> data) async {
+    final space = data['space_id'];
+    if (space == null) return;
+    final router = GoRouter.of(context);
+    await fillFromLastCheckIn(
+      ref.read(daybookDraftProvider(space).notifier),
+      ref.read(daybookRepositoryProvider),
+      fromPostId: data['from_post_id'],
+      newId: newUuid(),
+    );
+    if (!mounted) return;
+    unawaited(
+      openRoute(router, AppRoutes.space(space), extra: SpaceOpen.write),
+    );
   }
 
   @override

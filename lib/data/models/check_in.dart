@@ -215,6 +215,8 @@ class CheckInSetup {
     this.myOut,
     this.missed = false,
     this.zone,
+    this.siteLat,
+    this.siteLng,
   });
 
   static CheckInSetup? fromJson(Object? json) {
@@ -247,6 +249,8 @@ class CheckInSetup {
       myOut: CheckInMark.fromJson(json['my_out']),
       missed: json['missed'] == true,
       zone: json['tz'] as String?,
+      siteLat: (json['site_lat'] as num?)?.toDouble(),
+      siteLng: (json['site_lng'] as num?)?.toDouble(),
     );
   }
 
@@ -254,6 +258,10 @@ class CheckInSetup {
   /// or its creator's phone's when the Space has none. Its times show in
   /// it.
   final String? zone;
+
+  /// The site, when the card gives it (review 113's nudge reuses it).
+  final double? siteLat;
+  final double? siteLng;
 
   final DayTime inTime;
   final int inAllow;

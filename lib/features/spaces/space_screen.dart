@@ -28,6 +28,7 @@ import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
 import '../work/work_outbox.dart';
+import 'need_you_sheet.dart' show NeedYouStrip;
 import 'space_sections.dart';
 import 'spaces_state.dart';
 
@@ -357,6 +358,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
                 ),
               ),
             ),
+            // Review 113 (18): a call and its answer show here.
+            if (!composing) NeedYouStrip(spaceId: widget.spaceId),
             Expanded(child: _body(detail)),
           ],
         ),

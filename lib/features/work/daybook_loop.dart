@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../spaces/need_you_sheet.dart' show openNeedYou;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
@@ -107,7 +108,14 @@ class DaybookLoop {
     );
     final message = v.card.post.sourceMessageId;
     final newer = v.card.post.file?.newerPostId;
-    if (message == null && newer == null) return v;
+    final author = v.card.post.authorId;
+    // Review 113 (18): someone else's face calls them, where it may.
+    final face = author == null || author == me || _viewer
+        ? null
+        : () => unawaited(
+            openNeedYou(context, ref, space: space, personId: author),
+          );
+    if (message == null && newer == null && face == null) return v;
     return v.copyWith(
       actions: v.actions.withLinks(
         openQuote: message == null
@@ -119,6 +127,7 @@ class DaybookLoop {
             : () => unawaited(
                 GoRouter.of(context).push(AppRoutes.spaceCard(_spaceId, newer)),
               ),
+        face: face,
       ),
     );
   }

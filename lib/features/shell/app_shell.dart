@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../spaces/need_you_phone.dart' show NeedYouHost;
 import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
@@ -42,9 +43,12 @@ class AppShell extends ConsumerWidget {
         child: PushHost(
           // Review 109 CI2: check-in notifications and their taps.
           child: CheckInHost(
-            child: DmLiveHost(
-              child: SpaceReminderHost(
-                child: ReminderHost(child: navigationShell),
+            // Review 113 NN2: Need you now's notifications and answers.
+            child: NeedYouHost(
+              child: DmLiveHost(
+                child: SpaceReminderHost(
+                  child: ReminderHost(child: navigationShell),
+                ),
               ),
             ),
           ),
