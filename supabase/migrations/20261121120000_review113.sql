@@ -1243,7 +1243,8 @@ end;
 $$;
 
 -- A folder's name and sharing: its creator or the Space admin. Its link
--- stays.
+-- stays. Z2: the admin never changes the sharing of an only-me folder, or
+-- of a person's while its creator is a member: that would open it to them.
 create or replace function public.update_library_folder(
   p_id uuid,
   p_name text,
@@ -1263,6 +1264,17 @@ begin
   if auth.uid() is null or v_f.id is null or not public.is_member(v_f.space_id)
      or public.is_hidden_account(auth.uid())
      or not (v_f.created_by = auth.uid() or public.is_space_admin(v_f.space_id)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if v_f.created_by is distinct from auth.uid()
+     and (v_f.share, v_f.share_person, v_f.share_team)
+         is distinct from (p_share,
+                           case when p_share = 'person' then p_share_person end,
+                           case when p_share = 'team' then p_share_team end)
+     and (v_f.share = 'only_me'
+          or (v_f.share = 'person' and v_f.created_by is not null
+              and public.is_active_member(v_f.space_id, v_f.created_by)
+              and not public.is_hidden_account(v_f.created_by))) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   perform public.library_folder_check(v_f.space_id, p_name, p_share, p_share_person, p_share_team);
@@ -1322,6 +1334,122 @@ as $$
   from public.library_folders f
   where f.space_id = p_space and public.can_read_library_folder(f.id)
   order by lower(f.name), f.id;
+$$;
+
+-- search_space (migration 53), as it was, and Z1: every file through
+-- can_read_library_file, so a file in a folder I can't read never takes one
+-- of the 30 places.
+create or replace function public.search_space(p_space uuid, p_q text)
+returns table (kind text, id uuid, post_id uuid, thread_id uuid, team_id uuid, post_kind text,
+               post_status text, ref text, title text, snippet text, author_name text,
+               created_at timestamptz, mine boolean, exact boolean)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_q text := public.search_fold(regexp_replace(trim(coalesce(p_q, '')), '\s+', ' ', 'g'));
+  v_raw text := upper(translate(trim(coalesce(p_q, '')),
+                                '٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹',
+                                '01234567890123456789'));
+  v_parts text[];
+  v_number integer;
+  v_pat text;
+  v_threads uuid[];
+begin
+  if char_length(v_q) > 100 then
+    raise exception 'search too long' using errcode = '22023';
+  end if;
+  if not public.is_member(p_space) then
+    return;
+  end if;
+  -- "NST-023", "NST023", "nst 23", "023", "23": this Space's prefix, or
+  -- none, then the number.
+  v_parts := regexp_match(v_raw, '^([A-Z]{2,4})?[ -]?0*([0-9]{1,9})$');
+  if v_parts is not null and v_parts[2] <> ''
+     and (v_parts[1] is null
+          or v_parts[1] = (select s.ref_prefix from public.spaces s where s.id = p_space)) then
+    v_number := v_parts[2]::integer;
+  end if;
+  if char_length(v_q) < 2 and v_number is null then
+    return;
+  end if;
+  v_pat := '%' || replace(replace(replace(v_q, '\', '\\'), '%', '\%'), '_', '\_') || '%';
+  v_threads := array(select t.id from public.threads t
+                     where t.space_id = p_space and public.can_use_thread(t.id));
+
+  return query
+  with hits as (
+    (select 'post'::text as kind, p.id, p.id as post_id, null::uuid as thread_id, p.team_id,
+            p.kind as post_kind, p.status as post_status, p.ref, p.title,
+            null::text as snippet, p.author_id, p.created_at, true as exact
+     from public.space_posts p
+     where p.space_id = p_space and p.number = v_number and p.deleted_at is null
+       and (p.team_id is null or public.can_see_space_post(p.id)))
+    union all
+    (select 'post'::text, p.id, p.id, null::uuid, p.team_id,
+            p.kind, p.status, p.ref, p.title,
+            case when public.search_fold(p.title) like v_pat then null
+                 else public.search_snippet(
+                   coalesce(p.body, '') || ' ' || public.blocks_plain_text(p.blocks), v_q)
+            end,
+            p.author_id, p.created_at, false
+     from public.space_posts p
+     where p.space_id = p_space and p.deleted_at is null
+       and p.number is distinct from v_number
+       and p.search_text like v_pat
+       and (p.team_id is null or public.can_see_space_post(p.id))
+     order by p.created_at desc, p.id desc limit 30)
+    union all
+    (select 'point', c.id, p.id, null, p.team_id, p.kind, p.status, p.ref, p.title, c.text,
+            p.author_id, c.created_at, false
+     from public.checklist_points c
+     join public.space_posts p on p.id = c.post_id
+     where p.space_id = p_space and p.deleted_at is null
+       and c.search_text like v_pat
+       and (p.team_id is null or public.can_see_space_post(p.id))
+     order by c.created_at desc, c.id desc limit 30)
+    union all
+    (select 'message', m.id, null, m.thread_id, t.team_id, null, null, null, null,
+            public.search_snippet(m.body, v_q), m.author_id, m.created_at, false
+     from public.messages m
+     join public.threads t on t.id = m.thread_id
+     where m.space_id = p_space and m.thread_id = any (v_threads)
+       and m.deleted_at is null and m.body is not null
+       and m.search_text like v_pat
+       and not public.reported_by_me('message', m.id)
+     order by m.created_at desc, m.id desc limit 30)
+    union all
+    -- Review 105C: the Space's places, by name; a tap shows their work.
+    (select 'place', sp.id, null, null, null, null, null, null, sp.name, null,
+            sp.created_by, sp.created_at, false
+     from public.space_places sp
+     where sp.space_id = p_space
+       and public.search_fold(sp.name) like v_pat
+     order by sp.name, sp.id limit 10)
+    union all
+    (select 'file', f.id, null, null, f.team_id, null, null, null, f.name, f.rev_label,
+            f.uploaded_by, f.created_at, false
+     from public.library_files f
+     where f.space_id = p_space and f.deleted_at is null
+       and f.search_text like v_pat
+       and public.can_read_library_file(f.id)
+       and public.library_file_in_force(f.id)
+     order by f.created_at desc, f.id desc limit 30)
+  )
+  select h.kind, h.id, h.post_id, h.thread_id, h.team_id, h.post_kind, h.post_status, h.ref,
+         h.title, h.snippet, public.space_person_name(h.author_id), h.created_at,
+         coalesce(h.author_id = auth.uid(), false), h.exact
+  from hits h
+  -- The full rules again on at most 131 rows, so a later change to the
+  -- short-cuts above can't leak.
+  where (h.post_id is null or public.can_see_space_post(h.post_id))
+    and (h.kind <> 'file' or public.can_read_library_file(h.id))
+  -- The places first (at most 10), so newer posts never crowd them out.
+  order by h.exact desc, (h.kind = 'place') desc, h.created_at desc, h.id desc
+  limit 30;
+end;
 $$;
 
 -- add_library_file (migration 14, with model views' branch), as it was, and

@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(319);
+select plan(338);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1455,6 +1455,78 @@ set local role authenticated;
 select lives_ok($$select public.archive_space_post(pg_temp.id('b003'))$$, 'a Lead archives a Checked item');
 select lives_ok($$select public.unarchive_space_post(pg_temp.id('b003'))$$, 'and brings it back');
 reset role;
+
+-- The lead's check of e96e9bf5 (2 Nov) ------------------------------------------------------------------
+
+-- Z1. Search reads a file's folder, as every other Library read does.
+create function pg_temp.finds(p_id text, p_file text, p_q text) returns integer language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_id);
+  set local role authenticated;
+  select count(*) into v from public.search_space(pg_temp.sp(), p_q) s
+  where s.kind = 'file' and s.id = pg_temp.id(p_file);
+  reset role;
+  return v;
+end;
+$$;
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f510'), pg_temp.sp(), 'Z only me', 'only_me');
+select public.create_library_folder(pg_temp.id('f511'), pg_temp.sp(), 'Z for Vera', 'person', pg_temp.uid('e5'));
+select public.create_library_folder(pg_temp.id('f512'), pg_temp.sp(), 'Z Steel', 'team', null, pg_temp.team());
+reset role;
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select pg_temp.id(x.f), pg_temp.sp(), x.n, pg_temp.path(x.f), 'image/jpeg', pg_temp.uid('a7'), pg_temp.id(x.d)
+from (values ('f520', 'quartzmine.jpg', 'f510'), ('f521', 'quartzperson.jpg', 'f511'),
+             ('f522', 'quartzteam.jpg', 'f512')) x(f, n, d);
+select is(pg_temp.finds('b2', 'f520', 'quartzmine'), 0, 'Z1: a member finds nothing in someone''s only-me folder');
+select is(pg_temp.finds('a7', 'f520', 'quartzmine'), 1, 'Z1: its owner does');
+select is(pg_temp.finds('b2', 'f521', 'quartzperson'), 0, 'Z1: nor in a person''s folder for someone else');
+select is(pg_temp.finds('e5', 'f521', 'quartzperson'), 1, 'Z1: that person does');
+select is(pg_temp.finds('e5', 'f522', 'quartzteam'), 0, 'Z1: nor in a Team''s folder they aren''t in');
+select is(pg_temp.finds('b2', 'f522', 'quartzteam'), 1, 'Z1: the Team member does');
+
+-- Z2. The admin renames or deletes; sharing that is private stays its creator's.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select throws_ok($$select public.update_library_folder(pg_temp.id('f510'), 'Z only me', 'space')$$,
+  '42501', null, 'Z2: the admin can''t open an only-me folder');
+select throws_ok($$select public.update_library_folder(pg_temp.id('f510'), 'Z only me', 'person', pg_temp.uid('a1'))$$,
+  '42501', null, 'Z2: nor share it with themselves');
+select lives_ok($$select public.update_library_folder(pg_temp.id('f510'), 'Z renamed', 'only_me')$$,
+  'Z2: the admin renames it');
+select throws_ok($$select public.update_library_folder(pg_temp.id('f511'), 'Z for Vera', 'space')$$,
+  '42501', null, 'Z2: nor change a person''s folder while its creator is a member');
+select throws_ok($$select public.update_library_folder(pg_temp.id('f511'), 'Z for Vera', 'person', pg_temp.uid('a1'))$$,
+  '42501', null, 'Z2: nor move it to another person');
+select lives_ok($$select public.update_library_folder(pg_temp.id('f511'), 'Z Vera', 'person', pg_temp.uid('e5'))$$,
+  'Z2: the admin renames that one too');
+select lives_ok($$select public.update_library_folder(pg_temp.id('f512'), 'Z Steel', 'space')$$,
+  'Z2: a Team''s folder is still the admin''s to change');
+select lives_ok($$select public.update_library_folder(pg_temp.id('f00a'), 'From Lina', 'space')$$,
+  'Z2: and a person''s folder whose creator left');
+reset role;
+select is((select name from public.library_folders where id = pg_temp.id('f510')), 'Z renamed', 'Z2: renamed');
+select is((select share from public.library_folders where id = pg_temp.id('f510')), 'only_me', 'Z2: and still only me');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select lives_ok($$select public.update_library_folder(pg_temp.id('f510'), 'Z renamed', 'person', pg_temp.uid('e5'))$$,
+  'Z2: its creator shares it');
+select lives_ok($$select public.update_library_folder(pg_temp.id('f510'), 'Z renamed', 'only_me')$$,
+  'Z2: and takes it back');
+reset role;
+
+-- Z1: the last check caught those three, but private files still took the
+-- 30 places: a file someone may read fell out of the results.
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, created_at)
+values (pg_temp.id('f530'), pg_temp.sp(), 'crowdstone old.jpg', pg_temp.path('f530'), 'image/jpeg',
+        pg_temp.uid('a7'), now() - interval '1 day');
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select gen_random_uuid(), pg_temp.sp(), 'crowdstone ' || n || '.jpg', pg_temp.path('f531') || n, 'image/jpeg',
+       pg_temp.uid('a7'), pg_temp.id('f510')
+from generate_series(1, 30) n;
+select is(pg_temp.finds('b2', 'f530', 'crowdstone'), 1, 'Z1: others'' private files don''t push out one I can read');
 
 select * from finish();
 rollback;
