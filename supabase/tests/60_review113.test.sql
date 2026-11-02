@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(284);
+select plan(319);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1313,6 +1313,148 @@ select lives_ok($$select public.schedule_post(pg_temp.id('c012'), 'post_check_in
 reset role;
 select is(public.scheduled_call_sql('post_check_in', '{"p_id": "x", "p_unknown": 1}'::jsonb), null,
   'and still refuses what it doesn''t know');
+
+-- Voice notes on posts ---------------------------------------------------------------------------------
+
+create function pg_temp.vpath(p text, p_name text default 'v.m4a') returns text language sql as $$
+  select pg_temp.sp()::text || '/posts/' || pg_temp.id(p)::text || '/' || p_name;
+$$;
+create function pg_temp.vobj(p text, p_who text, p_name text default 'v.m4a') returns void language sql as $$
+  insert into storage.objects (bucket_id, name, owner_id, metadata)
+  values ('space-files', pg_temp.vpath(p, p_name), pg_temp.uid(p_who)::text,
+          '{"size": 40000, "mimetype": "audio/mp4"}');
+$$;
+create function pg_temp.vfiles(p text, p_ms integer default 4200, p_name text default 'v.m4a')
+returns jsonb language sql as $$
+  select jsonb_build_array(jsonb_build_object('path', pg_temp.vpath(p, p_name), 'mime', 'audio/mp4',
+                                              'duration_ms', p_ms));
+$$;
+create function pg_temp.vopens(p_id text, p text) returns boolean language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_id);
+  set local role authenticated;
+  select count(*) into v from storage.objects
+  where bucket_id = 'space-files' and name = pg_temp.vpath(p);
+  reset role;
+  return v > 0;
+end;
+$$;
+
+select pg_temp.as_user('a7');
+select ok(public.may_upload(pg_temp.vpath('e101')), 'an .m4a uploads under a post');
+select ok(not public.may_upload(pg_temp.vpath('e101', 'v.ogg')), 'no other sound file');
+select pg_temp.vobj('e101', 'a7');
+set local role authenticated;
+select lives_ok($$select public.create_space_post(pg_temp.id('e101'), pg_temp.sp(), 'announcement',
+                   'With a voice note', p_files => pg_temp.vfiles('e101'))$$,
+  'create_space_post takes a voice note');
+reset role;
+select is((pg_temp.card('a7', 'e101') -> 'voice') - 'id',
+  jsonb_build_object('path', pg_temp.vpath('e101'), 'duration_ms', 4200), 'the card has it');
+select is(pg_temp.listed_card('b2', 'e101') -> 'voice' ->> 'duration_ms', '4200', 'in the Work list too');
+select is(pg_temp.card('a7', 'b004') -> 'voice', 'null'::jsonb, 'a post with none: null');
+select is((pg_temp.card('a7', 'e101') -> 'voice' ->> 'id')::uuid,
+  (select f.id from public.post_files f where f.post_id = pg_temp.id('e101')),
+  'with its id, so an edit can remove it');
+select is(public.space_post_json((select p from public.space_posts p where p.id = pg_temp.id('e101')), true) -> 'files',
+  null, 'it is the voice, not one of the files');
+select is(pg_temp.card('a7', 'e101') ->> 'hold', 'delete', 'the author''s own note is no one acting');
+select ok(public.is_referenced_file(pg_temp.vpath('e101')), 'the sweep leaves it');
+select ok(pg_temp.vopens('b2', 'e101'), 'whoever sees the post plays it');
+select ok(not pg_temp.vopens('c3', 'e101'), 'someone not in the Space can''t');
+
+-- A Team's post: as its files.
+select pg_temp.vobj('e102', 'a7');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.create_space_post(pg_temp.id('e102'), pg_temp.sp(), 'announcement', 'Steel voice',
+  p_team => pg_temp.team(), p_files => pg_temp.vfiles('e102'));
+reset role;
+select ok(pg_temp.vopens('b2', 'e102'), 'its Team plays it');
+select ok(not pg_temp.vopens('e5', 'e102'), 'a member outside the Team can''t');
+
+-- A work item.
+select pg_temp.vobj('e103', 'a7');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'Spoken item', pg_temp.uid('b2'),
+                   p_id => pg_temp.id('e103'), p_files => pg_temp.vfiles('e103', 90000))$$,
+  'create_work_item takes one');
+reset role;
+select is(pg_temp.card('b2', 'e103') -> 'voice' -> 'duration_ms', '90000'::jsonb, 'on its card');
+
+-- The refusals.
+select pg_temp.vobj('e104', 'a7');
+select pg_temp.vobj('e104', 'a7', 'w.m4a');
+select pg_temp.vobj('e105', 'a7', 'x.jpg');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select throws_ok($$select public.create_space_post(pg_temp.id('e104'), pg_temp.sp(), 'announcement', 'Two',
+                   p_files => pg_temp.vfiles('e104') || pg_temp.vfiles('e104', 3000, 'w.m4a'))$$,
+  '22023', 'at most one voice note on a post', 'at most one voice note');
+select throws_ok($$select public.create_space_post(pg_temp.id('e104'), pg_temp.sp(), 'announcement', 'Zero',
+                   p_files => pg_temp.vfiles('e104', 0))$$,
+  '22023', 'a voice note of up to 10 minutes', 'its length is above 0');
+select throws_ok($$select public.create_space_post(pg_temp.id('e104'), pg_temp.sp(), 'announcement', 'Long',
+                   p_files => pg_temp.vfiles('e104', 600001))$$,
+  '22023', 'a voice note of up to 10 minutes', 'and at most 10 minutes');
+select throws_ok($$select public.create_space_post(pg_temp.id('e104'), pg_temp.sp(), 'announcement', 'No length',
+                   p_files => jsonb_build_array(jsonb_build_object('path', pg_temp.vpath('e104'), 'mime', 'audio/mp4')))$$,
+  '22023', 'a voice note of up to 10 minutes', 'its length is needed');
+select throws_ok($$select public.create_space_post(pg_temp.id('e105'), pg_temp.sp(), 'announcement', 'Wrong name',
+                   p_files => pg_temp.vfiles('e105', 3000, 'x.jpg'))$$,
+  '22023', 'a voice note is an .m4a file', 'audio only as .m4a');
+reset role;
+
+-- Post later: its p_files wait in the params, and post.
+select pg_temp.vobj('e106', 'a7');
+update storage.objects set created_at = now() - interval '8 days' where name = pg_temp.vpath('e106');
+insert into public.scheduled_posts (id, author_id, fn, params, space_id, title, publish_at)
+values (pg_temp.id('e106'), pg_temp.uid('a7'), 'create_space_post',
+        jsonb_build_object('p_id', pg_temp.id('e106'), 'p_space', pg_temp.sp(), 'p_kind', 'announcement',
+                           'p_title', 'Later voice', 'p_files', pg_temp.vfiles('e106')),
+        pg_temp.sp(), 'Later voice', now() - interval '1 minute');
+select ok(public.is_referenced_file(pg_temp.vpath('e106')), 'waiting, the Post later holds it');
+select public.publish_due_posts();
+select is((select state from public.scheduled_posts where id = pg_temp.id('e106')), 'posted', 'it posts');
+select is((pg_temp.card('a7', 'e106') -> 'voice') - 'id',
+  jsonb_build_object('path', pg_temp.vpath('e106'), 'duration_ms', 4200), 'with its voice note');
+
+-- Undo after Archive ----------------------------------------------------------------------------------
+
+select pg_temp.as_user('b2');
+set local role authenticated;
+select throws_ok($$select public.unarchive_space_post(pg_temp.id('b002'))$$, '42501', null,
+  'someone else can''t undo it');
+reset role;
+select pg_temp.as_user('a1');
+set local role authenticated;
+select throws_ok($$select public.unarchive_space_post(pg_temp.id('b002'))$$, 'P0001', null,
+  'nor another Lead: their rule is for Checked items');
+reset role;
+select pg_temp.as_user('a7');
+set local role authenticated;
+select lives_ok($$select public.unarchive_space_post(pg_temp.id('b002'))$$, 'the author undoes his Archive');
+select lives_ok($$select public.unarchive_space_post(pg_temp.id('b006'))$$, 'and of one with a reminder');
+reset role;
+select ok((select archived_at is null and archived_by is null from public.space_posts where id = pg_temp.id('b002')),
+  'it is back');
+select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 1,
+  'the owner gets no second push');
+select is((select count(*)::int from public.work_item_reminders where post_id = pg_temp.id('b006')
+           and sent_at is null), 0, 'its reminders stay gone');
+select is(pg_temp.card('b2', 'b002') ->> 'needs_me', 'to_sign', 'it needs its owner again');
+select pg_temp.as_user('b2');
+set local role authenticated;
+select lives_ok($$select public.sign_done(pg_temp.id('b002'), 'Done after all')$$, 'and can be signed');
+reset role;
+-- A Lead's rule, unchanged.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok($$select public.archive_space_post(pg_temp.id('b003'))$$, 'a Lead archives a Checked item');
+select lives_ok($$select public.unarchive_space_post(pg_temp.id('b003'))$$, 'and brings it back');
+reset role;
 
 select * from finish();
 rollback;

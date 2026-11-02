@@ -27,6 +27,14 @@
 -- the person turned it on): only then does a push carry a title, a Space's
 -- name, a person's name, a reason or a place (check_in_shows_text).
 
+-- Voice notes on posts: their length (the card reads it, below).
+-- 10 minutes, as in chat (message_attachments.duration_ms).
+alter table public.post_files
+  add column duration_ms integer check (duration_ms between 1 and 600000);
+-- At most one on a post; add_post_files says so in words.
+create unique index post_files_one_voice on public.post_files (post_id)
+  where storage_path is not null and mime like 'audio/%' and duration_ms is not null;
+
 -- ---------------------------------------------------------------------------
 -- 1. Reactions
 -- ---------------------------------------------------------------------------
@@ -570,6 +578,7 @@ AS $function$
       from public.post_files f
       left join public.library_files lf on lf.id = f.library_file_id
       where f.post_id = p_post.id
+        and (f.mime is null or f.mime not like 'audio/%')
         and (f.library_file_id is null or public.can_read_library_file(f.library_file_id))),
     'events', (
       select jsonb_agg(jsonb_build_object(
@@ -647,7 +656,14 @@ AS $function$
     'my_reaction', case when p_post.kind <> 'check_in' then (
       select r.kind from public.post_reactions r
       where r.post_id = p_post.id and r.profile_id = auth.uid()) end,
-    'hold', public.post_hold(p_post));
+    'hold', public.post_hold(p_post),
+    -- A post's voice note (at most one), kept out of "files".
+    'voice', (select jsonb_build_object('id', f.id, 'path', f.storage_path,
+                                          'duration_ms', f.duration_ms)
+              from public.post_files f
+              where f.post_id = p_post.id and f.storage_path is not null
+                and f.mime like 'audio/%'
+              order by f.sort, f.created_at limit 1));
 $function$;
 
 -- ---------------------------------------------------------------------------
@@ -1858,6 +1874,100 @@ as $$
       end), ', ')
       from args a where p_params ? a.name), ''))
   end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Voice notes on posts (11): hold the mic, the note plays on the card
+-- ---------------------------------------------------------------------------
+
+-- may_upload and add_post_files, as they were, with voice notes: .m4a under
+-- <space>/posts/<post>/, audio with its length, one on a post. The upload
+-- limits and the bucket's 25 MB are the photos'.
+do $do$
+declare
+  v_def text := pg_get_functiondef('public.may_upload(text)'::regprocedure);
+  v_old text := '(jpe?g|png|webp|heic|pdf)$''';
+begin
+  if position(v_old in v_def) = 0 then
+    raise exception 'may_upload changed';
+  end if;
+  execute replace(v_def, v_old, '(jpe?g|png|webp|heic|pdf|m4a)$''');
+
+  v_def := pg_get_functiondef('public.add_post_files(public.space_posts, jsonb)'::regprocedure);
+  if position('photos and PDFs only' in v_def) = 0 then
+    raise exception 'add_post_files changed';
+  end if;
+  v_def := replace(v_def, $old$  v_sort integer;
+begin$old$, $new$  v_sort integer;
+  v_ms integer;
+begin$new$);
+  v_def := replace(v_def, $old$if v_mime is null or not (v_mime like 'image/%' or v_mime = 'application/pdf') then
+        raise exception 'photos and PDFs only' using errcode = '22023';
+      end if;$old$, $new$if v_mime is null or not (v_mime like 'image/%' or v_mime = 'application/pdf'
+                               or v_mime like 'audio/%') then
+        raise exception 'photos, PDFs and voice notes only' using errcode = '22023';
+      end if;
+      v_ms := null;
+      if v_mime like 'audio/%' then
+        if lower(v_path) !~ '\.m4a$' then
+          raise exception 'a voice note is an .m4a file' using errcode = '22023';
+        end if;
+        v_ms := nullif(v_file ->> 'duration_ms', '')::integer;
+        if v_ms is null or v_ms not between 1 and 600000 then
+          raise exception 'a voice note of up to 10 minutes' using errcode = '22023';
+        end if;
+        if exists (select 1 from public.post_files f
+                   where f.post_id = p_post.id and f.storage_path is not null
+                     and f.mime like 'audio/%') then
+          raise exception 'at most one voice note on a post' using errcode = '22023';
+        end if;
+      end if;$new$);
+  v_def := replace(v_def, $old$insert into public.post_files (post_id, storage_path, added_by, sort, mime, bytes, width, height)
+      values (p_post.id, v_path, auth.uid(), v_sort, v_mime,$old$,
+    $new$insert into public.post_files (post_id, storage_path, added_by, sort, mime, bytes, width, height,
+                                     duration_ms)
+      values (p_post.id, v_path, auth.uid(), v_sort, v_mime,$new$);
+  v_def := replace(v_def, $old$nullif(v_file ->> 'height', '')::integer);$old$,
+    $new$nullif(v_file ->> 'height', '')::integer, v_ms);$new$);
+  v_def := replace(v_def, $old$  when invalid_text_representation then
+    raise exception 'a file is not valid'$old$, $new$  when invalid_text_representation or numeric_value_out_of_range then
+    raise exception 'a file is not valid'$new$);
+  if position('v_ms)' in v_def) = 0 or position('numeric_value_out_of_range' in v_def) = 0 then
+    raise exception 'add_post_files changed';
+  end if;
+  execute v_def;
+end;
+$do$;
+
+-- ---------------------------------------------------------------------------
+-- Undo after Archive
+-- ---------------------------------------------------------------------------
+
+-- unarchive_space_post (migration 52), as it was (a Lead, a Checked work
+-- item), and the author undoing their own Archive. An open work item is
+-- live again; its reminders stay gone, and nobody gets a push.
+create or replace function public.unarchive_space_post(p_post uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_post public.space_posts;
+begin
+  select * into v_post from public.space_posts where id = p_post for update;
+  if v_post.id is not null and v_me is not null and v_post.author_id = v_me
+     and v_post.archived_by = v_me and v_post.deleted_at is null
+     and public.is_member(v_post.space_id) and not public.is_hidden_account(v_me)
+     and not exists (select 1 from public.work_items w
+                     where w.id = p_post and w.status = 'checked') then
+    update public.space_posts set archived_at = null, archived_by = null where id = p_post;
+    return;
+  end if;
+  perform public.require_archivable(p_post);
+  update public.space_posts set archived_at = null, archived_by = null where id = p_post;
+end;
 $$;
 
 -- ---------------------------------------------------------------------------
