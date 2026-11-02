@@ -52,6 +52,7 @@ Future<TestApp> _open(
   final m = MeetingReportSamples(lang);
   final app = await pumpApp(
     tester,
+    feed: true,
     language: lang,
     now: MeetingReportSamples.now,
     auth: FakeAuthRepository(

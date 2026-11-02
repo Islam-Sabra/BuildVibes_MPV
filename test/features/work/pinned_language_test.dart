@@ -27,7 +27,10 @@ Future<FakeDaybookRepository> _open(
   required String me,
 }) async {
   final s = DaybookSamples(lang);
-  final post = s.halfDayPost();
+  final post = s.halfDayPost().shownAs(
+    // As the server says: the author's own.
+    hold: me == DaybookSamples.sara ? PostHold.delete : null,
+  );
   final daybook = FakeDaybookRepository()
     ..posts[DaybookSamples.space] = [
       DaybookCard(post: post, lastActivityAt: post.createdAt),

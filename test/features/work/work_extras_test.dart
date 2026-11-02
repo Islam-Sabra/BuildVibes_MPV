@@ -226,9 +226,7 @@ void main() {
           'the card there', (tester) async {
         final app = await _open(tester, lang, posts: [s.rebar(), s.gate()]);
         await _show(tester, 'post-rebar');
-        await tester.longPress(_slip('post-rebar'));
-        await tester.pumpAndSettle();
-        await _tap(tester, _key('select-share'));
+        await _tap(tester, _key('card-share-post-rebar'));
         expect(_key('share-threads'), findsOneWidget);
         expect(find.text(l10n.workShareIn), findsOneWidget);
         expect(_key('share-thread-$_everyone'), findsOneWidget);
@@ -236,7 +234,6 @@ void main() {
         await _tap(tester, _key('share-thread-$_everyone'));
         expect(app.daybook.calls, contains('share post-rebar $_everyone'));
         expect(find.text(l10n.workSharedIn(l10n.chatEveryone)), findsOneWidget);
-        expect(_key('selection-bar'), findsNothing);
       });
 
       testWidgets('a Team\'s post: only its Team\'s thread', (tester) async {
@@ -257,9 +254,7 @@ void main() {
         );
         await _open(tester, lang, posts: [post, s.gate()]);
         await _show(tester, 'post-mep');
-        await tester.longPress(_slip('post-mep'));
-        await tester.pumpAndSettle();
-        await _tap(tester, _key('select-share'));
+        await _tap(tester, _key('card-share-post-mep'));
         expect(_key('share-thread-$_mep'), findsOneWidget);
         expect(_key('share-thread-$_everyone'), findsNothing);
       });
@@ -432,7 +427,7 @@ void main() {
       });
     });
 
-    group('105B L5, L10 Share of several [$lang]', () {
+    group('105B L5, L10 Share that fails [$lang]', () {
       testWidgets('one that fails is said at the end; Try again sends it with '
           'the same id', (tester) async {
         final daybook = FakeDaybookRepository()..shareFails.add('post-rebar');
@@ -443,14 +438,8 @@ void main() {
           daybook: daybook,
         );
         await _show(tester, 'post-rebar');
-        await tester.longPress(_slip('post-rebar'));
-        await tester.pumpAndSettle();
-        await _show(tester, 'post-gate');
-        await tester.tap(_slip('post-gate'));
-        await tester.pumpAndSettle();
-        await _tap(tester, _key('select-share'));
+        await _tap(tester, _key('card-share-post-rebar'));
         await _tap(tester, _key('share-thread-$_everyone'));
-        expect(daybook.calls, contains('share post-gate $_everyone'));
         expect(
           find.text(l10n.workShareFailed(joinMeta([s.rebar().post.title]))),
           findsOneWidget,
@@ -466,6 +455,35 @@ void main() {
         expect(tries, hasLength(2));
         expect(tries.toSet(), hasLength(1));
         expect(find.text(l10n.workSharedIn(l10n.chatEveryone)), findsOneWidget);
+      });
+    });
+
+    group('Z9 Share refused [$lang]', () {
+      Future<void> share(WidgetTester tester, String? message) async {
+        final daybook = FakeDaybookRepository()
+          ..shareError = SpaceException(SpaceFailure.badInput, message);
+        await _open(
+          tester,
+          lang,
+          posts: [s.rebar(), s.gate()],
+          daybook: daybook,
+        );
+        await _show(tester, 'post-rebar');
+        await _tap(tester, _key('card-share-post-rebar'));
+        await _tap(tester, _key('share-thread-$_everyone'));
+      }
+
+      testWidgets('the server\'s team-only refusal says Team only', (
+        tester,
+      ) async {
+        await share(tester, 'a Team\'s post only in that Team\'s thread');
+        expect(find.text(l10n.shareTeamOnly), findsOneWidget);
+      });
+
+      testWidgets('any other bad input is the plain line', (tester) async {
+        await share(tester, 'a thread of the post\'s own Space');
+        expect(find.text(l10n.shareFailedPlain), findsOneWidget);
+        expect(find.text(l10n.shareTeamOnly), findsNothing);
       });
     });
 

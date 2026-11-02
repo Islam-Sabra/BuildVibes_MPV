@@ -47,6 +47,9 @@ class FakeSpaceRepository implements SpaceRepository {
   /// my_spaces fails with this (review 110 A: the Space list says so).
   Object? spacesError;
 
+  /// Holds my_postable_spaces alone, so the rest of the app can settle.
+  Future<void>? postableGate;
+
   /// fetchSpace fails with this for these Spaces (a detail the app can't
   /// read).
   final detailErrors = <String, Object>{};
@@ -68,6 +71,7 @@ class FakeSpaceRepository implements SpaceRepository {
   Future<List<SpaceSummary>> postableSpaces() async {
     postableCalls++;
     await spacesGate;
+    await postableGate;
     if (spacesError case final e?) throw e;
     return [
       for (final s in spaces)

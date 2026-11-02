@@ -53,6 +53,7 @@ void main() {
         'its card [$lang]', (tester) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: FakeSpaceRepository()
           ..details[DaybookSamples.space] = s.detail()
@@ -79,6 +80,7 @@ void main() {
     testWidgets("Home's Spaces tab lists it too [$lang]", (tester) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: FakeSpaceRepository()
           ..spaces.add(

@@ -5563,10 +5563,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindWalk => 'جولة';
 
   @override
-  String get daybookDuplicateDraftFirst =>
-      'انشر البطاقة التي تكتبها أو احذفها أولاً.';
-
-  @override
   String daybookDeleteTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -5579,17 +5575,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookDeleteBody => 'سيُحذف من العمل لكل من في هذه المساحة.';
-
-  @override
-  String daybookDeleteKept(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'أضاف أحدهم إلى $count منشورات، فبقيت. افتح كلاً منها لإلغائه.',
-      one: 'أضاف أحدهم إلى منشور، فبقي. افتحه لإلغائه.',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get daybookWritingDetails => 'التفاصيل، أو + للقوائم والجداول';
@@ -5705,9 +5690,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatPostGone => 'لم يعد هذا المنشور في العمل';
-
-  @override
-  String get workDuplicate => 'تكرار';
 
   @override
   String get workRemindPast => 'اختر وقتًا لم يأتِ بعد.';
@@ -6762,4 +6744,309 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkInInMissed => 'دخول: لم يسجّل';
+
+  @override
+  String spacesTabNeedsIn(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '· في $n مساحة',
+      few: '· في $n مساحات',
+      two: '· في مساحتين',
+      one: '· في مساحة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesTabNewToday => 'جديد اليوم';
+
+  @override
+  String get spacesTabQuiet => 'هادئة';
+
+  @override
+  String get reactReact => 'تفاعل';
+
+  @override
+  String get reactShare => 'مشاركة';
+
+  @override
+  String get reactLike => 'إعجاب';
+
+  @override
+  String get reactHeart => 'قلب';
+
+  @override
+  String get reactBravo => 'برافو';
+
+  @override
+  String get reactWho => 'من تفاعل';
+
+  @override
+  String get reactFailed => 'تعذّر التفاعل. حاول مرة أخرى.';
+
+  @override
+  String get holdArchiveOpenTitle => 'أرشفة بند العمل هذا؟';
+
+  @override
+  String holdArchiveOpenBody(String owner) {
+    return 'سيتوقف: لا أحد يستطيع توقيعه أو التحقق منه أو التذكير به. سيُبلَّغ $owner أنه لم يعد مطلوبًا. يبقى في السجل، في الأرشيف.';
+  }
+
+  @override
+  String get needYouNow => 'مطلوب الآن';
+
+  @override
+  String get needYouReasonHint =>
+      'السبب (اختياري): البوابة 2، شاحنة الخرسانة تنتظر';
+
+  @override
+  String get needYouAddPlace => 'أضف مكانًا';
+
+  @override
+  String get needYouPlaceHint => 'المكان: البوابة 2';
+
+  @override
+  String needYouStrongNote(String name) {
+    return 'يصل $name تنبيه قوي حتى لو كان التطبيق مغلقًا.';
+  }
+
+  @override
+  String get holdDeleteActed =>
+      'تفاعل أحدهم معه، لذلك لا يمكن حذفه. أرشفه بدلًا من ذلك.';
+
+  @override
+  String get holdArchivedNoLonger => 'أُرشف بند العمل هذا: لم يعد مطلوبًا.';
+
+  @override
+  String get shareTeamOnly => 'منشور الفريق يُرسل فقط إلى محادثة ذلك الفريق.';
+
+  @override
+  String get reactionsChannel => 'التفاعلات';
+
+  @override
+  String get reactionsChannelAbout => 'عندما يتفاعل أحدهم مع منشورك. بدون صوت.';
+
+  @override
+  String get cpDiscard => 'تجاهل';
+
+  @override
+  String get cpDiscardTitle => 'تجاهل هذه المسودة؟';
+
+  @override
+  String get cpDiscardBody => 'سيُحذف ما كتبته هنا.';
+
+  @override
+  String get cpDiscardKeep => 'متابعة الكتابة';
+
+  @override
+  String get cpType => 'النوع';
+
+  @override
+  String get cpDateTime => 'التاريخ والوقت';
+
+  @override
+  String get cpVoice => 'ملاحظة صوتية';
+
+  @override
+  String needYouTooMany(String name) {
+    return 'طلبت $name 3 مرات في الساعة الأخيرة. حاول لاحقًا.';
+  }
+
+  @override
+  String needYouRefused(String name) {
+    return 'لا يمكن طلب $name هنا.';
+  }
+
+  @override
+  String needYouSent(String name) {
+    return 'أُرسل إلى $name.';
+  }
+
+  @override
+  String get needYouOnMyWay => 'في الطريق';
+
+  @override
+  String get needYouCantNow => 'لا أستطيع الآن';
+
+  @override
+  String get needYouChannelAbout => 'عندما يحتاجك أحد في مساحة الآن.';
+
+  @override
+  String get needYouSomeone => 'شخص يحتاجك الآن';
+
+  @override
+  String needYouYouAnswered(String answer) {
+    return 'أجبت: $answer';
+  }
+
+  @override
+  String get needYouAlreadyAnswered => 'تمت الإجابة من قبل.';
+
+  @override
+  String get needYouAnswerFailed => 'تعذّر إرسال ردك. افتح التطبيق للرد.';
+
+  @override
+  String needYouFrom(String name) {
+    return '$name يحتاجك الآن';
+  }
+
+  @override
+  String needYouWaiting(String name) {
+    return 'بانتظار $name';
+  }
+
+  @override
+  String needYouAnswerLine(String name, String answer) {
+    return '$name: $answer';
+  }
+
+  @override
+  String fileTooBigLine(String size, String most) {
+    return 'حجم الملف $size ميجابايت. الحد الأقصى $most ميجابايت.';
+  }
+
+  @override
+  String fileTooBigPlain(String most) {
+    return 'الملف كبير جدًا. الحد الأقصى $most ميجابايت.';
+  }
+
+  @override
+  String get fileWrongTypeLine =>
+      'لا يمكن إضافة هذا النوع من الملفات إلى المساحة. أرسل ملف PDF أو صورة أو رسالة صوتية أو جدول Excel.';
+
+  @override
+  String get fileNotPdfOrPhotoLine =>
+      'المكتبة تقبل ملف PDF أو صورة. أرسل هذا الملف في المحادثة.';
+
+  @override
+  String get fileBigDrawingsHint =>
+      'للمخططات الكبيرة، اربط مجلدًا من OneDrive أو Google Drive أو Dropbox.';
+
+  @override
+  String get couldNotSendTitle => 'تعذّر الإرسال';
+
+  @override
+  String get couldNotSendGeneric =>
+      'لم تقبل المساحة هذا المنشور. حاول مرة أخرى أو احذفه.';
+
+  @override
+  String get couldNotSendRemove => 'إزالة';
+
+  @override
+  String get spacesLeaveFoldersNote =>
+      'سيتم حذف مجلداتك الخاصة في هذه المساحة.';
+
+  @override
+  String get spacesRemoveFoldersNote =>
+      'سيتم حذف المجلدات الخاصة لهذا الشخص في هذه المساحة.';
+
+  @override
+  String get checkInSamePlace => 'نفس مكان تسجيل الحضور السابق';
+
+  @override
+  String get checkInSamePlaceRefused =>
+      'تعذّر استخدام مكان تسجيل الحضور السابق. انقر لتحديد المكان هنا.';
+
+  @override
+  String get libraryNewFolder => 'مجلد جديد';
+
+  @override
+  String get libraryLinkFolder => 'ربط مجلد';
+
+  @override
+  String get libraryFolderNameHint => 'اسم المجلد';
+
+  @override
+  String get libraryWhoSees => 'من يراه';
+
+  @override
+  String get libraryShareOnlyMe => 'أنا فقط';
+
+  @override
+  String get librarySharePerson => 'شخص';
+
+  @override
+  String get libraryShareTeam => 'فريق';
+
+  @override
+  String libraryShareTeamLine(String name) {
+    return 'فريق · $name';
+  }
+
+  @override
+  String get libraryShareSpace => 'المساحة كلها';
+
+  @override
+  String get libraryChoosePerson => 'اختر شخصًا';
+
+  @override
+  String get libraryChooseTeam => 'اختر فريقًا';
+
+  @override
+  String get libraryLinkPasteHint =>
+      'الصق رابط OneDrive أو Google Drive أو Dropbox';
+
+  @override
+  String libraryLinkFound(String service) {
+    return 'تم التعرف على مجلد $service';
+  }
+
+  @override
+  String get libraryLinkWrong =>
+      'هذا ليس رابط OneDrive أو Google Drive أو Dropbox.';
+
+  @override
+  String get libraryLinkWarning =>
+      'أي شخص لديه هذا الرابط يمكنه فتحه، حتى خارج BuildVibes.';
+
+  @override
+  String libraryLinkLine(String service) {
+    return 'رابط $service';
+  }
+
+  @override
+  String get libraryAddFolder => 'إضافة المجلد';
+
+  @override
+  String get librarySaveFolder => 'حفظ';
+
+  @override
+  String get libraryEditFolder => 'تعديل المجلد';
+
+  @override
+  String get libraryDeleteFolder => 'حذف المجلد';
+
+  @override
+  String get libraryDeleteFolderAsk => 'حذف هذا المجلد؟';
+
+  @override
+  String get libraryDeleteFolderBody => 'يُحذف المجلد فقط. لا يتغيّر الرابط.';
+
+  @override
+  String get libraryFolderNotEmpty => 'أخرج ملفاته أولًا.';
+
+  @override
+  String get libraryFolderEmpty => 'لا شيء في هذا المجلد بعد.';
+
+  @override
+  String get libraryLinkOpenFailed => 'تعذّر فتح الرابط.';
+
+  @override
+  String get libraryAddToFolder => 'أضف ملفًا هنا';
+
+  @override
+  String get libraryServiceOneDrive => 'OneDrive';
+
+  @override
+  String get libraryServiceGoogleDrive => 'Google Drive';
+
+  @override
+  String get libraryServiceDropbox => 'Dropbox';
+
+  @override
+  String get shareFailedPlain => 'تعذّرت المشاركة. حاول مرة أخرى.';
+
+  @override
+  String get fileGoneLine => 'هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي.';
 }

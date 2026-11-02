@@ -29,9 +29,11 @@ import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
+import '../chat/voice.dart' show VoiceNote;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceError;
+import 'card_react.dart';
 import 'check_in_card.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
@@ -60,12 +62,43 @@ class DaybookCardActions {
     this.onOpenQuote,
     this.onOpenNewer,
     this.onShareReport,
+    this.onReact,
+    this.onReactors,
+    this.onShare,
+    this.onFace,
   });
 
-  /// The same, with [onOpenQuote] (F87) and [onOpenNewer] (F76).
+  /// The same, with React, the names of who reacted, and Share (review
+  /// 113 RX1).
+  DaybookCardActions withSocial({
+    ValueChanged<Rect>? react,
+    VoidCallback? reactors,
+    VoidCallback? share,
+  }) => DaybookCardActions(
+    onOpen: onOpen,
+    onHold: onHold,
+    onCheck: onCheck,
+    onSignDone: onSignDone,
+    onGiveTo: onGiveTo,
+    onTick: onTick,
+    onAck: onAck,
+    onOpenFile: onOpenFile,
+    onOpenPage: onOpenPage,
+    onOpenChild: onOpenChild,
+    onOpenQuote: onOpenQuote,
+    onOpenNewer: onOpenNewer,
+    onShareReport: onShareReport,
+    onReact: react,
+    onReactors: reactors,
+    onShare: share,
+    onFace: onFace,
+  );
+
+  /// The same, with [onOpenQuote] (F87), [onOpenNewer] (F76) and [onFace].
   DaybookCardActions withLinks({
     VoidCallback? openQuote,
     VoidCallback? openNewer,
+    VoidCallback? face,
   }) => DaybookCardActions(
     onOpen: onOpen,
     onHold: onHold,
@@ -80,7 +113,14 @@ class DaybookCardActions {
     onOpenQuote: openQuote ?? onOpenQuote,
     onOpenNewer: openNewer ?? onOpenNewer,
     onShareReport: onShareReport,
+    onReact: onReact,
+    onReactors: onReactors,
+    onShare: onShare,
+    onFace: face ?? onFace,
   );
+
+  /// Review 113 (18): the author's face: Need you now.
+  final VoidCallback? onFace;
 
   /// A tap opens it (review 105 Part 2): its page, with what the old
   /// long-press menu held (the lead's ruling Q3).
@@ -122,6 +162,13 @@ class DaybookCardActions {
 
   /// A daily report's Share as PDF (slice 7).
   final VoidCallback? onShareReport;
+
+  /// Review 113 RX1: React (the picker over where React is), who reacted,
+  /// and Share into the Space's Chat. The row shows while [onShare] is
+  /// there: on every post the server has.
+  final ValueChanged<Rect>? onReact;
+  final VoidCallback? onReactors;
+  final VoidCallback? onShare;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -465,6 +512,8 @@ class DaybookCardView extends StatelessWidget {
           tint: authorId == null
               ? BvAvatarTints.plain
               : BvAvatarTints.forId(authorId),
+          onFace: lifted ? null : actions.onFace,
+          faceLabel: l10n.needYouNow,
         ),
         BvSlipTitle(
           post.title,
@@ -545,6 +594,7 @@ class DaybookCardView extends StatelessWidget {
               child: stamp,
             ),
           ),
+        ?_voice(),
         if (!post.isTarget) ?_rest(context, l10n, width),
         ?history,
         if (couldNotSend)
@@ -552,7 +602,32 @@ class DaybookCardView extends StatelessWidget {
         else if (waiting || changeWaiting)
           _waitingLine(context, l10n),
         ?action,
+        ?_react(),
       ],
+    );
+  }
+
+  /// Review 113 (11): its voice note, which plays on the card.
+  Widget? _voice() {
+    final voice = _post.voice;
+    if (voice == null) return null;
+    return VoiceNote(
+      key: Key('card-voice-${_post.id}'),
+      id: 'post-${_post.id}',
+      duration: voice.duration,
+      path: voice.path,
+    );
+  }
+
+  /// Review 113 RX1: React · Share and the reactions, on every post the
+  /// server has.
+  Widget? _react() {
+    if (lifted || actions.onShare == null) return null;
+    return DaybookCardReact(
+      post: _post,
+      onReact: actions.onReact,
+      onReactors: actions.onReactors,
+      onShare: actions.onShare,
     );
   }
 
@@ -691,14 +766,18 @@ class DaybookCardView extends StatelessWidget {
             tint: authorId == null
                 ? BvAvatarTints.plain
                 : BvAvatarTints.forId(authorId),
+            onFace: lifted ? null : actions.onFace,
+            faceLabel: l10n.needYouNow,
           ),
           ..._kindBody(context, l10n),
+          ?_voice(),
           ?_rest(context, l10n, width),
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
           else if (waiting || changeWaiting)
             _waitingLine(context, l10n),
+          ?_react(),
         ],
       ),
     );

@@ -18,7 +18,12 @@ class BvChip extends StatelessWidget {
     this.icon,
     this.onTap,
     this.danger = false,
+    this.tight = false,
   });
+
+  /// Less room at its sides, the type unchanged: for a row of choices
+  /// that must share one line.
+  final bool tight;
 
   final String label;
   final bool selected;
@@ -71,8 +76,10 @@ class BvChip extends StatelessWidget {
             // At least the spec's height; taller when the phone's text is
             // larger.
             constraints: const BoxConstraints(minHeight: BvChipSpec.height),
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: BvChipSpec.paddingHorizontal,
+            padding: EdgeInsetsDirectional.symmetric(
+              horizontal: tight
+                  ? BvChipSpec.paddingHorizontalTight
+                  : BvChipSpec.paddingHorizontal,
               vertical: BvChipSpec.paddingVertical,
             ),
             child: Row(

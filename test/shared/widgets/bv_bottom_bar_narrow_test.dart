@@ -11,7 +11,7 @@ void main() {
     testWidgets('360 dp: the five slots fit, no overflow [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       tester.view.physicalSize = const Size(360, 825);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

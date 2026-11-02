@@ -156,6 +156,26 @@ abstract final class BvWritingPillSpec {
   );
 }
 
+/// Review 113 CV3: the lines pinned above the composer's bar, and the
+/// chips just above them.
+abstract final class BvWritingLineSpec {
+  static const gap = BvSpace.s8;
+  static const caret = BvSize.iconSm;
+  static const padding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: BvSpace.s8,
+  );
+  static const chipsPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s4,
+    BvSpace.gutter,
+    BvSpace.s8,
+  );
+
+  /// The short menu of "/": up from the bottom of the screen.
+  static const quickMenuBottom = 180.0;
+}
+
 /// Review 110 CP2, CP3 (2707:39412, 2707:39502): the composer's grids of
 /// round icons. The circle and its icon grow with the phone's text size.
 abstract final class BvIconGridSpec {

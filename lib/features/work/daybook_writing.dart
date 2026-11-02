@@ -13,6 +13,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart'
     show photosPreparingProvider, PhotosPreparing;
+import '../../data/models/upload_rules.dart' show FileRefused;
 import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/post_page.dart' show PageChecklist;
@@ -594,8 +595,14 @@ class DaybookWriter {
   Future<void> setDaily(bool on) => _put((d) => d.copyWith(daily: on));
 
   /// The site: where the Lead stood when they tapped Set place here.
-  Future<void> setSite(({double lat, double lng})? site) =>
-      _put((d) => d.copyWith(site: () => site));
+  Future<void> setSite(({double lat, double lng})? site) => _put(
+    (d) => d.copyWith(
+      site: () => site,
+      // Review 113 (17): a place read here replaces the last check-in's.
+      samePlaceAs: () => null,
+      refusal: d.refusal == samePlaceRefused ? () => null : null,
+    ),
+  );
 
   /// Review 110 step 5: + → Checklist on a work item. [lines] become its
   /// points (an earlier line keeps its id) in one checklist block; none
@@ -811,6 +818,20 @@ class DaybookWriter {
     unawaited(DaybookDraft.deleteKept(old));
   }
 
+  /// Review 113 (11): the voice note held on the mic; a new one replaces
+  /// it.
+  Future<void> setVoice(String local, int ms) async {
+    final old = draft?.voiceLocal;
+    await _put((d) => d.copyWith(voice: () => (local: local, ms: ms)));
+    if (old != null) unawaited(DaybookDraft.deleteKept(old));
+  }
+
+  Future<void> removeVoice() async {
+    final old = draft?.voiceLocal;
+    await _put((d) => d.copyWith(voice: () => null));
+    if (old != null) unawaited(DaybookDraft.deleteKept(old));
+  }
+
   /// A file on the post: a file post's one file (a new one replaces it),
   /// or one more on a work item.
   Future<void> addFile(DraftFile file) async {
@@ -844,6 +865,14 @@ class DaybookWriter {
     );
     if (file.local != null) unawaited(DaybookDraft.deleteKept(file.local!));
   }
+
+  /// Review 113 bug 7: the refused file is off; its reason goes with it.
+  Future<void> clearRefusal() =>
+      _put((d) => d.copyWith(refusal: () => null, notRefused: true));
+
+  /// Z13: a file of this draft is gone from the phone.
+  Future<void> fileGone(FileRefused gone) =>
+      _put((d) => d.copyWith(refusal: () => gone.code, refused: true));
 
   /// Review 105B L6: an announcement pinned to the end of a day ends at
   /// midnight in the Space's time zone, worked out on Post with the Space's
@@ -908,6 +937,8 @@ class DaybookWriter {
               madeAt: now,
               authorName: authorName,
               photos: photos,
+              voiceLocal: d.voiceLocal,
+              voiceMs: d.voiceMs,
               files: d.files,
               draft: workItem ? null : d,
               quote: workItem ? d.quote : null,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -20,9 +21,18 @@ import 'package:flutter/rendering.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../library/library_folders.dart' show showFolderSheet;
 import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
+import '../chat/voice.dart'
+    show
+        RecordingBar,
+        VoiceRecorder,
+        maxVoice,
+        minVoice,
+        voicePlayerProvider,
+        voiceRecorderProvider;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
@@ -40,6 +50,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_live.dart';
+import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
 import '../../data/models/template.dart';
@@ -85,6 +96,7 @@ import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 import '../profile/scheduled_screen.dart' show ScheduledLine;
+import 'check_in_words.dart' show checkInRefusalText;
 import 'composer_check_in.dart';
 import 'composer_thanks.dart';
 import 'post_later_sheet.dart';
@@ -528,6 +540,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   @override
   void dispose() {
+    _recordTimer?.cancel();
+    if (_recording) unawaited(_recorder?.cancel());
     _unpin?.cancel();
     _unflash?.cancel();
     _liveRead?.cancel();
@@ -1008,9 +1022,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ref,
       spaceId: _spaceId,
       replaces: start.replaces,
+      folderId: start.folderId,
     );
     if (file != null) await _card.addFile(file);
   }
+
+  /// Review 113 bug 7: Link folder from Tap to fix, for a drawing too big
+  /// for a Space.
+  Future<void> _linkFolder() =>
+      showFolderSheet(context, ref, space: widget.space, link: true);
 
   /// Daily report (slice 7, review 78 §4): today's own draft if there is
   /// one; otherwise a new report for today, titled with the day, from the
@@ -1084,6 +1104,85 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _panel = null;
       _askWho = null;
     });
+  }
+
+  /// Discard (review 113 (1)): the draft is gone, with its photos.
+  Future<void> _discardDraft() async {
+    await ref.read(daybookDraftProvider(_spaceId).notifier).discard();
+    if (mounted) _stopWriting();
+  }
+
+  // Review 113 (11): hold the mic to record, as in WhatsApp: release
+  // attaches it to the post, slide away cancels. As in Chat and the
+  // notebook.
+  bool _recording = false;
+  bool _cancelling = false;
+  bool _holding = false;
+  Duration _elapsed = Duration.zero;
+  Stopwatch? _watch;
+  Timer? _recordTimer;
+
+  /// Kept for dispose, when ref can no longer be read.
+  VoiceRecorder? _recorder;
+
+  Future<void> _startRecording() async {
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    _recorder = recorder;
+    _holding = true;
+    await ref.read(voicePlayerProvider.notifier).pause();
+    if (!await recorder.allowed()) {
+      if (mounted) showSpaceMessage(context, l10n.chatMicDenied);
+      return;
+    }
+    if (!_holding || !mounted) return;
+    await recorder.start();
+    if (!_holding || !mounted) {
+      await recorder.cancel();
+      return;
+    }
+    _watch = clock.stopwatch()..start();
+    setState(() {
+      _recording = true;
+      _cancelling = false;
+      _elapsed = Duration.zero;
+    });
+    _recordTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      if (!mounted) return;
+      setState(() => _elapsed = _watch!.elapsed);
+      if (_elapsed >= maxVoice) unawaited(_endRecording());
+    });
+  }
+
+  void _slide(Offset offset) {
+    final cancelling = offset.distance > BvChatSpec.slideToCancel;
+    if (cancelling != _cancelling) setState(() => _cancelling = cancelling);
+  }
+
+  Future<void> _endRecording() async {
+    _holding = false;
+    _recordTimer?.cancel();
+    if (!_recording) return;
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    final measured = _watch?.elapsed ?? _elapsed;
+    final length = measured > maxVoice ? maxVoice : measured;
+    final cancel = _cancelling;
+    setState(() {
+      _recording = false;
+      _cancelling = false;
+    });
+    if (cancel) {
+      await recorder.cancel();
+      return;
+    }
+    final path = await recorder.stop();
+    if (!mounted || path == null) return;
+    if (length < minVoice) {
+      showSpaceMessage(context, l10n.notebookTooShort);
+      return;
+    }
+    await _writer.setVoice(path, length.inMilliseconds);
   }
 
   /// Review 110 CP1: the Space screen hides its header while writing.
@@ -1676,22 +1775,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // (a Viewer) has no # at all.
     final kinds = composerKindsFor(widget.space);
     final laterNote = l10n.plCantYet;
+    // Review 113 (11): a new post takes a voice note; a Check-in, a report
+    // and a file post don't.
+    final voice =
+        !_editing &&
+        kind != DaybookKind.checkIn &&
+        kind != DaybookKind.report &&
+        kind != DaybookKind.file;
     final bar = BvWritingToolbar.tools(
+      holdsInOrder: true,
+      field: _recording
+          ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
+          : null,
       tools: [
-        // # (CP2): the kind's icon; its grid of kinds.
-        if (kinds.length > 1)
-          BvWritingTool(
-            key: const Key('writing-kind'),
-            icon: DaybookComposerState.composerKindIcon(kind),
-            label: l10n.cpWhatPosting,
-            outlined: true,
-            active: _panel == ComposerPanel.kinds,
-            onTap: _editing || !kinds.contains(kind)
-                ? null
-                : () => _setPanel(
-                    _panel == ComposerPanel.kinds ? null : ComposerPanel.kinds,
-                  ),
-          ),
         // + (CP3): what this kind can take.
         BvWritingTool(
           key: const Key('writing-add'),
@@ -1717,6 +1813,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             onTap: _editing
                 ? null
                 : () => unawaited(_photos(_writer.addPhoto())),
+          ),
+        if (voice)
+          BvWritingTool(
+            key: const Key('writing-mic'),
+            icon: BvIcons.microphone,
+            label: l10n.cpVoice,
+            onTap: () => showSpaceMessage(context, l10n.notebookHoldToRecord),
+            onHoldStart: () => unawaited(_startRecording()),
+            onHoldMove: _slide,
+            onHoldEnd: () => unawaited(_endRecording()),
           ),
       ],
       postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
@@ -1768,6 +1874,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           kinds: kinds,
           onTemplates: _editing ? null : () => unawaited(_pickTemplate()),
           onClose: _stopWriting,
+          onDiscard: _editing ? null : () => unawaited(_discardDraft()),
           onKind: (k) => unawaited(_switchKind(k)),
           onExtra: (e) => unawaited(_extra(e)),
           onMenu: _setMenu,
@@ -1780,6 +1887,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           onPickThanksTo: () => unawaited(_pickThanksTo()),
           onPickThanksFor: () => unawaited(_pickThanksFor()),
           onCheckIn: (p) => unawaited(_checkIn(p)),
+          // Review 113 bug 7: Tap to fix's Try again sends as Post does;
+          // Link folder opens the Library's, for big drawings.
+          onTryAgain: _editing || alone || !(cardDraft?.readyToTry ?? false)
+              ? null
+              : () => unawaited(_postOrAsk(myName)),
+          onLinkFolder: _editing || !widget.space.myRights.addFiles
+              ? null
+              : () => unawaited(_linkFolder()),
           // H3: Walk is for who may post work (a Lead or Crew).
           onWalk: _editing || !widget.space.mayPostWork
               ? null
@@ -2263,9 +2378,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// The bottom bar while cards are held (SP6): Share (from 105B) ·
-  /// Duplicate (one card) · Delete (mine, not Checked). No Move: work stays
-  /// in its Space (rule 8).
+  /// The bottom bar while cards are held (review 113 (14, 16)): Unpin
+  /// for my pins; Delete while nobody has acted on any of them; Archive
+  /// once someone has; Stop for one repeating Check-in I may stop. The
+  /// server says which ("hold", "can_stop"). Share is on every card now;
+  /// Duplicate is gone. No Move: work stays in its Space (rule 8).
   Widget _selectionBar(
     List<DaybookPost> shown,
     Set<String> selected, {
@@ -2276,10 +2393,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final p in shown)
         if (selected.contains(p.id)) p.id: p,
     }.values.toList();
-    final share = ref.watch(workLaterProvider).share;
-    final canPost = widget.space.myRights.createItems;
     final deletes =
-        posts.isNotEmpty && posts.every((p) => mayDeletePost(p, me: me));
+        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.delete);
+    final archives =
+        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.archive);
+    final stop =
+        posts.length == 1 &&
+        posts.single.isCheckIn &&
+        (posts.single.checkIn?.canStop ?? false);
     // L9: held, my pinned ones can be unpinned here.
     final mineIds = _mineIds();
     final myPinned = [
@@ -2299,28 +2420,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               unawaited(_unpinAll(myPinned));
             },
           ),
-        if (share != null)
+        if (stop)
           SelectionAction(
-            key: const Key('select-share'),
-            icon: BvIcons.share,
-            label: l10n.workShare,
-            onTap: posts.isEmpty
-                ? null
-                : () {
-                    _endSelection();
-                    unawaited(share(context, _spaceId, posts));
-                  },
+            key: const Key('select-stop'),
+            icon: BvIcons.stop,
+            label: l10n.checkInStop,
+            destructive: true,
+            onTap: () => unawaited(_stop(posts.single)),
           ),
-        SelectionAction(
-          key: const Key('select-duplicate'),
-          icon: BvIcons.duplicate,
-          label: l10n.workDuplicate,
-          onTap: canPost && posts.length == 1
-              ? () => unawaited(_duplicate(posts.single))
-              : null,
-        ),
-        // Hidden, not greyed, when one held can't be deleted (a Checked
-        // item; H4).
+        if (archives)
+          SelectionAction(
+            key: const Key('select-archive'),
+            icon: BvIcons.archive,
+            label: l10n.workArchive,
+            onTap: () => unawaited(_archiveHeld(posts)),
+          ),
+        // Hidden, not greyed, when one held can't be deleted (H4).
         if (deletes)
           SelectionAction(
             key: const Key('select-delete'),
@@ -2336,27 +2451,79 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void _endSelection() =>
       ref.read(workSelectionProvider(_spaceId).notifier).clear();
 
-  /// Duplicate (SP6): a new card at Now with the same kind, words, owner
-  /// and place, to post as a new one; its due and pin are chosen again.
-  Future<void> _duplicate(DaybookPost post) async {
+  /// Archive (review 113 (16)): it leaves the daily view and stays in the
+  /// record. An open work item asks first: archiving stops it, and its
+  /// owner is told it's no longer needed. Then "Archived · Undo".
+  Future<void> _archiveHeld(List<DaybookPost> posts) async {
     final l10n = AppLocalizations.of(context);
+    final open = posts.where((p) => p.isWorkItem && p.isOpen).toList();
+    if (open.isNotEmpty) {
+      final owner = open.first.item?.ownerName;
+      final sure = await showBvDialog(
+        context: context,
+        title: l10n.holdArchiveOpenTitle,
+        body: l10n.holdArchiveOpenBody(personName(l10n, owner)),
+        cancelLabel: l10n.commonCancel,
+        confirmLabel: l10n.workArchive,
+      );
+      if (!sure || !mounted) return;
+    }
     _endSelection();
-    final notifier = ref.read(daybookDraftProvider(_spaceId).notifier);
-    final kept = ref.read(daybookDraftProvider(_spaceId));
-    if (kept != null && !kept.isEmpty) {
-      showSpaceMessage(context, l10n.daybookDuplicateDraftFirst);
-      _startWriting();
+    final repository = ref.read(daybookRepositoryProvider);
+    final done = <DaybookPost>[];
+    for (final p in posts) {
+      try {
+        await repository.archivePost(p.id);
+        done.add(p);
+      } on SpaceException catch (e) {
+        if (mounted) showSpaceError(context, e);
+      }
+    }
+    if (!mounted) return;
+    if (done.isNotEmpty) {
+      showBvUndoBar(
+        context,
+        message: l10n.workArchived,
+        actionLabel: l10n.daybookUndo,
+        onAction: () => unawaited(_unarchiveAll(done)),
+      );
+    }
+    await _loop.refresh();
+  }
+
+  Future<void> _unarchiveAll(List<DaybookPost> posts) async {
+    for (final p in posts) {
+      await _unarchive(p);
+      if (!mounted) return;
+    }
+  }
+
+  /// Stop (review 113): a repeating Check-in, asked first, as on its list.
+  Future<void> _stop(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final yes = await showBvDialog(
+      context: context,
+      title: l10n.checkInStopTitle,
+      body: l10n.checkInStopBody,
+      cancelLabel: l10n.checkInKeep,
+      confirmLabel: l10n.checkInStop,
+      destructive: true,
+    );
+    if (!yes || !mounted) return;
+    _endSelection();
+    try {
+      await ref.read(checkInRepositoryProvider).stop(post.id);
+    } on SpaceException catch (e) {
+      if (mounted) {
+        showSpaceMessage(
+          context,
+          checkInRefusalText(l10n, CheckInRefusal.of(e)),
+        );
+      }
       return;
     }
-    await notifier.put(
-      DaybookPostDraft.of(
-        post,
-        id: ref.read(newPostIdProvider)(),
-        me: ref.read(authUserIdProvider).value,
-      ),
-    );
-    if (!mounted) return;
-    _startWriting();
+    if (mounted) showSpaceMessage(context, l10n.checkInStoppedDone);
+    await _loop.refresh();
   }
 
   /// Delete (SP6), asked first: each is gone from Work for everyone. The
@@ -2382,7 +2549,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       try {
         await repository.deletePost(p.id);
       } on SpaceException catch (e) {
-        if (e.failure == SpaceFailure.rule) {
+        // Review 113: the server keeps a post someone has acted on.
+        if (e.failure == SpaceFailure.rule || isActedOn(e)) {
           kept++;
         } else {
           failed.add(p);
@@ -2396,7 +2564,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         l10n.daybookDeleteFailed(joinMeta(failed.map((p) => p.title))),
       );
     } else if (kept > 0) {
-      showSpaceMessage(context, l10n.daybookDeleteKept(kept));
+      showSpaceMessage(context, l10n.holdDeleteActed);
     }
     await _loop.refresh();
   }
@@ -3584,10 +3752,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                         view,
                         me: me,
                         signing: signing,
-                        // A hold selects (SP6), for who may post.
-                        onHold: widget.space.myRights.createItems
-                            ? () => select(c.id)
-                            : null,
+                        // A hold selects (SP6) what the server says may be
+                        // held (review 113): my post to Delete or Archive,
+                        // a repeating Check-in to Stop.
+                        onHold: mayHoldPost(c.post) ? () => select(c.id) : null,
                       ),
                     ),
             ),

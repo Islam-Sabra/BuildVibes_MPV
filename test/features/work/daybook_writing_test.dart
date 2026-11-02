@@ -97,7 +97,7 @@ Future<void> _assign(WidgetTester tester, String name) async {
 }
 
 BvWritingRow _row(WidgetTester tester, String key) => tester
-    .widget<BvWritingPills>(find.byType(BvWritingPills))
+    .widget<BvWritingLines>(find.byType(BvWritingLines))
     .rows
     .firstWhere((r) => r.key == Key(key));
 
@@ -252,10 +252,10 @@ void main() {
       await _write(tester);
       expect(
         tester
-            .widget<BvWritingPills>(find.byType(BvWritingPills))
+            .widget<BvWritingLines>(find.byType(BvWritingLines))
             .rows
             .map((r) => r.key),
-        const [Key('writing-who'), Key('writing-to')],
+        const [Key('writing-kind'), Key('writing-who'), Key('writing-to')],
       );
       await tester.tap(find.byKey(const Key('writing-add')));
       await tester.pumpAndSettle();
@@ -293,8 +293,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<BvWritingPills>(find.byType(BvWritingPills))
+            .widget<BvWritingLines>(find.byType(BvWritingLines))
             .rows
+            .skip(1)
             .map((r) => r.value),
         [s.omarName, l10n.daybookWholeSpace],
       );

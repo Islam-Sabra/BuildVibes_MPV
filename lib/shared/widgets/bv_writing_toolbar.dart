@@ -84,6 +84,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.laterNote,
   }) : tools = null,
        field = null,
+       holdsInOrder = false,
        categories = null,
        categoriesOpen = false,
        beside = const [];
@@ -97,6 +98,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.categories,
     this.categoriesOpen = false,
     this.beside = const [],
+    this.holdsInOrder = false,
     this.postReady = true,
     this.laterLabel,
     this.onLater,
@@ -110,6 +112,10 @@ class BvWritingToolbar extends StatelessWidget {
        onMore = null,
        moreActive = false,
        moreKey = null;
+
+  /// Review 113 CV3: + · camera · mic together at the start, Send alone at
+  /// the end: a tool that holds stays in its place among [tools].
+  final bool holdsInOrder;
 
   /// The + at the start: the categories grid (F107).
   final BvWritingTool? categories;
@@ -201,6 +207,9 @@ class BvWritingToolbar extends StatelessWidget {
                   Expanded(child: field!),
                   for (final t in tools!)
                     if (t.holds) _tool(t),
+                ] else if (holdsInOrder) ...[
+                  for (final t in tools!) _tool(t),
+                  const Spacer(),
                 ] else ...[
                   if (categories case final c?)
                     _Categories(tool: c, open: categoriesOpen),

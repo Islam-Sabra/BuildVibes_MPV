@@ -76,7 +76,7 @@ void main() {
 
     testWidgets('F1: Create offers Post to everyone or Work item in a Space; '
         'a post is written on Home [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(s));
+      await pumpApp(tester, feed: true, language: lang, spaces: _spaces(s));
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'nav-create');
       expect(find.byKey(const Key('create-choice')), findsOneWidget);
@@ -93,6 +93,7 @@ void main() {
     ) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _spaces(s),
         daybook: FakeDaybookRepository(),
@@ -133,7 +134,7 @@ void main() {
 
     testWidgets('F1: with no Space to write in, an invite code or a new '
         'Space, never a dead end [$lang]', (tester) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _tap(tester, 'nav-create');
       await _tap(tester, 'create-work-item');
       expect(find.byKey(const Key('create-no-spaces')), findsOneWidget);
@@ -146,6 +147,7 @@ void main() {
         'card as before [$lang]', (tester) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: _spaces(s),
         daybook: FakeDaybookRepository(),

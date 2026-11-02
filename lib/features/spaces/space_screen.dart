@@ -28,6 +28,7 @@ import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
 import '../work/work_outbox.dart';
+import 'need_you_sheet.dart' show NeedYouStrip;
 import 'space_sections.dart';
 import 'spaces_state.dart';
 
@@ -66,7 +67,13 @@ class SpaceScreen extends ConsumerStatefulWidget {
 }
 
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
-  late var _tab = widget.onChat && widget.target == null
+  /// Review 113 (5): a thread or a card it was opened at says which tab;
+  /// otherwise the tab this Space was last left on, Work the first time.
+  late var _tab = widget.target != null || widget.open != null
+      ? SpaceScreen.workTab
+      : widget.onChat
+      ? SpaceScreen.chatTab
+      : ref.read(spaceLastTabProvider(widget.spaceId)) == SpaceLastTab.chat
       ? SpaceScreen.chatTab
       : SpaceScreen.workTab;
 
@@ -77,8 +84,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   /// The Space menu's Daily report (slice 7), opened once.
   DaybookReportStart? _reportStart;
 
-  void _addFile({LibraryFile? replaces}) => setState(() {
-    _fileStart = DaybookFileStart(replaces: replaces);
+  void _addFile({LibraryFile? replaces, String? folderId}) => setState(() {
+    _fileStart = DaybookFileStart(replaces: replaces, folderId: folderId);
     _tab = SpaceScreen.workTab;
   });
 
@@ -237,7 +244,9 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     final ask = await context.push<SpaceFileAsk>(
       AppRoutes.spaceLibrary(widget.spaceId),
     );
-    if (ask != null && mounted) _addFile(replaces: ask.replaces);
+    if (ask != null && mounted) {
+      _addFile(replaces: ask.replaces, folderId: ask.folderId);
+    }
   }
 
   /// Back (SP1, review 105 J1) is always there: with nothing under the
@@ -252,12 +261,22 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     context.go(AppRoutes.home);
   }
 
-  void _show(int tab) => setState(() {
-    ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
-    _tab = tab;
-    _fileStart = null;
-    _reportStart = null;
-  });
+  void _show(int tab) {
+    setState(() {
+      ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
+      _tab = tab;
+      _fileStart = null;
+      _reportStart = null;
+    });
+    // Review 113 (5): the Space remembers the tab last used in it.
+    unawaited(
+      ref
+          .read(spaceLastTabProvider(widget.spaceId).notifier)
+          .show(
+            tab == SpaceScreen.chatTab ? SpaceLastTab.chat : SpaceLastTab.work,
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -355,6 +374,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
                 ),
               ),
             ),
+            // Review 113 (18): a call and its answer show here.
+            if (!composing) NeedYouStrip(spaceId: widget.spaceId),
             Expanded(child: _body(detail)),
           ],
         ),

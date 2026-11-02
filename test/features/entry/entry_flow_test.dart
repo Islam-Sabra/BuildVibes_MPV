@@ -33,7 +33,7 @@ void main() {
     testWidgets('the phone screen sends to email while phone is off [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, signedIn: false);
+      await pumpApp(tester, feed: true, language: lang, signedIn: false);
       final context = tester.element(find.byKey(const Key('welcome-email')));
       GoRouter.of(context).go(AppRoutes.joinPhone);
       await tester.pumpAndSettle();
@@ -46,6 +46,7 @@ void main() {
     ) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         signedIn: false,
         phoneSignIn: true,
@@ -89,6 +90,7 @@ void main() {
         );
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           signedIn: false,
           auth: auth,
@@ -108,7 +110,13 @@ void main() {
     testWidgets('a wrong code shows an error and stays [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, signedIn: false, phoneSignIn: true);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        signedIn: false,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       await tester.enterText(find.byType(TextField), '50000002');
       await _tap(tester, 'phone-send');
@@ -121,6 +129,7 @@ void main() {
     testWidgets('SMS instead of WhatsApp [$lang]', (tester) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         signedIn: false,
         phoneSignIn: true,
@@ -137,6 +146,7 @@ void main() {
     ) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         signedIn: false,
         phoneSignIn: true,
@@ -161,6 +171,7 @@ void main() {
       final auth = FakeAuthRepository()..existing.add('+201000000001');
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         signedIn: false,
         auth: auth,
@@ -181,6 +192,7 @@ void main() {
       final auth = FakeAuthRepository()..existing.add('+919800000001');
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         signedIn: false,
         auth: auth,
@@ -202,7 +214,12 @@ void main() {
     testWidgets('email: a 6-digit code, never a password [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang, signedIn: false);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        signedIn: false,
+      );
       await _tap(tester, 'welcome-email');
       await tester.enterText(find.byType(TextField), 'not-an-email');
       await _tap(tester, 'email-send');
@@ -219,7 +236,7 @@ void main() {
 
     testWidgets('guest: Just looking, and Create shows the join wall, then '
         'the email [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, signedIn: false);
+      await pumpApp(tester, feed: true, language: lang, signedIn: false);
       await _tap(tester, 'welcome-look');
       expect(find.byKey(const Key('nav-home')), findsOneWidget);
       await _tap(tester, 'nav-create');
@@ -232,7 +249,7 @@ void main() {
     });
 
     testWidgets('guest Profile tab asks to join [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, signedIn: false);
+      await pumpApp(tester, feed: true, language: lang, signedIn: false);
       await _tap(tester, 'welcome-look');
       await _tap(tester, 'nav-profile');
       expect(find.byKey(const Key('guest-card')), findsOneWidget);
@@ -240,7 +257,7 @@ void main() {
     });
 
     testWidgets('signing out returns to Welcome [$lang]', (tester) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-sign-out');

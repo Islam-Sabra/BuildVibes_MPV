@@ -60,6 +60,7 @@ Future<TestApp> _space(
   final s = DaybookSamples(lang);
   final app = await pumpApp(
     tester,
+    feed: true,
     language: lang,
     spaces: FakeSpaceRepository()
       ..details[DaybookSamples.space] = s.detail()
@@ -223,6 +224,9 @@ void main() {
         await _tap(tester, _key('later-workday'));
         await _tap(tester, _key('later-schedule'));
         expect(app.schedule.scheduled.single.at, _sunday7);
+        // Its message goes first: For is pinned where it shows (CV3).
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
 
         await _writeItem(tester, s);
         await openPostLater(tester);
@@ -282,7 +286,7 @@ void main() {
       });
 
       testWidgets('in the Feed', (tester) async {
-        await pumpApp(tester, language: lang, now: _now);
+        await pumpApp(tester, feed: true, language: lang, now: _now);
         await tester.pumpAndSettle();
         await _tap(tester, _key('nav-create'));
         await _tap(tester, _key('create-post'));
@@ -297,6 +301,7 @@ void main() {
       testWidgets('on a notebook share', (tester) async {
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           now: NotebookPageSamples.now,
           notebook: NotebookPageSamples(lang).repository(),
@@ -317,6 +322,7 @@ void main() {
         final posts = FakePostRepository();
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           posts: posts,
           now: _now,
@@ -353,6 +359,7 @@ void main() {
         final notebook = NotebookPageSamples(lang).repository();
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           now: NotebookPageSamples.now,
           notebook: notebook,
@@ -397,7 +404,13 @@ void main() {
 
       Future<FakeScheduleRepository> open(WidgetTester tester) async {
         final schedule = two();
-        await pumpApp(tester, language: lang, schedule: schedule, now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          schedule: schedule,
+          now: _now,
+        );
         _router(tester).push('/scheduled-posts');
         await tester.pumpAndSettle();
         return schedule;
@@ -471,7 +484,13 @@ void main() {
               spaceName: s.spaceName,
             ),
           );
-        await pumpApp(tester, language: lang, schedule: schedule, now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          schedule: schedule,
+          now: _now,
+        );
         _router(tester).push('/scheduled-posts');
         await tester.pumpAndSettle();
         expect(
@@ -481,7 +500,13 @@ void main() {
       });
 
       testWidgets('Profile has Scheduled while one waits', (tester) async {
-        await pumpApp(tester, language: lang, schedule: two(), now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          schedule: two(),
+          now: _now,
+        );
         _router(tester).go('/profile');
         await tester.pumpAndSettle();
         await _tap(tester, _key('profile-scheduled'));
@@ -491,6 +516,7 @@ void main() {
       testWidgets('the push for a failed post opens Scheduled', (tester) async {
         await pumpApp(
           tester,
+          feed: true,
           language: lang,
           schedule: two(),
           now: _now,
@@ -506,8 +532,24 @@ void main() {
         expect(_key('scheduled-screen'), findsOneWidget);
       });
 
+      testWidgets('Review 113: scheduled_expiring opens Scheduled', (
+        tester,
+      ) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          schedule: two(),
+          now: _now,
+          push: FakePushMessaging(
+            current: PushPermission.granted,
+            firstTap: {'kind': 'scheduled_expiring', 'scheduled_id': 'sch-1'},
+          ),
+        );
+        expect(_key('scheduled-screen'), findsOneWidget);
+      });
+
       testWidgets('no Scheduled on Profile with none waiting', (tester) async {
-        await pumpApp(tester, language: lang, now: _now);
+        await pumpApp(tester, feed: true, language: lang, now: _now);
         _router(tester).go('/profile');
         await tester.pumpAndSettle();
         expect(_key('profile-scheduled'), findsNothing);

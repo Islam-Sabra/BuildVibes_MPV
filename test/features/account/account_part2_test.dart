@@ -36,7 +36,7 @@ void main() {
 
     testWidgets('S1: who you are, then one list, each entry once (review '
         '54 A5) [$lang]', (tester) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       expect(find.text(inOwnDirection('Omar Haddad')), findsOneWidget);
       expect(find.byKey(const Key('settings-view-profile')), findsOneWidget);
@@ -82,7 +82,7 @@ void main() {
         ProviderContainer().read(devToolsProvider),
         kDebugMode && !kReleaseMode,
       );
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       expect(find.byKey(const Key('row-components')), findsOneWidget);
     });
@@ -92,6 +92,7 @@ void main() {
     ) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         overrides: [devToolsProvider.overrideWithValue(false)],
       );
@@ -103,7 +104,7 @@ void main() {
     testWidgets('S15: sign out asks first, with code wording [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       await _tap(tester, 'row-sign-out');
       expect(find.text(l10n.signOutTitle), findsOneWidget);
@@ -117,7 +118,7 @@ void main() {
 
     testWidgets('Support: Help writes to the pack address; About has Terms '
         '[$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       // Help and feedback is in the About sheet (review 54 A5).
       expect(find.byKey(const Key('row-help')), findsNothing);
@@ -140,7 +141,7 @@ void main() {
     testWidgets('S5: Blocked accounts and where Space work lives [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       await _tap(tester, 'row-privacy');
       expect(find.text(l10n.privacyNote), findsOneWidget);
@@ -150,7 +151,7 @@ void main() {
 
     testWidgets('S8: language as one choice, live countries, week start '
         'read-only [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       await _tap(tester, 'row-language');
       expect(find.byKey(const Key('language-en')), findsOneWidget);
@@ -167,7 +168,7 @@ void main() {
     testWidgets('S2 → S10 → S11: one request, then it waits [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       await _tap(tester, 'row-account');
       await _tap(tester, 'row-download');
@@ -190,7 +191,7 @@ void main() {
     });
 
     testWidgets('S12 → S13 → S14 → Restore [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSettings(tester);
       await _tap(tester, 'row-account');
       await _tap(tester, 'row-delete');
@@ -241,7 +242,7 @@ void main() {
 
     testWidgets('S13: the server wants a fresh code [$lang]', (tester) async {
       final account = FakeAccountRepository()..freshCode = false;
-      await pumpApp(tester, language: lang, account: account);
+      await pumpApp(tester, feed: true, language: lang, account: account);
       await _openSettings(tester);
       await _tap(tester, 'row-account');
       await _tap(tester, 'row-delete');
@@ -261,7 +262,12 @@ void main() {
           const DeletionBlocker(spaceId: 's1', spaceName: 'Gulf Tower — Site'),
         ],
       );
-      final app = await pumpApp(tester, language: lang, account: account);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        account: account,
+      );
       await _openSettings(tester);
       await _tap(tester, 'row-account');
       await _tap(tester, 'row-delete');

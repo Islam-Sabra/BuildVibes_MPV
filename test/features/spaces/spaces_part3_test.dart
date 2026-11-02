@@ -99,7 +99,12 @@ void main() {
 
     testWidgets('Space info for an admin (SI1): You, Invite, Space; the '
         'project tag; the admins [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(saraAdmin: true));
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: _spaces(saraAdmin: true),
+      );
       await _openInfo(tester);
       expect(find.text(_spaceName), findsOneWidget);
       expect(find.textContaining('Harbour Tower'), findsOneWidget);
@@ -129,7 +134,12 @@ void main() {
     testWidgets('Space info for a member: no admin rows [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(iAmAdmin: false));
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: _spaces(iAmAdmin: false),
+      );
       await _openInfo(tester);
       for (final key in [
         'info-inviters',
@@ -150,7 +160,7 @@ void main() {
     testWidgets('Who can invite and Notifications are one choice each, '
         'saved at once [$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
 
       await _tap(tester, 'inviters-everyone');
@@ -172,7 +182,7 @@ void main() {
     testWidgets('F102: Off asks for how long; dismissed, nothing changes; '
         'All needs no time [$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       final before = spaces.calls.length;
       await _tap(tester, 'notify-off');
@@ -198,6 +208,7 @@ void main() {
       final spaces = _spaces();
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: spaces,
         overrides: [
@@ -234,7 +245,7 @@ void main() {
         myRights: d.myRights,
         siteStartDate: DateTime(2026, 9, 5),
       );
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       expect(
         find.text(formatLongDate(DateTime(2026, 9, 5), lang)),
@@ -247,7 +258,7 @@ void main() {
 
     testWidgets('Edit the name and About [$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'space-edit');
       await _type(tester, 'edit-space-name', 'X');
@@ -269,7 +280,7 @@ void main() {
       tester,
     ) async {
       final spaces = _spaces(iAmAdmin: false);
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-leave');
       expect(find.text(l10n.spacesLeaveTitle(_spaceName)), findsOneWidget);
@@ -282,7 +293,7 @@ void main() {
 
     testWidgets('the last admin cannot leave [$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-leave');
       await _tap(tester, 'bv-dialog-confirm');
@@ -294,7 +305,7 @@ void main() {
       tester,
     ) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-delete');
       expect(find.text(l10n.spacesDeleteTitle(_spaceName)), findsOneWidget);
@@ -309,7 +320,7 @@ void main() {
     testWidgets('transfer: choose a member, confirm, you become a member '
         '[$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
       await _tap(tester, 'info-transfer');
       expect(find.text(l10n.spacesTransferIntro), findsOneWidget);
@@ -332,7 +343,7 @@ void main() {
     testWidgets('People shows Teams as chips, no number; New Team '
         '[$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       _router(tester).push('/spaces/$_space', extra: SpaceOpen.people);
       await tester.pumpAndSettle();
       expect(find.text(l10n.spacesTeams), findsOneWidget);
@@ -381,7 +392,7 @@ void main() {
 
     testWidgets('a Team: Add people, Rename, Delete [$lang]', (tester) async {
       final spaces = _spaces();
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       _router(tester).push('/spaces/$_space/teams/team-mep');
       await tester.pumpAndSettle();
       expect(find.text('Rakesh Nair'), findsOneWidget);
@@ -409,7 +420,12 @@ void main() {
     testWidgets('members see a Team without the admin buttons [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, spaces: _spaces(iAmAdmin: false));
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: _spaces(iAmAdmin: false),
+      );
       _router(tester).push('/spaces/$_space/teams/team-mep');
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('team-add-people')), findsNothing);
@@ -421,6 +437,7 @@ void main() {
     ) async {
       await pumpApp(
         tester,
+        feed: true,
         language: lang,
         setUp: (pages, _) => pages.cv['user-1'] = const [
           CvProjectEntry(

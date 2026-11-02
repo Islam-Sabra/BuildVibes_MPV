@@ -6,10 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/l10n/bv_time.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/check_in.dart';
+import '../../data/models/daybook.dart' show DaybookPost;
+import '../../data/repositories/daybook_repository.dart';
 import '../../data/models/space.dart' show SpaceException;
 import '../../l10n/gen/app_localizations.dart';
 import 'check_in_marking.dart' show CheckInMarker;
 import 'check_in_words.dart';
+import 'daybook_draft.dart';
 
 /// Review 109 CI2: a check-in's notifications. The server's data push
 /// (`check_in_open`) is drawn by the app, with Check in (or Check out) ·
@@ -20,6 +23,33 @@ import 'check_in_words.dart';
 /// The push kinds (push_queue.kind, data "kind").
 const checkInOpenKind = 'check_in_open';
 const checkInSummaryKind = 'check_in_summary';
+
+/// Review 113 (17): the nudge's push says this in its data "open".
+const checkInNudgeOpen = 'check_in_nudge';
+
+/// The nudge's tap: the Space's draft becomes a new check-in from
+/// [fromPostId]. A post that is gone, or no signal, opens a blank one;
+/// a card already half-written is kept.
+Future<void> fillFromLastCheckIn(
+  DaybookDraft draft,
+  DaybookRepository repository, {
+  required String? fromPostId,
+  required String newId,
+}) async {
+  DaybookPost? post;
+  if (fromPostId != null) {
+    try {
+      post = (await repository.card(fromPostId))?.post;
+    } on SpaceException {
+      post = null;
+    }
+  }
+  if (post?.checkIn != null) {
+    await draft.fromCheckIn(newId, post!);
+  } else {
+    draft.open(newId, kind: DaybookKind.checkIn);
+  }
+}
 
 /// The Android channel (the server's data "channel_id"): high importance,
 /// with sound.

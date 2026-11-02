@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/upload_rules.dart';
 import '../models/chat.dart';
 import '../models/library.dart';
 import '../models/space.dart';
@@ -86,6 +87,8 @@ class SupabaseChatRepository implements ChatRepository {
   Future<T> _guard<T>(Future<T> Function() run) async {
     try {
       return await run();
+    } on SpaceException {
+      rethrow;
     } on PostgrestException catch (e) {
       throw SpaceException(spaceFailureFor(e.code), e.message);
     } on StorageException catch (e) {
@@ -160,17 +163,22 @@ class SupabaseChatRepository implements ChatRepository {
 
   @override
   Future<String> upload(String spaceId, String messageId, PhoneFile file) =>
-      _guard(() async {
-        final path = '$spaceId/chat/$messageId/${newUuid()}.${file.extension}';
-        await _client.storage
-            .from('space-files')
-            .upload(
-              path,
-              File(file.local),
-              fileOptions: FileOptions(contentType: file.mime),
-            );
-        return path;
-      });
+      // Review 113 bug 7: the bucket's checks first, the type from the
+      // extension, storage's refusal in plain words.
+      _guard(
+        () => uploadSpaceFile(file, (type) async {
+          final path =
+              '$spaceId/chat/$messageId/${newUuid()}.${spaceFileExtension(type)}';
+          await _client.storage
+              .from('space-files')
+              .upload(
+                path,
+                File(file.local),
+                fileOptions: FileOptions(contentType: type),
+              );
+          return path;
+        }),
+      );
 
   @override
   Future<void> shareFile({

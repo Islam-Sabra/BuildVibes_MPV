@@ -112,7 +112,7 @@ void main() {
   for (final lang in ['en', 'ar']) {
     testWidgets('F30: the latest reply under the text, up to three faces, '
         'never a number; none without replies [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, posts: _posts());
+      await pumpApp(tester, feed: true, language: lang, posts: _posts());
       await tester.pumpAndSettle();
       final line = find.byKey(const Key('post-latest-reply-p1'));
       expect(line, findsOneWidget);
@@ -142,7 +142,12 @@ void main() {
 
     testWidgets('F30: a reply to you is bold until the post is opened; the '
         'line opens the post at that reply [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, posts: _posts(toMe: true));
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        posts: _posts(toMe: true),
+      );
       await tester.pumpAndSettle();
       bool bold() =>
           tester.widget<BvLatestReply>(find.byType(BvLatestReply).first).unseen;
@@ -194,7 +199,7 @@ void main() {
       final l10n = lookupAppLocalizations(Locale(lang));
       final type = lang == 'ar' ? BvType.arabic : BvType.latin;
       final posts = _posts();
-      await pumpApp(tester, language: lang, posts: posts);
+      await pumpApp(tester, feed: true, language: lang, posts: posts);
       await tester.pumpAndSettle();
       // The feed card: Useful with the seal-check, never a thumbs-up.
       Icon iconIn(String key) => tester.widget<Icon>(

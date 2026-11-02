@@ -3,8 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  buildPush, channelFor, classify, DEFAULT_CHANNEL, fcmMessage, MESSAGE_CHANNEL, retryAfterSeconds,
-  type QueueRow,
+  buildPush, channelFor, classify, DEFAULT_CHANNEL, fcmMessage, MESSAGE_CHANNEL, NEED_YOU_CHANNEL,
+  REACTIONS_CHANNEL, retryAfterSeconds, type QueueRow,
 } from "./message.ts";
 
 const strings = JSON.parse(
@@ -31,6 +31,8 @@ test("every kind has its text in English and Arabic", () => {
     "activity_invited", "activity_starting", "file_new_version",
     "dm_message", "dm_request", "dm_follow_up",
     "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
+    "post_reaction", "work_item_archived", "check_in_nudge", "need_you", "need_you_answer",
+    "scheduled_expiring",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -417,4 +419,172 @@ test("review 109, lock-screen text off: the summary says only that it is ready",
   assert.equal(p.body, "Check-in summary ready");
   assert.equal(p.data.route, "/spaces/s1/items/p1");
   assert.equal(buildPush(summary, "ar", null, strings).body, "ملخص الحضور جاهز");
+});
+
+// Review 113 (migration 60).
+type AnyFcm = {
+  notification: { title: string; body: string };
+  data: Record<string, string>;
+  android: { priority: string; notification: Record<string, unknown> };
+  apns?: {
+    headers: Record<string, string>;
+    payload: { aps: Record<string, unknown> & { alert?: { title: string; body: string } } };
+  };
+};
+
+test("review 113 RX1: a reaction is one quiet push to the author, opening the post", () => {
+  const off = row("post_reaction", {
+    actor_id: "p-rakesh",
+    data: { post_id: "p1", space_id: "s1", kind: "like" },
+  });
+  const p = buildPush(off, "en", "Rakesh Nair", strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "⁨Rakesh Nair⁩ reacted to your post.");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(p.data.kind, "post_reaction", "the push's own kind, not the reaction's");
+  assert.equal(p.data.reaction, "like", "the reaction travels as reaction");
+  assert.equal(p.tag, "reaction:p1", "a later one replaces it");
+  assert.equal(buildPush(off, "ar", "راكيش", strings).body, "تفاعل من ⁨راكيش⁩ على منشورك.");
+  const m = fcmMessage("tok", p) as AnyFcm;
+  assert.equal(m.android.priority, "normal", "low priority");
+  assert.equal(m.android.notification.channel_id, REACTIONS_CHANNEL, "its own low-importance channel");
+  assert.equal(REACTIONS_CHANNEL, "reactions");
+  assert.equal(channelFor("post_reaction"), "reactions");
+  assert.equal(m.android.notification.notification_priority, "PRIORITY_LOW");
+  assert.equal(m.android.notification.default_sound, undefined, "no sound");
+  assert.equal(m.android.notification.default_vibrate_timings, undefined, "no vibration");
+  assert.equal(m.android.notification.tag, "reaction:p1");
+  assert.equal(m.apns?.headers["apns-priority"], "5");
+  assert.equal(m.apns?.payload.aps["interruption-level"], "passive");
+  assert.equal(m.apns?.payload.aps.sound, undefined, "no sound on iOS either");
+  assert.ok(!JSON.stringify(m).includes("Tower"), "text off: no Space");
+  const on = buildPush(row("post_reaction", {
+    actor_id: "p-rakesh",
+    data: { post_id: "p1", space_id: "s1", kind: "heart", title: "Concrete pour", space_name: "Tower 113" },
+  }), "en", "Rakesh Nair", strings);
+  assert.equal(on.title, "⁨Concrete pour⁩");
+  assert.equal(on.body, "⁨Tower 113⁩ · ⁨Rakesh Nair⁩ reacted to your post.");
+});
+
+test("review 113: archiving an open work item tells its owner: no longer needed", () => {
+  const off = row("work_item_archived", { actor_id: "p-gus", data: { post_id: "p1", space_id: "s1" } });
+  const p = buildPush(off, "en", "Gus Lead", strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "⁨Gus Lead⁩ archived a work item of yours: no longer needed.");
+  assert.equal(p.data.route, "/spaces/s1/items/p1");
+  assert.equal(buildPush(off, "ar", "غس", strings).body, "أرشفة من ⁨غس⁩ لبند عمل لك: لم يعد مطلوبًا.");
+  const on = buildPush(row("work_item_archived", {
+    actor_id: "p-gus", data: { post_id: "p1", space_id: "s1", title: "Door closers" },
+  }), "en", "Gus Lead", strings);
+  assert.equal(on.title, "⁨Door closers⁩");
+  assert.equal(on.body, "Archived by ⁨Gus Lead⁩: no longer needed.");
+  assert.equal(fcmMessage("tok", on).apns, undefined, "an ordinary notification");
+});
+
+test("review 113 (17): the check-in nudge opens the Space's composer from the last check-in", () => {
+  const off = row("check_in_nudge", { actor_id: null, data: { space_id: "s1", from_post_id: "c1" } });
+  const p = buildPush(off, "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "No check-in posted for today. Post one?");
+  assert.equal(p.data.route, "/spaces/s1");
+  assert.equal(p.data.open, "check_in_nudge");
+  assert.equal(p.data.from_post_id, "c1");
+  assert.equal(p.tag, "checkin_nudge:s1");
+  assert.equal(buildPush(off, "ar", null, strings).body, "لم يُنشر تسجيل حضور لليوم. هل تنشر واحدًا؟");
+  const on = buildPush(row("check_in_nudge", {
+    actor_id: null, data: { space_id: "s1", from_post_id: "c1", space_name: "Tower 113" },
+  }), "en", null, strings);
+  assert.equal(on.title, "⁨Tower 113⁩");
+  assert.equal(on.body, "No check-in posted for today. Post one?");
+});
+
+const needYou = (data: Record<string, string>, actor: string | null = "p-omar"): QueueRow =>
+  row("need_you", { actor_id: actor, data: { call_id: "n1", space_id: "s1", ...data } });
+
+test("review 113 NN2: Need you now names who, the Space, the place and the reason (text on)", () => {
+  const p = buildPush(needYou({
+    from_name: "Omar Haddad", space_name: "NBKCH Site", place: "Gate 2", reason: "concrete truck waiting",
+  }), "en", "Omar Haddad", strings);
+  assert.equal(p.title, "⁨Omar Haddad⁩ needs you now");
+  assert.equal(p.body, "⁨NBKCH Site⁩: ⁨Gate 2⁩, ⁨concrete truck waiting⁩");
+  assert.equal(p.data.route, "/spaces/s1");
+  assert.equal(p.data.open, "need_you");
+  assert.equal(p.data.call_id, "n1");
+  assert.equal(p.tag, "needyou:n1");
+  assert.equal(p.data.tag, "needyou:n1");
+  assert.equal(p.data.push_title, p.title);
+  assert.equal(p.data.push_body, p.body);
+  const ar = buildPush(needYou({ from_name: "عمر", space_name: "NBKCH Site", reason: "الخلاطة تنتظر" }),
+                       "ar", null, strings);
+  assert.equal(ar.title, "⁨عمر⁩ يحتاجك الآن");
+  assert.equal(ar.body, "⁨NBKCH Site⁩: ⁨الخلاطة تنتظر⁩");
+  const bare = buildPush(needYou({ from_name: "Omar Haddad", space_name: "NBKCH Site" }), "en", null, strings);
+  assert.equal(bare.body, "⁨NBKCH Site⁩", "no reason or place: the Space");
+});
+
+test("review 113 NN2, lock-screen text off: Someone needs you now, nothing else", () => {
+  const p = buildPush(needYou({}, null), "en", "Omar Haddad", strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Someone needs you now");
+  assert.equal(buildPush(needYou({}, null), "ar", null, strings).body, "شخص يحتاجك الآن");
+  assert.equal(p.data.call_id, "n1", "the ids stay, so the buttons work");
+  assert.ok(!JSON.stringify(fcmMessage("tok", p)).includes("Omar"), "no name anywhere, even with an actor");
+});
+
+test("review 113 NN2 (option C): the strong channel, tagged per call; iOS time-sensitive with its category", () => {
+  for (const push of [
+    buildPush(needYou({ from_name: "Omar Haddad", space_name: "NBKCH Site" }), "en", null, strings),
+    buildPush(needYou({}, null), "en", null, strings),
+  ]) {
+    const m = fcmMessage("tok", push) as AnyFcm;
+    assert.deepEqual(m.notification, { title: push.title, body: push.body }, "a notification Android draws");
+    assert.equal(m.android.priority, "high");
+    assert.equal(m.android.notification.channel_id, NEED_YOU_CHANNEL);
+    assert.equal(m.android.notification.tag, "needyou:n1");
+    assert.equal(m.android.notification.default_sound, true);
+    assert.equal(m.data.tag, "needyou:n1");
+    assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+    assert.equal(m.apns?.headers["apns-priority"], "10");
+    assert.equal(m.apns?.payload.aps.category, "NEED_YOU");
+    assert.equal(m.apns?.payload.aps["interruption-level"], "time-sensitive");
+    assert.equal(m.apns?.payload.aps.sound, "default");
+  }
+  assert.equal(NEED_YOU_CHANNEL, "need_you");
+  assert.equal(channelFor("need_you"), "need_you");
+});
+
+test("review 113 NN2: the answer goes back to the caller; the name only with text on", () => {
+  const on = (answer: string) => row("need_you_answer", {
+    actor_id: "p-tariq", data: { call_id: "n1", answer, space_id: "s1", name: "Tariq Aziz" },
+  });
+  const off = (answer: string) => row("need_you_answer", {
+    actor_id: null, data: { call_id: "n1", answer, space_id: "s1" },
+  });
+  assert.equal(buildPush(on("coming"), "en", "Tariq Aziz", strings).body, "⁨Tariq Aziz⁩: On my way");
+  assert.equal(buildPush(on("cant"), "en", "Tariq Aziz", strings).body, "⁨Tariq Aziz⁩: Can't now");
+  assert.equal(buildPush(off("coming"), "en", "Tariq Aziz", strings).body, "Answer to your call: On my way");
+  assert.equal(buildPush(off("cant"), "en", null, strings).body, "Answer to your call: Can't now");
+  assert.equal(buildPush(on("coming"), "ar", "طارق", strings).body, "⁨Tariq Aziz⁩: في الطريق");
+  assert.equal(buildPush(off("cant"), "ar", null, strings).body, "ردّ على طلبك: لا أستطيع الآن");
+  const p = buildPush(on("coming"), "en", null, strings);
+  assert.equal(p.data.route, "/spaces/s1");
+  assert.equal(p.data.open, "need_you");
+  assert.equal(p.tag, "needyou_answer:n1");
+  const m = fcmMessage("tok", p) as AnyFcm;
+  assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
+  assert.equal(m.apns, undefined);
+});
+
+test("the lead, 2 Nov: a failed Post later is cancelled tomorrow; it opens Scheduled", () => {
+  const off = row("scheduled_expiring", { actor_id: null, data: { scheduled_id: "x1" } });
+  const p = buildPush(off, "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Your scheduled post will be cancelled tomorrow");
+  assert.equal(p.data.route, "/scheduled-posts");
+  assert.equal(buildPush(off, "ar", null, strings).body, "سيُلغى منشورك المجدول غدًا");
+  const on = buildPush(row("scheduled_expiring", {
+    actor_id: null, data: { scheduled_id: "x1", title: "Pour notice" },
+  }), "en", null, strings);
+  assert.equal(on.title, "⁨Pour notice⁩");
+  assert.equal(on.body, "Your scheduled post will be cancelled tomorrow");
 });

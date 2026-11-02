@@ -19,6 +19,14 @@ select cron.schedule('work-reminders', '*/5 * * * *',
 select cron.schedule('publish-scheduled-posts', '*/5 * * * *',
   $job$ select public.publish_due_posts(); $job$);
 
+-- Review 113, after migration 60 (20261121120000) is live and the push
+-- function with the scheduled_expiring text is deployed. Every hour: a
+-- failed scheduled post gets its push on day 29 and is cancelled on day 30.
+-- Only fills push_queue and cancels.
+select cron.schedule('expire-failed-posts', '7 * * * *',
+  $job$ select public.expire_failed_posts(); $job$);
+
 -- To check:   select jobname, schedule, active from cron.job;
 -- To undo:    select cron.unschedule('work-reminders');
 --             select cron.unschedule('publish-scheduled-posts');
+--             select cron.unschedule('expire-failed-posts');

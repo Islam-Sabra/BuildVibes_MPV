@@ -10,6 +10,8 @@ import '../../core/l10n/bidi.dart';
 import '../../core/l10n/months.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
+import '../../data/models/library_folder.dart' show FolderShare;
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -208,13 +210,25 @@ class SpaceInfoScreen extends ConsumerWidget {
         if (context.mounted) showSpaceError(context, e);
         return;
       }
+      // Review 113: my only-me folders here go when I leave; said only
+      // when I have one.
+      var privateFolders = false;
+      try {
+        privateFolders =
+            (await ref.read(libraryRepositoryProvider).folders(spaceId)).any(
+              (f) => f.mine && f.share == FolderShare.onlyMe,
+            );
+      } on SpaceException {
+        // Unknown: not said.
+      }
       if (!context.mounted) return;
+      final foldersNote = privateFolders ? l10n.spacesLeaveFoldersNote : null;
       var handovers = const <Handover>[];
       if (open.isEmpty) {
         final yes = await showBvDialog(
           context: context,
           title: l10n.spacesLeaveTitle(space.name),
-          body: l10n.spacesLeaveBodyPrivate,
+          body: [l10n.spacesLeaveBodyPrivate, ?foldersNote].join(' '),
           cancelLabel: l10n.commonCancel,
           confirmLabel: l10n.spacesLeaveButton,
           destructive: true,
@@ -227,6 +241,7 @@ class SpaceInfoScreen extends ConsumerWidget {
           spaceId: spaceId,
           memberId: me!,
           items: open,
+          foldersNote: foldersNote,
         );
         if (given == null || !context.mounted) return;
         handovers = given;

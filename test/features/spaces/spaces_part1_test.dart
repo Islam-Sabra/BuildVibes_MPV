@@ -69,7 +69,7 @@ void main() {
     final l10n = _l10n(lang);
 
     testWidgets('no Spaces yet: Join your first Space [$lang]', (tester) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _openSpacesTab(tester, l10n);
       expect(find.text(l10n.spacesEmptyTitle), findsOneWidget);
       expect(find.text(l10n.spacesEnterCode), findsOneWidget);
@@ -83,7 +83,7 @@ void main() {
     testWidgets('a wrong code says so; nothing is asked [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang);
+      final app = await pumpApp(tester, feed: true, language: lang);
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');
       // Review 07: capitals keyboard, no autocorrect or word suggestions.
@@ -111,7 +111,7 @@ void main() {
           spaceName: _tower,
           invitedBy: 'Omar Haddad',
         );
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');
       // Typed the way people read it: lower case, a space, Arabic digits.
@@ -141,7 +141,7 @@ void main() {
           spaceName: _tower,
         )
         ..joinStatus = JoinStatus.declined;
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');
       await _type(tester, 'invite-code-field', 'K7Q4MD');
@@ -163,7 +163,12 @@ void main() {
               decidedAt: testNow,
             ),
           );
-        final app = await pumpApp(tester, language: lang, spaces: spaces);
+        final app = await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          spaces: spaces,
+        );
         await _openSpacesTab(tester, l10n);
         expect(find.text(l10n.spacesNotConfirmed), findsOneWidget);
         await _tap(tester, 'dismiss-request-r-9');
@@ -193,7 +198,7 @@ void main() {
               isAdmin: false,
             ),
           ]);
-        await pumpApp(tester, language: lang, spaces: spaces);
+        await pumpApp(tester, feed: true, language: lang, spaces: spaces);
         await _openMySpaces(tester);
         expect(find.text(l10n.spacesProjectSpaces), findsOneWidget);
         expect(find.text(l10n.spacesNeedsYou(2)), findsOneWidget);
@@ -226,6 +231,7 @@ void main() {
     ) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         setUp: (pages, _) => pages.cv['user-1'] = const [
           CvProjectEntry(
@@ -288,7 +294,12 @@ void main() {
     ) async {
       final spaces = FakeSpaceRepository(now: testNow)
         ..details['space-1'] = _detail();
-      final app = await pumpApp(tester, language: lang, spaces: spaces);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        spaces: spaces,
+      );
       await _goInvite(tester);
       expect(find.text('K7Q 4MD'), findsOneWidget);
       expect(
@@ -315,7 +326,7 @@ void main() {
       (tester) async {
         final spaces = FakeSpaceRepository()
           ..details['space-1'] = _detail(admin: false);
-        await pumpApp(tester, language: lang, spaces: spaces);
+        await pumpApp(tester, feed: true, language: lang, spaces: spaces);
         await _goInvite(tester);
         expect(find.text('K7Q 4MD'), findsOneWidget);
         expect(find.byKey(const Key('invite-new-code')), findsNothing);
@@ -327,7 +338,7 @@ void main() {
     ) async {
       final spaces = FakeSpaceRepository()
         ..details['space-1'] = _detail(admin: false, invite: false);
-      await pumpApp(tester, language: lang, spaces: spaces);
+      await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       _router(tester).push('/spaces/space-1', extra: SpaceOpen.people);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('people-invite-code')), findsNothing);
@@ -336,7 +347,7 @@ void main() {
     testWidgets('Create sheet: New Space and Enter an invite code [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang);
+      await pumpApp(tester, feed: true, language: lang);
       await _openMySpaces(tester);
       await _tap(tester, 'spaces-create');
       expect(
@@ -353,7 +364,7 @@ void main() {
     testWidgets('guests: Enter an invite code asks them to join [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, signedIn: false);
+      await pumpApp(tester, feed: true, language: lang, signedIn: false);
       await _tap(tester, 'welcome-look');
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');

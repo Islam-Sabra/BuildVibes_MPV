@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/feature_switches.dart';
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
@@ -16,6 +17,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../settings/push_fix.dart';
 import '../../core/design/messages_specs.dart';
 import '../../data/repositories/dm_repository.dart';
+import '../spaces/spaces_tab.dart';
 import 'spaces_day_tab.dart';
 
 /// Home (H1 v4 2587:35849): the wordmark, Search (people search in
@@ -32,6 +34,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Review 113 (6): with the feed hidden, the first tab is Spaces (ST1).
+    if (!ref.watch(feedEnabledProvider)) return const SpacesTabScreen();
     final tab = ref.watch(homeTabProvider);
     void select(int i) => ref.read(homeTabProvider.notifier).show(i);
     final l10n = AppLocalizations.of(context);

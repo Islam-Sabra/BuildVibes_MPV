@@ -91,6 +91,10 @@ abstract class DaybookRepository {
   /// uses a new name, so a retry never replaces a file.
   Future<String> uploadPostPhoto(String spaceId, String postId, File file);
 
+  /// Review 113 (11): a voice note into the post's folder, as audio/mp4;
+  /// returns its storage path.
+  Future<String> uploadPostVoice(String spaceId, String postId, File file);
+
   /// create_work_item. The app chose [NewWorkItem.id], so sending it again
   /// is the same post.
   Future<void> createWorkItem(NewWorkItem item);
@@ -163,6 +167,11 @@ abstract class DaybookRepository {
     required String postId,
     required String threadId,
   });
+
+  /// react_to_post (review 113 RX1): my reaction [kind] on [postId]; the
+  /// same kind again takes it off, another replaces it. The reaction I now
+  /// hold, or null.
+  Future<PostReaction?> reactToPost(String postId, PostReaction kind);
 }
 
 /// One post_history call: the lines, newest first, and whether older ones
@@ -195,6 +204,7 @@ class NewSpacePost {
     this.people = const [],
     this.points = const [],
     this.photoPaths = const [],
+    this.voice,
     this.attachedFileIds = const [],
     this.teamId,
     this.quote,
@@ -234,6 +244,9 @@ class NewSpacePost {
   /// Uploaded photos, in the post's folder.
   final List<String> photoPaths;
 
+  /// Review 113 (11): its uploaded voice note.
+  final PostVoiceFile? voice;
+
   /// Library files added with 📎 (F39), as the post's own files.
   final List<String> attachedFileIds;
 
@@ -271,6 +284,7 @@ class NewSpacePost {
       ],
       'p_files': [
         for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+        ?_voiceFile(voice),
         for (final id in attachedFileIds) {'library_file_id': id},
       ],
       'p_quote': ?quote?.toJson(),
@@ -375,6 +389,7 @@ class NewWorkItem {
     this.dueDate,
     this.dueAt,
     this.photoPaths = const [],
+    this.voice,
     this.libraryFileIds = const [],
     this.quote,
     this.sourceMessageId,
@@ -414,6 +429,9 @@ class NewWorkItem {
   /// Uploaded photos, in the post's folder.
   final List<String> photoPaths;
 
+  /// Review 113 (11): its uploaded voice note.
+  final PostVoiceFile? voice;
+
   /// Library files to put on it once it is made (attach_library_file).
   final List<String> libraryFileIds;
 
@@ -430,6 +448,7 @@ class NewWorkItem {
     'p_due_at': dueAt == null ? null : _instant(dueAt!),
     'p_files': [
       for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+      ?_voiceFile(voice),
     ],
     'p_quote': ?quote?.toJson(),
     'p_source_message': ?sourceMessageId,
@@ -455,6 +474,7 @@ class NewThanks {
     this.toTeamId,
     this.forId,
     this.photoPaths = const [],
+    this.voice,
   });
 
   final String id;
@@ -467,6 +487,9 @@ class NewThanks {
   /// Uploaded photos, in the post's folder.
   final List<String> photoPaths;
 
+  /// Review 113 (11): its uploaded voice note.
+  final PostVoiceFile? voice;
+
   Map<String, Object?> toParams() => {
     'p_id': id,
     'p_space': spaceId,
@@ -476,9 +499,21 @@ class NewThanks {
     'p_for': forId,
     'p_files': [
       for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+      ?_voiceFile(voice),
     ],
   };
 }
+
+/// Review 113 (11): an uploaded voice note and its length.
+typedef PostVoiceFile = ({String path, int durationMs});
+
+/// As p_files takes it. The server takes audio on a post from migration
+/// review 113b: `add_post_files` and `may_upload` must allow it.
+Map<String, Object?>? _voiceFile(PostVoiceFile? v) => v == null
+    ? null
+    : {'path': v.path, 'mime': _voiceMime, 'duration_ms': v.durationMs};
+
+const _voiceMime = 'audio/mp4';
 
 String _date(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-'
@@ -618,6 +653,20 @@ class SupabaseDaybookRepository implements DaybookRepository {
               path,
               file,
               fileOptions: const FileOptions(contentType: _jpeg),
+            );
+        return path;
+      });
+
+  @override
+  Future<String> uploadPostVoice(String spaceId, String postId, File file) =>
+      _guard(() async {
+        final path = '$spaceId/posts/$postId/${newUuid()}.m4a';
+        await _client.storage
+            .from(spaceFilesBucket)
+            .upload(
+              path,
+              file,
+              fileOptions: const FileOptions(contentType: _voiceMime),
             );
         return path;
       });
@@ -854,6 +903,16 @@ class SupabaseDaybookRepository implements DaybookRepository {
       params: {'p_id': messageId, 'p_post': postId, 'p_thread': threadId},
     ),
   );
+
+  @override
+  Future<PostReaction?> reactToPost(String postId, PostReaction kind) =>
+      _guard(() async {
+        final held = await _client.rpc<String?>(
+          'react_to_post',
+          params: {'p_post': postId, 'p_kind': kind.json},
+        );
+        return PostReaction.fromJson(held);
+      });
 }
 
 final daybookRepositoryProvider = Provider<DaybookRepository>(

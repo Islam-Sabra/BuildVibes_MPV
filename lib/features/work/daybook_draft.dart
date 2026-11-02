@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart';
@@ -66,6 +67,7 @@ class DraftFile {
     this.supersedesId,
     this.supersedesRev,
     this.added = false,
+    this.folderId,
   });
 
   factory DraftFile.fromJson(Map<String, dynamic> json) => DraftFile(
@@ -78,6 +80,7 @@ class DraftFile {
     supersedesId: json['supersedes_id'] as String?,
     supersedesRev: json['supersedes_rev'] as String?,
     added: json['added'] as bool? ?? false,
+    folderId: json['folder_id'] as String?,
   );
 
   final String libraryId;
@@ -97,6 +100,10 @@ class DraftFile {
   /// again.
   final bool added;
 
+  /// Review 113 (8): the Library folder it goes into (add_library_file's
+  /// p_folder); null, the Space's Library.
+  final String? folderId;
+
   bool get isNew => local != null;
 
   /// The same file as a new one, not a new version (F71's ✕).
@@ -108,6 +115,7 @@ class DraftFile {
     local: local,
     revLabel: revLabel,
     added: added,
+    folderId: folderId,
   );
 
   DraftFile get inLibrary => DraftFile(
@@ -120,6 +128,7 @@ class DraftFile {
     supersedesId: supersedesId,
     supersedesRev: supersedesRev,
     added: true,
+    folderId: folderId,
   );
 
   Map<String, dynamic> toJson() => {
@@ -132,6 +141,7 @@ class DraftFile {
     'supersedes_id': supersedesId,
     'supersedes_rev': supersedesRev,
     'added': added,
+    'folder_id': folderId,
   };
 }
 
@@ -155,6 +165,8 @@ class DaybookPostDraft {
     this.dueDate,
     this.dueAt,
     this.photos = const [],
+    this.voiceLocal,
+    this.voiceMs = 0,
     this.people = const [],
     this.points = const [],
     this.pinnedUntil,
@@ -191,6 +203,7 @@ class DaybookPostDraft {
     this.daily = false,
     this.siteLat,
     this.siteLng,
+    this.samePlaceAs,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -210,6 +223,8 @@ class DaybookPostDraft {
           for (final p in json['photos'] as List? ?? const []) p as String,
           if (json['photo'] case final String one) one,
         ],
+        voiceLocal: json['voice_local'] as String?,
+        voiceMs: (json['voice_ms'] as num?)?.toInt() ?? 0,
         people: [
           for (final p in json['people'] as List? ?? const [])
             (
@@ -276,6 +291,7 @@ class DaybookPostDraft {
         daily: json['daily'] as bool? ?? false,
         siteLat: (json['site_lat'] as num?)?.toDouble(),
         siteLng: (json['site_lng'] as num?)?.toDouble(),
+        samePlaceAs: json['same_place_as'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -283,7 +299,14 @@ class DaybookPostDraft {
     final kept = item.draft;
     final photos = [for (final p in item.photos) p.local];
     if (kept != null) {
-      return kept.copyWith(photos: photos, files: item.files, refused: true);
+      return kept.copyWith(
+        photos: photos,
+        files: item.files,
+        refused: true,
+        voice: () => item.voiceLocal == null
+            ? null
+            : (local: item.voiceLocal!, ms: item.voiceMs),
+      );
     }
     return DaybookPostDraft(
       id: item.id,
@@ -296,6 +319,8 @@ class DaybookPostDraft {
       dueDate: item.dueDate,
       dueAt: item.dueAt,
       photos: photos,
+      voiceLocal: item.voiceLocal,
+      voiceMs: item.voiceMs,
       files: item.files,
       couldNotSend: true,
       quote: item.quote,
@@ -324,6 +349,28 @@ class DaybookPostDraft {
       placeId: post.placeId,
       dueDate: id == null ? post.dueDate : null,
       dueAt: id == null ? post.dueAt : null,
+    );
+  }
+
+  /// Review 113 (17): a new check-in made from the last one, for the
+  /// nudge: its words, For, times and Every day, and its site by
+  /// reference: the server copies the point and never shows it.
+  factory DaybookPostDraft.fromCheckIn(DaybookPost post, {required String id}) {
+    final c = post.checkIn;
+    return DaybookPostDraft(
+      id: id,
+      kind: DaybookKind.checkIn,
+      title: post.title,
+      body: post.body ?? '',
+      place: post.place,
+      placeId: post.placeId,
+      checkInTeams: c?.teams ?? const [],
+      inTime: c?.inTime,
+      inAllow: c?.inAllow ?? checkInDefaultAllowance,
+      outTime: c?.outTime,
+      outAllow: c?.outAllow,
+      daily: c?.daily ?? false,
+      samePlaceAs: post.id,
     );
   }
 
@@ -373,6 +420,11 @@ class DaybookPostDraft {
   /// Photos: copies kept in the app's folder, so they outlive the camera's
   /// cache and the app being closed. Up to ten (K4).
   final List<String> photos;
+
+  /// Review 113 (11): the voice note held on the mic, on the phone until
+  /// it is sent, and its length.
+  final String? voiceLocal;
+  final int voiceMs;
   final List<DraftPerson> people;
   final List<DraftPoint> points;
 
@@ -450,7 +502,13 @@ class DaybookPostDraft {
   final double? siteLat;
   final double? siteLng;
 
+  /// Review 113 (17): the earlier check-in whose site this one takes.
+  final String? samePlaceAs;
+
   bool get siteSet => siteLat != null && siteLng != null;
+
+  /// Send's condition: a site read here, or the last check-in's.
+  bool get placeReady => siteSet || samePlaceAs != null;
 
   /// The server's other rules for a Check-in, checked before Send can
   /// hit them: the time and its allowance fit in the day, and a check-out
@@ -506,6 +564,7 @@ class DaybookPostDraft {
             refsOut.isEmpty
       : title.trim().isEmpty &&
             body.trim().isEmpty &&
+            voiceLocal == null &&
             ownerId == null &&
             place == null &&
             dueDate == null &&
@@ -523,7 +582,7 @@ class DaybookPostDraft {
             inTime == null &&
             outTime == null &&
             !daily &&
-            !siteSet &&
+            !placeReady &&
             checkInTeams.isEmpty;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
@@ -547,7 +606,7 @@ class DaybookPostDraft {
     DaybookKind.file => files.isNotEmpty && titleFits,
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
     // Review 109: Send stays off until the place is set.
-    DaybookKind.checkIn => titleFits && siteSet && checkInTimesFit,
+    DaybookKind.checkIn => titleFits && placeReady && checkInTimesFit,
     _ => titleFits,
   };
 
@@ -578,6 +637,7 @@ class DaybookPostDraft {
     DateTime? Function()? dueDate,
     DateTime? Function()? dueAt,
     List<String>? photos,
+    ({String local, int ms})? Function()? voice,
     List<DraftPerson>? people,
     List<DraftPoint>? points,
     DateTime? Function()? pinnedUntil,
@@ -608,7 +668,9 @@ class DaybookPostDraft {
     int? Function()? outAllow,
     bool? daily,
     ({double lat, double lng})? Function()? site,
+    String? Function()? samePlaceAs,
     bool refused = false,
+    bool notRefused = false,
   }) => DaybookPostDraft(
     checkInTeams: checkInTeams ?? this.checkInTeams,
     inTime: inTime == null ? this.inTime : inTime(),
@@ -618,6 +680,7 @@ class DaybookPostDraft {
     daily: daily ?? this.daily,
     siteLat: site == null ? siteLat : site()?.lat,
     siteLng: site == null ? siteLng : site()?.lng,
+    samePlaceAs: samePlaceAs == null ? this.samePlaceAs : samePlaceAs(),
     thanksToId: thanksTo == null ? thanksToId : thanksTo()?.id,
     thanksToName: thanksTo == null ? thanksToName : thanksTo()?.name,
     thanksToTeam: thanksTo == null ? thanksToTeam : thanksTo()?.team ?? false,
@@ -652,6 +715,8 @@ class DaybookPostDraft {
     dueDate: dueDate == null ? this.dueDate : dueDate(),
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     photos: photos ?? this.photos,
+    voiceLocal: voice == null ? voiceLocal : voice()?.local,
+    voiceMs: voice == null ? voiceMs : voice()?.ms ?? 0,
     people: people ?? this.people,
     points: points ?? this.points,
     pinnedUntil: pinnedUntil == null ? this.pinnedUntil : pinnedUntil(),
@@ -660,7 +725,7 @@ class DaybookPostDraft {
     files: files ?? this.files,
     teamId: team == null ? teamId : team()?.id,
     teamName: team == null ? teamName : team()?.name,
-    couldNotSend: refused || couldNotSend,
+    couldNotSend: !notRefused && (refused || couldNotSend),
   );
 
   Map<String, dynamic> toJson() => {
@@ -675,6 +740,8 @@ class DaybookPostDraft {
     'due_date': dueDate?.toIso8601String(),
     'due_at': dueAt?.toUtc().toIso8601String(),
     'photos': photos,
+    'voice_local': voiceLocal,
+    'voice_ms': voiceMs,
     'people': [
       for (final p in people) {'id': p.id, 'name': p.name},
     ],
@@ -717,8 +784,40 @@ class DaybookPostDraft {
     'daily': daily,
     'site_lat': siteLat,
     'site_lng': siteLng,
+    'same_place_as': samePlaceAs,
   };
 }
+
+/// Review 113 Z13: whether the phone still has a file a draft keeps.
+final localFileThereProvider = Provider<bool Function(String path)>(
+  (ref) =>
+      (path) => File(path).existsSync(),
+);
+
+/// The first file still to go that is no longer on the phone, or null.
+FileRefused? goneDraftFile(
+  bool Function(String path) there, {
+  required List<String> photos,
+  String? voice,
+  required List<DraftFile> files,
+}) {
+  for (final p in photos) {
+    if (!there(p)) return FileRefused(UploadProblem.gone, fileId: p);
+  }
+  if (voice != null && !there(voice)) {
+    return FileRefused(UploadProblem.gone, fileId: voice);
+  }
+  for (final f in files) {
+    if (f.local case final local? when !f.added && !there(local)) {
+      return FileRefused(UploadProblem.gone, fileId: f.libraryId);
+    }
+  }
+  return null;
+}
+
+/// [DaybookPostDraft.refusal] when the server wouldn't copy the last
+/// check-in's place (review 113).
+const samePlaceRefused = 'same_place';
 
 /// What Post still needs before it can send: it opens that picker.
 enum DaybookMissing { owner, people, start, to, checkInTime }
@@ -744,8 +843,9 @@ class DaybookDraft extends DaybookWritingNotifier {
   final String spaceId;
   String? _key;
 
-  /// The card was just made from a note (review 84 N2): new, not a Draft
-  /// from before, until the person leaves it unsent.
+  /// The card was just made from a note (review 84 N2) or a check-in
+  /// (review 113): new, not a Draft from before, until the person leaves
+  /// it unsent.
   bool _fromNote = false;
 
   /// True once after [fromNote] made a new card; the daybook asks when it
@@ -932,6 +1032,15 @@ class DaybookDraft extends DaybookWritingNotifier {
     return (text.substring(0, space > 0 ? space : max).trim(), true);
   }
 
+  /// Review 113 (17): the nudge's card, from the last check-in. A card
+  /// already half-written stays: it is never overwritten.
+  Future<void> fromCheckIn(String id, DaybookPost post) async {
+    final current = state;
+    if (current != null && !current.isEmpty) return;
+    _fromNote = true;
+    await put(DaybookPostDraft.fromCheckIn(post, id: id));
+  }
+
   /// Sets the card and saves it once anything is entered.
   @override
   Future<void> put(DaybookPostDraft draft) async {
@@ -974,6 +1083,7 @@ class DaybookDraft extends DaybookWritingNotifier {
     if (keepFiles || draft == null) return;
     for (final path in [
       ...draft.photos,
+      ?draft.voiceLocal,
       for (final f in draft.files) ?f.local,
     ]) {
       unawaited(deleteKept(path));

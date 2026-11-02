@@ -46,7 +46,7 @@ FakePostRepository _posts() => FakePostRepository(now: testNow)
   ];
 
 Future<void> _openPost(WidgetTester tester, String lang) async {
-  await pumpApp(tester, language: lang, posts: _posts());
+  await pumpApp(tester, feed: true, language: lang, posts: _posts());
   await tester.pumpAndSettle();
   GoRouter.of(tester.element(find.byType(Navigator).first)).push('/posts/p1');
   await tester.pumpAndSettle();

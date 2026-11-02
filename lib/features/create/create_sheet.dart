@@ -112,11 +112,7 @@ class _CreateChoice extends StatelessWidget {
             onTap: () {
               final page = navigator.context;
               navigator.pop();
-              showBvSheet<void>(
-                context: page,
-                title: l10n.createPickSpace,
-                builder: (_) => const _PickSpace(),
-              );
+              showCreateWorkItem(page);
             },
           ),
         ],
@@ -124,6 +120,15 @@ class _CreateChoice extends StatelessWidget {
     );
   }
 }
+
+/// "Which Space?" (Create's "Work item in a Space"). With the feed hidden
+/// (review 113 (6)) Create opens it straight away: there is nothing else
+/// to post.
+Future<void> showCreateWorkItem(BuildContext context) => showBvSheet<void>(
+  context: context,
+  title: AppLocalizations.of(context).createPickSpace,
+  builder: (_) => const _PickSpace(),
+);
 
 /// The Spaces where you may write work items (a Viewer's never show),
 /// the one you opened last first, then the one you posted in last. The

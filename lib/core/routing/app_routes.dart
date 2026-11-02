@@ -191,6 +191,11 @@ abstract final class AppRoutes {
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';
 
+  /// Review 113 LB1: a Library folder's files. It pops a file post asked
+  /// for there (SpaceFileAsk), as the Library does.
+  static String libraryFolder(String id, String folderId) =>
+      '/spaces/$id/folders/$folderId';
+
   /// LV2: a file's page, its versions and who received it. It pops the
   /// version in use when "Add a new version" is chosen.
   static String libraryFilePage(String id, String fileId) =>

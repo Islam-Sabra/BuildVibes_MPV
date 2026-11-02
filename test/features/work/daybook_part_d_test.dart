@@ -399,7 +399,7 @@ void main() {
         tester,
         lang,
         posts: [
-          for (var i = 0; i < 6; i++)
+          for (var i = 0; i < 4; i++)
             s.card(
               s.item(
                 id: 'post-y$i',
@@ -452,7 +452,7 @@ void main() {
       expect(find.text(l10n.daybookNothingYetToday), findsOneWidget);
       // Yesterday's cards sit above the divider; the line under it.
       expect(
-        tester.getBottomLeft(_card('post-y5')).dy,
+        tester.getBottomLeft(_card('post-y3')).dy,
         lessThan(tester.getTopLeft(divider).dy),
       );
       expect(

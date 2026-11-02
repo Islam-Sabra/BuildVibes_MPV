@@ -62,6 +62,7 @@ void main() {
       final posts = _posts();
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         posts: posts,
         safety: FakeSafetyRepository(posts: posts),
@@ -87,7 +88,12 @@ void main() {
     });
 
     testWidgets('"Something else" needs a few words [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang, posts: _posts());
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        posts: _posts(),
+      );
       await _tap(tester, 'post-menu-p1');
       await _tap(tester, 'post-report');
       await _tap(tester, 'report-reason-other');
@@ -124,7 +130,12 @@ void main() {
           ),
         ],
       );
-      final app = await pumpApp(tester, language: lang, safety: safety);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        safety: safety,
+      );
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-privacy');
@@ -140,7 +151,12 @@ void main() {
       tester,
     ) async {
       final safety = FakeSafetyRepository(removals: {'rm-1': _removal()});
-      final app = await pumpApp(tester, language: lang, safety: safety);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        safety: safety,
+      );
       _router(tester).push('/removals/rm-1');
       await tester.pumpAndSettle();
       expect(find.text(l10n.removedHeading('post')), findsOneWidget);
@@ -190,7 +206,7 @@ void main() {
           'rm-2': _removal(status: AppealStatus.upheld, canAppeal: false),
         },
       );
-      await pumpApp(tester, language: lang, safety: safety);
+      await pumpApp(tester, feed: true, language: lang, safety: safety);
       _router(tester).push('/removals/rm-1');
       await tester.pumpAndSettle();
       expect(find.text(l10n.removedClosed), findsOneWidget);
@@ -219,7 +235,13 @@ void main() {
         ],
       );
       final safety = FakeSafetyRepository(removals: {'rm-1': _removal()});
-      await pumpApp(tester, language: lang, activity: activity, safety: safety);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        activity: activity,
+        safety: safety,
+      );
       await _tap(tester, 'nav-activity');
       expect(
         find.text(l10n.activityRemoved('post'), findRichText: true),

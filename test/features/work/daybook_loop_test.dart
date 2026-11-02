@@ -1455,7 +1455,7 @@ void main() {
       );
       // The owner changes with Give to, not Edit: its line isn't a choice
       // (CP1: For · Team).
-      final rows = tester.widget<BvWritingPills>(find.byType(BvWritingPills));
+      final rows = tester.widget<BvWritingLines>(find.byType(BvWritingLines));
       expect(rows.rows.map((r) => r.key), const [
         Key('writing-who'),
         Key('writing-to'),
@@ -1493,7 +1493,7 @@ void main() {
       // Review 110 CP4: the due chip's ×.
       await tester.tap(find.byKey(const Key('writing-due-chip-clear')));
       await tester.pumpAndSettle();
-      final rows = tester.widget<BvWritingPills>(find.byType(BvWritingPills));
+      final rows = tester.widget<BvWritingLines>(find.byType(BvWritingLines));
       // An edit keeps the owner: no caret; the due is gone.
       expect(rows.rows.first.value, s.omarName);
       expect(rows.rows.first.onTap, isNull);

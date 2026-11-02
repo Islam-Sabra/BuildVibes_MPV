@@ -12,6 +12,7 @@ import '../../core/network/signal_state.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
@@ -187,6 +188,9 @@ class PendingItem {
     this.handovers = const [],
     this.scheduleAt,
     this.tag,
+    this.voiceLocal,
+    this.voiceMs = 0,
+    this.voicePath,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -245,6 +249,9 @@ class PendingItem {
     ],
     scheduleAt: _time(json['schedule_at']),
     tag: DaybookTag.fromJson(json['tag']),
+    voiceLocal: json['voice_local'] as String?,
+    voiceMs: (json['voice_ms'] as num?)?.toInt() ?? 0,
+    voicePath: json['voice_path'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -264,6 +271,12 @@ class PendingItem {
   final String ownerId;
   final String ownerName;
   final List<PendingPhoto> photos;
+
+  /// Review 113 (11): a new post's voice note: on the phone, its length,
+  /// and where it went once uploaded.
+  final String? voiceLocal;
+  final int voiceMs;
+  final String? voicePath;
 
   /// The server said no (not a lost signal): it isn't tried again by
   /// itself.
@@ -358,6 +371,7 @@ class PendingItem {
 
   PendingItem copyWith({
     List<PendingPhoto>? photos,
+    String? Function()? voicePath,
     List<DraftFile>? files,
     bool? refused,
     bool? sent,
@@ -370,6 +384,9 @@ class PendingItem {
     ownerName: ownerName,
     kind: kind,
     photos: photos ?? this.photos,
+    voiceLocal: voiceLocal,
+    voiceMs: voiceMs,
+    voicePath: voicePath == null ? this.voicePath : voicePath(),
     refused: refused ?? this.refused,
     sent: sent ?? this.sent,
     note: note,
@@ -450,6 +467,9 @@ class PendingItem {
     'owner_id': ownerId,
     'owner_name': ownerName,
     'photos': [for (final p in photos) p.toJson()],
+    'voice_local': voiceLocal,
+    'voice_ms': voiceMs,
+    'voice_path': voicePath,
     'refused': refused,
     'sent': sent,
     'kind': kind.json,
@@ -812,9 +832,24 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
     // Photos uploaded by an earlier try. After a long wait the server may
     // have cleaned them up; the phone copies are still here.
-    var reused = current.photos.any((p) => p.remote != null);
+    var reused =
+        current.photos.any((p) => p.remote != null) ||
+        current.voicePath != null;
     for (;;) {
       try {
+        // Z13: a file gone from the phone goes back to the draft, saying so.
+        if (item.isNewPost) {
+          final gone = goneDraftFile(
+            ref.read(localFileThereProvider),
+            photos: [
+              for (final p in current.photos)
+                if (p.remote == null) p.local,
+            ],
+            voice: current.voicePath == null ? current.voiceLocal : null,
+            files: current.files,
+          );
+          if (gone != null) throw gone;
+        }
         final photos = <PendingPhoto>[];
         for (final (i, p) in current.photos.indexed) {
           if (p.remote != null) {
@@ -837,6 +872,15 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           );
           await _put(current);
         }
+        // Review 113 (11): the voice note, in the post's folder.
+        if (current.voiceLocal case final local?
+            when current.voicePath == null) {
+          final path = await withRetries(
+            () => daybook.uploadPostVoice(item.spaceId, item.id, File(local)),
+          );
+          current = current.copyWith(voicePath: () => path);
+          await _put(current);
+        }
         // New files go to the Library first, under the ids the app chose.
         final files = <DraftFile>[];
         for (final f in current.files) {
@@ -857,11 +901,13 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         // Refused photos from an earlier try: upload them again, once. A
         // cleaned-up upload reads as not allowed (is_my_upload).
         if (reused &&
+            e is! FileRefused &&
             (e.failure == SpaceFailure.badInput ||
                 e.failure == SpaceFailure.notAllowed)) {
           reused = false;
           current = current.copyWith(
             photos: [for (final p in current.photos) p.notUploaded],
+            voicePath: () => null,
           );
           await _put(current);
           continue;
@@ -937,6 +983,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// The phone's copies of [item]'s photos and new files.
   void _deleteFiles(PendingItem item) {
     for (final path in [
+      ?item.voiceLocal,
       for (final p in item.photos) p.local,
       for (final f in item.files) ?f.local,
     ]) {
@@ -951,13 +998,19 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   Future<void> _addToLibrary(String spaceId, DraftFile f, String itemId) async {
     final library = ref.read(libraryRepositoryProvider);
     final shown = ref.read(outboxSendingProvider.notifier);
-    final path = await library.upload(
-      spaceId,
-      f.libraryId,
-      PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
-      // F73: "Sending · 3.1 of 8.7 MB".
-      onProgress: (sent, total) => shown.progress(itemId, sent, total),
-    );
+    final String path;
+    try {
+      path = await library.upload(
+        spaceId,
+        f.libraryId,
+        PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+        // F73: "Sending · 3.1 of 8.7 MB".
+        onProgress: (sent, total) => shown.progress(itemId, sent, total),
+      );
+    } on FileRefused catch (e) {
+      // Review 113 bug 7: which file, so Tap to fix can take it off.
+      throw e.withFile(f.libraryId);
+    }
     try {
       await library.add(
         id: f.libraryId,
@@ -968,6 +1021,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         bytes: f.bytes,
         revLabel: f.revLabel,
         supersedesId: f.supersedesId,
+        folderId: f.folderId,
       );
     } on SpaceException catch (e) {
       if (e.failure != SpaceFailure.badInput ||
@@ -1012,6 +1066,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     final daybook = ref.read(daybookRepositoryProvider);
     final paths = [for (final p in photos) p.remote!];
     final fileIds = [for (final f in item.files) f.libraryId];
+    final PostVoiceFile? voice = switch (item.voicePath) {
+      final path? => (path: path, durationMs: item.voiceMs),
+      null => null,
+    };
     switch (item.kind) {
       case PendingKind.workItem:
         final made = NewWorkItem(
@@ -1026,6 +1084,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           dueDate: item.dueDate,
           dueAt: item.dueAt,
           photoPaths: paths,
+          voice: voice,
           libraryFileIds: fileIds,
           quote: item.quote,
           sourceMessageId: item.sourceMessageId,
@@ -1062,6 +1121,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           toTeamId: d.thanksToTeam ? d.thanksToId : null,
           forId: d.thanksForId,
           photoPaths: paths,
+          voice: voice,
         );
         // W7: Post later keeps create_thanks with the same params.
         if (item.scheduleAt case final at?) {
@@ -1077,8 +1137,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           title: d.title,
           body: d.body,
           teamIds: [for (final t in d.checkInTeams) t.id],
-          siteLat: d.siteLat!,
-          siteLng: d.siteLng!,
+          siteLat: d.siteLat,
+          siteLng: d.siteLng,
+          samePlaceAs: d.samePlaceAs,
           inTime: d.inTime!,
           inAllow: d.inAllow,
           outTime: d.outTime,
@@ -1115,6 +1176,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           people: [for (final p in d.people) p.id],
           points: d.writtenPoints,
           photoPaths: paths,
+          voice: voice,
           teamId: d.teamId,
           quote: d.quote,
           sourceMessageId: d.sourceMessageId,
@@ -1202,10 +1264,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                 (item.sourceMessageId ?? item.draft?.sourceMessageId) != null
             ? item.withoutSource()
             : item;
-        if (await reopenRefused(_withRefusal(back, e))) return;
+        final kept = _withRefusal(back, e);
+        if (await reopenRefused(kept)) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
-        await _put(back.copyWith(refused: true));
+        await _put(kept.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
       case PendingKind.check ||
@@ -1243,6 +1306,27 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// does a work item refused for its own author (review 112).
   static PendingItem _withRefusal(PendingItem item, SpaceException e) {
     final d = item.draft;
+    // Review 113 (17): the server wouldn't copy the last place: the draft
+    // goes back to Set place here, saying so.
+    if (d?.samePlaceAs != null &&
+        (e.failure == SpaceFailure.notAllowed ||
+            e.failure == SpaceFailure.badInput)) {
+      return item.copyWith(
+        draft: d!.copyWith(
+          samePlaceAs: () => null,
+          refusal: () => samePlaceRefused,
+        ),
+      );
+    }
+    // Review 113 bug 7: a file the bucket refused keeps what was wrong
+    // and which file, for Tap to fix's plain line.
+    if (e is FileRefused) {
+      return item.copyWith(
+        draft: (d ?? DaybookPostDraft.refused(item)).copyWith(
+          refusal: () => e.code,
+        ),
+      );
+    }
     if (d?.kind == DaybookKind.thanks) {
       return item.copyWith(
         draft: d!.copyWith(refusal: () => ThanksRefusal.of(e).name),
@@ -1361,6 +1445,10 @@ enum RefusalWhy {
 
   /// A work item for yourself (review 112).
   forSomeoneElse,
+
+  /// Review 113 (16): its author archived it ("archived: no longer
+  /// needed"): nobody signs, sends back or checks it any more.
+  archived,
   unknown;
 
   static RefusalWhy of(SpaceException e) {
@@ -1369,6 +1457,7 @@ enum RefusalWhy {
       SpaceFailure.notAllowed => notAllowed,
       SpaceFailure.openWork => openWork,
       _ when m.contains(workItemForSomeoneElse) => forSomeoneElse,
+      _ when m.contains('archived: no longer needed') => archived,
       SpaceFailure.rule when m.contains('checked work') => checked,
       SpaceFailure.rule when m.contains('cancelled') => cancelled,
       SpaceFailure.rule when m.contains('removed') => removed,

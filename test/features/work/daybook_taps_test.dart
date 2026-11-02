@@ -123,7 +123,11 @@ void main() {
         'that card [$lang]', (tester) async {
       await _open(tester, lang);
       for (final id in _ids) {
-        expect(_tapped(tester, _slip(tester, id).center), id);
+        // Above React and Share (review 113), which have their own taps.
+        await tester.ensureVisible(_card(id));
+        await tester.pumpAndSettle();
+        final slip = _slip(tester, id);
+        expect(_tapped(tester, Offset(slip.center.dx, slip.top + 24)), id);
       }
     });
   }

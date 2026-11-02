@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/library.dart';
+import '../../data/models/library_folder.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -19,6 +22,8 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../work/daybook_photos.dart' show filePreviewProvider;
+import '../spaces/space_sections.dart' show SpaceFileAsk;
+import 'library_folders.dart';
 import 'library_parts.dart';
 import '../../shared/widgets/bv_name_text.dart';
 
@@ -75,14 +80,27 @@ String libraryLine(
 /// who received it, as faces (never "3 received", rule 3). "Add a file"
 /// for people who may add files opens a file post ([onAddFile]): every
 /// file enters through a post (review 69 1b).
+///
+/// Review 113 LB1: the folders I can see come first, then the files not
+/// in a folder (today's stay where they are); a search looks through
+/// every file. With [folder], only that folder's files, and Add a file
+/// puts the new one in it.
 class LibraryTab extends ConsumerStatefulWidget {
-  const LibraryTab({super.key, required this.space, this.onAddFile});
+  const LibraryTab({
+    super.key,
+    required this.space,
+    this.onAddFile,
+    this.folder,
+  });
 
   final SpaceDetail space;
 
   /// Opens the Work tab's writing card as a Document for receipt; with
-  /// [replaces], as a new version of it.
-  final void Function({LibraryFile? replaces})? onAddFile;
+  /// [replaces], as a new version of it; with folderId, into that folder.
+  final void Function({LibraryFile? replaces, String? folderId})? onAddFile;
+
+  /// A folder's own list (LB1).
+  final LibraryFolder? folder;
 
   @override
   ConsumerState<LibraryTab> createState() => _LibraryTabState();
@@ -96,6 +114,7 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
   Future<void> _refresh() async {
     ref
       ..invalidate(libraryOverviewProvider(_spaceId))
+      ..invalidate(libraryFoldersProvider(_spaceId))
       ..invalidate(libraryFilesProvider(_spaceId));
     await ref.read(libraryFilesProvider(_spaceId).future);
   }
@@ -106,7 +125,22 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
     );
     if (!mounted) return;
     ref.invalidate(libraryOverviewProvider(_spaceId));
-    if (replaces != null) widget.onAddFile?.call(replaces: replaces);
+    // A new version stays in its folder.
+    if (replaces != null) {
+      widget.onAddFile?.call(replaces: replaces, folderId: replaces.folderId);
+    }
+  }
+
+  /// A folder of files hands a file post up, as the Library does.
+  Future<void> _openFolder(LibraryFolder folder) async {
+    final ask = await openLibraryFolder<SpaceFileAsk>(
+      context,
+      ref,
+      spaceId: _spaceId,
+      folder: folder,
+    );
+    if (!mounted || ask == null) return;
+    widget.onAddFile?.call(replaces: ask.replaces, folderId: ask.folderId);
   }
 
   @override
@@ -124,15 +158,23 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
         rights.addFiles && rights.createItems && widget.onAddFile != null;
 
     final q = _query.trim().toLowerCase();
+    final inFolder = widget.folder?.id;
+    final folders = inFolder != null
+        ? const <LibraryFolder>[]
+        : ref.watch(libraryFoldersProvider(_spaceId)).value ?? const [];
     final shown = all == null
         ? const <LibraryFile>[]
         : [
             for (final f in currentFiles(all))
-              if (q.isEmpty ||
-                  f.name.toLowerCase().contains(q) ||
-                  (f.revLabel ?? '').toLowerCase().contains(q) ||
-                  (f.note ?? '').toLowerCase().contains(q))
-                f,
+              // A search looks through every file; otherwise this list's.
+              if ((q.isNotEmpty && inFolder == null) ||
+                  f.folderId == inFolder) ...[
+                if (q.isEmpty ||
+                    f.name.toLowerCase().contains(q) ||
+                    (f.revLabel ?? '').toLowerCase().contains(q) ||
+                    (f.note ?? '').toLowerCase().contains(q))
+                  f,
+              ],
           ];
 
     final List<Widget> rows;
@@ -149,9 +191,22 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
     } else {
       rows = [
         // F70: the screen's 16 px on both sides, as everywhere.
-        if (all.isEmpty)
+        if (q.isEmpty)
+          for (final f in folders)
+            LibraryFolderRow(
+              folder: f,
+              onTap: () => unawaited(_openFolder(f)),
+              onHold: f.mine || widget.space.iAmAdmin
+                  ? () => unawaited(
+                      folderMenu(context, ref, space: widget.space, folder: f),
+                    )
+                  : null,
+            ),
+        if (inFolder != null && shown.isEmpty && q.isEmpty)
+          _Margins(EmptyNote(l10n.libraryFolderEmpty))
+        else if (all.isEmpty && folders.isEmpty)
           _Margins(EmptyNote(l10n.libraryEmpty))
-        else if (shown.isEmpty)
+        else if (shown.isEmpty && q.isNotEmpty)
           _Margins(EmptyNote(l10n.libraryNoMatch)),
         for (final f in shown)
           LibraryFileRow(
@@ -169,7 +224,12 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
             onTap: () => _open(f),
           ),
         if (canAdd && q.isEmpty)
-          _AddFileRow(onTap: () => widget.onAddFile!.call()),
+          _AddFileRow(
+            label: inFolder == null
+                ? l10n.libraryAddFile
+                : l10n.libraryAddToFolder,
+            onTap: () => widget.onAddFile!.call(folderId: inFolder),
+          ),
       ];
     }
 
@@ -352,13 +412,13 @@ class LibraryThumb extends ConsumerWidget {
 
 /// The quiet last row (review 69 1b): like any row, the + and grey words.
 class _AddFileRow extends StatelessWidget {
-  const _AddFileRow({required this.onTap});
+  const _AddFileRow({required this.label, required this.onTap});
 
+  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     return InkWell(
       key: const Key('library-add-file'),
@@ -382,7 +442,7 @@ class _AddFileRow extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                l10n.libraryAddFile,
+                label,
                 style: type.bodyMd.copyWith(color: BvColors.textSecondary),
               ),
             ),

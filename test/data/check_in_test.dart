@@ -298,6 +298,11 @@ void main() {
     );
     expect(whole.toParams()['p_time_zone'], 'Africa/Cairo');
     expect(whole.toParams()['p_teams'], isNull);
+    expect(
+      whole.toParams().containsKey('p_same_place_as'),
+      isFalse,
+      reason: 'only when it is used',
+    );
     expect(whole.toParams()['p_out_time'], isNull);
     expect(whole.toParams()['p_out_allow'], isNull);
     expect(whole.toParams()['p_daily'], isFalse);

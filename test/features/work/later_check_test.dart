@@ -75,6 +75,7 @@ void main() {
     }) async {
       final app = await pumpApp(
         tester,
+        feed: true,
         language: lang,
         spaces: FakeSpaceRepository()
           ..details[DaybookSamples.space] = s.detail(
@@ -159,6 +160,7 @@ void main() {
       ) async {
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           posts: FakePostRepository(),
           markets: [...testMarkets, _satSun],
@@ -314,7 +316,13 @@ void main() {
 
       testWidgets('Post now tries it again; no Edit on it', (tester) async {
         final schedule = failed();
-        await pumpApp(tester, language: lang, schedule: schedule, now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          schedule: schedule,
+          now: _now,
+        );
         _router(tester).push('/scheduled-posts');
         await tester.pumpAndSettle();
         expect(_key('scheduled-edit-sch-3'), findsNothing);
@@ -327,7 +335,13 @@ void main() {
         tester,
       ) async {
         final schedule = failed();
-        await pumpApp(tester, language: lang, schedule: schedule, now: _now);
+        await pumpApp(
+          tester,
+          feed: true,
+          language: lang,
+          schedule: schedule,
+          now: _now,
+        );
         _router(tester).go('/profile');
         await tester.pumpAndSettle();
         await _tap(tester, _key('profile-scheduled'));
@@ -343,6 +357,7 @@ void main() {
       testWidgets('a scheduled post takes its note with it', (tester) async {
         final app = await pumpApp(
           tester,
+          feed: true,
           language: lang,
           spaces: FakeSpaceRepository()
             ..details[DaybookSamples.space] = s.detail()

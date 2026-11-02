@@ -251,12 +251,12 @@ void main() {
           greaterThan(tester.getTopLeft(_key('writing-title')).dy),
         );
         expect(_key('writing-thanks-to'), findsOneWidget);
-        // The founder's line under To (1 Nov).
+        // The founder's line (1 Nov), just above the pinned lines (CV3).
         final note = _key('writing-thanks-profile-note');
         expect(tester.widget<Text>(note).data, l10n.thanksProfileNote);
         expect(
           tester.getTopLeft(note).dy,
-          greaterThan(tester.getTopLeft(_key('writing-thanks-to')).dy),
+          lessThan(tester.getTopLeft(_key('writing-thanks-to')).dy),
         );
         expect(_key('writing-thanks-for'), findsOneWidget);
         expect(_key('writing-to'), findsNothing);
@@ -554,7 +554,7 @@ void main() {
         expect(chip.danger, isTrue);
         expect(
           tester.getTopLeft(_key('writing-tag-chip')).dy,
-          greaterThan(tester.getTopLeft(_key('writing-to')).dy),
+          lessThan(tester.getTopLeft(_key('writing-to')).dy),
         );
         // One choice: another replaces it.
         await _tap(tester, _key('tag-option-quality'));

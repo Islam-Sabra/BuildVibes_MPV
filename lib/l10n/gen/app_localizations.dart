@@ -9212,12 +9212,6 @@ abstract class AppLocalizations {
   /// **'Walk'**
   String get daybookKindWalk;
 
-  /// Review 105 SP6: Duplicate while another card is being written.
-  ///
-  /// In en, this message translates to:
-  /// **'Post or discard the card you\'re writing first.'**
-  String get daybookDuplicateDraftFirst;
-
   /// Review 105 SP6: confirm Delete from the hold bar.
   ///
   /// In en, this message translates to:
@@ -9229,12 +9223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It goes from Work for everyone in this Space.'**
   String get daybookDeleteBody;
-
-  /// Review 105 SP6: posts the server kept because others added to them.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}'**
-  String daybookDeleteKept(int count);
 
   /// Review 105 SP2: the words' hint on a work item being written, under its title.
   ///
@@ -9433,12 +9421,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This post isn\'t in Work any more'**
   String get chatPostGone;
-
-  /// Review 105 H8: the selection bar's Duplicate in Work.
-  ///
-  /// In en, this message translates to:
-  /// **'Duplicate'**
-  String get workDuplicate;
 
   /// Review 105 H8: a Work reminder picked in the past.
   ///
@@ -11161,6 +11143,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In: missed'**
   String get checkInInMissed;
+
+  /// Review 113 ST1: after "3 need you" on the Spaces tab, in how many Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{· in 1 Space} other{· in {n} Spaces}}'**
+  String spacesTabNeedsIn(int n);
+
+  /// Review 113 ST1: a Space's line on the Spaces tab, after its pass, when something happened there today.
+  ///
+  /// In en, this message translates to:
+  /// **'new today'**
+  String get spacesTabNewToday;
+
+  /// Review 113 ST1: a Space's line on the Spaces tab, after its pass, when nothing happened there today.
+  ///
+  /// In en, this message translates to:
+  /// **'quiet'**
+  String get spacesTabQuiet;
+
+  /// Review 113 RX1: the card's React, which opens Like · Heart · Bravo.
+  ///
+  /// In en, this message translates to:
+  /// **'React'**
+  String get reactReact;
+
+  /// Review 113 RX1: the card's Share, into this Space's Chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get reactShare;
+
+  /// Review 113 RX1: the Like reaction (thumbs up).
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get reactLike;
+
+  /// Review 113 RX1: the Heart reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart'**
+  String get reactHeart;
+
+  /// Review 113 RX1: the Bravo reaction (hands clapping).
+  ///
+  /// In en, this message translates to:
+  /// **'Bravo'**
+  String get reactBravo;
+
+  /// Review 113 RX1: the sheet of names a tap on the reactions' faces opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Who reacted'**
+  String get reactWho;
+
+  /// Review 113 RX1: react_to_post failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t react. Try again.'**
+  String get reactFailed;
+
+  /// Review 113 (16): archiving an open work item asks first.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this work item?'**
+  String get holdArchiveOpenTitle;
+
+  /// Review 113 (16): what archiving an open work item does; {owner} is its owner.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops: nobody can sign it, check it or be reminded of it. {owner} is told it\'s no longer needed. It stays in the record, in the Archive.'**
+  String holdArchiveOpenBody(String owner);
+
+  /// Review 113 (18) NN1: the action, the send button and the notification channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Need you now'**
+  String get needYouNow;
+
+  /// NN1: the one-line reason field.
+  ///
+  /// In en, this message translates to:
+  /// **'Why (optional): Gate 2, concrete truck waiting'**
+  String get needYouReasonHint;
+
+  /// NN1: the chip that adds a place.
+  ///
+  /// In en, this message translates to:
+  /// **'Add place'**
+  String get needYouAddPlace;
+
+  /// NN1: the place field once Add place is tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Place: Gate 2'**
+  String get needYouPlaceHint;
+
+  /// NN1: the line under the button.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets a strong notification, even with the app closed.'**
+  String needYouStrongNote(String name);
+
+  /// Review 113 (14): delete_space_post said 'someone has acted on it'.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone has acted on it, so it can\'t be deleted. Archive it instead.'**
+  String get holdDeleteActed;
+
+  /// Review 113 (16): a sign, send back or check refused with 'archived: no longer needed'.
+  ///
+  /// In en, this message translates to:
+  /// **'This work item was archived: it\'s no longer needed.'**
+  String get holdArchivedNoLonger;
+
+  /// Review 113: share_post_to_thread refused a Team post into another thread.
+  ///
+  /// In en, this message translates to:
+  /// **'A Team\'s post goes only into that Team\'s chat.'**
+  String get shareTeamOnly;
+
+  /// Review 113: the Android notification channel for reactions on my posts (quiet: no sound, no pop-up).
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions'**
+  String get reactionsChannel;
+
+  /// Review 113: the Reactions channel's description in the phone's settings.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone reacts to your post. Quiet.'**
+  String get reactionsChannelAbout;
+
+  /// Review 113 (1): the composer's top bar; removes the draft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get cpDiscard;
+
+  /// Review 113 (1): Discard asks once.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this draft?'**
+  String get cpDiscardTitle;
+
+  /// Review 113 (1): under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'What you wrote here will be removed.'**
+  String get cpDiscardBody;
+
+  /// Review 113 (1): the dialog's way back.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep writing'**
+  String get cpDiscardKeep;
+
+  /// Review 113 CV3: the first pinned line; opens the kinds' grid.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get cpType;
+
+  /// Review 113 (12): in the text's menu and the / menu; inserts today's date and time as text.
+  ///
+  /// In en, this message translates to:
+  /// **'Date & time'**
+  String get cpDateTime;
+
+  /// Review 113 (11): the composer's mic; hold to record.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get cpVoice;
+
+  /// NN1: send_need_you refused, at most 3 an hour.
+  ///
+  /// In en, this message translates to:
+  /// **'You called {name} 3 times in the last hour. Try again later.'**
+  String needYouTooMany(String name);
+
+  /// NN1: send_need_you refused for another reason (left, Viewer, blocked).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can\'t be called here.'**
+  String needYouRefused(String name);
+
+  /// NN1: sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}.'**
+  String needYouSent(String name);
+
+  /// NN2: the answer button.
+  ///
+  /// In en, this message translates to:
+  /// **'On my way'**
+  String get needYouOnMyWay;
+
+  /// NN2: the answer button.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t now'**
+  String get needYouCantNow;
+
+  /// NN2: the Android channel description.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone in a Space needs you there now.'**
+  String get needYouChannelAbout;
+
+  /// NN2: the plain title when the push carries none (lock-screen text off).
+  ///
+  /// In en, this message translates to:
+  /// **'Someone needs you now'**
+  String get needYouSomeone;
+
+  /// NN2: in place of the notification once answered.
+  ///
+  /// In en, this message translates to:
+  /// **'You answered: {answer}'**
+  String needYouYouAnswered(String answer);
+
+  /// NN2: answer_need_you said already answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Already answered.'**
+  String get needYouAlreadyAnswered;
+
+  /// NN2: the answer could not go.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send your answer. Open the app to answer.'**
+  String get needYouAnswerFailed;
+
+  /// The Space line: a call I got.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs you now'**
+  String needYouFrom(String name);
+
+  /// The Space line: my call, not answered yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}'**
+  String needYouWaiting(String name);
+
+  /// The Space line and the in-app line: the answer to my call.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {answer}'**
+  String needYouAnswerLine(String name, String answer);
+
+  /// Review 113 (7): a file over the bucket limit, before it goes.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is {size} MB. The most is {most} MB.'**
+  String fileTooBigLine(String size, String most);
+
+  /// Review 113 (7): storage said too big and the phone has no size over the limit to quote.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too big. The most is {most} MB.'**
+  String fileTooBigPlain(String most);
+
+  /// Review 113 (7): a type the bucket refuses.
+  ///
+  /// In en, this message translates to:
+  /// **'This kind of file can\'t go in a Space. Send a PDF, a photo, a voice note or an Excel sheet.'**
+  String get fileWrongTypeLine;
+
+  /// Review 113 (7): a type the bucket takes but add_library_file does not.
+  ///
+  /// In en, this message translates to:
+  /// **'The Library takes a PDF or a photo. Send this one in Chat.'**
+  String get fileNotPdfOrPhotoLine;
+
+  /// Review 113 (7): under the too-big line, with Link folder.
+  ///
+  /// In en, this message translates to:
+  /// **'For big drawings, link a folder from OneDrive, Google Drive or Dropbox.'**
+  String get fileBigDrawingsHint;
+
+  /// Review 113 (7): the Tap to fix sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send'**
+  String get couldNotSendTitle;
+
+  /// Review 113 (7): a refusal with no plainer reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The Space didn\'t take this post. Try again, or remove it.'**
+  String get couldNotSendGeneric;
+
+  /// Review 113 (7): Remove the file (a file problem) or the post.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get couldNotSendRemove;
+
+  /// Review 113: Leave Space, when I have an only-me folder there.
+  ///
+  /// In en, this message translates to:
+  /// **'Your private folders in this Space will be deleted.'**
+  String get spacesLeaveFoldersNote;
+
+  /// Review 113: Remove from Space, always (the admin cannot see them).
+  ///
+  /// In en, this message translates to:
+  /// **'Their private folders in this Space will be deleted.'**
+  String get spacesRemoveFoldersNote;
+
+  /// Review 113 (17): the Place line of a check-in filled from the nudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as last check-in'**
+  String get checkInSamePlace;
+
+  /// Review 113 (17): the server refused the same place.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t use the last check-in\'s place. Tap to set it here.'**
+  String get checkInSamePlaceRefused;
+
+  /// Review 113 LB1: + menu and the sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get libraryNewFolder;
+
+  /// Review 113 LB2: + menu and the sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link folder'**
+  String get libraryLinkFolder;
+
+  /// LB1/LB2: the name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get libraryFolderNameHint;
+
+  /// LB1/LB2: the sharing choice label.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it'**
+  String get libraryWhoSees;
+
+  /// LB1/LB2: sharing choice and folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Only me'**
+  String get libraryShareOnlyMe;
+
+  /// LB1/LB2: sharing choice.
+  ///
+  /// In en, this message translates to:
+  /// **'A person'**
+  String get librarySharePerson;
+
+  /// LB1/LB2: sharing choice.
+  ///
+  /// In en, this message translates to:
+  /// **'A Team'**
+  String get libraryShareTeam;
+
+  /// LB1: a Team folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Team · {name}'**
+  String libraryShareTeamLine(String name);
+
+  /// LB1/LB2: sharing choice and folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get libraryShareSpace;
+
+  /// LB1/LB2: pick the person a folder is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person'**
+  String get libraryChoosePerson;
+
+  /// LB1/LB2: pick the Team a folder is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Team'**
+  String get libraryChooseTeam;
+
+  /// LB2: the link field.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a OneDrive, Google Drive or Dropbox link'**
+  String get libraryLinkPasteHint;
+
+  /// LB2: the service found from the link.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} folder found'**
+  String libraryLinkFound(String service);
+
+  /// LB2: a link of another service.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a OneDrive, Google Drive or Dropbox link.'**
+  String get libraryLinkWrong;
+
+  /// LB2: the warning line (review 113 (9)).
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this link can open it, even outside BuildVibes.'**
+  String get libraryLinkWarning;
+
+  /// LB1: a link folder line.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} link'**
+  String libraryLinkLine(String service);
+
+  /// LB1/LB2: the sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get libraryAddFolder;
+
+  /// Edit folder: save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get librarySaveFolder;
+
+  /// A folder menu: edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit folder'**
+  String get libraryEditFolder;
+
+  /// A folder menu: delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get libraryDeleteFolder;
+
+  /// Delete folder: the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this folder?'**
+  String get libraryDeleteFolderAsk;
+
+  /// Delete folder: the line under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the folder goes. Its link is not touched.'**
+  String get libraryDeleteFolderBody;
+
+  /// delete_library_folder refused: empty it first.
+  ///
+  /// In en, this message translates to:
+  /// **'Take its files out first.'**
+  String get libraryFolderNotEmpty;
+
+  /// An empty folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in this folder yet.'**
+  String get libraryFolderEmpty;
+
+  /// A link folder that would not open.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get libraryLinkOpenFailed;
+
+  /// Inside a folder: add a file into it.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a file here'**
+  String get libraryAddToFolder;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'OneDrive'**
+  String get libraryServiceOneDrive;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive'**
+  String get libraryServiceGoogleDrive;
+
+  /// A service name, as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropbox'**
+  String get libraryServiceDropbox;
+
+  /// Sharing a post into Chat was refused, for no reason worth saying (review 113 Z9).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share. Try again.'**
+  String get shareFailedPlain;
+
+  /// A draft's file has gone from the phone, in the Couldn't send sheet (review 113 Z13).
+  ///
+  /// In en, this message translates to:
+  /// **'This file is no longer on your phone. Remove it to send the rest.'**
+  String get fileGoneLine;
 }
 
 class _AppLocalizationsDelegate

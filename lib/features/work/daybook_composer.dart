@@ -13,22 +13,27 @@ import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
+import '../../data/models/upload_rules.dart' show FileRefused, UploadProblem;
 import '../../data/repositories/daybook_repository.dart'
     show spaceWorkTagsProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_chip.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_icon_grid.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_writing_rows.dart';
+import '../chat/voice.dart' show voicePlayerProvider, voiceTime;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart' show personName;
 import 'composer_check_in.dart';
 import 'composer_kinds.dart';
 import 'composer_thanks.dart' show thanksRefusalText;
+import 'could_not_send.dart';
 import 'daybook_draft.dart';
 import 'daybook_photos.dart';
 import 'daybook_report.dart';
@@ -40,9 +45,13 @@ import 'work_places.dart';
 export 'composer_kinds.dart';
 export '../../shared/widgets/bv_icon_grid.dart' show BvIconGridTile;
 
-/// Which grid shows in place of the keyboard: # (the kinds), + (the
+/// Which grid shows in place of the keyboard: Type (the kinds), + (the
 /// extras), or + → Tag's list (review 110 TG1).
 enum ComposerPanel { kinds, extras, tags }
+
+/// The short menu (review 113 (12)): on a long press in the text, and on
+/// "/" at the start of a line.
+enum ComposerQuick { dateTime, bullets, table }
 
 /// Review 110 D: the composer is open in this Space. The Space screen then
 /// hides its header and Work · Chat (CP1).
@@ -60,13 +69,15 @@ class SpaceComposing extends Notifier<bool> {
   void set(bool on) => state = on;
 }
 
-/// Review 110 D (CP1–CP4, 2707:39361…): writing in a Space, over the whole
-/// screen. On top, × · the kind's name over the Space's · Templates (W9:
-/// where this Space has templates for the kind; × keeps the draft). Then
-/// the title, the details, the photos, the lines the kind needs (For,
-/// Team, When) and what was added from + as small chips with ×; nothing
-/// else until asked for. [bar] (# · + · camera · Send) sits on the
-/// keyboard; # and + show their grids in its place ([panel]).
+/// Review 113 CV3 (2730:39817; review 110 D): writing in a Space, over the
+/// whole screen. On top, × · the kind's name over the Space's · Templates
+/// (W9) · Discard (× keeps the draft; Discard asks once and removes it).
+/// Then the title and the details, which scroll; pinned at the bottom, what
+/// was added from + as small chips, Type and the lines the kind needs, and
+/// [bar] (+ · camera · mic · Send) on the keyboard; Type and + show their
+/// grids in its place ([panel]). A long press in the text keeps the phone's
+/// menu and adds Date & time · Bullets · Table; "/" at the start of a line
+/// opens the same short menu.
 class DaybookComposer extends ConsumerStatefulWidget {
   const DaybookComposer({
     super.key,
@@ -77,6 +88,7 @@ class DaybookComposer extends ConsumerStatefulWidget {
     required this.panel,
     required this.onPanel,
     required this.onClose,
+    this.onDiscard,
     required this.onKind,
     required this.onExtra,
     required this.onMenu,
@@ -95,6 +107,8 @@ class DaybookComposer extends ConsumerStatefulWidget {
     this.askWho,
     this.onWalk,
     this.onCheckIn,
+    this.onTryAgain,
+    this.onLinkFolder,
   });
 
   final String spaceId;
@@ -107,7 +121,10 @@ class DaybookComposer extends ConsumerStatefulWidget {
   /// ×: back to the Space, what was written kept as its draft.
   final VoidCallback onClose;
 
-  /// What # offers: the kinds this person may post (W11; a Viewer:
+  /// Discard (review 113 (1)): the draft is gone; null while editing.
+  final VoidCallback? onDiscard;
+
+  /// What Type offers: the kinds this person may post (W11; a Viewer:
   /// Thanks only).
   final List<DaybookKind> kinds;
 
@@ -134,11 +151,16 @@ class DaybookComposer extends ConsumerStatefulWidget {
   final bool editing;
   final Object? askWho;
 
-  /// Walk, the last tile of #; null for who may not post work.
+  /// Walk, the last tile of Type's grid; null for who may not post work.
   final VoidCallback? onWalk;
 
   /// A Check-in's lines (review 109 CI1): For, Check-in and Place.
   final ValueChanged<CheckInPick>? onCheckIn;
+
+  /// Review 113 bug 7: Tap to fix's Try again (Send again, when it may
+  /// go) and Link folder (for a file too big for a Space).
+  final VoidCallback? onTryAgain;
+  final VoidCallback? onLinkFolder;
 
   @override
   ConsumerState<DaybookComposer> createState() => DaybookComposerState();
@@ -171,6 +193,20 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         if (f.hasFocus && widget.panel != null) widget.onPanel(null);
       });
     }
+    // Z13: a file gone from the phone says so as the draft opens.
+    if (draft != null && !draft.couldNotSend) {
+      final gone = goneDraftFile(
+        ref.read(localFileThereProvider),
+        photos: draft.photos,
+        voice: draft.voiceLocal,
+        files: draft.files,
+      );
+      if (gone != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_writer.fileGone(gone));
+        });
+      }
+    }
   }
 
   @override
@@ -194,6 +230,60 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     super.dispose();
   }
 
+  /// Review 113 bug 7: "Couldn't send · Tap to fix" says what is wrong,
+  /// with Try again or Remove: Remove takes off the refused file, or puts
+  /// the post away when no file was the problem.
+  Future<void> _fix(DaybookPostDraft draft) async {
+    // Review 113 (17): the last place was refused: the fix is a place.
+    if (draft.refusal == samePlaceRefused) {
+      widget.onCheckIn?.call(CheckInPick.place);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final refused = FileRefused.fromCode(draft.refusal);
+    final why = refused != null
+        ? fileRefusedText(l10n, refused)
+        : draft.kind == DaybookKind.thanks
+        ? thanksRefusalText(l10n, draft.refusal)
+        : draft.refusal == RefusalWhy.forSomeoneElse.name
+        ? l10n.workItemForSomeoneElse
+        : l10n.couldNotSendGeneric;
+    final picked = await showCouldNotSendFix(
+      context,
+      why: why,
+      refused: refused,
+      tryAgain:
+          widget.onTryAgain != null && refused?.problem != UploadProblem.gone,
+      linkFolder: widget.onLinkFolder != null,
+    );
+    if (!mounted) return;
+    runCouldNotSendFix(
+      picked,
+      tryAgain: widget.onTryAgain,
+      linkFolder: widget.onLinkFolder,
+      remove: () async {
+        final file = refused == null
+            ? null
+            : draft.files
+                  .where((f) => f.libraryId == refused.fileId)
+                  .firstOrNull;
+        if (refused != null) {
+          if (file != null) await _writer.removeFile(file);
+          // Z13: a photo or a voice note is named by its place on the phone.
+          final photo = draft.photos.indexOf(refused.fileId ?? '');
+          if (photo >= 0) await _writer.removePhoto(photo);
+          if (draft.voiceLocal != null && draft.voiceLocal == refused.fileId) {
+            await _writer.removeVoice();
+          }
+          await _writer.clearRefusal();
+          return;
+        }
+        await ref.read(daybookDraftProvider(widget.spaceId).notifier).discard();
+        widget.onClose();
+      },
+    );
+  }
+
   /// Bullets (CP3): a new line in the details that starts with a bullet.
   void addBullet() {
     final text = _body.text;
@@ -205,8 +295,153 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       text: next,
       selection: TextSelection.collapsed(offset: next.length),
     );
+    _lastTyped = next;
     unawaited(_writer.setBody(next));
     _bodyFocus.requestFocus();
+  }
+
+  /// Date & time (review 113 (12)): today's, as text, where the cursor is
+  /// in [field].
+  void insertNow(TextEditingController field) {
+    final now = ref.read(clockProvider)();
+    final words = widget.words;
+    final stamp = '${words.dayMonth(now)} ${words.time.clock(now)}';
+    final v = field.value;
+    final at = v.selection.isValid ? v.selection.start : v.text.length;
+    final end = v.selection.isValid ? v.selection.end : at;
+    final next = v.text.replaceRange(at, end, stamp);
+    field.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: at + stamp.length),
+    );
+    if (identical(field, _body)) _lastTyped = next;
+    unawaited(
+      identical(field, _title) ? _writer.setTitle(next) : _writer.setBody(next),
+    );
+  }
+
+  /// What the short menu offers for this kind: Date & time always; Bullets
+  /// and Table where + has them.
+  List<ComposerQuick> _quick(DaybookKind kind) {
+    final offered = composerOffered(kind, editing: widget.editing);
+    return [
+      ComposerQuick.dateTime,
+      if (offered.contains(ComposerExtra.bullets)) ComposerQuick.bullets,
+      if (offered.contains(ComposerExtra.table)) ComposerQuick.table,
+    ];
+  }
+
+  void _doQuick(ComposerQuick q, TextEditingController field) => switch (q) {
+    ComposerQuick.dateTime => insertNow(field),
+    ComposerQuick.bullets => addBullet(),
+    ComposerQuick.table => widget.onExtra(ComposerExtra.table),
+  };
+
+  String _quickName(AppLocalizations l10n, ComposerQuick q) => switch (q) {
+    ComposerQuick.dateTime => l10n.cpDateTime,
+    ComposerQuick.bullets => l10n.cpBullets,
+    ComposerQuick.table => l10n.pageTable,
+  };
+
+  /// The phone's own menu (Paste, Select all…), then ours (CV3 (12)).
+  Widget _textMenu(
+    AppLocalizations l10n,
+    DaybookKind kind,
+    TextEditingController field,
+    EditableTextState state,
+  ) => AdaptiveTextSelectionToolbar.buttonItems(
+    anchors: state.contextMenuAnchors,
+    // Z8: ours first, so they never fall under the phone's ⋮.
+    buttonItems: [
+      for (final q in _quick(kind))
+        ContextMenuButtonItem(
+          label: _quickName(l10n, q),
+          onPressed: () {
+            state.hideToolbar();
+            _doQuick(q, field);
+          },
+        ),
+      ...state.contextMenuButtonItems,
+    ],
+  );
+
+  /// "/" typed at the start of a line (CV3 (12)): it goes, and the same
+  /// short menu opens.
+  late String _lastTyped = _body.text;
+
+  void _slash(TextEditingController field, DaybookKind kind) {
+    final v = field.value;
+    final at = v.selection.baseOffset;
+    final title = identical(field, _title);
+    final typed = v.text.length == (title ? 1 : _lastTyped.length + 1);
+    if (!title) _lastTyped = v.text;
+    if (!typed || at < 1 || v.text[at - 1] != '/') return;
+    if (at > 1 && v.text[at - 2] != '\n') return;
+    final next = v.text.replaceRange(at - 1, at, '');
+    field.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: at - 1),
+    );
+    if (!title) _lastTyped = next;
+    unawaited(title ? _writer.setTitle(next) : _writer.setBody(next));
+    unawaited(_openQuick(field, kind));
+  }
+
+  Future<void> _openQuick(TextEditingController field, DaybookKind kind) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showGeneralDialog<ComposerQuick>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: BvColors.surfaceElevated.withValues(alpha: 0),
+      pageBuilder: (menu, _, _) => Align(
+        alignment: AlignmentDirectional.bottomStart,
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(
+            start: BvSpace.gutter,
+            bottom:
+                MediaQuery.viewInsetsOf(menu).bottom +
+                BvWritingLineSpec.quickMenuBottom,
+          ),
+          child: BvPopoverMenu<ComposerQuick>.screen(
+            key: const Key('composer-quick'),
+            items: [
+              for (final q in _quick(kind))
+                BvMenuItem(
+                  key: Key('quick-${q.name}'),
+                  value: q,
+                  label: _quickName(l10n, q),
+                  icon: switch (q) {
+                    ComposerQuick.dateTime => BvIcons.dateTime,
+                    ComposerQuick.bullets => BvIcons.bulletList,
+                    ComposerQuick.table => BvIcons.tableBlock,
+                  },
+                ),
+            ],
+            onSelected: (q) => Navigator.of(menu).pop(q),
+          ),
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    _doQuick(picked, field);
+  }
+
+  /// Discard (review 113 (1)): asked once, then the draft is gone.
+  Future<void> _discard(DaybookPostDraft draft) async {
+    final discard = widget.onDiscard;
+    if (discard == null) return;
+    if (draft.isEmpty) return discard();
+    final l10n = AppLocalizations.of(context);
+    final sure = await showBvDialog(
+      context: context,
+      title: l10n.cpDiscardTitle,
+      body: l10n.cpDiscardBody,
+      cancelLabel: l10n.cpDiscardKeep,
+      confirmLabel: l10n.cpDiscard,
+      destructive: true,
+    );
+    if (sure && mounted) discard();
   }
 
   String _top(AppLocalizations l10n, DaybookKind kind) => widget.editing
@@ -465,6 +700,21 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                   : _writer.setDaily(false),
             ),
           ),
+      // Review 113 (11): the voice note; a tap plays it.
+      if (draft.voiceLocal case final voice?)
+        BvFilterChip(
+          key: const Key('writing-voice-chip'),
+          clearKey: const Key('writing-voice-chip-clear'),
+          icon: BvIcons.microphone,
+          label: voiceTime(Duration(milliseconds: draft.voiceMs)),
+          clearLabel: l10n.cpRemoveThe(l10n.cpVoice),
+          onTap: () => unawaited(
+            ref
+                .read(voicePlayerProvider.notifier)
+                .toggle('draft-${draft.id}', voice, isFile: true),
+          ),
+          onClear: () => unawaited(_writer.removeVoice()),
+        ),
       // TG1: the one tag, red when it is a danger tag (Safety).
       if (draft.tag case final tag?)
         BvFilterChip(
@@ -700,7 +950,26 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     );
     final kind = draft.kind;
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
-    final lines = _lines(l10n, draft, now, me: me, teams: teams);
+    // CV3: Type is the first of the pinned lines. It opens the kinds' grid
+    // (who may only thank has no choice of kind; an edit keeps its kind,
+    // which the top bar names).
+    final lines = [
+      if (widget.kinds.length > 1 && !widget.editing)
+        BvWritingRow(
+          key: const Key('writing-kind'),
+          label: l10n.cpType,
+          value: kindName(l10n, kind),
+          accent: true,
+          onTap: widget.kinds.contains(kind)
+              ? () => widget.onPanel(
+                  widget.panel == ComposerPanel.kinds
+                      ? null
+                      : ComposerPanel.kinds,
+                )
+              : null,
+        ),
+      ..._lines(l10n, draft, now, me: me, teams: teams),
+    ];
     final added = _added(l10n, draft, now);
     final preparing = ref.watch(
       photosPreparingProvider('daybook:${widget.spaceId}'),
@@ -764,6 +1033,15 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                   onPressed: widget.onTemplates,
                   child: Text(l10n.cpTemplates, style: quiet),
                 ),
+              if (widget.onDiscard != null)
+                TextButton(
+                  key: const Key('composer-discard'),
+                  onPressed: () => unawaited(_discard(draft)),
+                  child: Text(
+                    l10n.cpDiscard,
+                    style: type.emphasisSm.copyWith(color: BvColors.textAction),
+                  ),
+                ),
             ],
           ),
         ),
@@ -800,7 +1078,12 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                             color: BvColors.textSecondary,
                           ),
                         ),
-                        onChanged: _writer.setTitle,
+                        contextMenuBuilder: (_, state) =>
+                            _textMenu(l10n, kind, _title, state),
+                        onChanged: (text) {
+                          unawaited(_writer.setTitle(text));
+                          _slash(_title, kind);
+                        },
                       ),
                       // W6: a Thanks too (TH1): Details (optional) under
                       // its words; both go as its one body.
@@ -819,7 +1102,12 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         decoration: field.copyWith(
                           hintText: _bodyHint(l10n, kind),
                         ),
-                        onChanged: _writer.setBody,
+                        contextMenuBuilder: (_, state) =>
+                            _textMenu(l10n, kind, _body, state),
+                        onChanged: (text) {
+                          unawaited(_writer.setBody(text));
+                          _slash(_body, kind);
+                        },
                       ),
                     ],
                     if (draft.quote case final q?) ...[
@@ -880,31 +1168,6 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ],
                       ),
                     ],
-                    if (kind == DaybookKind.thanks) ...[
-                      // To, its one quiet line (founder, 1 Nov), then For.
-                      const SizedBox(height: BvSpace.s12),
-                      BvWritingPills(rows: lines.take(1).toList()),
-                      const SizedBox(height: BvWritingPillSpec.gap),
-                      Text(
-                        l10n.thanksProfileNote,
-                        key: const Key('writing-thanks-profile-note'),
-                        style: quiet,
-                      ),
-                      const SizedBox(height: BvWritingPillSpec.gap),
-                      BvWritingPills(rows: lines.skip(1).toList()),
-                    ] else if (lines.isNotEmpty) ...[
-                      const SizedBox(height: BvSpace.s12),
-                      BvWritingPills(rows: lines),
-                    ],
-                    if (added.isNotEmpty) ...[
-                      const SizedBox(height: BvSpace.s8),
-                      Wrap(
-                        key: const Key('writing-added'),
-                        spacing: BvSpace.s8,
-                        runSpacing: BvSpace.s8,
-                        children: added,
-                      ),
-                    ],
                     // Review 109: the server's time rules, said before Send
                     // can hit them (Send stays off).
                     if (kind == DaybookKind.checkIn &&
@@ -922,15 +1185,16 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                     ],
                     if (draft.couldNotSend) ...[
                       const SizedBox(height: BvSpace.s8),
-                      Text(
-                        kind == DaybookKind.thanks
+                      // Review 113 bug 7: Tap to fix opens what is wrong.
+                      CouldNotSendLine(
+                        text: kind == DaybookKind.thanks
                             ? thanksRefusalText(l10n, draft.refusal)
+                            : draft.refusal == samePlaceRefused
+                            ? l10n.checkInSamePlaceRefused
                             : draft.refusal == RefusalWhy.forSomeoneElse.name
                             ? l10n.workItemForSomeoneElse
                             : l10n.daybookCouldNotSend,
-                        style: type.metadata.copyWith(
-                          color: BvColors.textDestructive,
-                        ),
+                        onTap: () => unawaited(_fix(draft)),
                       ),
                     ],
                   ],
@@ -940,6 +1204,27 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
             ],
           ),
         ),
+        // CV3: pinned, always in the same place: the chips, then the lines.
+        if (added.isNotEmpty)
+          Padding(
+            padding: BvWritingLineSpec.chipsPadding,
+            child: Wrap(
+              key: const Key('writing-added'),
+              spacing: BvSpace.s8,
+              runSpacing: BvSpace.s8,
+              children: added,
+            ),
+          ),
+        if (kind == DaybookKind.thanks)
+          Padding(
+            padding: BvWritingLineSpec.chipsPadding,
+            child: Text(
+              l10n.thanksProfileNote,
+              key: const Key('writing-thanks-profile-note'),
+              style: quiet,
+            ),
+          ),
+        if (lines.isNotEmpty) BvWritingLines(rows: lines),
         widget.bar,
         if (widget.panel != null)
           SizedBox(
