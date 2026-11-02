@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(194);
+select plan(234);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -905,6 +905,197 @@ select is((select count(*)::int from public.library_files where id = pg_temp.id(
   'with its files');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f001')), 1,
   'others'' only-me folders stay');
+
+-- The nightly space-files sweep (the lead, 2 Nov) -----------------------------------------------------
+
+create function pg_temp.path(p text) returns text language sql as $$
+  select pg_temp.sp()::text || '/library/' || pg_temp.id(p)::text || '/x.jpg';
+$$;
+-- A stored object of [p_who], [p_age] old.
+create function pg_temp.obj(p text, p_who text, p_age interval) returns void language sql as $$
+  insert into storage.objects (bucket_id, name, owner_id, metadata, created_at)
+  values ('space-files', pg_temp.path(p), pg_temp.uid(p_who)::text,
+          '{"size": 1000, "mimetype": "image/jpeg"}', now() - p_age);
+$$;
+create function pg_temp.orphan(p text) returns boolean language sql as $$
+  select exists (select 1 from public.orphan_space_files() o where o.name = pg_temp.path(p));
+$$;
+-- [p_id] reads the stored object [p] through the bucket's read policy.
+create function pg_temp.opens(p_id text, p text) returns boolean language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_id);
+  set local role authenticated;
+  select count(*) into v from storage.objects
+  where bucket_id = 'space-files' and name = pg_temp.path(p);
+  reset role;
+  return v > 0;
+end;
+$$;
+
+-- 1. One check per reference: the old file is an orphan until a row uses it.
+select pg_temp.obj(x.f, 'a1', interval '8 days')
+from (values ('f300'), ('f301'), ('f302'), ('f303'), ('f304'), ('f305'), ('f306'), ('f307'),
+             ('f308'), ('f309'), ('f30a'), ('f30b'), ('f30c')) x(f);
+select ok(pg_temp.orphan('f300'), 'a file nothing uses is an orphan');
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by)
+values (pg_temp.id('f301'), pg_temp.sp(), 'x.jpg', pg_temp.path('f301'), 'image/jpeg', pg_temp.uid('a1'));
+select ok(not pg_temp.orphan('f301'), 'a Library file protects it');
+insert into public.post_files (post_id, storage_path, mime, sort, added_by)
+values (pg_temp.id('a001'), pg_temp.path('f302'), 'image/jpeg', 50, pg_temp.uid('a1')),
+       (pg_temp.id('a001'), pg_temp.path('f303'), 'audio/mp4', 51, pg_temp.uid('a1'));
+select ok(not pg_temp.orphan('f302'), 'a post photo');
+select ok(not pg_temp.orphan('f303'), 'a post voice note');
+insert into public.message_attachments (message_id, storage_path, mime, duration_ms)
+values (pg_temp.id('fa01'), pg_temp.path('f304'), 'image/jpeg', null),
+       (pg_temp.id('fa01'), pg_temp.path('f305'), 'audio/mp4', 4000);
+select ok(not pg_temp.orphan('f304'), 'a message attachment');
+select ok(not pg_temp.orphan('f305'), 'a chat voice note');
+insert into public.work_item_evidence (event_id, work_item_id, storage_path, kind)
+select e.id, e.work_item_id, pg_temp.path('f306'), 'photo'
+from public.work_item_events e where e.work_item_id = pg_temp.id('b003') limit 1;
+select ok(not pg_temp.orphan('f306'), 'work item evidence');
+insert into public.notes (id, owner_id, kind) values (pg_temp.id('fe01'), pg_temp.uid('a1'), 'text');
+insert into public.note_files (note_id, storage_path, kind, mime)
+values (pg_temp.id('fe01'), pg_temp.path('f307'), 'photo', 'image/jpeg');
+select ok(not pg_temp.orphan('f307'), 'a notebook file');
+insert into public.check_in_reports (post_id, day, space_id, recipient_id, file_name, storage_path)
+values (pg_temp.id('a002'), current_date, pg_temp.sp(), pg_temp.uid('a1'), 'r.xlsx', pg_temp.path('f308'));
+select ok(not pg_temp.orphan('f308'), 'a check-in report');
+-- Post later: a waiting (or failed, which can be tried again) post holds its files.
+insert into public.scheduled_posts (id, author_id, fn, params, title, publish_at)
+values (pg_temp.id('fe02'), pg_temp.uid('a1'), 'create_space_post',
+        jsonb_build_object('p_id', pg_temp.id('fe02'),
+                           'p_files', jsonb_build_array(jsonb_build_object('path', pg_temp.path('f309')))),
+        'Later', now() + interval '6 months'),
+       (pg_temp.id('fe03'), pg_temp.uid('a1'), 'create_work_item',
+        jsonb_build_object('p_id', pg_temp.id('fe03'),
+                           'p_evidence', jsonb_build_array(jsonb_build_object('path', pg_temp.path('f30a')))),
+        'Later', now() + interval '6 months');
+select ok(not pg_temp.orphan('f309'), 'a waiting Post later protects its files');
+select ok(not pg_temp.orphan('f30a'), 'in its evidence too');
+update public.scheduled_posts set state = 'failed', error = 'other' where id = pg_temp.id('fe02');
+select ok(not pg_temp.orphan('f309'), 'a failed one can be tried again: still protected');
+update public.scheduled_posts set state = 'posted', error = null, posted_at = now()
+where id = pg_temp.id('fe02');
+select ok(pg_temp.orphan('f309'), 'once posted it no longer protects');
+update public.scheduled_posts set state = 'cancelled' where id = pg_temp.id('fe03');
+select ok(pg_temp.orphan('f30a'), 'nor once cancelled');
+
+-- 2. Seven days, at the edge, whatever the job asks for.
+select pg_temp.obj('f30d', 'a1', interval '7 days' - interval '1 minute');
+select pg_temp.obj('f30e', 'a1', interval '7 days' + interval '1 minute');
+select ok(not exists (select 1 from public.claim_orphan_files(interval '1 day') c
+                      where c.name = pg_temp.path('f30d')),
+  'a minute under 7 days stays, even asked for 1 day');
+select ok(exists (select 1 from public.claim_orphan_files(interval '1 day') c
+                  where c.name = pg_temp.path('f30e')), 'a minute over 7 days goes');
+
+-- 3 and 4. A private folder: Tariq's, with a plain file, one a chat
+-- still uses, and one a post carries.
+select pg_temp.as_user('c3');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f00c'), pg_temp.sp(), 'Tariq private', 'only_me');
+reset role;
+select pg_temp.obj(x.f, 'c3', interval '0') from (values ('f109'), ('f10a'), ('f10b')) x(f);
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select pg_temp.id(x.f), pg_temp.sp(), 'x.jpg', pg_temp.path(x.f), 'image/jpeg', pg_temp.uid('c3'),
+       pg_temp.id('f00c')
+from (values ('f109'), ('f10a'), ('f10b')) x(f);
+insert into public.message_attachments (message_id, storage_path, mime)
+values (pg_temp.id('fa01'), pg_temp.path('f10a'), 'image/jpeg');
+update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f10b') where id = pg_temp.id('a003');
+insert into public.post_files (post_id, library_file_id, sort, added_by)
+values (pg_temp.id('a003'), pg_temp.id('f10b'), 52, pg_temp.uid('c3'));
+select ok(pg_temp.opens('c3', 'f109'), 'the uploader opens his private file while in the Space');
+select pg_temp.as_user('c3');
+set local role authenticated;
+select public.leave_space(pg_temp.sp());
+reset role;
+select ok(not pg_temp.opens('c3', 'f109'), 'after leaving he can''t open it by its path');
+select ok(not pg_temp.opens('c3', 'f10b'), 'nor the one a post carried');
+select ok(not pg_temp.opens('a1', 'f109'), 'nor can the admin');
+-- An orphan upload of someone who left, which never was in a folder.
+select pg_temp.obj('f10e', 'c3', interval '0');
+select ok(not pg_temp.opens('c3', 'f10e'), 'nor any orphan of his, once he has left');
+select is((select array_agg(storage_path order by storage_path) from public.private_file_purges),
+  (select array_agg(p order by p) from unnest(array[replace(pg_temp.path('f106'), '.jpg', '.pdf'), replace(pg_temp.path('f108'), '.jpg', '.pdf'), pg_temp.path('f109'),
+                                                    pg_temp.path('f10a'), pg_temp.path('f10b')]) p),
+  'the folder''s paths wait in the queue at once');
+select ok((select deleted_at is not null and private_gone_at is not null and folder_id is null
+           from public.library_files where id = pg_temp.id('f10b')),
+  'a file a post carries: its row stays, gone');
+select ok(not public.is_referenced_file(pg_temp.path('f10b')), 'and it references its object no more');
+select is((select count(*)::int from public.post_files where library_file_id = pg_temp.id('f10b')), 0,
+  'the post''s link to it goes');
+select ok(public.is_referenced_file(pg_temp.path('f10a')), 'a chat still uses the other');
+
+select ok(not has_table_privilege('authenticated', 'public.private_file_purges', 'select')
+          and not has_table_privilege('authenticated', 'public.private_file_purges', 'insert')
+          and (select relrowsecurity from pg_class where oid = 'public.private_file_purges'::regclass),
+  'the queue is the service role''s, with row-level security');
+select ok(not has_function_privilege('authenticated', 'public.claim_private_file_purges(integer)', 'execute')
+          and has_function_privilege('service_role', 'public.claim_private_file_purges(integer)', 'execute'),
+  'and so is its claim');
+
+set local role service_role;
+select is((select array_agg(c.name order by c.name) from public.claim_private_file_purges() c),
+  (select array_agg(p order by p) from unnest(array[replace(pg_temp.path('f106'), '.jpg', '.pdf'), replace(pg_temp.path('f108'), '.jpg', '.pdf'),
+                                                    pg_temp.path('f109'), pg_temp.path('f10b')]) p),
+  'the job gets them with no grace period; the one still referenced is never given');
+reset role;
+select is((select count(*)::int from public.private_file_purges where storage_path = pg_temp.path('f10a')), 0,
+  'a referenced path leaves the queue (the sweep has it, if it is ever free)');
+select is((select count(*)::int from public.file_cleanup_claims where storage_path = pg_temp.path('f10a')), 0,
+  'and is never claimed');
+select public.forget_cleanup_claims();
+select is((select count(*)::int from public.private_file_purges where storage_path = pg_temp.path('f109')), 1,
+  'a delete that failed stays in the queue');
+select ok(exists (select 1 from public.claim_private_file_purges() c where c.name = pg_temp.path('f109')),
+  'and comes again next run');
+set local storage.allow_delete_query = 'true';
+delete from storage.objects where name in (pg_temp.path('f109'), pg_temp.path('f10b'));
+select public.forget_cleanup_claims();
+select is((select count(*)::int from public.private_file_purges
+           where storage_path in (pg_temp.path('f109'), pg_temp.path('f10b'))), 0,
+  'once the object is gone, so is its line');
+
+-- 5. The delete paths: the member's row goes.
+select pg_temp.as_user('a8');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f00d'), pg_temp.sp(), 'Hana private', 'only_me');
+reset role;
+select pg_temp.obj('f10c', 'a8', interval '0');
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+values (pg_temp.id('f10c'), pg_temp.sp(), 'x.jpg', pg_temp.path('f10c'), 'image/jpeg', pg_temp.uid('a8'),
+        pg_temp.id('f00d'));
+delete from public.space_members where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a8');
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00d')), 0,
+  'the member''s row deleted: the only-me folder goes');
+select is((select count(*)::int from public.private_file_purges where storage_path = pg_temp.path('f10c')), 1,
+  'and its path waits in the queue');
+
+-- 5. Account purge: Eve's private file, attached to her post.
+select pg_temp.as_user('f6');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f00e'), pg_temp.sp2(), 'Eve private', 'only_me');
+select public.create_space_post(pg_temp.id('a004'), pg_temp.sp2(), 'announcement', 'Eve''s post');
+reset role;
+select pg_temp.obj('f10d', 'f6', interval '0');
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+values (pg_temp.id('f10d'), pg_temp.sp2(), 'x.jpg', pg_temp.path('f10d'), 'image/jpeg', pg_temp.uid('f6'),
+        pg_temp.id('f00e'));
+update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f10d') where id = pg_temp.id('a004');
+insert into public.post_files (post_id, library_file_id, sort, added_by)
+values (pg_temp.id('a004'), pg_temp.id('f10d'), 0, pg_temp.uid('f6'));
+update public.profiles set deletion_scheduled_at = now() - interval '31 days' where id = pg_temp.uid('f6');
+select ok(public.purge_account(pg_temp.uid('f6')), 'the account is purged');
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00e')), 0,
+  'its only-me folder goes');
+select ok((select private_gone_at is not null from public.library_files where id = pg_temp.id('f10d')),
+  'the row its post needs stays, gone');
+select ok(exists (select 1 from public.claim_private_file_purges() c where c.name = pg_temp.path('f10d')),
+  'and its object is claimed, so it actually goes');
 
 select * from finish();
 rollback;

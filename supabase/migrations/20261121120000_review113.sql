@@ -946,6 +946,20 @@ alter table public.library_files add constraint library_files_folder_id_check
   check (folder_id is null or source <> 'check_in_report');
 create index library_files_folder_idx on public.library_files (folder_id) where folder_id is not null;
 
+-- A file of a deleted private folder that a post still carries: its row
+-- stays for the post's foreign key, and references its object no more.
+alter table public.library_files add column private_gone_at timestamptz;
+
+-- Paths of a deleted private folder's files, for the purge job to delete
+-- from storage at once. Service role only.
+create table public.private_file_purges (
+  storage_path text primary key,
+  queued_at timestamptz not null default now()
+);
+alter table public.private_file_purges enable row level security;
+revoke all on public.private_file_purges from public, anon, authenticated;
+grant all on public.private_file_purges to service_role;
+
 -- Who reads [p_folder], an active member of its Space: only me, its
 -- creator; a person, the creator and that person; a Team, the creator, its
 -- members and the Space admin; the whole Space, every member. Once the
@@ -978,11 +992,11 @@ $$;
 
 -- The lead (2 Nov): [p_profile]'s only-me folders in [p_space] go when they
 -- leave or are removed (and any whose creator is gone), with their files'
--- Library rows. The stored objects are then referenced by nothing, so the
--- space-files cleanup (claim_orphan_files, then the Storage API) deletes
--- them. A file a post still carries (space_posts.library_file_id) can't
--- lose its row: it is deleted (deleted_at, read by nobody) and leaves the
--- folder.
+-- Library rows. Their paths go in private_file_purges, for the purge job to
+-- delete at once, with no grace period. A file a post still carries
+-- (space_posts.library_file_id) can't lose its row: it stays as deleted and
+-- private_gone_at, read by nobody and referencing its object no more, and
+-- the post's links to it go.
 create or replace function public.drop_only_me_folders(p_space uuid, p_profile uuid)
 returns void
 language plpgsql
@@ -991,6 +1005,7 @@ set search_path = ''
 as $$
 declare
   v_folders uuid[];
+  v_kept uuid[];
 begin
   v_folders := array(select f.id from public.library_folders f
                      where f.space_id = p_space and f.share = 'only_me'
@@ -999,10 +1014,17 @@ begin
   if cardinality(v_folders) = 0 then
     return;
   end if;
+  insert into public.private_file_purges (storage_path)
+  select f.storage_path from public.library_files f where f.folder_id = any (v_folders)
+  on conflict do nothing;
+  v_kept := array(select f.id from public.library_files f
+                  where f.folder_id = any (v_folders)
+                    and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id));
   update public.library_files f
-  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null
-  where f.folder_id = any (v_folders)
-    and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id);
+  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, private_gone_at = now()
+  where f.id = any (v_kept);
+  delete from public.post_files f where f.library_file_id = any (v_kept);
+  delete from public.work_item_attachments a where a.library_file_id = any (v_kept);
   delete from public.library_files f where f.folder_id = any (v_folders);
   delete from public.library_folders f where f.id = any (v_folders);
 end;
@@ -1352,6 +1374,153 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- The nightly space-files sweep (the lead, 2 Nov), run by notebook-purge
+-- ---------------------------------------------------------------------------
+
+-- is_referenced_file (migration 29 and on), as it was, and: not a private
+-- file gone with its folder; a notebook file; a check-in report's job; and
+-- a Post later that still holds the file in its params, waiting, or failed
+-- (it can be tried again). Posted and cancelled ones no longer protect.
+-- Blocks hold no path of their own: a photo block shows a post_files row.
+create or replace function public.is_referenced_file(p_path text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.work_item_evidence e
+                 join public.space_posts p on p.id = e.work_item_id
+                 where e.storage_path = p_path and p.deleted_at is null)
+      or exists (select 1 from public.message_attachments a where a.storage_path = p_path)
+      or exists (select 1 from public.library_files f
+                 where f.storage_path = p_path and f.private_gone_at is null)
+      or exists (select 1 from public.post_files f
+                 join public.space_posts p on p.id = f.post_id
+                 where f.storage_path = p_path and p.deleted_at is null)
+      or exists (select 1 from public.model_views mv where mv.thumb_path = p_path)
+      or exists (select 1 from public.note_files n where n.storage_path = p_path)
+      or exists (select 1 from public.check_in_reports r where r.storage_path = p_path)
+      or exists (select 1 from public.scheduled_posts s
+                 where s.state in ('waiting', 'failed')
+                   and position(p_path in s.params::text) > 0);
+$$;
+
+-- claim_orphan_files (migration 13), as it was, and never under 7 days (was
+-- 1): a draft can keep uploaded files for days before it is sent.
+create or replace function public.claim_orphan_files(
+  p_age interval default interval '7 days',
+  p_limit integer default 200
+)
+returns table (name text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_name text;
+begin
+  for v_name in
+    select o.name from public.orphan_space_files(greatest(p_age, interval '7 days')) o
+    order by o.created_at
+    limit greatest(p_limit, 0)
+  loop
+    perform public.lock_file_path(v_name);
+    if not public.is_referenced_file(v_name) then
+      insert into public.file_cleanup_claims (storage_path)
+      values (v_name)
+      on conflict (storage_path) do nothing;
+      name := v_name;
+      return next;
+    end if;
+  end loop;
+end;
+$$;
+
+-- The purge job takes the queue: each path checked under its lock. A path
+-- something still references is never given: it leaves the queue, and the
+-- sweep has it if it is ever free. One with no object is done.
+create or replace function public.claim_private_file_purges(p_limit integer default 1000)
+returns table (name text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_name text;
+begin
+  for v_name in
+    select q.storage_path from public.private_file_purges q
+    order by q.queued_at, q.storage_path
+    limit greatest(p_limit, 0)
+  loop
+    perform public.lock_file_path(v_name);
+    if public.is_referenced_file(v_name)
+       or not exists (select 1 from storage.objects o
+                      where o.bucket_id = 'space-files' and o.name = v_name) then
+      delete from public.private_file_purges q where q.storage_path = v_name;
+    else
+      insert into public.file_cleanup_claims (storage_path)
+      values (v_name)
+      on conflict (storage_path) do nothing;
+      name := v_name;
+      return next;
+    end if;
+  end loop;
+end;
+$$;
+
+-- forget_cleanup_claims (the notebook's), as it was, and the queue's lines
+-- whose object is gone. A failed delete keeps both, for the next run.
+create or replace function public.forget_cleanup_claims()
+returns integer
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  with gone_q as (
+    delete from public.private_file_purges q
+    where not exists (select 1 from storage.objects o
+                      where o.bucket_id = 'space-files' and o.name = q.storage_path)
+  ),
+  gone as (
+    delete from public.file_cleanup_claims c
+    where not exists (select 1 from storage.objects o
+                      where o.bucket_id in ('space-files', 'post-media', 'notebook-files')
+                        and o.name = c.storage_path)
+    returning 1
+  )
+  select count(*)::int from gone;
+$$;
+
+-- may_read_file, as it was, except that being the uploader opens a file
+-- only while still a member of its Space or while something references it
+-- (your own delivered photo stays yours after leaving), so never an orphan
+-- after leaving; and never a file of a deleted private folder. Everything
+-- after that is unchanged.
+do $do$
+declare
+  v_def text := pg_get_functiondef('public.may_read_file(text, text)'::regprocedure);
+  v_old text := 'if p_owner = auth.uid()::text then';
+begin
+  if position(v_old in v_def) = 0 then
+    raise exception 'may_read_file changed';
+  end if;
+  execute replace(v_def, v_old, $new$if p_owner = auth.uid()::text
+     and (exists (select 1 from public.space_members m
+                  where m.space_id::text = v_parts[1] and m.profile_id = auth.uid()
+                    and m.left_at is null)
+          or public.is_referenced_file(p_name))
+     and not exists (select 1 from public.private_file_purges q where q.storage_path = p_name)
+     and not exists (select 1 from public.library_files f
+                     where f.storage_path = p_name and f.private_gone_at is not null) then$new$);
+end;
+$do$;
+
+-- ---------------------------------------------------------------------------
 -- Push kinds
 -- ---------------------------------------------------------------------------
 
@@ -1584,6 +1753,7 @@ revoke all on function public.can_read_library_folder(uuid) from public, anon;
 revoke all on function public.can_read_library_file(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
 revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.claim_private_file_purges(integer) from public, anon, authenticated;
 revoke all on function public.handle_member_gone_folders() from public, anon, authenticated;
 revoke all on function public.library_folder_check(uuid, text, text, uuid, uuid) from public, anon, authenticated;
 revoke all on function public.create_library_folder(uuid, uuid, text, text, uuid, uuid, text) from public, anon;
@@ -1609,3 +1779,4 @@ grant execute on function public.space_library_folders(uuid) to authenticated;
 grant execute on function public.add_library_file(uuid, uuid, text, text, text, bigint, uuid, text, text, uuid, uuid)
   to authenticated;
 grant execute on function public.check_in_nudge(timestamptz) to service_role;
+grant execute on function public.claim_private_file_purges(integer) to service_role;
