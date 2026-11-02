@@ -49,8 +49,9 @@ class NewCheckIn {
     required this.id,
     required this.spaceId,
     required this.title,
-    required this.siteLat,
-    required this.siteLng,
+    this.siteLat,
+    this.siteLng,
+    this.samePlaceAs,
     required this.inTime,
     required this.inAllow,
     this.body,
@@ -71,8 +72,13 @@ class NewCheckIn {
 
   /// The post's site: where the Lead stood when they tapped Set place
   /// here. A site, never a person's track.
-  final double siteLat;
-  final double siteLng;
+  final double? siteLat;
+  final double? siteLng;
+
+  /// Review 113 (17): the earlier check-in whose site this one takes (the
+  /// nudge). The server copies the point and never shows it; the site
+  /// above is null then.
+  final String? samePlaceAs;
   final DayTime inTime;
   final int inAllow;
   final DayTime? outTime;
@@ -100,6 +106,7 @@ class NewCheckIn {
       'p_out_allow': outTime == null ? null : outAllow,
       'p_daily': daily,
       'p_time_zone': timeZone,
+      'p_same_place_as': ?samePlaceAs,
     };
   }
 }

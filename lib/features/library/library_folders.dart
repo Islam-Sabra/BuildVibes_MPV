@@ -520,7 +520,7 @@ class _FolderSheetState extends ConsumerState<FolderSheet> {
         Text(l10n.libraryWhoSees, style: quiet),
         Wrap(
           key: const Key('folder-share'),
-          spacing: BvSpace.s8,
+          spacing: BvChipSpec.rowGapTight,
           runSpacing: BvSpace.s8,
           children: [
             for (final s in const [
@@ -537,6 +537,7 @@ class _FolderSheetState extends ConsumerState<FolderSheet> {
                   FolderShare.team => l10n.libraryShareTeam,
                   FolderShare.space => l10n.libraryShareSpace,
                 },
+                tight: true,
                 selected: _share == s,
                 onTap: () => unawaited(_choose(s)),
               ),

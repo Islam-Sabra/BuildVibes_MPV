@@ -1872,6 +1872,8 @@
   "couldNotSendRemove": "إزالة",
   "spacesLeaveFoldersNote": "سيتم حذف مجلداتك الخاصة في هذه المساحة.",
   "spacesRemoveFoldersNote": "سيتم حذف المجلدات الخاصة لهذا الشخص في هذه المساحة.",
+  "checkInSamePlace": "نفس مكان تسجيل الحضور السابق",
+  "checkInSamePlaceRefused": "تعذّر استخدام مكان تسجيل الحضور السابق. انقر لتحديد المكان هنا.",
   "libraryNewFolder": "مجلد جديد",
   "libraryLinkFolder": "ربط مجلد",
   "libraryFolderNameHint": "اسم المجلد",

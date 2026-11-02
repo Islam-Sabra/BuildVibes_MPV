@@ -269,6 +269,12 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await t.pumpAndSettle();
       await _snap(t, 'LB2-link-folder', lang);
+      // Lead's ruling: in the real fonts the four choices share one line.
+      final tops = {
+        for (final c in FolderShare.values)
+          t.getTopLeft(_key('folder-share-${c.json}')).dy,
+      };
+      expect(tops, hasLength(1));
       await t.enterText(_field('folder-url'), 'https://example.com/x');
       await t.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
@@ -326,6 +332,34 @@ void main() {
       await t.pumpAndSettle();
       await _tap(t, _key('writing-could-not-send'));
       await _snap(t, 'B7-tap-to-fix-generic', lang);
+    });
+
+    testWidgets('NUDGE the same place refused [$lang]', (t) async {
+      final push = FakePushMessaging();
+      final app = await _app(
+        t,
+        lang,
+        push: push,
+        daybook: FakeDaybookRepository()
+          ..posts[_space] = [CheckInSamples.card(lang)],
+        path: '/explore',
+      );
+      app.checkIns.refusePost = const SpaceException(
+        SpaceFailure.notAllowed,
+        'not allowed',
+      );
+      push.tap({
+        'open': 'check_in_nudge',
+        'space_id': _space,
+        'from_post_id': CheckInSamples.id,
+      });
+      await t.pumpAndSettle();
+      await _tap(t, _key('writing-post'));
+      await t.tap(_key('writing-card-error'), warnIfMissed: false);
+      await t.pumpAndSettle();
+      FocusManager.instance.primaryFocus?.unfocus();
+      await t.pumpAndSettle();
+      await _snap(t, 'NUDGE-same-place-refused', lang);
     });
 
     testWidgets('NUDGE the composer filled [$lang]', (t) async {

@@ -594,8 +594,14 @@ class DaybookWriter {
   Future<void> setDaily(bool on) => _put((d) => d.copyWith(daily: on));
 
   /// The site: where the Lead stood when they tapped Set place here.
-  Future<void> setSite(({double lat, double lng})? site) =>
-      _put((d) => d.copyWith(site: () => site));
+  Future<void> setSite(({double lat, double lng})? site) => _put(
+    (d) => d.copyWith(
+      site: () => site,
+      // Review 113 (17): a place read here replaces the last check-in's.
+      samePlaceAs: () => null,
+      refusal: d.refusal == samePlaceRefused ? () => null : null,
+    ),
+  );
 
   /// Review 110 step 5: + → Checklist on a work item. [lines] become its
   /// points (an earlier line keeps its id) in one checklist block; none

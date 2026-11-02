@@ -207,6 +207,11 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
   /// with Try again or Remove: Remove takes off the refused file, or puts
   /// the post away when no file was the problem.
   Future<void> _fix(DaybookPostDraft draft) async {
+    // Review 113 (17): the last place was refused: the fix is a place.
+    if (draft.refusal == samePlaceRefused) {
+      widget.onCheckIn?.call(CheckInPick.place);
+      return;
+    }
     final l10n = AppLocalizations.of(context);
     final refused = FileRefused.fromCode(draft.refusal);
     final why = refused != null
@@ -977,6 +982,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                       CouldNotSendLine(
                         text: kind == DaybookKind.thanks
                             ? thanksRefusalText(l10n, draft.refusal)
+                            : draft.refusal == samePlaceRefused
+                            ? l10n.checkInSamePlaceRefused
                             : draft.refusal == RefusalWhy.forSomeoneElse.name
                             ? l10n.workItemForSomeoneElse
                             : l10n.daybookCouldNotSend,

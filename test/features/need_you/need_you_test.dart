@@ -364,7 +364,83 @@ void main() {
       expect(d.daily, isTrue);
       expect(d.id, isNot(CheckInSamples.id), reason: 'a new post');
       expect(app.daybook.createdPosts, isEmpty, reason: 'nothing posted');
+      // Lead's ruling: Same as last check-in; Send is on.
+      expect(d.samePlaceAs, CheckInSamples.id);
+      expect(d.siteLat, isNull);
+      expect(d.readyToTry, isTrue);
+      expect(find.text(l10n.checkInSamePlace), findsOneWidget);
+      await tester.tap(_key('writing-post'));
+      await tester.pumpAndSettle();
+      final sent = app.checkIns.posted.single.toParams();
+      expect(sent['p_same_place_as'], CheckInSamples.id);
+      expect(sent['p_site_lat'], isNull);
+      expect(sent['p_site_lng'], isNull);
+      expect(sent.keys.last, 'p_same_place_as');
     });
+
+    Future<void> nudged(WidgetTester tester, FakePushMessaging push) async {
+      push.tap({
+        'open': 'check_in_nudge',
+        'space_id': _space,
+        'from_post_id': CheckInSamples.id,
+      });
+      await tester.pumpAndSettle();
+    }
+
+    DaybookPostDraft draftOf(WidgetTester tester) => ProviderScope.containerOf(
+      tester.element(find.byType(Navigator).first),
+    ).read(daybookDraftProvider(_space))!;
+
+    testWidgets('(17) the place line sets a new place instead, clearing '
+        'Same as last check-in [$lang]', (tester) async {
+      final push = FakePushMessaging();
+      await _open(
+        tester,
+        lang,
+        push: push,
+        daybook: FakeDaybookRepository()
+          ..posts[_space] = [CheckInSamples.card(lang)],
+        path: '/explore',
+      );
+      await nudged(tester, push);
+      await _tap(tester, _key('writing-check-in-place'));
+      final d = draftOf(tester);
+      expect(d.samePlaceAs, isNull);
+      expect(d.siteSet, isTrue);
+      expect(find.text(l10n.checkInSamePlace), findsNothing);
+    });
+
+    for (final failure in [SpaceFailure.notAllowed, SpaceFailure.badInput]) {
+      testWidgets('(17) the server refuses the same place ($failure): a '
+          'plain line, back to Set place here [$lang]', (tester) async {
+        final push = FakePushMessaging();
+        final app = await _open(
+          tester,
+          lang,
+          push: push,
+          daybook: FakeDaybookRepository()
+            ..posts[_space] = [CheckInSamples.card(lang)],
+          path: '/explore',
+        );
+        app.checkIns.refusePost = SpaceException(failure, 'refused');
+        await nudged(tester, push);
+        await _tap(tester, _key('writing-post'));
+        final d = draftOf(tester);
+        expect(d.samePlaceAs, isNull);
+        expect(d.readyToTry, isFalse, reason: 'Send off until a place');
+        // The refused Draft on Work opens with its line.
+        await tester.tap(_key('writing-card-error'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.checkInSetPlace), findsOneWidget);
+        expect(find.text(l10n.checkInSamePlaceRefused), findsOneWidget);
+        // A tap on the line sets the place.
+        app.checkIns.refusePost = null;
+        await _tap(tester, _key('writing-could-not-send'));
+        expect(draftOf(tester).siteSet, isTrue);
+        await _tap(tester, _key('writing-post'));
+        expect(app.checkIns.posted.single.toParams()['p_site_lat'], isNotNull);
+      });
+    }
 
     testWidgets('(17) a half-written card stays [$lang]', (tester) async {
       final push = FakePushMessaging();

@@ -200,6 +200,7 @@ class DaybookPostDraft {
     this.daily = false,
     this.siteLat,
     this.siteLng,
+    this.samePlaceAs,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -285,6 +286,7 @@ class DaybookPostDraft {
         daily: json['daily'] as bool? ?? false,
         siteLat: (json['site_lat'] as num?)?.toDouble(),
         siteLng: (json['site_lng'] as num?)?.toDouble(),
+        samePlaceAs: json['same_place_as'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -337,8 +339,8 @@ class DaybookPostDraft {
   }
 
   /// Review 113 (17): a new check-in made from the last one, for the
-  /// nudge: its words, For, times, Every day and place. The site comes
-  /// only when the card gives it; else Set place here asks again.
+  /// nudge: its words, For, times and Every day, and its site by
+  /// reference: the server copies the point and never shows it.
   factory DaybookPostDraft.fromCheckIn(DaybookPost post, {required String id}) {
     final c = post.checkIn;
     return DaybookPostDraft(
@@ -354,8 +356,7 @@ class DaybookPostDraft {
       outTime: c?.outTime,
       outAllow: c?.outAllow,
       daily: c?.daily ?? false,
-      siteLat: c?.siteLat,
-      siteLng: c?.siteLng,
+      samePlaceAs: post.id,
     );
   }
 
@@ -482,7 +483,13 @@ class DaybookPostDraft {
   final double? siteLat;
   final double? siteLng;
 
+  /// Review 113 (17): the earlier check-in whose site this one takes.
+  final String? samePlaceAs;
+
   bool get siteSet => siteLat != null && siteLng != null;
+
+  /// Send's condition: a site read here, or the last check-in's.
+  bool get placeReady => siteSet || samePlaceAs != null;
 
   /// The server's other rules for a Check-in, checked before Send can
   /// hit them: the time and its allowance fit in the day, and a check-out
@@ -555,7 +562,7 @@ class DaybookPostDraft {
             inTime == null &&
             outTime == null &&
             !daily &&
-            !siteSet &&
+            !placeReady &&
             checkInTeams.isEmpty;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
@@ -579,7 +586,7 @@ class DaybookPostDraft {
     DaybookKind.file => files.isNotEmpty && titleFits,
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
     // Review 109: Send stays off until the place is set.
-    DaybookKind.checkIn => titleFits && siteSet && checkInTimesFit,
+    DaybookKind.checkIn => titleFits && placeReady && checkInTimesFit,
     _ => titleFits,
   };
 
@@ -640,6 +647,7 @@ class DaybookPostDraft {
     int? Function()? outAllow,
     bool? daily,
     ({double lat, double lng})? Function()? site,
+    String? Function()? samePlaceAs,
     bool refused = false,
   }) => DaybookPostDraft(
     checkInTeams: checkInTeams ?? this.checkInTeams,
@@ -650,6 +658,7 @@ class DaybookPostDraft {
     daily: daily ?? this.daily,
     siteLat: site == null ? siteLat : site()?.lat,
     siteLng: site == null ? siteLng : site()?.lng,
+    samePlaceAs: samePlaceAs == null ? this.samePlaceAs : samePlaceAs(),
     thanksToId: thanksTo == null ? thanksToId : thanksTo()?.id,
     thanksToName: thanksTo == null ? thanksToName : thanksTo()?.name,
     thanksToTeam: thanksTo == null ? thanksToTeam : thanksTo()?.team ?? false,
@@ -749,8 +758,13 @@ class DaybookPostDraft {
     'daily': daily,
     'site_lat': siteLat,
     'site_lng': siteLng,
+    'same_place_as': samePlaceAs,
   };
 }
+
+/// [DaybookPostDraft.refusal] when the server wouldn't copy the last
+/// check-in's place (review 113).
+const samePlaceRefused = 'same_place';
 
 /// What Post still needs before it can send: it opens that picker.
 enum DaybookMissing { owner, people, start, to, checkInTime }

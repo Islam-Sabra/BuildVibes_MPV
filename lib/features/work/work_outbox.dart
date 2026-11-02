@@ -1086,8 +1086,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           title: d.title,
           body: d.body,
           teamIds: [for (final t in d.checkInTeams) t.id],
-          siteLat: d.siteLat!,
-          siteLng: d.siteLng!,
+          siteLat: d.siteLat,
+          siteLng: d.siteLng,
+          samePlaceAs: d.samePlaceAs,
           inTime: d.inTime!,
           inAllow: d.inAllow,
           outTime: d.outTime,
@@ -1211,10 +1212,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                 (item.sourceMessageId ?? item.draft?.sourceMessageId) != null
             ? item.withoutSource()
             : item;
-        if (await reopenRefused(_withRefusal(back, e))) return;
+        final kept = _withRefusal(back, e);
+        if (await reopenRefused(kept)) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
-        await _put(back.copyWith(refused: true));
+        await _put(kept.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
       case PendingKind.check ||
@@ -1252,6 +1254,18 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// does a work item refused for its own author (review 112).
   static PendingItem _withRefusal(PendingItem item, SpaceException e) {
     final d = item.draft;
+    // Review 113 (17): the server wouldn't copy the last place: the draft
+    // goes back to Set place here, saying so.
+    if (d?.samePlaceAs != null &&
+        (e.failure == SpaceFailure.notAllowed ||
+            e.failure == SpaceFailure.badInput)) {
+      return item.copyWith(
+        draft: d!.copyWith(
+          samePlaceAs: () => null,
+          refusal: () => samePlaceRefused,
+        ),
+      );
+    }
     // Review 113 bug 7: a file the bucket refused keeps what was wrong
     // and which file, for Tap to fix's plain line.
     if (e is FileRefused) {

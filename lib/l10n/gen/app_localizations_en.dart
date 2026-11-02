@@ -6826,6 +6826,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Their private folders in this Space will be deleted.';
 
   @override
+  String get checkInSamePlace => 'Same as last check-in';
+
+  @override
+  String get checkInSamePlaceRefused =>
+      'Couldn\'t use the last check-in\'s place. Tap to set it here.';
+
+  @override
   String get libraryNewFolder => 'New folder';
 
   @override

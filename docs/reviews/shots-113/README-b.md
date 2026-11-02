@@ -2,7 +2,7 @@
 
 Rendered from `test_screens/r113b_test.dart` on branch `claude/r113-b`, 390 × 844, English and Arabic. Every image was looked at.
 
-## new/ (28 tests, 40 images, each `_en` and `_ar`)
+## new/ (30 tests, 42 images, each `_en` and `_ar`)
 | Shot | What |
 |---|---|
 | NN0-person-sheet | The person sheet from People, with Need you now |
@@ -16,7 +16,8 @@ Rendered from `test_screens/r113b_test.dart` on branch `claude/r113-b`, 390 × 8
 | B7-too-big | 38 MB refused before it goes, with Link folder |
 | B7-draft-could-not-send, B7-composer-line | The refused Draft on Work, and the line in the composer |
 | B7-tap-to-fix, B7-tap-to-fix-generic | Tap to fix: storage said too big; another refusal |
-| NUDGE-composer | The composer opened from the nudge |
+| NUDGE-composer | The composer opened from the nudge: Place · Same as last check-in, Send on |
+| NUDGE-same-place-refused | The server refused the same place: back to Set place here, with the plain line |
 
 **NN2 isn't here:** it is the phone's own notification, not a widget. Its words, tag, id, channel and buttons are tested in `test/features/need_you/need_you_notice_test.dart`.
 
@@ -30,7 +31,7 @@ Rendered from `test_screens/r113b_test.dart` on branch `claude/r113-b`, 390 × 8
 
 ## Where these differ from the frames, for the lead
 - LB1 keeps **Search files** above the folders (the frame has none): existing files and search needed a place.
-- LB2: "Whole Space" wraps to a second line in English, because `BvChip` is wider than the frame's chips.
 - LB2: the link icon is at the field's end, not its start (`BvTextField` has only an end icon).
+- The four sharing choices now share one line in both languages (`BvChip.tight`: 8 px side padding, 6 px gap, same type; a test in `r113b_test.dart` checks it in the real fonts).
 - **The Space line (NN3, NN4) has no frame.** The review only says "the sender sees the answer". It uses the brand-soft box under Work · Chat; my own calls show for 2 hours, unanswered calls I got for 24 hours.
 - B7-tap-to-fix says "This file is too big. The most is 25 MB." without a size: the sample file is 4.8 MB, and the app quotes a number only when the phone's size is over the limit.

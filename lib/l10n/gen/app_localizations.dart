@@ -11330,6 +11330,18 @@ abstract class AppLocalizations {
   /// **'Their private folders in this Space will be deleted.'**
   String get spacesRemoveFoldersNote;
 
+  /// Review 113 (17): the Place line of a check-in filled from the nudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as last check-in'**
+  String get checkInSamePlace;
+
+  /// Review 113 (17): the server refused the same place.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t use the last check-in\'s place. Tap to set it here.'**
+  String get checkInSamePlaceRefused;
+
   /// Review 113 LB1: + menu and the sheet title.
   ///
   /// In en, this message translates to:

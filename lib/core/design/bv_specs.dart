@@ -38,6 +38,10 @@ abstract final class BvChipSpec {
   // The height holds the line (22 Latin, 26 Arabic) centred.
   static const paddingVertical = BvSpace.s4;
   static const paddingHorizontal = BvSpace.s12;
+
+  /// LB2: four choices across a phone, as the frame draws them.
+  static const paddingHorizontalTight = BvSpace.s8;
+  static const rowGapTight = BvSpace.s6;
   static const gap = BvSpace.s6;
   static const iconSize = BvSize.iconSm; // 16
   static const rowGap = BvSpace.s8;

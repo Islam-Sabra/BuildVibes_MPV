@@ -9721,6 +9721,14 @@
   "@spacesRemoveFoldersNote": {
     "description": "Review 113: Remove from Space, always (the admin cannot see them)."
   },
+  "checkInSamePlace": "Same as last check-in",
+  "@checkInSamePlace": {
+    "description": "Review 113 (17): the Place line of a check-in filled from the nudge."
+  },
+  "checkInSamePlaceRefused": "Couldn't use the last check-in's place. Tap to set it here.",
+  "@checkInSamePlaceRefused": {
+    "description": "Review 113 (17): the server refused the same place."
+  },
   "libraryNewFolder": "New folder",
   "@libraryNewFolder": {
     "description": "Review 113 LB1: + menu and the sheet title."

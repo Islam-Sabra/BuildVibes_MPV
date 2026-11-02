@@ -6875,6 +6875,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف المجلدات الخاصة لهذا الشخص في هذه المساحة.';
 
   @override
+  String get checkInSamePlace => 'نفس مكان تسجيل الحضور السابق';
+
+  @override
+  String get checkInSamePlaceRefused =>
+      'تعذّر استخدام مكان تسجيل الحضور السابق. انقر لتحديد المكان هنا.';
+
+  @override
   String get libraryNewFolder => 'مجلد جديد';
 
   @override
