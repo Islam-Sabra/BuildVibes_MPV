@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — review 111 ready on `claude/r111`, waiting for the lead's check; not merged, not live, not built
+
+- **Branch:** `claude/r111` (app, server merged in, `slice2-app` with B1 merged in). Migration `20261122120000_review111.sql`, not live. It adds the `fuzzystrmatch` extension, so live gets that too.
+- **Order:** the migration must go live before this build: the Teams read asks for `admin_id` and `admin_name`, and an older server fails the whole People load.
+- **Goldens:** 24 changed ones wait for the lead's yes, pairs in `docs/reviews/shots-111/changed/`.
+- **To remove before the store build:** `storageLogEnabled` in `lib/core/config/feature_switches.dart` and `lib/core/storage_report.dart` (review 114 B2). On for this pilot build: one start-up log of `cache/`, `files/`, `app_flutter/` and the 20 largest files, name and size only.
+
 ## PC update: 2 Nov 2026 — B1 fixed on `claude/b1`, merged into `slice2-app`; not built
 
 - **B1 (stuck in a Space):** the notification that started the app is taken once per app start (`takeLaunchTap` in `reminders.dart`), and `NeedYouHost` and `CheckInHost` open a Space with `openRoute`, so `/home` stays under it. Reproduced on the emulator with a `need_you` launch; the fix is tested with fakes only and needs a phone check in the next build.
