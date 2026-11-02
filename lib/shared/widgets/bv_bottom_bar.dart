@@ -29,8 +29,9 @@ class BvBottomBarItem {
 /// Create is an action (it opens a sheet), never a selected tab. The row
 /// follows the reading direction, so in Arabic Home sits on the right.
 ///
-/// Without [onCreate] the four tabs share the width (the Space tabs: Work,
-/// Chat, People, Library; Figma S7k).
+/// Without [onCreate] the four tabs share the width: a Space's own tabs
+/// (Work, Chat, People, Library; Figma S7k) or, with [spaceTabs] false, the
+/// app's while the feed is hidden (review 114).
 class BvBottomBar extends StatelessWidget {
   const BvBottomBar({
     super.key,
@@ -39,6 +40,7 @@ class BvBottomBar extends StatelessWidget {
     required this.onSelect,
     this.createLabel,
     this.onCreate,
+    this.spaceTabs = true,
   }) : assert(items.length == 4),
        assert((createLabel == null) == (onCreate == null));
 
@@ -49,13 +51,16 @@ class BvBottomBar extends StatelessWidget {
   final String? createLabel;
   final VoidCallback? onCreate;
 
+  /// With no [onCreate]: a Space's tabs, the chosen one orange.
+  final bool spaceTabs;
+
   @override
   Widget build(BuildContext context) {
     final half = items.length ~/ 2;
     Widget tab(int i) => _TabSlot(
       item: items[i],
       selected: i == selectedIndex,
-      space: onCreate == null,
+      space: onCreate == null && spaceTabs,
       onTap: () => onSelect(i),
     );
 

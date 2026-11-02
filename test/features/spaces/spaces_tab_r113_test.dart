@@ -105,15 +105,21 @@ void main() {
       expect(find.byType(SpacesTabScreen), findsOneWidget);
     });
 
-    testWidgets('(6) Create goes straight to "Which Space?" [$lang]', (
+    testWidgets('114: with the feed hidden, four tabs and no + [$lang]', (
       tester,
     ) async {
       await pumpApp(tester, language: lang, spaces: _spaces());
-      await tester.tap(find.byKey(const Key('nav-create')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('create-choice')), findsNothing);
-      expect(find.byKey(const Key('create-post')), findsNothing);
-      expect(find.text(l10n.createPickSpace), findsOneWidget);
+      expect(find.byKey(const Key('nav-create')), findsNothing);
+      expect(find.byKey(const Key('nav-create-button')), findsNothing);
+      expect(find.text(l10n.navCreate), findsNothing);
+      const keys = ['nav-spaces', 'nav-explore', 'nav-activity', 'nav-profile'];
+      final xs = [
+        for (final k in keys) tester.getCenter(find.byKey(Key(k))).dx,
+      ];
+      final rising = [...xs]..sort();
+      expect(xs, lang == 'ar' ? rising.reversed.toList() : rising);
+      // Still the app's own bar: the line above the chosen tab.
+      expect(find.byKey(const Key('nav-indicator')), findsOneWidget);
     });
 
     testWidgets('(6) the switch on brings Home and its feed back [$lang]', (
@@ -126,6 +132,16 @@ void main() {
       expect(find.byType(SpacesTabScreen), findsNothing);
       expect(find.byKey(const Key('home-tabs')), findsOneWidget);
       expect(find.byKey(const Key('home-search')), findsOneWidget);
+      // 114: + comes back with it, five slots as before.
+      for (final k in [
+        'nav-home',
+        'nav-explore',
+        'nav-create',
+        'nav-activity',
+        'nav-profile',
+      ]) {
+        expect(find.byKey(Key(k)), findsOneWidget);
+      }
       await tester.tap(find.byKey(const Key('nav-create')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('create-post')), findsOneWidget);
