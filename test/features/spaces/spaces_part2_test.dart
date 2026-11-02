@@ -351,7 +351,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('hold-sheet')),
-          matching: find.text(l10n.spacesRemoveBody),
+          matching: find.textContaining(l10n.spacesRemoveBody),
         ),
         findsOneWidget,
       );

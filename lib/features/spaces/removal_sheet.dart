@@ -33,6 +33,7 @@ Future<List<Handover>?> showHandoverSheet(
   /// leave.
   String? name,
   String? firstName,
+  String? foldersNote,
 }) async {
   final l10n = AppLocalizations.of(context);
   final SpacePeople people;
@@ -50,6 +51,7 @@ Future<List<Handover>?> showHandoverSheet(
       memberId: memberId,
       items: items,
       name: name == null ? null : (firstName ?? name),
+      foldersNote: foldersNote,
       onDone: (handovers) => Navigator.of(sheet).pop(handovers),
       onCancel: () => Navigator.of(sheet).pop(),
     ),
@@ -83,6 +85,7 @@ class HandoverSheet extends StatefulWidget {
     required this.onDone,
     required this.onCancel,
     this.name,
+    this.foldersNote,
   });
 
   final SpacePeople people;
@@ -92,6 +95,9 @@ class HandoverSheet extends StatefulWidget {
   /// The first name of the person removed, from their profile; null when
   /// I leave.
   final String? name;
+
+  /// Review 113: private (only-me) folders go with the person.
+  final String? foldersNote;
   final ValueChanged<List<Handover>> onDone;
   final VoidCallback onCancel;
 
@@ -153,6 +159,12 @@ class _HandoverSheetState extends State<HandoverSheet> {
           first == null ? l10n.handoverMyChecked : l10n.handoverTheirChecked,
           style: type.metadata.copyWith(color: BvColors.textSecondary),
         ),
+        if (widget.foldersNote case final note?)
+          Text(
+            note,
+            key: const Key('handover-folders-note'),
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
+          ),
         Row(
           spacing: BvSheetSpec.footerGap,
           children: [

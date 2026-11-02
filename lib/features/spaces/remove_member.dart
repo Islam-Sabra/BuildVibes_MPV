@@ -43,7 +43,9 @@ Future<bool> holdToRemove(
     final held = await showBvHoldSheet(
       context,
       title: l10n.spacesRemoveTitle(name),
-      body: l10n.spacesRemoveBody,
+      // Review 113: their only-me folders go with them; I can't see them,
+      // so the line is always there.
+      body: '${l10n.spacesRemoveBody} ${l10n.spacesRemoveFoldersNote}',
       label: l10n.holdToRemove,
       hint: l10n.holdKeepHolding,
       icon: BvIcons.close,
@@ -59,6 +61,7 @@ Future<bool> holdToRemove(
       items: open,
       name: member.person.fullName,
       firstName: member.person.firstName,
+      foldersNote: l10n.spacesRemoveFoldersNote,
     );
     if (given == null || !context.mounted) return false;
     handovers = given;
