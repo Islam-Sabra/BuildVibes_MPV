@@ -55,7 +55,8 @@
     "need_you_answer_coming": "{name}: On my way",
     "need_you_answer_cant": "{name}: Can't now",
     "need_you_answer_hidden_coming": "Answer to your call: On my way",
-    "need_you_answer_hidden_cant": "Answer to your call: Can't now"
+    "need_you_answer_hidden_cant": "Answer to your call: Can't now",
+    "scheduled_expiring": "Your scheduled post will be cancelled tomorrow"
   },
   "ar": {
     "title": "BuildVibes",
@@ -113,6 +114,7 @@
     "need_you_answer_coming": "{name}: في الطريق",
     "need_you_answer_cant": "{name}: لا أستطيع الآن",
     "need_you_answer_hidden_coming": "ردّ على طلبك: في الطريق",
-    "need_you_answer_hidden_cant": "ردّ على طلبك: لا أستطيع الآن"
+    "need_you_answer_hidden_cant": "ردّ على طلبك: لا أستطيع الآن",
+    "scheduled_expiring": "سيُلغى منشورك المجدول غدًا"
   }
 }

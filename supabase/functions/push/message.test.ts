@@ -32,6 +32,7 @@ test("every kind has its text in English and Arabic", () => {
     "dm_message", "dm_request", "dm_follow_up",
     "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
     "post_reaction", "work_item_archived", "check_in_nudge", "need_you", "need_you_answer",
+    "scheduled_expiring",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -572,4 +573,18 @@ test("review 113 NN2: the answer goes back to the caller; the name only with tex
   const m = fcmMessage("tok", p) as AnyFcm;
   assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
   assert.equal(m.apns, undefined);
+});
+
+test("the lead, 2 Nov: a failed Post later is cancelled tomorrow; it opens Scheduled", () => {
+  const off = row("scheduled_expiring", { actor_id: null, data: { scheduled_id: "x1" } });
+  const p = buildPush(off, "en", null, strings);
+  assert.equal(p.title, "BuildVibes");
+  assert.equal(p.body, "Your scheduled post will be cancelled tomorrow");
+  assert.equal(p.data.route, "/scheduled-posts");
+  assert.equal(buildPush(off, "ar", null, strings).body, "سيُلغى منشورك المجدول غدًا");
+  const on = buildPush(row("scheduled_expiring", {
+    actor_id: null, data: { scheduled_id: "x1", title: "Pour notice" },
+  }), "en", null, strings);
+  assert.equal(on.title, "⁨Pour notice⁩");
+  assert.equal(on.body, "Your scheduled post will be cancelled tomorrow");
 });

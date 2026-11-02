@@ -51,6 +51,8 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
       return { route: `/posts/${d.post_id}` };
     // Review 108: a scheduled post that couldn't go opens Scheduled.
     case "scheduled_failed":
+    // The lead, 2 Nov: a failed one is cancelled tomorrow.
+    case "scheduled_expiring":
       return { route: "/scheduled-posts" };
     // Review 109: a check-in opens its card.
     case "check_in_open":
@@ -115,6 +117,11 @@ export function buildPush(
   if (row.kind === "check_in_nudge") return nudgePush(row, t, data);
   if (row.kind === "need_you") return needYouPush(row, t, data);
   if (row.kind === "need_you_answer") return needYouAnswerPush(row, t, data);
+  if (row.kind === "scheduled_expiring") {
+    // Its title only with lock-screen text on (the queue then holds it).
+    const title = row.data?.title?.trim();
+    return { title: title ? isolate(title) : t.title, body: t.scheduled_expiring, data };
+  }
   if (row.kind === "scheduled_failed") {
     const reason = t[`scheduled_reason_${row.data?.reason}`] ?? t.scheduled_reason_other;
     return { title: t.title, body: t.scheduled_failed.replaceAll("{reason}", reason), data };
