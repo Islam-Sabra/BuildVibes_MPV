@@ -903,6 +903,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checks: analyze clean; 3,252 app tests; 3,808 SQL checks; shots 566 pass, 44 expected, in `docs/reviews/shots-109b/`.
 - **1 Nov (PC): review 109 accepted and live:** Z1; goldens; merged into `slice2-app` (47d3a62f); migration 20261120120000 live; `push` and `check-in-report` deployed; the report secret set; the check-in cron running; build 919 on the founder's phone. The phone check (one notification; Check in from it reads the location on Android 14) waits for the test Lead account.
   - Checks: analyze clean; 3,252 app tests; 610 shots, all pass; 3,811 SQL checks.
+- **2 Nov (PC): review 113 on `claude/r113`**, for the lead; nothing merged, live, deployed or built:
+  - The feed hidden, the Spaces tab, Work first, React · Share, hold Delete / Archive, the new composer with voice notes, the check-in nudge, Need you now, Library folders and Link folder, bug 7, the `space-files` sweep. Migration 20261121120000 (not live).
+  - Checks: analyze clean; 3,436 app tests; 59 files, 4,130 checks, PASS; shots 314 pass, 348 expected, in `docs/reviews/shots-113/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

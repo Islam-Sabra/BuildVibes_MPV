@@ -2,6 +2,34 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — review 113 built on `claude/r113` (pushed); stopped for the lead: no merge, no database push, no deploy, no build
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branches:** `claude/r113` (part A, worktree `BuildVibes-r113`), with `claude/r113-b` (part B, `BuildVibes-r113b`) and `claude/r113-server` (`BuildVibes-r113s`) merged into it. All from `slice2-app` f5477b58, all pushed. Test first; EN and AR for the app.
+- **Server** (migration `20261121120000_review113.sql`, **not live**; pgTAP 60, 319 checks):
+  - reactions (`react_to_post`; Viewers may react; none on a Check-in; grouped push on the low-importance `reactions` channel);
+  - hold (`hold` on the card; `post_has_action`; delete refused 22023 'someone has acted on it'; archiving an open work item stops it and pushes its owner once; the author can undo their own Archive);
+  - the check-in nudge (`check_in_nudge`, ignores the Space's mute; `post_check_in(…, p_same_place_as)` copies the site on the server and never exposes it);
+  - Need you now (`send_need_you`, `answer_need_you`, `my_need_you_calls`; not Viewers, not across a block, 3 an hour, the lock-screen rule, the strong channel, option C);
+  - Library folders and link folders (`library_folders`, `can_read_library_folder`; only-me folders and their files are deleted when the owner leaves or is removed, never the admin's; person folders pass to the admin);
+  - voice notes on posts (`.m4a`, `duration_ms` 1–600000, one per post, card `voice`);
+  - the `space-files` sweep in `notebook-purge`: nothing referenced anywhere (including a Post later waiting or failed), 7-day grace, the private queue first, `may_read_file` refuses an orphan, counts only in the logs; soft-deleted Library files purged after 30 days (superseded revisions stay); a failed Post later warned on day 29 and cancelled on day 30 (`expire_failed_posts`, job in `reminders_post_later_cron.sql`, written, not run).
+- **App** (part A): the feed behind `feedEnabled = false` (`lib/core/config/feature_switches.dart`), the app opens on Spaces, the notebook share without Feed; the Spaces tab; Work first and the last tab per Space; React · Share on cards; hold Delete / Archive / Stop, Duplicate gone; the composer: Discard, Type · For · Team pinned, + · camera · mic · Send, voice notes, the long-press and "/" menu.
+- **App** (part B): Need you now (sheet, notification with On my way · Can't now, the sender's line); the nudge opens a filled draft with "Same as last check-in ✓"; Library folders and Link folder; bug 7 (size and type before upload, plain lines, Tap to fix with Try again / Remove); the Leave and Remove lines about private folders; `scheduled_expiring` opens Scheduled.
+- **Shots:** `docs/reviews/shots-113/` (38 new screens EN and AR; 154 changed screens as 308 old/new pairs; README). Re-rendered on the merged branch.
+- **For the lead's check:** the Need you now line under Work · Chat has no frame (NN3, NN4). Check-in has four pinned lines. Long-press items sit under the phone's ⋮ overflow, and CV3_long_press's labels draw as blocks in the shot renderer (a phone check). A Space row says "new today", not "2 new today" (no count on the server). Part A's sample look covered the largest diff in each folder, not all 308 pairs.
+- **Only fakes so far:** nothing has run on a phone or against real storage. To check on a phone: voice notes up and playing; Android's On my way / Can't now without opening the app (MIUI may keep the buttons away, as with check-in); the Reactions channel made on a real phone; the Storage API delete in the sweep.
+- **Checks on `claude/r113`:**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 3,436 pass.
+  - `flutter test test_screens`, not updating: 314 pass, 348 fail, all expected: 52 are r113's new shots with no golden yet, 296 are image differences only (the 308 pairs in shots-113/changed).
+  - `supabase db reset --local`: all migrations apply, through 20261121120000.
+  - `supabase test db`: 59 files, 4,130 checks, PASS.
+  - Function tests (server agent): push, account-purge and notebook-purge 45 of 45; `deno check` clean on `notebook-purge` and `push`.
+- **Deploy order, later, with the founder's yes (the lead's):** goldens; merge into `slice2-app`; migration 20261121120000 live; then read-only `select count(*) from public.orphan_space_files()` and `select count(*) from public.library_files where deleted_at <= now() - interval '30 days' and private_gone_at is null`, and report both; time a run and set `NIGHTLY_CAP` in `supabase/functions/notebook-purge/plan.ts` to what fits the cron's 60 seconds, not 1,000 blind; only then deploy `notebook-purge` (it is live on cron at 03:15 UTC, so the sweep starts at once); deploy `push`; run the schedules added to `check_in_cron.sql` and `reminders_post_later_cron.sql`; a build.
+- **Who has which branch:** PC has `claude/r113`, `claude/r113-b` and `claude/r113-server` (both merged into it) and `slice2-app`.
+
 ## PC update: 1 Nov 2026 — review 109 accepted and live: Z1, goldens, merged into `slice2-app`, migration 20261120120000 live, functions deployed, cron running, build 919 on the founder's phone; the phone check waits
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
