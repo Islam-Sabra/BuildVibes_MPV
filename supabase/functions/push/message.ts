@@ -255,7 +255,7 @@ function reactionPush(
   data: Record<string, string>,
 ): Push {
   const d = row.data ?? {};
-  const out = { ...data, kind: row.kind };
+  const out: Record<string, string> = { ...data, kind: row.kind };
   if (d.kind) out.reaction = String(d.kind);
   const sentence = t.post_reaction.replaceAll("{name}", name);
   const tag = `reaction:${d.post_id}`;
