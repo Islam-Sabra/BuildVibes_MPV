@@ -14,11 +14,12 @@
 //    delete stored files).
 // 3. forget_cleanup_claims() lets go of the claims whose files are gone; a
 //    file that couldn't be deleted waits for the next night.
-// 4. Review 113: the space-files step (plan.ts): a deleted private folder's
-//    files first, then the sweep of files nothing references, 7 days old.
+// 4. Review 113: the space-files step (plan.ts): Library files deleted 30
+//    days ago, the queue of files gone for good, then the sweep of files
+//    nothing references, 7 days old. NIGHTLY_CAP (plan.ts) is its limit.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { summary, sweepSpaceFiles } from "./plan.ts";
+import { NIGHTLY_CAP, summary, sweepSpaceFiles } from "./plan.ts";
 
 const db = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -67,8 +68,13 @@ Deno.serve(async (req) => {
     if (r) filesLeft += Math.min(1000, names.length - i);
   }
   const sweep = await sweepSpaceFiles({
-    claimPrivate: () => claimed("claim_private_file_purges", { p_limit: 1000 }),
-    claimOrphans: () => claimed("claim_orphan_files", { p_age: "7 days", p_limit: 1000 }),
+    purgeDeleted: async () => {
+      const { data, error } = await db.rpc("purge_deleted_library_files", { p_limit: NIGHTLY_CAP });
+      if (error) throw new Error("purge failed");
+      return (data ?? 0) as number;
+    },
+    claimPrivate: () => claimed("claim_private_file_purges", { p_limit: NIGHTLY_CAP }),
+    claimOrphans: () => claimed("claim_orphan_files", { p_age: "7 days", p_limit: NIGHTLY_CAP }),
     remove: async (paths) => !(await db.storage.from(spaceBucket).remove(paths)).error,
     forget: async () => {
       await db.rpc("forget_cleanup_claims");
