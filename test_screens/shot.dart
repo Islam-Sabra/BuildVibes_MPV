@@ -5,6 +5,7 @@
 // or a later slice's folder ([shoot]'s folder).
 import 'dart:async';
 
+import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/core/config/feature_switches.dart';
 import 'package:buildvibes/core/theme/bv_theme.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -123,6 +124,8 @@ Future<void> shoot(
                   // These frames show the app with its feed (review 113:
                   // behind the switch); r113_test shows it hidden.
                   feedEnabledProvider.overrideWithValue(true),
+                  // The samples' files are named, not on this disk (Z13).
+                  localFileThereProvider.overrideWithValue((_) => true),
                   ...overrides,
                 ],
                 child: app,
