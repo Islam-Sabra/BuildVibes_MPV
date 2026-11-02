@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(183);
+select plan(194);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -851,6 +851,60 @@ select throws_ok($$select public.delete_library_folder(pg_temp.id('f004'))$$, '2
 select lives_ok($$select public.delete_library_folder(pg_temp.id('f008'))$$, 'an empty one goes');
 reset role;
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f008')), 0, 'gone');
+
+-- When a folder's creator leaves or is removed (the lead, 2 Nov): "only me"
+-- folders go with their files, never opened to the admin; a person's
+-- folder passes to the Space admin.
+select pg_temp.as_user('d4');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f009'), pg_temp.sp(), 'Lina private', 'only_me');
+select public.create_library_folder(pg_temp.id('f00a'), pg_temp.sp(), 'For Rakesh from Lina', 'person',
+  pg_temp.uid('b2'));
+reset role;
+select pg_temp.as_user('b9');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f00b'), pg_temp.sp(), 'Bilal private', 'only_me');
+reset role;
+insert into storage.objects (bucket_id, name, owner_id, metadata, created_at)
+select 'space-files', pg_temp.sp()::text || '/library/' || pg_temp.id(x.f)::text || '/x.pdf',
+       pg_temp.uid(x.who)::text, '{"size": 1000, "mimetype": "application/pdf"}', now() - interval '8 days'
+from (values ('f106', 'd4'), ('f107', 'd4'), ('f108', 'b9')) x(f, who);
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select pg_temp.id(x.f), pg_temp.sp(), 'x.pdf',
+       pg_temp.sp()::text || '/library/' || pg_temp.id(x.f)::text || '/x.pdf',
+       'application/pdf', pg_temp.uid(x.who), pg_temp.id(x.d)
+from (values ('f106', 'd4', 'f009'), ('f107', 'd4', 'f00a'), ('f108', 'b9', 'f00b')) x(f, who, d);
+select is(pg_temp.seers('library_folders', pg_temp.id('f009')), array['d4'],
+  'the admin never reads an only-me folder');
+select is(pg_temp.seers('library_files', pg_temp.id('f106')), array['d4'], 'nor its file');
+
+select pg_temp.as_user('d4');
+set local role authenticated;
+select public.leave_space(pg_temp.sp());
+reset role;
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f009')), 0,
+  'its creator leaves: the only-me folder is deleted');
+select is((select count(*)::int from public.library_files where id = pg_temp.id('f106')), 0,
+  'with its files');
+select ok(not public.is_referenced_file(pg_temp.sp()::text || '/library/' || pg_temp.id('f106')::text || '/x.pdf'),
+  'its stored file is referenced by nothing now');
+select ok(exists (select 1 from public.claim_orphan_files(interval '1 day') c
+                  where c.name = pg_temp.sp()::text || '/library/' || pg_temp.id('f106')::text || '/x.pdf'),
+  'so the cleanup job claims it for deletion from storage');
+select is(pg_temp.seers('library_folders', pg_temp.id('f00a')), array['a1', 'b2'],
+  'a person''s folder passes to the Space admin (and stays with that person)');
+select is(pg_temp.seers('library_files', pg_temp.id('f107')), array['a1', 'b2'], 'with its file');
+
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.remove_member(pg_temp.sp(), pg_temp.uid('b9'));
+reset role;
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00b')), 0,
+  'removed from the Space: the only-me folder is deleted');
+select is((select count(*)::int from public.library_files where id = pg_temp.id('f108')), 0,
+  'with its files');
+select is((select count(*)::int from public.library_folders where id = pg_temp.id('f001')), 1,
+  'others'' only-me folders stay');
 
 select * from finish();
 rollback;

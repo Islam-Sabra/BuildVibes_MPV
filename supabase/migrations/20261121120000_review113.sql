@@ -949,8 +949,9 @@ create index library_files_folder_idx on public.library_files (folder_id) where 
 -- Who reads [p_folder], an active member of its Space: only me, its
 -- creator; a person, the creator and that person; a Team, the creator, its
 -- members and the Space admin; the whole Space, every member. Once the
--- creator has left (or is gone), the Space admin reads an only-me or a
--- person's folder too, so its files are never lost (as check-in reports).
+-- creator has left (or is gone), the Space admin reads a person's folder
+-- too, so its files are never lost. An only-me folder is never the
+-- admin's: it goes when its creator leaves (drop_only_me_folders).
 create or replace function public.can_read_library_folder(p_folder uuid)
 returns boolean
 language sql
@@ -969,11 +970,67 @@ as $$
                                     where m.team_id = f.share_team and m.profile_id = auth.uid())
         else false
       end
-      or (public.is_space_admin(f.space_id)
+      or (f.share = 'person' and public.is_space_admin(f.space_id)
           and (f.created_by is null or not public.is_active_member(f.space_id, f.created_by)
                or public.is_hidden_account(f.created_by))))
     from public.library_folders f where f.id = p_folder), false);
 $$;
+
+-- The lead (2 Nov): [p_profile]'s only-me folders in [p_space] go when they
+-- leave or are removed (and any whose creator is gone), with their files'
+-- Library rows. The stored objects are then referenced by nothing, so the
+-- space-files cleanup (claim_orphan_files, then the Storage API) deletes
+-- them. A file a post still carries (space_posts.library_file_id) can't
+-- lose its row: it is deleted (deleted_at, read by nobody) and leaves the
+-- folder.
+create or replace function public.drop_only_me_folders(p_space uuid, p_profile uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_folders uuid[];
+begin
+  v_folders := array(select f.id from public.library_folders f
+                     where f.space_id = p_space and f.share = 'only_me'
+                       and (f.created_by = p_profile or f.created_by is null)
+                     for update);
+  if cardinality(v_folders) = 0 then
+    return;
+  end if;
+  update public.library_files f
+  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null
+  where f.folder_id = any (v_folders)
+    and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id);
+  delete from public.library_files f where f.folder_id = any (v_folders);
+  delete from public.library_folders f where f.id = any (v_folders);
+end;
+$$;
+
+create or replace function public.handle_member_gone_folders()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' then
+    if old.left_at is null then
+      perform public.drop_only_me_folders(old.space_id, old.profile_id);
+    end if;
+    return old;
+  end if;
+  if old.left_at is null and new.left_at is not null then
+    perform public.drop_only_me_folders(new.space_id, new.profile_id);
+  end if;
+  return new;
+end;
+$$;
+
+create trigger space_members_only_me_folders
+  after update of left_at or delete on public.space_members
+  for each row execute function public.handle_member_gone_folders();
 
 alter table public.library_folders enable row level security;
 create policy library_folders_read on public.library_folders
@@ -1526,6 +1583,8 @@ revoke all on function public.my_need_you_calls(uuid) from public, anon;
 revoke all on function public.can_read_library_folder(uuid) from public, anon;
 revoke all on function public.can_read_library_file(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
+revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.handle_member_gone_folders() from public, anon, authenticated;
 revoke all on function public.library_folder_check(uuid, text, text, uuid, uuid) from public, anon, authenticated;
 revoke all on function public.create_library_folder(uuid, uuid, text, text, uuid, uuid, text) from public, anon;
 revoke all on function public.update_library_folder(uuid, text, text, uuid, uuid) from public, anon;
