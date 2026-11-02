@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(234);
+select plan(268);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1096,6 +1096,162 @@ select ok((select private_gone_at is not null from public.library_files where id
   'the row its post needs stays, gone');
 select ok(exists (select 1 from public.claim_private_file_purges() c where c.name = pg_temp.path('f10d')),
   'and its object is claimed, so it actually goes');
+
+-- A failed Post later nobody retries or cancels (the lead, 2 Nov) -------------------------------------
+
+create function pg_temp.sched(p text, p_who text, p_file text) returns void language sql as $$
+  insert into public.scheduled_posts (id, author_id, fn, params, title, publish_at, state, error)
+  values (pg_temp.id(p), pg_temp.uid(p_who), 'create_space_post',
+          jsonb_build_object('p_id', pg_temp.id(p),
+                             'p_files', jsonb_build_array(jsonb_build_object('path', pg_temp.path(p_file)))),
+          'Pour notice', now() - interval '40 days', 'failed', 'other');
+$$;
+create function pg_temp.sched_pushes(p text) returns integer language sql as $$
+  select count(*)::int from public.push_queue
+  where kind = 'scheduled_expiring' and data ->> 'scheduled_id' = pg_temp.id(p)::text;
+$$;
+create function pg_temp.sched_state(p text) returns text language sql as $$
+  select state from public.scheduled_posts where id = pg_temp.id(p);
+$$;
+
+select ok(not has_function_privilege('authenticated', 'public.expire_failed_posts(timestamptz)', 'execute')
+          and has_function_privilege('service_role', 'public.expire_failed_posts(timestamptz)', 'execute'),
+  'the expiry is the cron job''s');
+select pg_temp.obj('f401', 'a1', interval '8 days');
+select pg_temp.sched('fe10', 'a1', 'f401');
+select ok((select failed_at is not null from public.scheduled_posts where id = pg_temp.id('fe10')) is false,
+  'inserted failed by hand: the state never changed');
+update public.scheduled_posts set state = 'failed' where id = pg_temp.id('fe10');
+select ok((select failed_at is not null from public.scheduled_posts where id = pg_temp.id('fe10')),
+  'failing starts the 30 days');
+
+update public.scheduled_posts set failed_at = now() - interval '29 days' + interval '1 minute'
+where id = pg_temp.id('fe10');
+select public.expire_failed_posts();
+select is(pg_temp.sched_pushes('fe10'), 0, 'no push before the day before');
+update public.scheduled_posts set failed_at = now() - interval '29 days' where id = pg_temp.id('fe10');
+select public.expire_failed_posts();
+select is(pg_temp.sched_pushes('fe10'), 1, 'one push the day before');
+select public.expire_failed_posts();
+select is(pg_temp.sched_pushes('fe10'), 1, 'once');
+select is((select data from public.push_queue where kind = 'scheduled_expiring'
+           and data ->> 'scheduled_id' = pg_temp.id('fe10')::text),
+  jsonb_build_object('scheduled_id', pg_temp.id('fe10')), 'lock-screen text off: no title');
+select is(pg_temp.sched_state('fe10'), 'failed', 'still failed after the push');
+select ok(not pg_temp.orphan('f401'), 'and its files are still held');
+-- Not before day 30.
+update public.scheduled_posts set failed_at = now() - interval '30 days' + interval '1 minute',
+                                  expiry_warned_at = now() - interval '2 days'
+where id = pg_temp.id('fe10');
+select public.expire_failed_posts();
+select is(pg_temp.sched_state('fe10'), 'failed', 'a minute before day 30 it stays');
+-- Never cancelled without a full day's warning, even if the job was down.
+update public.scheduled_posts set failed_at = now() - interval '40 days', expiry_warned_at = now()
+where id = pg_temp.id('fe10');
+select public.expire_failed_posts();
+select is(pg_temp.sched_state('fe10'), 'failed', 'warned just now: a day''s notice first');
+update public.scheduled_posts set failed_at = now() - interval '30 days',
+                                  expiry_warned_at = now() - interval '1 day'
+where id = pg_temp.id('fe10');
+select public.expire_failed_posts();
+select is(pg_temp.sched_state('fe10'), 'cancelled', 'day 30: cancelled');
+select is(pg_temp.sched_pushes('fe10'), 1, 'no second push');
+select ok(pg_temp.orphan('f401'), 'and its files are freed');
+
+-- Lock-screen text on (Rakesh).
+select pg_temp.obj('f402', 'b2', interval '8 days');
+select pg_temp.sched('fe11', 'b2', 'f402');
+update public.scheduled_posts set state = 'failed' where id = pg_temp.id('fe11');
+update public.scheduled_posts set failed_at = now() - interval '29 days' where id = pg_temp.id('fe11');
+select public.expire_failed_posts();
+select is((select data ->> 'title' from public.push_queue where kind = 'scheduled_expiring'
+           and data ->> 'scheduled_id' = pg_temp.id('fe11')::text), 'Pour notice',
+  'lock-screen text on: its title');
+
+-- A retry that fails again starts the 30 days over.
+update public.scheduled_posts set state = 'failed', error = 'other' where id = pg_temp.id('fe11');
+select ok((select failed_at > now() - interval '1 minute' and expiry_warned_at is null
+           from public.scheduled_posts where id = pg_temp.id('fe11')), 'a failed retry starts over');
+-- A cancel stops both.
+select pg_temp.obj('f403', 'a1', interval '8 days');
+select pg_temp.sched('fe12', 'a1', 'f403');
+update public.scheduled_posts set state = 'failed' where id = pg_temp.id('fe12');
+update public.scheduled_posts set state = 'cancelled' where id = pg_temp.id('fe12');
+select public.expire_failed_posts();
+select is(pg_temp.sched_pushes('fe12'), 0, 'cancelled by hand: no push');
+-- A retry that posts stops both.
+select pg_temp.obj('f404', 'a1', interval '8 days');
+select pg_temp.sched('fe13', 'a1', 'f404');
+update public.scheduled_posts set state = 'failed' where id = pg_temp.id('fe13');
+update public.scheduled_posts set failed_at = now() - interval '31 days',
+                                  expiry_warned_at = now() - interval '2 days'
+where id = pg_temp.id('fe13');
+update public.scheduled_posts set state = 'posted', error = null, posted_at = now()
+where id = pg_temp.id('fe13');
+select public.expire_failed_posts();
+select is(pg_temp.sched_state('fe13'), 'posted', 'a retry that posted stays posted');
+
+-- Soft-deleted Library files go 30 days after deletion (the lead, 2 Nov) ------------------------------
+
+create function pg_temp.file_row(p text, p_deleted interval, p_supersedes text default null)
+returns void language sql as $$
+  insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, deleted_at, supersedes_id)
+  values (pg_temp.id(p), pg_temp.sp(), 'x.jpg', pg_temp.path(p), 'image/jpeg', pg_temp.uid('a1'),
+          now() - p_deleted, case when p_supersedes is not null then pg_temp.id(p_supersedes) end);
+$$;
+create function pg_temp.queued(p text) returns integer language sql as $$
+  select count(*)::int from public.private_file_purges where storage_path = pg_temp.path(p);
+$$;
+create function pg_temp.file_rows(p text) returns integer language sql as $$
+  select count(*)::int from public.library_files where id = pg_temp.id(p);
+$$;
+
+select ok(not has_function_privilege('authenticated', 'public.purge_deleted_library_files(timestamptz, integer)', 'execute')
+          and has_function_privilege('service_role', 'public.purge_deleted_library_files(timestamptz, integer)', 'execute'),
+  'the Library purge is the job''s');
+select pg_temp.obj(x.f, 'a1', interval '0')
+from (values ('f411'), ('f412'), ('f413'), ('f414'), ('f415'), ('f416'), ('f417')) x(f);
+select pg_temp.file_row('f411', interval '30 days' - interval '1 minute');
+select pg_temp.file_row('f412', interval '31 days');
+-- f413, in use, with a deleted newer version f414.
+select pg_temp.file_row('f413', interval '0');
+update public.library_files set deleted_at = null where id = pg_temp.id('f413');
+select pg_temp.file_row('f414', interval '31 days', 'f413');
+-- f415 deleted long ago, but a superseded revision of the live f416.
+select pg_temp.file_row('f415', interval '31 days');
+select pg_temp.file_row('f416', interval '0', 'f415');
+update public.library_files set deleted_at = null where id = pg_temp.id('f416');
+-- f417 on a post.
+select pg_temp.file_row('f417', interval '31 days');
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.create_space_post(pg_temp.id('a005'), pg_temp.sp(), 'announcement', 'A file post');
+reset role;
+update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f417') where id = pg_temp.id('a005');
+
+select is(public.purge_deleted_library_files(), 3, 'three purged');
+select is(pg_temp.file_rows('f411'), 1, 'not before day 30');
+select is(pg_temp.queued('f411'), 0, 'nor its object');
+select is(pg_temp.file_rows('f412'), 0, 'day 30: the row goes');
+select is(pg_temp.queued('f412'), 1, 'and its object waits for the job, with no grace period');
+select is(pg_temp.file_rows('f414'), 0, 'a deleted newer version goes');
+select is((select deleted_at from public.library_files where id = pg_temp.id('f413')), null,
+  'the revision it superseded is untouched');
+select ok(public.is_referenced_file(pg_temp.path('f413')), 'and keeps its object');
+select is(pg_temp.file_rows('f415'), 1, 'a superseded revision stays as it is, deleted or not');
+select is(pg_temp.queued('f415'), 0, 'with its object');
+select ok((select private_gone_at is not null from public.library_files where id = pg_temp.id('f417')),
+  'a row a post points at stays, gone');
+select is(pg_temp.queued('f417'), 1, 'but its object goes');
+select is((select count(*)::int from public.space_posts where id = pg_temp.id('a005') and deleted_at is null), 1,
+  'the post stays');
+set local role service_role;
+select is((select array_agg(c.name order by c.name) from public.claim_private_file_purges() c
+           where c.name in (pg_temp.path('f412'), pg_temp.path('f417'))),
+  (select array_agg(p order by p) from unnest(array[pg_temp.path('f412'), pg_temp.path('f417')]) p),
+  'the job gets both objects');
+reset role;
+select is(public.purge_deleted_library_files(), 0, 'a second run has nothing to do');
 
 select * from finish();
 rollback;

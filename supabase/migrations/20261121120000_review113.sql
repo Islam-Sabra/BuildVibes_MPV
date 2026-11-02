@@ -946,12 +946,13 @@ alter table public.library_files add constraint library_files_folder_id_check
   check (folder_id is null or source <> 'check_in_report');
 create index library_files_folder_idx on public.library_files (folder_id) where folder_id is not null;
 
--- A file of a deleted private folder that a post still carries: its row
--- stays for the post's foreign key, and references its object no more.
+-- A file gone for good (a deleted private folder's, or a Library file 30
+-- days after its deletion) that a post still carries: its row stays for the
+-- post's foreign key, and references its object no more.
 alter table public.library_files add column private_gone_at timestamptz;
 
--- Paths of a deleted private folder's files, for the purge job to delete
--- from storage at once. Service role only.
+-- Paths of files gone for good (see library_gone), for the purge job to
+-- delete from storage at once. Service role only.
 create table public.private_file_purges (
   storage_path text primary key,
   queued_at timestamptz not null default now()
@@ -990,13 +991,43 @@ as $$
     from public.library_folders f where f.id = p_folder), false);
 $$;
 
--- The lead (2 Nov): [p_profile]'s only-me folders in [p_space] go when they
--- leave or are removed (and any whose creator is gone), with their files'
--- Library rows. Their paths go in private_file_purges, for the purge job to
--- delete at once, with no grace period. A file a post still carries
+-- Library files [p_ids] go for good. Their paths (and a model view's
+-- thumb) go in private_file_purges, for the purge job to delete at once,
+-- with no grace period. A file a post still carries
 -- (space_posts.library_file_id) can't lose its row: it stays as deleted and
 -- private_gone_at, read by nobody and referencing its object no more, and
 -- the post's links to it go.
+create or replace function public.library_gone(p_ids uuid[])
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_kept uuid[];
+begin
+  insert into public.private_file_purges (storage_path)
+  select f.storage_path from public.library_files f where f.id = any (p_ids)
+  union
+  select mv.thumb_path from public.model_views mv where mv.library_file_id = any (p_ids)
+  on conflict do nothing;
+  v_kept := array(select f.id from public.library_files f
+                  where f.id = any (p_ids)
+                    and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id));
+  update public.library_files f
+  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, private_gone_at = now()
+  where f.id = any (v_kept);
+  delete from public.post_files f where f.library_file_id = any (v_kept);
+  delete from public.work_item_attachments a where a.library_file_id = any (v_kept);
+  delete from public.model_views mv where mv.library_file_id = any (v_kept);
+  -- A check-in report's job would hold the path for ever.
+  delete from public.check_in_reports r where r.library_file_id = any (p_ids);
+  delete from public.library_files f where f.id = any (p_ids) and not (f.id = any (v_kept));
+end;
+$$;
+
+-- The lead (2 Nov): [p_profile]'s only-me folders in [p_space] go when they
+-- leave or are removed (and any whose creator is gone), with their files.
 create or replace function public.drop_only_me_folders(p_space uuid, p_profile uuid)
 returns void
 language plpgsql
@@ -1005,7 +1036,6 @@ set search_path = ''
 as $$
 declare
   v_folders uuid[];
-  v_kept uuid[];
 begin
   v_folders := array(select f.id from public.library_folders f
                      where f.space_id = p_space and f.share = 'only_me'
@@ -1014,18 +1044,8 @@ begin
   if cardinality(v_folders) = 0 then
     return;
   end if;
-  insert into public.private_file_purges (storage_path)
-  select f.storage_path from public.library_files f where f.folder_id = any (v_folders)
-  on conflict do nothing;
-  v_kept := array(select f.id from public.library_files f
-                  where f.folder_id = any (v_folders)
-                    and exists (select 1 from public.space_posts sp where sp.library_file_id = f.id));
-  update public.library_files f
-  set deleted_at = coalesce(f.deleted_at, now()), folder_id = null, private_gone_at = now()
-  where f.id = any (v_kept);
-  delete from public.post_files f where f.library_file_id = any (v_kept);
-  delete from public.work_item_attachments a where a.library_file_id = any (v_kept);
-  delete from public.library_files f where f.folder_id = any (v_folders);
+  perform public.library_gone(array(select f.id from public.library_files f
+                                    where f.folder_id = any (v_folders)));
   delete from public.library_folders f where f.id = any (v_folders);
 end;
 $$;
@@ -1520,6 +1540,103 @@ begin
 end;
 $do$;
 
+-- The lead (2 Nov): a Library file goes for good 30 days after its deletion,
+-- row and stored file. A superseded revision stays as it is, deleted or
+-- not: only the newest of a chain goes, so an older deleted one follows on
+-- a later night. Run by notebook-purge, before its queue. Returns how many.
+create or replace function public.purge_deleted_library_files(
+  p_now timestamptz default now(),
+  p_limit integer default 1000
+)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_ids uuid[];
+begin
+  v_ids := array(select f.id from public.library_files f
+                 where f.deleted_at <= p_now - interval '30 days'
+                   and f.private_gone_at is null
+                   and not exists (select 1 from public.library_files n
+                                   where n.supersedes_id = f.id)
+                 order by f.deleted_at, f.id
+                 limit greatest(p_limit, 0));
+  perform public.library_gone(v_ids);
+  return cardinality(v_ids);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- A failed Post later nobody retries or cancels (the lead, 2 Nov)
+-- ---------------------------------------------------------------------------
+
+alter table public.scheduled_posts
+  add column failed_at timestamptz,
+  add column expiry_warned_at timestamptz;
+-- Those failed already get their 30 days from now.
+update public.scheduled_posts set failed_at = now() where state = 'failed';
+
+-- Each failure (a retry that fails again too) starts the 30 days over; any
+-- other state ends them.
+create or replace function public.scheduled_failed_clock()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.failed_at := case when new.state = 'failed' then now() end;
+  new.expiry_warned_at := null;
+  return new;
+end;
+$$;
+
+create trigger scheduled_posts_failed_clock
+  before update of state on public.scheduled_posts
+  for each row execute function public.scheduled_failed_clock();
+
+-- At [p_now] (hourly): 29 days after it failed, one push to its author; at
+-- 30 days, and at least a day after that push, it is cancelled, so its
+-- files are free. Returns the pushes and cancels done.
+create or replace function public.expire_failed_posts(p_now timestamptz default now())
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_cancelled integer;
+  v_warned integer;
+begin
+  update public.scheduled_posts s set state = 'cancelled'
+  where s.state = 'failed' and s.failed_at <= p_now - interval '30 days'
+    and s.expiry_warned_at <= p_now - interval '1 day';
+  get diagnostics v_cancelled = row_count;
+  with due as (
+    update public.scheduled_posts s set expiry_warned_at = p_now
+    where s.state = 'failed' and s.failed_at <= p_now - interval '29 days'
+      and s.expiry_warned_at is null
+    returning s.id, s.author_id, s.title
+  ),
+  sent as (
+    insert into public.push_queue (profile_id, kind, data)
+    select d.author_id, 'scheduled_expiring',
+           jsonb_build_object('scheduled_id', d.id)
+           || case when public.check_in_shows_text(d.author_id)
+                   then jsonb_build_object('title', d.title) else '{}'::jsonb end
+    from due d
+    where exists (select 1 from public.push_tokens t where t.profile_id = d.author_id)
+    returning 1
+  )
+  select (select count(*) from due) into v_warned;
+  return v_cancelled + v_warned;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Push kinds
 -- ---------------------------------------------------------------------------
@@ -1534,7 +1651,8 @@ alter table public.push_queue add constraint push_queue_kind_check check (kind i
   'dm_message', 'dm_request', 'dm_follow_up',
   'work_reminder', 'scheduled_failed',
   'check_in_open', 'check_in_summary',
-  'post_reaction', 'work_item_archived', 'check_in_nudge', 'need_you', 'need_you_answer'));
+  'post_reaction', 'work_item_archived', 'check_in_nudge', 'need_you', 'need_you_answer',
+  'scheduled_expiring'));
 
 -- ---------------------------------------------------------------------------
 -- My data: export_my_data (migration 59), as it was, and my reactions, my
@@ -1753,6 +1871,10 @@ revoke all on function public.can_read_library_folder(uuid) from public, anon;
 revoke all on function public.can_read_library_file(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
 revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.library_gone(uuid[]) from public, anon, authenticated;
+revoke all on function public.purge_deleted_library_files(timestamptz, integer) from public, anon, authenticated;
+revoke all on function public.scheduled_failed_clock() from public, anon, authenticated;
+revoke all on function public.expire_failed_posts(timestamptz) from public, anon, authenticated;
 revoke all on function public.claim_private_file_purges(integer) from public, anon, authenticated;
 revoke all on function public.handle_member_gone_folders() from public, anon, authenticated;
 revoke all on function public.library_folder_check(uuid, text, text, uuid, uuid) from public, anon, authenticated;
@@ -1780,3 +1902,5 @@ grant execute on function public.add_library_file(uuid, uuid, text, text, text, 
   to authenticated;
 grant execute on function public.check_in_nudge(timestamptz) to service_role;
 grant execute on function public.claim_private_file_purges(integer) to service_role;
+grant execute on function public.purge_deleted_library_files(timestamptz, integer) to service_role;
+grant execute on function public.expire_failed_posts(timestamptz) to service_role;
