@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/routing/open_thread.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -222,7 +224,10 @@ class _NeedYouHostState extends ConsumerState<NeedYouHost> {
   Future<void> _tapped(NeedYouTap tap) async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context);
-    GoRouter.of(context).go(AppRoutes.space(tap.push.spaceId));
+    // Review 114 B1: over the tabs, so ← has them to go back to.
+    unawaited(
+      openRoute(GoRouter.of(context), AppRoutes.space(tap.push.spaceId)),
+    );
     final answer = tap.answer;
     if (answer == null) return;
     await answerFromNotice(

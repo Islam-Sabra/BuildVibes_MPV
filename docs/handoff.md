@@ -2,6 +2,10 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 2 Nov 2026 — B1 fixed on `claude/b1`, merged into `slice2-app`; not built
+
+- **B1 (stuck in a Space):** the notification that started the app is taken once per app start (`takeLaunchTap` in `reminders.dart`), and `NeedYouHost` and `CheckInHost` open a Space with `openRoute`, so `/home` stays under it. Reproduced on the emulator with a `need_you` launch; the fix is tested with fakes only and needs a phone check in the next build.
+
 ## PC update: 2 Nov 2026 — review 113 live: migration, `notebook-purge`, `push` v15, 12 cron jobs, build 961 on the founder's phone; the phone checks wait
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
@@ -17,7 +21,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 **Added after the founder's yes (same day):**
 - **`push` v15** deployed from `slice2-app` at 6f8bead2. One test of each type went to the founder's account through `push_queue`: `need_you` (row 135) and `post_reaction` (row 136), both sent on the first attempt with no error. The `need_you` test has a made-up call id, so its On my way and Can't now buttons won't record an answer.
 - **Cron:** `check-in-nudge` (every minute) and `expire-failed-posts` (`7 * * * *`) added, with only their two `cron.schedule` lines. `cron.job` has 12 jobs, all active: the 7 the reviews track (`check-in-notify`, `check-in-daily-report`, `work-reminders`, `publish-scheduled-posts`, `notebook-purge` and these two), plus `account-purge`, `activity-reminders`, `push-prune`, `push-retry` and `reports-prune`.
-- **First runs:** `check-in-nudge` first ran at 13:15:00 UTC, succeeded, and had 3 runs with no failure at 13:17. `expire-failed-posts`: first run at 14:07 UTC, to be confirmed; 0 posts are in state `failed`, so it has nothing to do yet.
+- **First runs:** `check-in-nudge` first ran at 13:15:00 UTC, succeeded, and had 3 runs with no failure at 13:17. `expire-failed-posts`: first run at 14:07 UTC succeeded; 0 posts are in state `failed`, so it has nothing to do yet.
 
 **Phone checks, open (the founder's):**
 - [ ] A voice note recorded and played.
