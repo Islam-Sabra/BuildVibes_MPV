@@ -91,6 +91,7 @@ import '../account/account_parts.dart' show myMarketProvider;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import '../spaces/who_sees_sheet.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
@@ -1317,10 +1318,32 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (picked != null) await _card.setCheckOut(picked);
   }
 
-  void _setMenu(DaybookWritingMenu? menu) => setState(() {
-    _menu = menu;
-    if (menu != null) _askWho = null;
-  });
+  void _setMenu(DaybookWritingMenu? menu) {
+    if (menu == DaybookWritingMenu.audience) {
+      unawaited(_pickAudience());
+      return;
+    }
+    setState(() {
+      _menu = menu;
+      if (menu != null) _askWho = null;
+    });
+  }
+
+  /// Review 111 TM5: Who sees it, a sheet over the page.
+  Future<void> _pickAudience() async {
+    _setMenu(null);
+    final people = ref.read(spacePeopleProvider(_spaceId)).value;
+    final me = ref.read(authUserIdProvider).value;
+    if (people == null || me == null) return;
+    final picked = await pickWhoSees(
+      context,
+      people: people,
+      me: me,
+      spaceAdmin: widget.space.iAmAdmin,
+      chosen: _card.draft?.teamId,
+    );
+    if (picked != null && mounted) await _card.setTeam(picked.team);
+  }
 
   /// Who a checklist or an activity is for (F45): a sheet over the page,
   /// so nothing under it can be tapped. Each pick adds or takes out a

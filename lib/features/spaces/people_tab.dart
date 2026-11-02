@@ -11,30 +11,34 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/company_teams.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
-import '../../shared/widgets/bv_controls.dart';
 import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pill_button.dart';
 import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
+import '../../shared/widgets/bv_segmented.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
+import 'confirm_join_sheet.dart';
 import 'need_you_notice.dart';
 import 'need_you_sheet.dart';
 import 'pass_words.dart';
 import 'remove_member.dart';
 import 'space_errors.dart';
+import 'teams_view.dart';
 import '../../core/routing/open_thread.dart';
 
 /// P1 · Space People (2542:34824, review 105 SP8 2670:38796): the requests
 /// to join on top under "Needs you" (admins only), then everyone in the
 /// Space in one list, Leads first: name, title · company, the pass and
-/// their Teams; then the Teams as chips, and Invite with the code for
-/// people who may invite. Who is here, never how many (rule 3).
+/// their Teams, and Invite with the code for people who may invite. Who is
+/// here, never how many (rule 3). Review 111 TM1: People · Teams, one
+/// switch; a search is always over people.
 class PeopleTab extends ConsumerStatefulWidget {
   const PeopleTab({super.key, required this.space, this.query = ''});
 
@@ -49,11 +53,10 @@ class PeopleTab extends ConsumerStatefulWidget {
 }
 
 class _PeopleTabState extends ConsumerState<PeopleTab> {
-  /// The request opened in place (P2), and the pass chosen there: none
-  /// at first (review 69 1a).
-  String? _open;
-  SpacePass? _pass;
   var _sending = false;
+
+  /// TM1: Teams rather than People.
+  var _teams = false;
 
   /// The person just let in: their row is highlighted once.
   String? _flash;
@@ -65,24 +68,51 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     ref
       ..invalidate(spacePeopleProvider(_spaceId))
       ..invalidate(mySpacesProvider);
+    if (widget.space.iAmAdmin) {
+      ref.invalidate(companyTeamPreviewProvider(_spaceId));
+    }
   }
 
-  Future<void> _letIn(SpaceJoinRequest r, SpacePass pass) async {
+  /// TM4: Confirm asks on a sheet, its Team already chosen when the
+  /// person's company has one. No answer about that is no choice made.
+  Future<void> _confirm(SpaceJoinRequest r, List<SpaceTeam> teams) async {
+    final repo = ref.read(spaceRepositoryProvider);
+    CompanyTeamMatch? match;
+    try {
+      match = await repo.companyTeamFor(_spaceId, r.person.id);
+    } on SpaceException {
+      match = null;
+    }
+    if (!mounted) return;
+    final answer = await showConfirmJoinSheet(
+      context,
+      request: r,
+      teams: teams,
+      match: match,
+    );
+    if (answer != null && mounted) {
+      await _letIn(r, answer.pass, answer.teamIds);
+    }
+  }
+
+  Future<void> _letIn(
+    SpaceJoinRequest r,
+    SpacePass pass,
+    List<String> teamIds,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _sending = true);
     try {
-      await ref.read(spaceRepositoryProvider).confirmJoin(r.id, pass);
+      await ref
+          .read(spaceRepositoryProvider)
+          .confirmJoin(r.id, pass, teamIds: teamIds);
       // The admin may have left the tab while it went.
       if (!mounted) return;
       _refresh();
       await ref.read(spacePeopleProvider(_spaceId).future);
       if (!mounted) return;
-      setState(() {
-        _open = null;
-        _pass = null;
-        _flash = r.person.id;
-      });
+      setState(() => _flash = r.person.id);
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -120,7 +150,6 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     try {
       await repo.declineJoin(r.id);
       if (!mounted) return;
-      if (_open == r.id) setState(() => _open = null);
       _refresh();
       messenger.showSnackBar(
         SnackBar(
@@ -241,7 +270,6 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     if (e.failure == SpaceFailure.rule) {
       // Another admin answered first.
       showSpaceMessage(context, l10n.spacesAlreadyAnswered);
-      setState(() => _open = null);
       _refresh();
     } else {
       showSpaceError(context, e);
@@ -318,6 +346,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
 
     final teams = data.teams;
     final admin = widget.space.iAmAdmin;
+    final hasTeams = teams.isNotEmpty || admin;
+    final showTeams = _teams && hasTeams && query.isEmpty;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -328,79 +358,70 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
         key: const Key('space-people'),
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s32),
         children: [
-          if (requests.isNotEmpty) section(l10n.peopleNeedsYouRequests),
-          for (final r in requests)
+          if (hasTeams && query.isEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
-                BvPeopleSpec.requestTop,
+                BvSpace.s8,
                 BvSpace.gutter,
                 0,
               ),
-              child: _RequestCard(
-                request: r,
-                open: _open == r.id,
-                pass: _open == r.id ? _pass : null,
-                sending: _sending,
-                onDecline: () => _decline(r),
-                onOpen: () => setState(() {
-                  _open = r.id;
-                  _pass = null;
-                }),
-                onPass: (p) => setState(() => _pass = p),
-                onLetIn: (p) => _letIn(r, p),
+              child: BvSegmented<bool>(
+                value: showTeams,
+                onChanged: (v) => setState(() => _teams = v),
+                segments: [
+                  BvSegment(
+                    key: const Key('people-view-people'),
+                    value: false,
+                    label: l10n.spacesTabPeople,
+                  ),
+                  BvSegment(
+                    key: const Key('people-view-teams'),
+                    value: true,
+                    label: l10n.spacesTeams,
+                  ),
+                ],
               ),
             ),
-          if (members.isNotEmpty) section(l10n.peopleInThisSpace),
-          for (final m in members)
-            _MemberRow(
-              key: m.person.id == _flash ? _flashKey : null,
-              member: m,
-              teams: [
-                for (final t in teams)
-                  if (t.memberIds.contains(m.person.id)) t,
-              ],
-              isMe: m.person.id == me,
-              flash: m.person.id == _flash ? _flash : null,
-              onTap: () => unawaited(_openPerson(m, isMe: m.person.id == me)),
-            ),
+          if (showTeams) TeamsView(space: widget.space, teams: teams),
+          if (!showTeams && requests.isNotEmpty)
+            section(l10n.peopleNeedsYouRequests),
+          if (!showTeams)
+            for (final r in requests)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  BvSpace.gutter,
+                  BvPeopleSpec.requestTop,
+                  BvSpace.gutter,
+                  0,
+                ),
+                child: _RequestCard(
+                  request: r,
+                  sending: _sending,
+                  onDecline: () => _decline(r),
+                  onOpen: () => unawaited(_confirm(r, teams)),
+                ),
+              ),
+          if (!showTeams && members.isNotEmpty) section(l10n.peopleInThisSpace),
+          if (!showTeams)
+            for (final m in members)
+              _MemberRow(
+                key: m.person.id == _flash ? _flashKey : null,
+                member: m,
+                teams: [
+                  for (final t in teams)
+                    if (t.memberIds.contains(m.person.id)) t,
+                ],
+                isMe: m.person.id == me,
+                flash: m.person.id == _flash ? _flash : null,
+                onTap: () => unawaited(_openPerson(m, isMe: m.person.id == me)),
+              ),
           if (query.isNotEmpty && members.isEmpty && requests.isEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
               child: EmptyNote(l10n.peopleSearchNothing(widget.query.trim())),
             ),
-          if (query.isEmpty && (teams.isNotEmpty || admin)) ...[
-            section(l10n.spacesTeams),
-            Padding(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: BvSpace.gutter,
-                vertical: BvSpace.s4,
-              ),
-              child: Wrap(
-                spacing: BvPeopleSpec.chipGap,
-                runSpacing: BvPeopleSpec.chipGap,
-                children: [
-                  for (final t in teams)
-                    _TeamChip(
-                      key: Key('team-chip-${t.id}'),
-                      label: t.name,
-                      onTap: () =>
-                          context.push(AppRoutes.spaceTeam(_spaceId, t.id)),
-                    ),
-                  // The server lets only the Space admin make a Team.
-                  if (admin)
-                    _TeamChip(
-                      key: const Key('people-new-team'),
-                      label: l10n.peopleNewTeam,
-                      outlined: true,
-                      onTap: () =>
-                          context.push(AppRoutes.spaceTeamNew(_spaceId)),
-                    ),
-                ],
-              ),
-            ),
-          ],
-          if (invite != null && query.isEmpty)
+          if (invite != null && query.isEmpty && !showTeams)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
@@ -419,29 +440,19 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
   }
 }
 
-/// A request to join: quiet and bordered (P1). "Let in" opens the three
-/// passes in place (P2); nothing is chosen first, so the pill says
-/// "Choose a pass" until one is.
+/// A request to join: quiet and bordered (P1). Confirm opens TM4's sheet.
 class _RequestCard extends StatelessWidget {
   const _RequestCard({
     required this.request,
-    required this.open,
-    required this.pass,
     required this.sending,
     required this.onDecline,
     required this.onOpen,
-    required this.onPass,
-    required this.onLetIn,
   });
 
   final SpaceJoinRequest request;
-  final bool open;
-  final SpacePass? pass;
   final bool sending;
   final VoidCallback onDecline;
   final VoidCallback onOpen;
-  final ValueChanged<SpacePass> onPass;
-  final ValueChanged<SpacePass> onLetIn;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +460,6 @@ class _RequestCard extends StatelessWidget {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final p = request.person;
-    final chosen = pass;
 
     return Container(
       key: Key('request-${request.id}'),
@@ -459,134 +469,43 @@ class _RequestCard extends StatelessWidget {
         borderRadius: BvPeopleSpec.requestRadius,
         border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        spacing: BvPeopleSpec.requestGap,
         children: [
-          Row(
-            spacing: BvPeopleSpec.requestGap,
-            children: [
-              BvAvatar(
-                name: p.fullName,
-                size: BvAvatarSize.list,
-                tint: BvAvatarTints.forId(p.id),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvSpace.s2,
-                  children: [
-                    Text(
-                      p.fullName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.bodyMd,
-                    ),
-                    RoleCompanyLine(person: p, lang: lang),
-                  ],
-                ),
-              ),
-              // SP8: Decline · Confirm; Confirm asks for the pass.
-              BvPillButton(
-                key: Key('request-decline-${request.id}'),
-                label: l10n.spacesDecline,
-                quiet: true,
-                onTap: sending ? null : onDecline,
-              ),
-              if (!open)
-                BvPillButton(
-                  key: Key('request-let-in-${request.id}'),
-                  label: l10n.peopleConfirm,
-                  strong: true,
-                  onTap: onOpen,
-                ),
-            ],
+          BvAvatar(
+            name: p.fullName,
+            size: BvAvatarSize.list,
+            tint: BvAvatarTints.forId(p.id),
           ),
-          if (open) ...[
-            const SizedBox(height: BvPeopleSpec.optionsTop),
-            for (final option in SpacePass.values) ...[
-              if (option != SpacePass.values.first)
-                const SizedBox(height: BvPeopleSpec.optionsGap),
-              _PassOption(
-                key: Key('request-pass-${option.name}'),
-                label: passName(l10n, option),
-                selected: option == chosen,
-                onTap: sending ? null : () => onPass(option),
-              ),
-            ],
-            const SizedBox(height: BvPeopleSpec.optionsTop),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: BvPillButton(
-                key: Key('request-confirm-${request.id}'),
-                label: chosen == null
-                    ? l10n.peopleChoosePass
-                    : l10n.peopleLetInAs(passName(l10n, chosen)),
-                onTap: chosen == null || sending ? null : () => onLetIn(chosen),
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: BvSpace.s2,
+              children: [
+                Text(
+                  p.fullName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodyMd,
+                ),
+                RoleCompanyLine(person: p, lang: lang),
+              ],
             ),
-          ],
+          ),
+          // SP8: Decline · Confirm; Confirm asks for the pass.
+          BvPillButton(
+            key: Key('request-decline-${request.id}'),
+            label: l10n.spacesDecline,
+            quiet: true,
+            onTap: sending ? null : onDecline,
+          ),
+          BvPillButton(
+            key: Key('request-let-in-${request.id}'),
+            label: l10n.peopleConfirm,
+            strong: true,
+            onTap: sending ? null : onOpen,
+          ),
         ],
-      ),
-    );
-  }
-}
-
-/// One of P2's passes: a radio and its name, the chosen one outlined in
-/// orange. One single choice (rule 6).
-class _PassOption extends StatelessWidget {
-  const _PassOption({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    return Semantics(
-      inMutuallyExclusiveGroup: true,
-      checked: selected,
-      button: true,
-      child: Material(
-        color: BvColors.surfaceElevated,
-        shape: RoundedRectangleBorder(
-          borderRadius: BvPeopleSpec.optionRadius,
-          side: selected
-              ? const BorderSide(
-                  color: BvColors.borderSelected,
-                  width: BvStroke.medium,
-                )
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BvPeopleSpec.optionRadius,
-          splashFactory: NoSplash.splashFactory,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: BvPeopleSpec.optionHeight,
-            ),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: BvPeopleSpec.optionPadding,
-              ),
-              child: Row(
-                spacing: BvPeopleSpec.optionGap,
-                children: [
-                  ExcludeSemantics(
-                    child: BvRadio(selected: selected, small: true),
-                  ),
-                  Expanded(child: Text(label, style: type.bodyMd)),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -774,53 +693,6 @@ class _TeamTag extends StatelessWidget {
       ],
     ),
   );
-}
-
-/// A Team as a chip (opens the Team, S11k); "+ New team" is [outlined].
-class _TeamChip extends StatelessWidget {
-  const _TeamChip({
-    super.key,
-    required this.label,
-    required this.onTap,
-    this.outlined = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool outlined;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    return Material(
-      color: outlined ? BvColors.surfaceElevated : BvColors.surfaceSubtle,
-      shape: RoundedRectangleBorder(
-        borderRadius: BvRadius.roundAll,
-        side: outlined
-            ? const BorderSide(
-                color: BvColors.borderDefault,
-                width: BvStroke.thin,
-              )
-            : BorderSide.none,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: SizedBox(
-          height: BvPeopleSpec.chipHeight,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: BvPeopleSpec.chipPadding,
-            ),
-            child: Center(
-              widthFactor: 1,
-              child: Text(label, style: type.bodySm),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// "Invite with the code K7Q 4MD": a tap copies the code (P1).

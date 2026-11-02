@@ -226,6 +226,14 @@ class CompanyTeamPlan {
 
   int get ticked => rows.where((r) => r.ticked).length;
 
+  /// Create may go: something ticked, and no new Team without people (the
+  /// server refuses one).
+  bool get ready =>
+      ticked > 0 &&
+      rows.every(
+        (r) => !r.ticked || r.group.teamId != null || r.people.isNotEmpty,
+      );
+
   /// Merges [key] into [row], or parts it again. A Team admin who left with
   /// the parted spelling goes back to the row's own suggestion.
   void merge(CompanyPlanRow row, String key) {

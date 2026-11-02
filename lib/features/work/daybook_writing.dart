@@ -1827,9 +1827,6 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
 
 enum _More { template, assign, people, location, due, pin, time, file }
 
-/// Everyone, in the To menu (a Team is chosen by its id).
-const _everyone = '';
-
 class _PopoverState extends ConsumerState<DaybookWritingPopover> {
   late final DaybookWriter _writer = DaybookWriter(
     ref,
@@ -1953,32 +1950,9 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             _More.file => widget.onPickFile(),
           },
         );
+      // TM5: a sheet (the tab's _pickAudience); it never opens here.
       case DaybookWritingMenu.audience:
-        final teams = audienceTeams(
-          ref.watch(spacePeopleProvider(widget.spaceId)).value,
-          me: widget.me,
-          admin:
-              ref.watch(spaceDetailProvider(widget.spaceId)).value?.iAmAdmin ??
-              false,
-        );
-        // One choice: Everyone or one Team (rule 6).
-        return BvPopoverMenu<String>.picker(
-          key: const Key('writing-to-menu'),
-          selected: draft?.teamId ?? _everyone,
-          items: [
-            BvMenuItem(
-              value: _everyone,
-              label: l10n.daybookEveryone,
-              icon: BvIcons.people,
-            ),
-            for (final t in teams)
-              BvMenuItem(value: t.id, label: t.name, icon: BvIcons.team),
-          ],
-          onSelected: (id) async {
-            await _writer.setTeam(teams.where((t) => t.id == id).firstOrNull);
-            widget.onClose();
-          },
-        );
+        return const SizedBox.shrink();
       case DaybookWritingMenu.kind:
         return BvPopoverMenu<DaybookKind>.picker(
           key: const Key('writing-kind-menu'),

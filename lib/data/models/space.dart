@@ -463,9 +463,11 @@ class SpacePeople {
 
   /// The Teams [profileId] may post to (review 111, the server's post
   /// rule): their own; every Team for a Team admin of any, or a Space
-  /// [admin].
-  List<SpaceTeam> mayPostTo(String profileId, {required bool admin}) =>
-      admin || isTeamAdmin(profileId) ? teams : teamsOf(profileId);
+  /// [admin]. A Viewer's pass blocks posting, whatever else they are.
+  List<SpaceTeam> mayPostTo(String profileId, {required bool admin}) {
+    if (member(profileId)?.pass == SpacePass.viewer) return const [];
+    return admin || isTeamAdmin(profileId) ? teams : teamsOf(profileId);
+  }
 }
 
 /// The custom rights keys (S17k switches). Chat is always on and
@@ -543,6 +545,10 @@ enum SpaceFailure {
   /// BV001: the person still owns open work; it is handed over first
   /// (migration 52, review 105B L1).
   openWork,
+
+  /// BV002: a Team admin took themselves out of their Team; only the Space
+  /// admin changes the Team admin (review 111).
+  teamAdminStays,
   network,
   unknown,
 }

@@ -340,18 +340,18 @@ void main() {
       expect(find.byKey(const Key('info-transfer')), findsNothing);
     });
 
-    testWidgets('People shows Teams as chips, no number; New Team '
+    testWidgets('People shows Teams, no number; New Team '
         '[$lang]', (tester) async {
       final spaces = _spaces();
       await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       _router(tester).push('/spaces/$_space', extra: SpaceOpen.people);
       await tester.pumpAndSettle();
-      expect(find.text(l10n.spacesTeams), findsOneWidget);
-      // Chips with the name only, never "1 member" (rule 3).
+      await _tap(tester, 'people-view-teams');
+      // Rows with the name, never "1 member" (rule 3).
       final chips = find.byWidgetPredicate(
         (w) =>
             w.key is ValueKey<String> &&
-            (w.key! as ValueKey<String>).value.startsWith('team-chip-'),
+            (w.key! as ValueKey<String>).value.startsWith('team-row-'),
       );
       expect(chips, findsWidgets);
       final teamDigits = tester
@@ -379,9 +379,8 @@ void main() {
       await _tap(tester, 'create-team');
       expect(spaces.calls.last, 'team Structure team [p-sara, p-rakesh]');
       expect(find.byType(TeamScreen), findsOneWidget);
-      expect(find.text(l10n.spacesTeamIntro(_spaceName)), findsOneWidget);
-      // "Members" over the people, never how many (rule 3).
-      expect(find.text(l10n.spacesTeamMembersTitle), findsOneWidget);
+      // TM3: the people, never how many (rule 3).
+      expect(find.text(l10n.teamAdminNote), findsOneWidget);
       final digits = tester
           .widgetList<Text>(find.byType(Text))
           .map((t) => t.data ?? '')

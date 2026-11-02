@@ -3608,11 +3608,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get peopleChoosePass => 'اختر التصريح';
 
   @override
-  String peopleLetInAs(String pass) {
-    return 'اقبله ك$pass';
-  }
-
-  @override
   String get peopleLeads => 'المسؤولون';
 
   @override
@@ -7053,4 +7048,109 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get postFileAudienceLine =>
       'كل من يرى هذا المنشور يمكنه فتح هذا الملف.';
+
+  @override
+  String get teamsMakeTitle => 'إنشاء الفرق من الشركات';
+
+  @override
+  String get teamsMakeCardLine => 'بضغطة واحدة، وتراجع قبل الحفظ.';
+
+  @override
+  String get teamsMakeIntro =>
+      'كل شركة تصبح فريقًا ومعها أشخاصها. ألغِ تحديد ما لا تريده.';
+
+  @override
+  String teamsNewLine(int count, String company) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شخصًا جديدًا من $company: إنشاء فريق؟',
+      few: '$count أشخاص جدد من $company: إنشاء فريق؟',
+      two: 'شخصان جديدان من $company: إنشاء فريق؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamsNewByHand => 'فريق جديد يدويًا';
+
+  @override
+  String get teamRowAdmin => 'المسؤول';
+
+  @override
+  String get teamAdminBadge => 'مسؤول الفريق';
+
+  @override
+  String teamsAdminLine(String name) {
+    return 'مسؤول الفريق: $name';
+  }
+
+  @override
+  String get teamsAdminNone => 'مسؤول الفريق: —';
+
+  @override
+  String teamsMergeOffer(String name, int count) {
+    return '«$name» ($count) تبدو نفسها: دمج';
+  }
+
+  @override
+  String teamsMergedUndo(String name) {
+    return 'دُمجت «$name»: تراجع';
+  }
+
+  @override
+  String teamsCreate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إنشاء $count فريقًا',
+      few: 'إنشاء $count فرق',
+      two: 'إنشاء فريقين',
+      one: 'إنشاء فريق واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamsNoCompany => 'بدون شركة';
+
+  @override
+  String get teamsMadeDone => 'تم إنشاء الفرق.';
+
+  @override
+  String get teamMakeAdmin => 'تعيين مسؤولًا للفريق';
+
+  @override
+  String get teamAdminNote =>
+      'مسؤول الفريق يضيف أشخاصه أو يزيلهم. مدير المساحة وحده يغيّر مسؤول الفريق (···).';
+
+  @override
+  String joinChosenBecause(String name, String company) {
+    return 'اختير لأن $name يعمل في $company.';
+  }
+
+  @override
+  String get joinAnother => 'فريق آخر';
+
+  @override
+  String get whoSeesTitle => 'من يراه';
+
+  @override
+  String get whoSeesEveryone => 'الجميع في المساحة';
+
+  @override
+  String get whoSeesYourTeam => 'فريقك';
+
+  @override
+  String get whoSeesAsTeamAdmin => 'تنشر هنا بصفتك مسؤول فريق';
+
+  @override
+  String get whoSeesAsSpaceAdmin => 'تنشر هنا بصفتك مدير المساحة';
+
+  @override
+  String get whoSeesFoot => 'الأعضاء يرون «الجميع» وفرقهم فقط.';
+
+  @override
+  String get spacesTeamAdminStays =>
+      'أنت مسؤول هذا الفريق، لذا تبقى فيه. مدير المساحة وحده يمكنه تغيير ذلك.';
 }

@@ -146,7 +146,7 @@ void main() {
         await _open(tester, lang);
         await _tap(tester, _key('space-people'));
         expect(find.byType(PeopleTab), findsOneWidget);
-        expect(find.text(l10n.spacesTabPeople), findsOneWidget);
+        expect(find.text(l10n.spacesTabPeople), findsNWidgets(2));
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
         await _tap(tester, _key('space-library'));

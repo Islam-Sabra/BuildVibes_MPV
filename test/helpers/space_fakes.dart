@@ -205,6 +205,9 @@ class FakeSpaceRepository implements SpaceRepository {
   final declined = <String, SpaceJoinRequest>{};
   final calls = <String>[];
 
+  /// The Teams each join request was confirmed with.
+  final confirmedTeams = <String, List<String>>{};
+
   /// Who is signed in, for "Confirmed by you".
   String me = 'user-1';
 
@@ -255,6 +258,7 @@ class FakeSpaceRepository implements SpaceRepository {
     List<String> teamIds = const [],
   }) async {
     calls.add('confirm $requestId ${pass.name}');
+    confirmedTeams[requestId] = teamIds;
     final spaceId = _spaceOfRequest(requestId);
     if (spaceId == null) throw const SpaceException(SpaceFailure.rule);
     final p = _of(spaceId);

@@ -6050,12 +6050,6 @@ abstract class AppLocalizations {
   /// **'Choose a pass'**
   String get peopleChoosePass;
 
-  /// P2: the pill once a pass is chosen (Let in as Crew).
-  ///
-  /// In en, this message translates to:
-  /// **'Let in as {pass}'**
-  String peopleLetInAs(String pass);
-
   /// P1: the section of people with a Lead pass.
   ///
   /// In en, this message translates to:
@@ -11659,6 +11653,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'People who see this post can open this file.'**
   String get postFileAudienceLine;
+
+  /// The card on the Teams tab and the title of its sheet (review 111 TM1, TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'Make Teams from companies'**
+  String get teamsMakeTitle;
+
+  /// Under the card on the Teams tab (TM1). No counts: rule 3.
+  ///
+  /// In en, this message translates to:
+  /// **'One tap, you check before it saves.'**
+  String get teamsMakeCardLine;
+
+  /// Under the title of the sheet (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'Each company becomes a Team with its people inside. Untick any you don\'t want.'**
+  String get teamsMakeIntro;
+
+  /// The one line on the Teams tab when one company has 2 or more people and no Team (review 111).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} new people from {company}: make a Team?}}'**
+  String teamsNewLine(int count, String company);
+
+  /// End of the Teams tab (TM1).
+  ///
+  /// In en, this message translates to:
+  /// **'New Team by hand'**
+  String get teamsNewByHand;
+
+  /// Before the Team admin's name on a Team's row (TM1).
+  ///
+  /// In en, this message translates to:
+  /// **'admin'**
+  String get teamRowAdmin;
+
+  /// The green badge on a Team page (TM3), and the title of the sheet that picks one.
+  ///
+  /// In en, this message translates to:
+  /// **'Team admin'**
+  String get teamAdminBadge;
+
+  /// A company row on the sheet (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'Team admin: {name}'**
+  String teamsAdminLine(String name);
+
+  /// A company row with no Team admin (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'Team admin: —'**
+  String get teamsAdminNone;
+
+  /// Offers to merge a look-alike spelling into this company (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" ({count}) looks the same: merge'**
+  String teamsMergeOffer(String name, int count);
+
+  /// A look-alike spelling merged; a tap undoes it (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" merged: undo'**
+  String teamsMergedUndo(String name);
+
+  /// The sheet's button (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Create 1 Team} other{Create {count} Teams}}'**
+  String teamsCreate(int count);
+
+  /// People with no company, on the sheet and as a Team name when ticked (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'No company'**
+  String get teamsNoCompany;
+
+  /// After Create (TM2).
+  ///
+  /// In en, this message translates to:
+  /// **'Teams made.'**
+  String get teamsMadeDone;
+
+  /// A person's ⋯ menu on a Team page, Space admin only (TM3).
+  ///
+  /// In en, this message translates to:
+  /// **'Make Team admin'**
+  String get teamMakeAdmin;
+
+  /// Foot of a Team page (TM3).
+  ///
+  /// In en, this message translates to:
+  /// **'The Team admin adds or removes its people. Only the Space admin changes the Team admin (···).'**
+  String get teamAdminNote;
+
+  /// Why this Team is already chosen on the confirm sheet (TM4).
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen because {name} works at {company}.'**
+  String joinChosenBecause(String name, String company);
+
+  /// Shows the Space's other Teams on the confirm sheet (TM4).
+  ///
+  /// In en, this message translates to:
+  /// **'Another'**
+  String get joinAnother;
+
+  /// The composer's Team sheet (TM5).
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it'**
+  String get whoSeesTitle;
+
+  /// First choice on the sheet (TM5).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in the Space'**
+  String get whoSeesEveryone;
+
+  /// Under a Team the person is in (TM5).
+  ///
+  /// In en, this message translates to:
+  /// **'Your Team'**
+  String get whoSeesYourTeam;
+
+  /// Under another Team, for a Team admin (TM5).
+  ///
+  /// In en, this message translates to:
+  /// **'You post here as a Team admin'**
+  String get whoSeesAsTeamAdmin;
+
+  /// Under another Team, for a Space admin who is no Team's admin.
+  ///
+  /// In en, this message translates to:
+  /// **'You post here as a Space admin'**
+  String get whoSeesAsSpaceAdmin;
+
+  /// Foot of the sheet (TM5).
+  ///
+  /// In en, this message translates to:
+  /// **'Members see Everyone and their own Teams only.'**
+  String get whoSeesFoot;
+
+  /// A Team admin tried to take themselves out of their Team (BV002, review 111).
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re this Team\'s admin, so you stay in it. Only the Space admin can change that.'**
+  String get spacesTeamAdminStays;
 }
 
 class _AppLocalizationsDelegate

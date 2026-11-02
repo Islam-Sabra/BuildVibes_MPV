@@ -4,6 +4,10 @@
 // merged only when asked.
 import 'package:buildvibes/data/models/company_teams.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/data/repositories/space_repository.dart';
+import 'package:buildvibes/features/spaces/space_errors.dart';
+import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> _p(String id, [String pass = 'crew']) => {
@@ -165,6 +169,61 @@ void main() {
       'name': 'No company',
       'people': ['e'],
     });
+  });
+
+  test('a ticked new Team with no people keeps Create off', () {
+    final plan = CompanyTeamPlan.of(
+      CompanyTeamPreview.fromJson(const {
+        'groups': [
+          {'key': 'empty', 'name': 'Empty', 'people': <Object>[]},
+        ],
+      }),
+    );
+    expect(plan.ticked, 1);
+    expect(plan.ready, isFalse);
+    plan.rows.single.ticked = false;
+    expect(plan.ready, isFalse);
+  });
+
+  test('a Team with its own id and nobody new can still be sent', () {
+    final plan = CompanyTeamPlan.of(
+      CompanyTeamPreview.fromJson(const {
+        'groups': [
+          {'key': 'made', 'name': 'Made', 'team_id': 't', 'people': <Object>[]},
+        ],
+      }),
+    );
+    expect(plan.ready, isTrue);
+  });
+
+  for (final lang in ['en', 'ar']) {
+    test('BV002 says it in plain words [$lang]', () {
+      final l10n = lookupAppLocalizations(Locale(lang));
+      expect(spaceFailureFor('BV002'), SpaceFailure.teamAdminStays);
+      expect(
+        spaceErrorText(l10n, const SpaceException(SpaceFailure.teamAdminStays)),
+        l10n.spacesTeamAdminStays,
+      );
+      expect(l10n.spacesTeamAdminStays, isNot(l10n.errorGeneric));
+    });
+  }
+
+  test('a Viewer is offered no Team, even as a Team admin or Space admin', () {
+    final people = SpacePeople(
+      members: [
+        SpaceMember(
+          person: const SpacePerson(id: 'v', firstName: 'V', lastName: 'V'),
+          pass: SpacePass.viewer,
+          isAdmin: false,
+          confirmedAt: DateTime(2026),
+        ),
+      ],
+      teams: const [
+        SpaceTeam(id: 'a', name: 'A', memberIds: {'v'}, adminId: 'v'),
+      ],
+    );
+    expect(people.mayPostTo('v', admin: false), isEmpty);
+    expect(people.mayPostTo('v', admin: true), isEmpty);
   });
 
   test('a Team admin of any Team may post to every Team; a member to '

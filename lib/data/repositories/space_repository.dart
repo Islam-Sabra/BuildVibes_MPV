@@ -369,7 +369,9 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .order('created_at', ascending: true);
     final teams = await _client
         .from('teams')
-        .select('id, name, admin_id, members:team_members(profile_id)')
+        .select(
+          'id, name, admin_id, admin_name, members:team_members(profile_id)',
+        )
         .eq('space_id', spaceId)
         .order('name', ascending: true);
 
@@ -390,10 +392,6 @@ class SupabaseSpaceRepository implements SpaceRepository {
             confirmedAt: DateTime.parse(m['confirmed_at'] as String),
           ),
     ];
-    // The Team admin is one of the Team's people: their name is here.
-    String? nameOf(String? id) =>
-        loaded.where((m) => m.person.id == id).firstOrNull?.person.fullName;
-
     return SpacePeople(
       members: loaded,
       requests: [
@@ -412,7 +410,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
             id: t['id'] as String,
             name: t['name'] as String,
             adminId: t['admin_id'] as String?,
-            adminName: nameOf(t['admin_id'] as String?),
+            adminName: t['admin_name'] as String?,
             memberIds: {
               for (final m in (t['members'] as List? ?? const []))
                 (m as Map<String, dynamic>)['profile_id'] as String,
@@ -714,6 +712,7 @@ SpaceFailure spaceFailureFor(String? code) => switch (code) {
   '54000' => SpaceFailure.limit,
   '40001' => SpaceFailure.conflict,
   'BV001' => SpaceFailure.openWork,
+  'BV002' => SpaceFailure.teamAdminStays,
   _ => SpaceFailure.unknown,
 };
 

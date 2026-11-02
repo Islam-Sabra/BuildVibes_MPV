@@ -5216,16 +5216,6 @@
   "@peopleChoosePass": {
     "description": "P2: the grey pill until a pass is chosen (nothing is chosen first, review 69)."
   },
-  "peopleLetInAs": "Let in as {pass}",
-  "@peopleLetInAs": {
-    "description": "P2: the pill once a pass is chosen (Let in as Crew).",
-    "placeholders": {
-      "pass": {
-        "type": "String",
-        "example": "Crew"
-      }
-    }
-  },
   "peopleLeads": "Leads",
   "@peopleLeads": {
     "description": "P1: the section of people with a Lead pass."
@@ -9960,5 +9950,144 @@
   "postFileAudienceLine": "People who see this post can open this file.",
   "@postFileAudienceLine": {
     "description": "Under a file chip, when the file's Library folder is narrower than the post's audience (review 113 Z14)."
+  },
+  "teamsMakeTitle": "Make Teams from companies",
+  "@teamsMakeTitle": {
+    "description": "The card on the Teams tab and the title of its sheet (review 111 TM1, TM2)."
+  },
+  "teamsMakeCardLine": "One tap, you check before it saves.",
+  "@teamsMakeCardLine": {
+    "description": "Under the card on the Teams tab (TM1). No counts: rule 3."
+  },
+  "teamsMakeIntro": "Each company becomes a Team with its people inside. Untick any you don't want.",
+  "@teamsMakeIntro": {
+    "description": "Under the title of the sheet (TM2)."
+  },
+  "teamsNewLine": "{count, plural, other{{count} new people from {company}: make a Team?}}",
+  "@teamsNewLine": {
+    "description": "The one line on the Teams tab when one company has 2 or more people and no Team (review 111).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "company": {
+        "type": "String"
+      }
+    }
+  },
+  "teamsNewByHand": "New Team by hand",
+  "@teamsNewByHand": {
+    "description": "End of the Teams tab (TM1)."
+  },
+  "teamRowAdmin": "admin",
+  "@teamRowAdmin": {
+    "description": "Before the Team admin's name on a Team's row (TM1)."
+  },
+  "teamAdminBadge": "Team admin",
+  "@teamAdminBadge": {
+    "description": "The green badge on a Team page (TM3), and the title of the sheet that picks one."
+  },
+  "teamsAdminLine": "Team admin: {name}",
+  "@teamsAdminLine": {
+    "description": "A company row on the sheet (TM2).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamsAdminNone": "Team admin: —",
+  "@teamsAdminNone": {
+    "description": "A company row with no Team admin (TM2)."
+  },
+  "teamsMergeOffer": "\"{name}\" ({count}) looks the same: merge",
+  "@teamsMergeOffer": {
+    "description": "Offers to merge a look-alike spelling into this company (TM2).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamsMergedUndo": "\"{name}\" merged: undo",
+  "@teamsMergedUndo": {
+    "description": "A look-alike spelling merged; a tap undoes it (TM2).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamsCreate": "{count, plural, one{Create 1 Team} other{Create {count} Teams}}",
+  "@teamsCreate": {
+    "description": "The sheet's button (TM2).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamsNoCompany": "No company",
+  "@teamsNoCompany": {
+    "description": "People with no company, on the sheet and as a Team name when ticked (TM2)."
+  },
+  "teamsMadeDone": "Teams made.",
+  "@teamsMadeDone": {
+    "description": "After Create (TM2)."
+  },
+  "teamMakeAdmin": "Make Team admin",
+  "@teamMakeAdmin": {
+    "description": "A person's ⋯ menu on a Team page, Space admin only (TM3)."
+  },
+  "teamAdminNote": "The Team admin adds or removes its people. Only the Space admin changes the Team admin (···).",
+  "@teamAdminNote": {
+    "description": "Foot of a Team page (TM3)."
+  },
+  "joinChosenBecause": "Chosen because {name} works at {company}.",
+  "@joinChosenBecause": {
+    "description": "Why this Team is already chosen on the confirm sheet (TM4).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "company": {
+        "type": "String"
+      }
+    }
+  },
+  "joinAnother": "Another",
+  "@joinAnother": {
+    "description": "Shows the Space's other Teams on the confirm sheet (TM4)."
+  },
+  "whoSeesTitle": "Who sees it",
+  "@whoSeesTitle": {
+    "description": "The composer's Team sheet (TM5)."
+  },
+  "whoSeesEveryone": "Everyone in the Space",
+  "@whoSeesEveryone": {
+    "description": "First choice on the sheet (TM5)."
+  },
+  "whoSeesYourTeam": "Your Team",
+  "@whoSeesYourTeam": {
+    "description": "Under a Team the person is in (TM5)."
+  },
+  "whoSeesAsTeamAdmin": "You post here as a Team admin",
+  "@whoSeesAsTeamAdmin": {
+    "description": "Under another Team, for a Team admin (TM5)."
+  },
+  "whoSeesAsSpaceAdmin": "You post here as a Space admin",
+  "@whoSeesAsSpaceAdmin": {
+    "description": "Under another Team, for a Space admin who is no Team's admin."
+  },
+  "whoSeesFoot": "Members see Everyone and their own Teams only.",
+  "@whoSeesFoot": {
+    "description": "Foot of the sheet (TM5)."
+  },
+  "spacesTeamAdminStays": "You're this Team's admin, so you stay in it. Only the Space admin can change that.",
+  "@spacesTeamAdminStays": {
+    "description": "A Team admin tried to take themselves out of their Team (BV002, review 111)."
   }
 }
