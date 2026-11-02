@@ -35,6 +35,32 @@ alter table public.post_files
 create unique index post_files_one_voice on public.post_files (post_id)
   where storage_path is not null and mime like 'audio/%' and duration_ms is not null;
 
+-- Z14 (the lead): attaching or posting a file shares it with that post's
+-- audience. Whoever may read [p_file] in the Library, or sees a post or work
+-- item that carries it, opens it, whatever its folder, kept as proof (Z3) or
+-- not. The folder still decides who sees it in the Library and in search.
+-- Here, before the cards that call it; plpgsql, as its columns come below.
+create or replace function public.can_open_library_file(p_file uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  return public.can_read_library_file(p_file)
+      or coalesce((
+           select f.private_gone_at is null and public.is_member(f.space_id)
+              and (exists (select 1 from public.post_files pf
+                           where pf.library_file_id = f.id and public.can_see_space_post(pf.post_id))
+                   or exists (select 1 from public.work_item_attachments a
+                              where a.library_file_id = f.id and public.can_see_space_post(a.work_item_id))
+                   or exists (select 1 from public.space_posts sp
+                              where sp.library_file_id = f.id and public.can_see_space_post(sp.id)))
+           from public.library_files f where f.id = p_file), false);
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- 1. Reactions
 -- ---------------------------------------------------------------------------
@@ -510,7 +536,7 @@ AS $function$
                              where n.supersedes_id = lf.id and n.deleted_at is null
                                and public.can_read_library_file(n.id)))
       from public.library_files lf
-      where lf.id = p_post.library_file_id and public.can_read_library_file(lf.id)),
+      where lf.id = p_post.library_file_id and public.can_open_library_file(lf.id)),
     -- The latest stamp on the slip.
     'stamp', (
       select case
@@ -549,12 +575,12 @@ AS $function$
       from (select lf.id, lf.name, lf.rev_label, wa.created_at
             from public.work_item_attachments wa
             join public.library_files lf on lf.id = wa.library_file_id
-            where wa.work_item_id = p_post.id and public.can_read_library_file(lf.id)
+            where wa.work_item_id = p_post.id and public.can_open_library_file(lf.id)
             order by wa.created_at, lf.id limit 3) a),
     'attachments_more', (
       select true
       from public.work_item_attachments wa
-      where wa.work_item_id = p_post.id and public.can_read_library_file(wa.library_file_id)
+      where wa.work_item_id = p_post.id and public.can_open_library_file(wa.library_file_id)
       having count(*) > 3),
     -- The last time it was given to someone else.
     'given_to', (
@@ -649,7 +675,7 @@ AS $function$
       left join public.library_files lf on lf.id = f.library_file_id
       where f.post_id = p_post.id
         and (f.mime is null or f.mime not like 'audio/%')
-        and (f.library_file_id is null or public.can_read_library_file(f.library_file_id))),
+        and (f.library_file_id is null or public.can_open_library_file(f.library_file_id))),
     'events', (
       select jsonb_agg(jsonb_build_object(
                'id', e.id, 'kind', e.kind, 'actor_id', e.actor_id,
@@ -671,7 +697,7 @@ AS $function$
                        order by a.created_at, lf.id)
       from public.work_item_attachments a
       join public.library_files lf on lf.id = a.library_file_id
-      where a.work_item_id = p_post.id and public.can_read_library_file(lf.id)),
+      where a.work_item_id = p_post.id and public.can_open_library_file(lf.id)),
     'blocks', p_post.blocks,
     'blocks_version', p_post.blocks_version,
     -- A report's work items and notes, as this reader may see them
@@ -1246,8 +1272,8 @@ grant select on public.library_folders to authenticated;
 grant all on public.library_folders to service_role;
 
 -- can_read_library_file (migration 59), as it was, and a file in a folder
--- reads only where its folder does. Z3: a file kept as proof reads for
--- whoever sees a post or work item that carries it.
+-- reads only where its folder does. This is the Library's rule; a post
+-- opens its files by can_open_library_file (Z14).
 create or replace function public.can_read_library_file(p_file uuid)
 returns boolean
 language sql
@@ -1269,16 +1295,48 @@ as $$
                  or public.is_hidden_account(f.only_profile_id))
                 and public.is_space_admin(f.space_id)))
        and (f.folder_id is null or public.can_read_library_folder(f.folder_id))
-       or f.proof_kept_at is not null and public.is_member(f.space_id)
-          and (exists (select 1 from public.post_files pf
-                       where pf.library_file_id = f.id and public.can_see_space_post(pf.post_id))
-               or exists (select 1 from public.work_item_attachments a
-                          where a.library_file_id = f.id and public.can_see_space_post(a.work_item_id))
-               or exists (select 1 from public.space_posts sp
-                          where sp.library_file_id = f.id and public.can_see_space_post(sp.id)))
     from public.library_files f where f.id = p_file
   ), false);
 $$;
+
+-- The row a file's own screen needs, for whoever may open it (library_files
+-- itself reads by the Library's rule).
+create or replace function public.open_library_file(p_file uuid)
+returns setof public.library_files
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select f.* from public.library_files f
+  where f.id = p_file and public.can_open_library_file(f.id);
+$$;
+
+-- A post's files as its opened page shows them.
+create or replace function public.post_files_for(p_post uuid)
+returns table (storage_path text, mime text, library_file_id uuid, name text, rev_label text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select f.storage_path, f.mime, f.library_file_id, lf.name, lf.rev_label
+  from public.post_files f
+  left join public.library_files lf on lf.id = f.library_file_id
+  where f.post_id = p_post and public.can_see_space_post(p_post)
+    and (f.library_file_id is null or public.can_open_library_file(f.library_file_id))
+  order by f.sort, f.created_at, f.id;
+$$;
+
+drop policy work_item_attachments_read on public.work_item_attachments;
+create policy work_item_attachments_read on public.work_item_attachments
+  for select to authenticated
+  using (public.can_open_library_file(library_file_id) and public.can_see_space_post(work_item_id));
+drop policy post_files_read on public.post_files;
+create policy post_files_read on public.post_files
+  for select to authenticated
+  using (public.can_see_space_post(post_id)
+         and (library_file_id is null or public.can_open_library_file(library_file_id)));
 
 -- The service of a share link: https only, no user part, no port but 443;
 -- OneDrive (onedrive.live.com, 1drv.ms, any *.sharepoint.com), Google Drive
@@ -1819,7 +1877,8 @@ $$;
 -- only while still a member of its Space or while something references it
 -- (your own delivered photo stays yours after leaving), so never an orphan
 -- after leaving; and never a file of a deleted private folder. Everything
--- after that is unchanged.
+-- after that is unchanged, but that a Library file opens by
+-- can_open_library_file (Z14).
 do $do$
 declare
   v_def text := pg_get_functiondef('public.may_read_file(text, text)'::regprocedure);
@@ -1828,6 +1887,7 @@ begin
   if position(v_old in v_def) = 0 then
     raise exception 'may_read_file changed';
   end if;
+  v_def := replace(v_def, 'public.can_read_library_file(', 'public.can_open_library_file(');
   execute replace(v_def, v_old, $new$if p_owner = auth.uid()::text
      and (exists (select 1 from public.space_members m
                   where m.space_id::text = v_parts[1] and m.profile_id = auth.uid()
@@ -2521,6 +2581,9 @@ revoke all on function public.my_need_you_calls(uuid) from public, anon;
 -- reads the folder.
 revoke all on function public.can_read_library_folder(uuid) from public, anon;
 revoke all on function public.can_read_library_file(uuid) from public, anon;
+revoke all on function public.can_open_library_file(uuid) from public, anon;
+revoke all on function public.open_library_file(uuid) from public, anon;
+revoke all on function public.post_files_for(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
 revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.drop_folders(uuid[]) from public, anon, authenticated;
@@ -2551,6 +2614,9 @@ grant execute on function public.answer_need_you(uuid, text) to authenticated;
 grant execute on function public.my_need_you_calls(uuid) to authenticated;
 grant execute on function public.can_read_library_folder(uuid) to authenticated;
 grant execute on function public.can_read_library_file(uuid) to authenticated;
+grant execute on function public.can_open_library_file(uuid) to authenticated;
+grant execute on function public.open_library_file(uuid) to authenticated;
+grant execute on function public.post_files_for(uuid) to authenticated;
 grant execute on function public.create_library_folder(uuid, uuid, text, text, uuid, uuid, text) to authenticated;
 grant execute on function public.update_library_folder(uuid, text, text, uuid, uuid) to authenticated;
 grant execute on function public.delete_library_folder(uuid) to authenticated;
