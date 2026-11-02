@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   buildPush, channelFor, classify, DEFAULT_CHANNEL, fcmMessage, MESSAGE_CHANNEL, NEED_YOU_CHANNEL,
-  retryAfterSeconds, type QueueRow,
+  REACTIONS_CHANNEL, retryAfterSeconds, type QueueRow,
 } from "./message.ts";
 
 const strings = JSON.parse(
@@ -446,7 +446,9 @@ test("review 113 RX1: a reaction is one quiet push to the author, opening the po
   assert.equal(buildPush(off, "ar", "راكيش", strings).body, "تفاعل من ⁨راكيش⁩ على منشورك.");
   const m = fcmMessage("tok", p) as AnyFcm;
   assert.equal(m.android.priority, "normal", "low priority");
-  assert.equal(m.android.notification.channel_id, DEFAULT_CHANNEL);
+  assert.equal(m.android.notification.channel_id, REACTIONS_CHANNEL, "its own low-importance channel");
+  assert.equal(REACTIONS_CHANNEL, "reactions");
+  assert.equal(channelFor("post_reaction"), "reactions");
   assert.equal(m.android.notification.notification_priority, "PRIORITY_LOW");
   assert.equal(m.android.notification.default_sound, undefined, "no sound");
   assert.equal(m.android.notification.default_vibrate_timings, undefined, "no vibration");

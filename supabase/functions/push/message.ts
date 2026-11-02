@@ -384,10 +384,14 @@ export const CHECK_IN_CHANNEL = "check_in";
 // Review 113: Need you now's own strong channel (the app makes it, with
 // sound and high importance, as check_in).
 export const NEED_YOU_CHANNEL = "need_you";
+// Review 113 RX1 (the lead, 2 Nov): reactions' own low-importance channel,
+// no sound and no pop-up (the app makes it).
+export const REACTIONS_CHANNEL = "reactions";
 
 export function channelFor(kind: string | undefined): string {
   if (kind === "check_in_open") return CHECK_IN_CHANNEL;
   if (kind === "need_you") return NEED_YOU_CHANNEL;
+  if (kind === "post_reaction") return REACTIONS_CHANNEL;
   return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
 }
 
@@ -409,14 +413,14 @@ export function fcmMessage(token: string, push: Push): Record<string, unknown> {
   };
   if (push.data.kind === "post_reaction") {
     // Review 113 RX1: quiet. Normal priority, low on the shade, no sound or
-    // vibration of its own (the channel still decides from Android 8);
+    // vibration, on the reactions channel (low importance from Android 8);
     // iOS passive: in the list, never lighting the screen.
     return {
       ...message,
       android: {
         priority: "normal",
         notification: {
-          channel_id: DEFAULT_CHANNEL,
+          channel_id: REACTIONS_CHANNEL,
           ...(push.tag ? { tag: push.tag } : {}),
           notification_priority: "PRIORITY_LOW",
         },
