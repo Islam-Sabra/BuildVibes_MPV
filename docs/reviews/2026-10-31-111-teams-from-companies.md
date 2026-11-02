@@ -63,3 +63,63 @@
 - **TM4:** the confirm sheet chooses the matching Team.
 - **TM5:** the composer's **Team** line lists what the person may post to; the sub-line says "Your Team" or "You post here as a Team admin".
 - Tests in EN and AR for each, and shots into `docs/reviews/shots-111/`.
+
+## The lead's check of `claude/r111` at `5f541fa4` (2 Nov)
+**What was run:**
+- The SQL stand-in on `5f541fa4`: **60 files, 4,341 checks, PASS**.
+- Two independent reviews: spec, and security/standards.
+- All 12 new shots (TM1–TM5) and the 24 changed pairs, viewed in English and Arabic.
+
+**Verdict: not ready to merge.** Fix V1–V14 test-first on `claude/r111`. Then update the 24 goldens (accepted, apart from V12 and V13) and report.
+
+### Blocker
+- **V1. A child work item skips the Team post rule** (`review111.sql:403`). The check is skipped whenever there is a parent, but the old body forces the parent's Team only when the parent *has* one.
+  - **Scenario:** a Crew member makes an Everyone item, then a child with `p_team` set to a Team they're not in. The child lands in that Team.
+  - **Fix:** skip only when the Team really was inherited (`v_team is not distinct from v_parent.team_id`, or from `v_thread_team`).
+  - **pgTAP:** a parent with no Team, plus a foreign `p_team` → refused.
+
+### Fix before merge
+- **V2. `company_team_for` accepts any profile** (`review111.sql:347-365`). A Space admin could probe the typed company of anyone, including someone who blocked them.
+  - Require a pending join request or active membership of `p_profile` in that Space, `not is_blocked_with`, and `not is_hidden_account`.
+  - pgTAP for each.
+- **V3. A Viewer can't be a Team admin** (the lead's call: a Viewer only reads).
+  - `set_team_admin` refuses a Viewer.
+  - The suggestion picks by pass (Lead, then Crew), then join date, and never a Viewer.
+  - When a member's pass becomes Viewer, their Team-admin role clears.
+  - pgTAP.
+- **V4. Look-alike spellings are never dropped** (the builder's choice 4, overruled). If merge isn't tapped, the look-alike shows as its own ticked row, so nobody is silently left out of a Team. The look-alike check also compares against the names of the Space's **existing** Teams, so "Delta Steal" offers merge into an existing "Delta Steel". Tests.
+- **V5. "No company"** (choice 6): that row is **left out** of the suggestion. Those people stay without a Team, and the admin can add them by hand. No Team is ever called "No company".
+- **V6. The suggested admin shown on the row** (`make_teams_sheet.dart:150`) is always the person Create will set, even when they are already in an existing Team. Never "Team admin: —" followed by someone being set anyway.
+- **V7. A Team file opens for its uploader** while they are a member of the Space (`uploaded_by = me and is_member(space)`), not only while they are a Team admin (`review111.sql:443`).
+- **V8. `create_company_teams` checks Space admin before it locks the `spaces` row** (`review111.sql:271`).
+- **V9. `r111_patch` raises** when its text appears more than once, as well as when it's missing.
+- **V10. Arabic wording.**
+  - **Team admin is «مشرف الفريق»**, never «مسؤول الفريق», because «مسؤول» is the Lead pass. Add it to the glossary in `CLAUDE.md` and `docs/product/arabic-glossary.md`.
+  - TM1's line reads «بضغطة واحدة، وراجِعها قبل الحفظ» (review, not undo).
+- **V11. The B2 storage log:**
+  - log each file's **folder relative to the top folder, its extension and its size, never its name**, plus a total per subfolder;
+  - log `e.runtimeType` only;
+  - wrap each file in its own try/catch;
+  - gate it on `bool.fromEnvironment('BV_STORAGE_LOG')`, passed in the pilot build;
+  - remove the test that asserts the flag is on.
+- **V12. Team page line (TM3/T1):** "Only the Space admin changes the Team admin (…)" ends with a literal "(…)" in both languages. Fill it with the Space admin's name, or end the sentence.
+- **V13. Who sees it (TM5):** the rows read "You post here as a Team admin" while the viewer is the Space admin. A Space admin gets "as a Space admin" (as F56 already does). Test both.
+- **V14. Team admin and templates and Team chat:** decide in SQL and test that a Team admin outside the Team can use that Team's templates and post in its chat, the same as posting to it.
+
+### The builder's choices
+| # | Choice | The lead |
+|---|---|---|
+| 1 | Counts drawn in TM1, TM3 and Team rows dropped (rule 3); the count on TM2 company rows kept (it says what Create will do) | **Accepted.** This departs from the frozen frames on purpose: rule 3 wins. |
+| 2 | TM1: 2 or more waiting companies → card; exactly 1 → line | **Accepted** |
+| 3 | The join sheet preselects **Crew** when the person's company matches a Team | **The founder's call.** Recommendation: keep it |
+| 4 | Look-alikes folded and left without a Team | **Overruled:** V4 |
+| 5 | Added copy | **Accepted,** with V10 |
+| 6 | "No company" becomes a Team | **Overruled:** V5 |
+| 7 | Unused strings removed | **Accepted** |
+
+**Server choices:** "شركة" is also stripped from the start of a name, and a Crew Team admin still can't post a check-in. Both are **accepted.**
+
+### Before going live (from the PC, with the founder's yes)
+- Check the live Postgres version (15 or later is needed for `on delete set null (admin_id)`).
+- Check that `fuzzystrmatch` isn't already installed in `public`. If it is, stop and report.
+- Then: `db push` → the build → install.
