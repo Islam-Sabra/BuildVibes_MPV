@@ -59,7 +59,8 @@ grant all on public.post_reactions to service_role;
 -- The card's "reactions": each kind with at least one person, Like, Heart,
 -- Bravo in that order; its people newest first, at most 20, named as the
 -- reader may see them (space_person_name: blocked and hidden people have
--- none). Never a count. A check-in has none.
+-- none), and nobody blocked either way with the reader (Z11). Never a
+-- count. A check-in has none.
 create or replace function public.post_reactions_json(p_post public.space_posts)
 returns jsonb
 language sql
@@ -76,6 +77,9 @@ as $$
                                order by r.created_at desc, r.profile_id)
               from (select * from public.post_reactions r
                     where r.post_id = p_post.id and r.kind = x.kind
+                      and not exists (select 1 from public.blocks b
+                                      where (b.blocker_id = auth.uid() and b.blocked_id = r.profile_id)
+                                         or (b.blocker_id = r.profile_id and b.blocked_id = auth.uid()))
                     order by r.created_at desc, r.profile_id
                     limit 20) r) as people
       from (values ('like', 1), ('heart', 2), ('bravo', 3)) x(kind, ord)
@@ -104,7 +108,10 @@ begin
   select * into v_post from public.space_posts where id = p_post;
   if v_post.id is null or v_post.deleted_at is not null
      or not public.is_member(v_post.space_id) or public.is_hidden_account(v_me)
-     or not public.can_see_space_post(p_post) then
+     or not public.can_see_space_post(p_post)
+     or exists (select 1 from public.blocks b
+                where (b.blocker_id = v_me and b.blocked_id = v_post.author_id)
+                   or (b.blocker_id = v_post.author_id and b.blocked_id = v_me)) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if v_post.kind = 'check_in' then
@@ -128,7 +135,8 @@ begin
   -- One push per post per 10 minutes: two reactions at once can't both send.
   perform pg_advisory_xact_lock(hashtextextended('post_reaction:' || p_post::text, 0));
   insert into public.push_queue (profile_id, kind, actor_id, data)
-  select v_post.author_id, 'post_reaction', v_me,
+  select v_post.author_id, 'post_reaction',
+         case when public.check_in_shows_text(v_post.author_id) then v_me end,
          jsonb_build_object('post_id', p_post, 'space_id', v_post.space_id, 'kind', p_kind)
          || case when public.check_in_shows_text(v_post.author_id)
                  then jsonb_build_object('title', v_post.title,
@@ -235,9 +243,10 @@ $$;
 -- archive_space_post (migration 52), as it was (a Lead archives a Checked
 -- work item, review 105B), and the author's Archive: my post someone acted
 -- on, never a Checked work item. Archiving an open work item (open, or done
--- and waiting for its check) stops it: its waiting reminders go, it can no
--- longer be signed or checked (refuse_archived_item) or reminded
--- (refuse_archived_reminder), and its owner gets one push.
+-- and waiting for its check) stops it: its waiting reminders wait too, it
+-- can no longer be signed or checked (refuse_archived_item) or reminded
+-- (refuse_archived_reminder), and its owner gets one push once Undo has
+-- gone (Z6, archive_pushes).
 create or replace function public.archive_space_post(p_post uuid)
 returns void
 language plpgsql
@@ -262,20 +271,11 @@ begin
     update public.space_posts set archived_at = now(), archived_by = v_me where id = p_post;
     select * into v_item from public.work_items where id = p_post for update;
     if v_item.id is not null and v_item.status in ('open', 'done') and v_post.status = 'live' then
-      delete from public.work_item_reminders where post_id = p_post and sent_at is null;
-      insert into public.push_queue (profile_id, kind, actor_id, data)
-      select v_item.owner_id, 'work_item_archived', v_me,
-             jsonb_build_object('post_id', p_post, 'space_id', v_post.space_id)
-             || case when public.check_in_shows_text(v_item.owner_id)
-                     then jsonb_build_object('title', v_post.title) else '{}'::jsonb end
-      where v_item.owner_id is not null and v_item.owner_id <> v_me
-        and public.is_active_member(v_post.space_id, v_item.owner_id)
-        and not public.is_hidden_account(v_item.owner_id)
-        and public.space_push_level(v_post.space_id, v_item.owner_id) in ('all', 'needs_you')
-        and exists (select 1 from public.push_tokens t where t.profile_id = v_item.owner_id)
-        and not exists (select 1 from public.push_queue q
-                        where q.kind = 'work_item_archived' and q.profile_id = v_item.owner_id
-                          and q.data ->> 'post_id' = p_post::text);
+      -- The undo bar's 5 seconds (BvUndoBarSpec.duration).
+      insert into public.archive_pushes (post_id, actor_id, send_after)
+      values (p_post, v_me, now() + interval '5 seconds')
+      on conflict (post_id) do update
+      set actor_id = excluded.actor_id, send_after = excluded.send_after;
     end if;
     return;
   end if;
@@ -284,6 +284,76 @@ begin
   where id = p_post and archived_at is null;
 end;
 $$;
+
+-- Z6: the owner's push waits here until the Undo window closes; Undo takes
+-- it back. due_work_reminders sends what is due (due_archive_pushes).
+create table public.archive_pushes (
+  post_id uuid primary key references public.space_posts (id) on delete cascade,
+  actor_id uuid not null references public.profiles (id) on delete cascade,
+  send_after timestamptz not null
+);
+alter table public.archive_pushes enable row level security;
+revoke all on public.archive_pushes from public, anon, authenticated;
+grant all on public.archive_pushes to service_role;
+
+-- What is due at [p_now]. The item is checked again, then the owner, as of
+-- now; lock-screen text off, they get ids only (Z7). Returns the pushes.
+create or replace function public.due_archive_pushes(p_now timestamptz default now())
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_rows integer;
+begin
+  with due as (
+    delete from public.archive_pushes a where a.send_after <= p_now
+    returning a.post_id, a.actor_id
+  )
+  insert into public.push_queue (profile_id, kind, actor_id, data)
+  select w.owner_id, 'work_item_archived',
+         case when public.check_in_shows_text(w.owner_id) then d.actor_id end,
+         jsonb_build_object('post_id', p.id, 'space_id', p.space_id)
+         || case when public.check_in_shows_text(w.owner_id)
+                 then jsonb_build_object('title', p.title) else '{}'::jsonb end
+  from due d
+  join public.space_posts p on p.id = d.post_id
+    and p.archived_at is not null and p.deleted_at is null and p.status = 'live'
+  join public.work_items w on w.id = p.id and w.status in ('open', 'done')
+  where w.owner_id is not null and w.owner_id <> d.actor_id
+    and public.is_active_member(p.space_id, w.owner_id)
+    and not public.is_hidden_account(w.owner_id)
+    and public.space_push_level(p.space_id, w.owner_id) in ('all', 'needs_you')
+    and exists (select 1 from public.push_tokens t where t.profile_id = w.owner_id);
+  get diagnostics v_rows = row_count;
+  return v_rows;
+end;
+$$;
+
+-- due_work_reminders, as it was, except that a reminder waits while its
+-- post is archived, and the archive pushes due go with it (Z6).
+do $do$
+declare
+  v_def text := pg_get_functiondef('public.due_work_reminders()'::regprocedure);
+  v_due text := $old$where r.sent_at is null and r.remind_at <= now()
+    for update skip locked$old$;
+  v_begin text := $old$begin
+  with due as ($old$;
+begin
+  if position(v_due in v_def) = 0 or position(v_begin in v_def) = 0 then
+    raise exception 'due_work_reminders changed';
+  end if;
+  v_def := replace(v_def, v_due, $new$where r.sent_at is null and r.remind_at <= now()
+      and not exists (select 1 from public.space_posts a
+                      where a.id = r.post_id and a.archived_at is not null)
+    for update skip locked$new$);
+  execute replace(v_def, v_begin, $new$begin
+  perform public.due_archive_pushes();
+  with due as ($new$);
+end;
+$do$;
 
 -- An archived work item is stopped: nobody signs, sends back or checks it.
 create or replace function public.refuse_archived_item()
@@ -688,7 +758,8 @@ grant all on public.check_in_nudges to service_role;
 -- rules: check_in_zone, check_in_market). On a working day with no
 -- check-in running today, from 30 minutes before that time until the time
 -- itself, one push to that check-in's creator if still a Lead or the admin
--- there. At most one per Space per day. Returns the pushes queued.
+-- there, unless they muted this Space (Z12). At most one per Space per
+-- day. Returns the pushes queued.
 create or replace function public.check_in_nudge(p_now timestamptz default now())
 returns integer
 language plpgsql
@@ -730,7 +801,8 @@ begin
                or public.is_hidden_account(v.author_id)
                or not exists (select 1 from public.space_members m
                               where m.space_id = v.space_id and m.profile_id = v.author_id
-                                and m.left_at is null and (m.pass = 'lead' or m.is_admin));
+                                and m.left_at is null and (m.pass = 'lead' or m.is_admin))
+               or public.space_push_level(v.space_id, v.author_id) = 'off';
     v_new := null;
     insert into public.check_in_nudges (space_id, day, profile_id, from_post_id)
     values (v.space_id, v_today, v.author_id, v.post_id)
@@ -882,7 +954,8 @@ declare
   v_call public.need_you_calls;
 begin
   select * into v_call from public.need_you_calls where id = p_call for update;
-  if v_me is null or v_call.id is null or v_call.to_id <> v_me then
+  if v_me is null or v_call.id is null or v_call.to_id <> v_me
+     or not public.is_active_member(v_call.space_id, v_me) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if p_answer is null or p_answer not in ('coming', 'cant') then
@@ -1209,8 +1282,8 @@ $$;
 
 -- The service of a share link: https only, no user part, no port but 443;
 -- OneDrive (onedrive.live.com, 1drv.ms, any *.sharepoint.com), Google Drive
--- (drive.google.com, docs.google.com) or Dropbox (www.dropbox.com,
--- dropbox.com). Null for anything else.
+-- (drive.google.com) or Dropbox (www.dropbox.com, dropbox.com). Null for
+-- anything else.
 create or replace function public.library_link_service(p_url text)
 returns text
 language sql
@@ -1225,7 +1298,7 @@ as $$
             when h.host in ('onedrive.live.com', '1drv.ms')
                  or h.host ~ '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.sharepoint\.com$'
               then 'onedrive'
-            when h.host in ('drive.google.com', 'docs.google.com') then 'google_drive'
+            when h.host = 'drive.google.com' then 'google_drive'
             when h.host in ('www.dropbox.com', 'dropbox.com') then 'dropbox'
           end
           from (select lower(substring(p_url from '^[A-Za-z]+://([^/?#@:]+)')) as host) h)
@@ -1735,7 +1808,7 @@ as $$
   gone as (
     delete from public.file_cleanup_claims c
     where not exists (select 1 from storage.objects o
-                      where o.bucket_id in ('space-files', 'post-media', 'notebook-files')
+                      where o.bucket_id in ('space-files', 'post-media', 'notebook-files', 'dm-files')
                         and o.name = c.storage_path)
     returning 1
   )
@@ -1827,6 +1900,33 @@ $$;
 create trigger scheduled_posts_failed_clock
   before update of state on public.scheduled_posts
   for each row execute function public.scheduled_failed_clock();
+
+-- Z12: writing a Post later's params takes each file's lock, as the sweep
+-- does, so a claim can't pass between its check and this write.
+create or replace function public.lock_scheduled_files()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_path text;
+begin
+  for v_path in
+    select distinct x #>> '{}'
+    from jsonb_path_query(new.params,
+                          '$.** ? (@.type() == "string" && @ like_regex "^[0-9a-fA-F-]{36}/")') x
+    order by 1
+  loop
+    perform public.lock_file_path(v_path);
+  end loop;
+  return new;
+end;
+$$;
+
+create trigger scheduled_posts_lock_files
+  before insert or update of params on public.scheduled_posts
+  for each row execute function public.lock_scheduled_files();
 
 -- At [p_now] (hourly): 29 days after it failed, one push to its author; at
 -- 30 days, and at least a day after that push, it is cancelled, so its
@@ -1944,11 +2044,10 @@ begin
       raise exception 'a place or the same place, not both' using errcode = '22023';
     end if;
     select * into v_from from public.space_posts where id = p_same_place_as;
-    if v_from.id is null or v_from.space_id <> p_space or v_from.deleted_at is not null then
+    -- Z5: one answer for all of these, so nobody learns what an id is.
+    if v_from.id is null or v_from.space_id <> p_space or v_from.deleted_at is not null
+       or v_from.kind <> 'check_in' or not public.can_see_space_post(p_same_place_as) then
       raise exception 'not allowed' using errcode = '42501';
-    end if;
-    if v_from.kind <> 'check_in' then
-      raise exception 'not a check-in' using errcode = '22023';
     end if;
     select c.site_lat, c.site_lng into v_lat, v_lng
     from public.check_in_posts c where c.post_id = p_same_place_as;
@@ -2159,7 +2258,7 @@ $do$;
 
 -- unarchive_space_post (migration 52), as it was (a Lead, a Checked work
 -- item), and the author undoing their own Archive. An open work item is
--- live again; its reminders stay gone, and nobody gets a push.
+-- live again, with its reminders; the owner's waiting push goes (Z6).
 create or replace function public.unarchive_space_post(p_post uuid)
 returns void
 language plpgsql
@@ -2177,6 +2276,7 @@ begin
      and not exists (select 1 from public.work_items w
                      where w.id = p_post and w.status = 'checked') then
     update public.space_posts set archived_at = null, archived_by = null where id = p_post;
+    delete from public.archive_pushes where post_id = p_post;
     return;
   end if;
   perform public.require_archivable(p_post);
@@ -2422,6 +2522,8 @@ revoke all on function public.can_read_library_file(uuid) from public, anon;
 revoke all on function public.library_link_service(text) from public, anon, authenticated;
 revoke all on function public.drop_only_me_folders(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.drop_folders(uuid[]) from public, anon, authenticated;
+revoke all on function public.due_archive_pushes(timestamptz) from public, anon, authenticated;
+revoke all on function public.lock_scheduled_files() from public, anon, authenticated;
 revoke all on function public.library_file_carried(uuid) from public, anon, authenticated;
 revoke all on function public.purge_left_only_me_folders(timestamptz, integer) from public, anon, authenticated;
 revoke all on function public.library_gone(uuid[]) from public, anon, authenticated;
@@ -2459,4 +2561,5 @@ grant execute on function public.check_in_nudge(timestamptz) to service_role;
 grant execute on function public.claim_private_file_purges(integer) to service_role;
 grant execute on function public.purge_deleted_library_files(timestamptz, integer) to service_role;
 grant execute on function public.purge_left_only_me_folders(timestamptz, integer) to service_role;
+grant execute on function public.due_archive_pushes(timestamptz) to service_role;
 grant execute on function public.expire_failed_posts(timestamptz) to service_role;

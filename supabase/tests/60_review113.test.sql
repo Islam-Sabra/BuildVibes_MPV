@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(363);
+select plan(389);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -301,7 +301,7 @@ update public.profiles set deletion_scheduled_at = now() where id = pg_temp.uid(
 select is((select p -> 'name' from jsonb_array_elements(pg_temp.card('b2', 'a001') -> 'reactions') e,
                   jsonb_array_elements(e -> 'people') p
            where p ->> 'id' = pg_temp.uid('b9')::text),
-  'null'::jsonb, 'someone I blocked has no name');
+  null::jsonb, 'Z11: someone I blocked is left out');
 select is((select p -> 'name' from jsonb_array_elements(pg_temp.card('a1', 'a001') -> 'reactions') e,
                   jsonb_array_elements(e -> 'people') p
            where p ->> 'id' = pg_temp.uid('a8')::text),
@@ -336,8 +336,8 @@ select is(pg_temp.push_data('post_reaction', 'a1', 'post_id', pg_temp.id('a001')
   jsonb_build_object('post_id', pg_temp.id('a001'), 'space_id', pg_temp.sp(), 'kind', 'like'),
   'its ids and the kind; lock-screen text off: no title, no Space');
 select is((select actor_id from public.push_queue where kind = 'post_reaction'
-           and profile_id = pg_temp.uid('a1') order by id limit 1), pg_temp.uid('b2'),
-  'from the first who reacted');
+           and profile_id = pg_temp.uid('a1') order by id limit 1), null,
+  'Z7: lock-screen text off: nobody named');
 select pg_temp.react('a7', 'a003', 'like');
 select is(pg_temp.pushes('post_reaction', 'a7', 'post_id', pg_temp.id('a003')::text), 1,
   'never for my own reaction to my own post (one push: Rakesh''s)');
@@ -345,6 +345,9 @@ select is(pg_temp.push_data('post_reaction', 'a7', 'post_id', pg_temp.id('a003')
   jsonb_build_object('post_id', pg_temp.id('a003'), 'space_id', pg_temp.sp(), 'kind', 'heart',
                      'title', 'Steel only', 'space_name', 'Tower 113'),
   'lock-screen text on: the title and the Space');
+select is((select actor_id from public.push_queue where kind = 'post_reaction'
+           and profile_id = pg_temp.uid('a7') order by id limit 1), pg_temp.uid('b2'),
+  'Z7: and who reacted first');
 update public.push_queue set created_at = created_at - interval '11 minutes'
 where kind = 'post_reaction';
 select pg_temp.react('c3', 'a001', 'like');
@@ -447,11 +450,23 @@ select throws_ok($$select public.archive_space_post(pg_temp.id('b007'))$$, 'P000
 reset role;
 select is((select archived_by from public.space_posts where id = pg_temp.id('b002')), pg_temp.uid('a7'),
   'who archived it is kept');
+select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 0,
+  'Z6: no push while Undo is on screen');
+select public.due_archive_pushes(now());
+select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 0,
+  'Z6: nor at once from the job');
+select public.due_archive_pushes(now() + interval '6 seconds');
 select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 1,
-  'its owner gets one push');
+  'its owner gets one push when the Undo window closes');
+select public.due_archive_pushes(now() + interval '1 minute');
+select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 1,
+  'Z6: once');
 select is(pg_temp.push_data('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text),
   jsonb_build_object('post_id', pg_temp.id('b002'), 'space_id', pg_temp.sp(), 'title', 'Updated item'),
   'its ids, and its title under the lock-screen rule (on for Rakesh)');
+select is((select actor_id from public.push_queue where kind = 'work_item_archived'
+           and data ->> 'post_id' = pg_temp.id('b002')::text), pg_temp.uid('a7'),
+  'Z7: who archived it, under the lock-screen rule (on)');
 select is((select count(*)::int from public.push_queue where kind = 'work_item_archived'
            and data ->> 'post_id' = pg_temp.id('b004')::text), 0, 'an announcement: no push');
 select is(pg_temp.card('b2', 'b002') -> 'needs_me', 'null'::jsonb, 'it no longer needs its owner');
@@ -469,9 +484,10 @@ select throws_ok($$select public.set_work_reminder(pg_temp.id('b0b2'), pg_temp.i
                    array[pg_temp.uid('b2')], now() + interval '1 day')$$, '22023', null,
   'nor reminded');
 reset role;
-select is((select count(*)::int from public.work_item_reminders
-           where post_id = pg_temp.id('b006') and sent_at is null), 0,
-  'its waiting reminders are gone');
+update public.work_item_reminders set remind_at = now() - interval '1 minute' where post_id = pg_temp.id('b006');
+select public.due_work_reminders();
+select is((select count(*)::int from public.work_item_reminders where post_id = pg_temp.id('b006')
+           and sent_at is null), 1, 'Z6: a reminder due while archived waits');
 select is((select status from public.work_items where id = pg_temp.id('b005')), 'done',
   'it stays as it was, in the record');
 
@@ -520,6 +536,11 @@ select is((select data from public.push_queue where kind = 'check_in_nudge' orde
   jsonb_build_object('space_id', pg_temp.sp(), 'from_post_id', pg_temp.id('c001')),
   'lock-screen text off: no Space name');
 insert into public.push_settings (profile_id, message_text) values (pg_temp.uid('a7'), true);
+update public.space_members set notify = 'off' where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
+select is(public.check_in_nudge(pg_temp.at(8, '06:15')), 0, 'Z12: the Lead muted this Space: none');
+select is((select count(*)::int from public.check_in_nudges where space_id = pg_temp.sp()
+           and day = pg_temp.d() + 8), 0, 'Z12: and nothing is marked as sent');
+update public.space_members set notify = 'all' where space_id = pg_temp.sp() and profile_id = pg_temp.uid('a7');
 
 -- 5. Need you now (NN1, NN2) ------------------------------------------------------------------------
 
@@ -1285,7 +1306,7 @@ select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(),
   '42501', 'not allowed', 'an unknown id says the same');
 select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Not one', null, null,
                    null, null, '07:00', 15, p_same_place_as => pg_temp.id('a001'))$$,
-  '22023', 'not a check-in', 'not a post that isn''t a check-in');
+  '42501', 'not allowed', 'Z5: a post that isn''t a check-in says the same');
 select throws_ok($$select public.post_check_in(pg_temp.id('c0f1'), pg_temp.sp(), 'Both', null, null,
                    29.3, 47.9, '07:00', 15, p_same_place_as => pg_temp.id('c001'))$$,
   '22023', 'a place or the same place, not both', 'never both a point and an earlier check-in');
@@ -1451,7 +1472,7 @@ select ok((select archived_at is null and archived_by is null from public.space_
 select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 1,
   'the owner gets no second push');
 select is((select count(*)::int from public.work_item_reminders where post_id = pg_temp.id('b006')
-           and sent_at is null), 0, 'its reminders stay gone');
+           and sent_at is null), 1, 'Z6: Undo gives its reminders back');
 select is(pg_temp.card('b2', 'b002') ->> 'needs_me', 'to_sign', 'it needs its owner again');
 select pg_temp.as_user('b2');
 set local role authenticated;
@@ -1610,6 +1631,119 @@ select ok(pg_catalog.pg_get_functiondef('public.purge_deleted_library_files(time
 select ok(not has_function_privilege('authenticated', 'public.purge_left_only_me_folders(timestamptz, integer)', 'execute')
           and has_function_privilege('service_role', 'public.purge_left_only_me_folders(timestamptz, integer)', 'execute'),
   'Z3: the purge is the job''s');
+
+-- Z4. forget_cleanup_claims keeps a dm-files claim until the object is gone.
+insert into storage.objects (bucket_id, name, owner_id, metadata)
+values ('dm-files', 'z4/dm/a.jpg', pg_temp.uid('a1')::text, '{"size": 1000, "mimetype": "image/jpeg"}');
+insert into public.file_cleanup_claims (storage_path) values ('z4/dm/a.jpg');
+select public.forget_cleanup_claims();
+select is((select count(*)::int from public.file_cleanup_claims where storage_path = 'z4/dm/a.jpg'), 1,
+  'Z4: a dm-files claim stays while its object does');
+delete from storage.objects where bucket_id = 'dm-files' and name = 'z4/dm/a.jpg';
+select public.forget_cleanup_claims();
+select is((select count(*)::int from public.file_cleanup_claims where storage_path = 'z4/dm/a.jpg'), 0,
+  'Z4: and is cleared once it is gone');
+
+-- Z5. Copying the place of a check-in you can't see.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select public.post_check_in(pg_temp.id('c020'), pg_temp.sp(), 'Solo roll', null,
+  array[current_setting('test.solo')::uuid], 29.1, 47.1, '07:00', 15);
+reset role;
+select pg_temp.as_user('a7');
+set local role authenticated;
+select throws_ok($$select public.post_check_in(pg_temp.id('c0f2'), pg_temp.sp(), 'Peek', null, null,
+                   null, null, '07:00', 15, p_same_place_as => pg_temp.id('c020'))$$,
+  '42501', 'not allowed', 'Z5: a Lead can''t copy from a check-in limited to another Team');
+reset role;
+
+-- Z6. Undo before the window closes cancels the push.
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.archive_space_post(pg_temp.id('b002'));
+select public.unarchive_space_post(pg_temp.id('b002'));
+reset role;
+select public.due_archive_pushes(now() + interval '1 minute');
+select is(pg_temp.pushes('work_item_archived', 'b2', 'post_id', pg_temp.id('b002')::text), 1,
+  'Z6: Undo cancels the queued push');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.archive_space_post(pg_temp.id('b002'));
+reset role;
+-- Z7, with the owner's lock-screen text off.
+update public.push_settings set message_text = false where profile_id = pg_temp.uid('b2');
+select public.due_archive_pushes(now() + interval '1 minute');
+select is((select actor_id from public.push_queue where kind = 'work_item_archived'
+           and data ->> 'post_id' = pg_temp.id('b002')::text order by id desc limit 1), null,
+  'Z7: lock-screen text off: nobody named');
+select ok(not (select data from public.push_queue where kind = 'work_item_archived'
+               and data ->> 'post_id' = pg_temp.id('b002')::text order by id desc limit 1) ? 'title',
+  'Z7: and no title');
+update public.push_settings set message_text = true where profile_id = pg_temp.uid('b2');
+select ok((select relrowsecurity from pg_class where oid = 'public.archive_pushes'::regclass)
+          and not has_table_privilege('authenticated', 'public.archive_pushes', 'select')
+          and not has_function_privilege('authenticated', 'public.due_archive_pushes(timestamptz)', 'execute'),
+  'Z6: the queue is the server''s');
+
+-- Z10. A folder link, never a document.
+select is(public.library_link_service('https://docs.google.com/document/d/1abc'), null,
+  'Z10: docs.google.com is not a folder');
+select is(public.library_link_service('https://drive.google.com/drive/folders/1abc'), 'google_drive',
+  'Z10: drive.google.com is');
+select is(public.library_link_service('https://contoso.sharepoint.com/:f:/s/site/Eabc'), 'onedrive',
+  'Z10: SharePoint stays');
+
+-- Z11. Blocked people.
+insert into public.blocks (blocker_id, blocked_id)
+values (pg_temp.uid('a7'), pg_temp.uid('e5')), (pg_temp.uid('e5'), pg_temp.uid('a1'));
+select throws_ok($$select pg_temp.react('e5', 'a003', 'like')$$, '42501', 'not allowed',
+  'Z11: no reaction to the post of someone who blocked you');
+select throws_ok($$select pg_temp.react('e5', 'a001', 'like')$$, '42501', 'not allowed',
+  'Z11: nor of someone you blocked');
+reset role;
+insert into public.post_reactions (post_id, profile_id, kind)
+values (pg_temp.id('a001'), pg_temp.uid('e5'), 'bravo')
+on conflict (post_id, profile_id) do update set kind = excluded.kind;
+insert into public.post_reactions (post_id, profile_id, kind)
+values (pg_temp.id('a001'), pg_temp.uid('a7'), 'bravo')
+on conflict (post_id, profile_id) do update set kind = excluded.kind;
+select ok(pg_temp.card('b2', 'a001')::text like '%' || pg_temp.uid('e5')::text || '%',
+  'Z11: others see that reaction');
+select ok(pg_temp.card('a7', 'a001')::text not like '%' || pg_temp.uid('e5')::text || '%',
+  'Z11: someone who blocked them doesn''t');
+select ok(pg_temp.card('e5', 'a001')::text not like '%' || pg_temp.uid('a7')::text || '"%name%',
+  'Z11: nor the person blocked');
+select is((select count(*)::int from jsonb_path_query(pg_temp.card('e5', 'a001') -> 'reactions',
+           '$[*].people[*] ? (@.id == $me)', jsonb_build_object('me', pg_temp.uid('a7')::text))), 0,
+  'Z11: left out, both ways');
+delete from public.blocks where blocker_id in (pg_temp.uid('a7'), pg_temp.uid('e5'));
+
+-- Z12. Small server gaps.
+insert into public.need_you_calls (id, space_id, from_id, to_id)
+values (pg_temp.id('d0e0'), pg_temp.sp(), pg_temp.uid('a7'), pg_temp.uid('c7'));
+select pg_temp.as_user('c7');
+set local role authenticated;
+select throws_ok($$select public.answer_need_you(pg_temp.id('d0e0'), 'coming')$$, '42501', 'not allowed',
+  'Z12: someone no longer in the Space can''t answer');
+reset role;
+
+create function pg_temp.locked(p_path text) returns boolean language sql as $$
+  select exists (select 1 from pg_locks l
+                 where l.locktype = 'advisory' and l.pid = pg_backend_pid()
+                   and ((l.classid::bigint << 32) | l.objid::bigint)
+                       = hashtextextended('space-file:' || p_path, 0));
+$$;
+insert into public.scheduled_posts (id, author_id, fn, params, title, publish_at)
+values (pg_temp.id('fe20'), pg_temp.uid('a1'), 'create_space_post',
+        jsonb_build_object('p_id', pg_temp.id('fe20'),
+                           'p_files', jsonb_build_array(jsonb_build_object('path', pg_temp.path('f550')))),
+        'Later', now() + interval '1 day');
+select ok(pg_temp.locked(pg_temp.path('f550')), 'Z12: writing a Post later locks each file path');
+update public.scheduled_posts
+set params = params || jsonb_build_object('p_evidence',
+      jsonb_build_array(jsonb_build_object('path', pg_temp.path('f551'))))
+where id = pg_temp.id('fe20');
+select ok(pg_temp.locked(pg_temp.path('f551')), 'Z12: and on an update too');
 
 select * from finish();
 rollback;
