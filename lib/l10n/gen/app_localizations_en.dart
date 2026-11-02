@@ -7002,4 +7002,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fileGoneLine =>
       'This file is no longer on your phone. Remove it to send the rest.';
+
+  @override
+  String get postFileAudienceLine =>
+      'People who see this post can open this file.';
 }

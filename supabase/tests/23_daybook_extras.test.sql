@@ -438,8 +438,8 @@ select ok(exists (select 1 from public.daybook_month(pg_temp.sp(), current_date 
                                         timestamptz '2000-01-01 00:00+00')),
   'which the Team gets');
 
--- Only the Library files the reader may read are on the slip, in the list
--- and in the count.
+-- Review 113 Z14: attaching a file shares it with the post's audience, so
+-- a Team's file on this item is on the slip for whoever sees the item.
 reset role;
 insert into public.library_files (id, space_id, team_id, name, storage_path, mime, bytes, uploaded_by)
 select pg_temp.item('f01' || n), pg_temp.sp(), pg_temp.team(), 'MEP-' || n,
@@ -453,10 +453,10 @@ select pg_temp.item('b003'), pg_temp.item('f004'), pg_temp.uid('e1');
 select pg_temp.as_user('e2');
 set local role authenticated;
 select is(pg_temp.card(pg_temp.item('b003')) -> 'attachments' -> 0 ->> 'name', 'M-204',
-  'outside the Team, only the Everyone file is on the card');
-select ok(jsonb_array_length(pg_temp.card(pg_temp.item('b003')) -> 'attachments') = 1
-          and pg_temp.card(pg_temp.item('b003')) ->> 'attachments_more' is null,
-  'and no "more"');
+  'outside the Team, the card has the item''s files');
+select ok(jsonb_array_length(pg_temp.card(pg_temp.item('b003')) -> 'attachments') = 3
+          and pg_temp.card(pg_temp.item('b003')) ->> 'attachments_more' = 'true',
+  'and "more" for the fourth');
 select pg_temp.as_user('e1');
 select ok(jsonb_array_length(pg_temp.card(pg_temp.item('b003')) -> 'attachments') = 3
           and (pg_temp.card(pg_temp.item('b003')) ->> 'attachments_more')::boolean,

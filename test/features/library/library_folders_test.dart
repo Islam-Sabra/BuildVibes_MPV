@@ -327,5 +327,39 @@ void main() {
       expect(app.library.calls.single, endsWith('folder:f-drawings'));
       expect(app.library.uploadTypes, ['application/pdf']);
     });
+
+    for (final (folder, shows) in [
+      ('f-mine', true),
+      ('f-omar', true),
+      ('f-mep', true),
+      ('f-drawings', false),
+    ]) {
+      testWidgets('Z14: a file from $folder ${shows ? 'says' : 'doesn\'t say'} '
+          'who can open it [$lang]', (tester) async {
+        await openLibrary(tester, lang);
+        await _tap(tester, _key('folder-$folder'));
+        await _tap(tester, _key('library-add-file'));
+        await _tap(tester, _key('file-from-phone'));
+        await _tap(tester, _key('replaces-none'));
+        await _tap(tester, _key('replaces-done'));
+        expect(
+          find.text(l10n.postFileAudienceLine),
+          shows ? findsOneWidget : findsNothing,
+        );
+      });
+    }
+
+    testWidgets('Z14: the line reads as the review wrote it [$lang]', (
+      tester,
+    ) async {
+      expect(
+        lookupAppLocalizations(const Locale('en')).postFileAudienceLine,
+        'People who see this post can open this file.',
+      );
+      expect(
+        lookupAppLocalizations(const Locale('ar')).postFileAudienceLine,
+        'كل من يرى هذا المنشور يمكنه فتح هذا الملف.',
+      );
+    });
   }
 }

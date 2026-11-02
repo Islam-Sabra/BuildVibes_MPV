@@ -385,15 +385,14 @@ class DaybookPostFile {
     this.revLabel,
   });
 
-  /// A post_files row with `library:library_files(name, rev_label)`.
+  /// A row of post_files_for.
   factory DaybookPostFile.fromJson(Map<String, dynamic> json) {
-    final library = json['library'] as Map<String, dynamic>?;
     return DaybookPostFile(
       mime: json['mime'] as String? ?? '',
       path: json['storage_path'] as String?,
       libraryFileId: json['library_file_id'] as String?,
-      name: library?['name'] as String?,
-      revLabel: library?['rev_label'] as String?,
+      name: json['name'] as String?,
+      revLabel: json['rev_label'] as String?,
     );
   }
 

@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(388);
+select plan(405);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000060' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -1742,6 +1742,73 @@ set params = params || jsonb_build_object('p_evidence',
       jsonb_build_array(jsonb_build_object('path', pg_temp.path('f551'))))
 where id = pg_temp.id('fe20');
 select ok(pg_temp.locked(pg_temp.path('f551')), 'Z12: and on an update too');
+
+-- Z14. Attaching or posting a file shares it with the post's audience; the
+-- folder still decides who sees it in the Library.
+select pg_temp.as_user('a7');
+set local role authenticated;
+select public.create_library_folder(pg_temp.id('f560'), pg_temp.sp(), 'Gus private', 'only_me');
+select public.create_work_item(pg_temp.sp(), 'Z14 item', pg_temp.uid('b2'), p_id => pg_temp.id('b0e1'));
+select public.create_space_post(pg_temp.id('a0e1'), pg_temp.sp(), 'announcement', 'Z14 post');
+select public.create_space_post(pg_temp.id('a0e2'), pg_temp.sp(), 'announcement', 'Z14 file post');
+reset role;
+select pg_temp.obj(x.f, 'a7', interval '0')
+from (values ('f561'), ('f562'), ('f563'), ('f564')) x(f);
+insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
+select pg_temp.id(x.f), pg_temp.sp(), x.n, pg_temp.path(x.f), 'image/jpeg', pg_temp.uid('a7'), pg_temp.id('f560')
+from (values ('f561', 'zirconplan.jpg'), ('f562', 'zirconpost.jpg'), ('f563', 'zirconfile.jpg'),
+             ('f564', 'zirconteam.jpg')) x(f, n);
+insert into public.work_item_attachments (work_item_id, library_file_id, added_by)
+values (pg_temp.id('b0e1'), pg_temp.id('f561'), pg_temp.uid('a7'));
+insert into public.post_files (post_id, library_file_id, sort, added_by)
+values (pg_temp.id('a0e1'), pg_temp.id('f562'), 0, pg_temp.uid('a7')),
+       (pg_temp.id('a003'), pg_temp.id('f564'), 90, pg_temp.uid('a7'));
+update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f563') where id = pg_temp.id('a0e2');
+
+create function pg_temp.library_rows(p_id text, p text) returns integer language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_id);
+  set local role authenticated;
+  select count(*) into v from public.library_files where id = pg_temp.id(p);
+  reset role;
+  return v;
+end;
+$$;
+create function pg_temp.opened_row(p_id text, p text) returns integer language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_id);
+  set local role authenticated;
+  select count(*) into v from public.open_library_file(pg_temp.id(p));
+  reset role;
+  return v;
+end;
+$$;
+
+select ok(pg_temp.opens('b2', 'f561'), 'Z14: Crew opens an only-me file attached to a Whole Space work item');
+select ok(pg_temp.card('b2', 'b0e1')::text like '%zirconplan%', 'Z14: and its card shows it');
+select is(pg_temp.opened_row('b2', 'f561'), 1, 'Z14: its file screen has its row');
+select is((select count(*)::int from public.work_item_attachments a
+           where a.library_file_id = pg_temp.id('f561')), 1, 'Z14: the attachment row stands');
+select is(pg_temp.reads('b2', $$select count(*)::int from public.work_item_attachments
+                                where work_item_id = '00000000-0000-0000-0000-00000060b0e1'$$), 1,
+  'Z14: and Crew reads it');
+select is(pg_temp.library_rows('b2', 'f561'), 0, 'Z14: still not in the Library');
+select is(pg_temp.finds('b2', 'f561', 'zirconplan'), 0, 'Z14: nor in search');
+select ok(pg_temp.opens('b2', 'f562'), 'Z14: on a post too');
+select is(pg_temp.card('b2', 'a0e1') -> 'files', pg_temp.card('a7', 'a0e1') -> 'files',
+  'Z14: its card has the same files as its owner''s');
+select ok(pg_temp.opens('e5', 'f563'), 'Z14: a Viewer opens a file post''s file');
+select ok(pg_temp.card('e5', 'a0e2')::text like '%zirconfile%', 'Z14: from its card');
+select is(pg_temp.library_rows('e5', 'f563'), 0, 'Z14: not in the Library');
+select ok(not pg_temp.opens('e5', 'f564'), 'Z14: who can''t see the post can''t open its file');
+select is(pg_temp.opened_row('e5', 'f564'), 0, 'Z14: nor get its row');
+select ok(pg_temp.opens('b2', 'f564'), 'Z14: the Team''s post is for its Team');
+select is(pg_temp.reads('b2', $$select count(*)::int from public.post_files_for('00000000-0000-0000-0000-00000060a0e1')
+                                where name = 'zirconpost.jpg'$$), 1, 'Z14: its opened page has the name');
+delete from public.post_files where post_id = pg_temp.id('a003') and library_file_id = pg_temp.id('f564');
+select ok(not pg_temp.opens('b2', 'f564'), 'Z14: taken off the post, it is private again');
 
 select * from finish();
 rollback;

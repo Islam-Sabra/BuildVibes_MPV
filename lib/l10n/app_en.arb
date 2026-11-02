@@ -9956,5 +9956,9 @@
   "fileGoneLine": "This file is no longer on your phone. Remove it to send the rest.",
   "@fileGoneLine": {
     "description": "A draft's file has gone from the phone, in the Couldn't send sheet (review 113 Z13)."
+  },
+  "postFileAudienceLine": "People who see this post can open this file.",
+  "@postFileAudienceLine": {
+    "description": "Under a file chip, when the file's Library folder is narrower than the post's audience (review 113 Z14)."
   }
 }

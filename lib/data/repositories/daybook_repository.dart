@@ -746,15 +746,12 @@ class SupabaseDaybookRepository implements DaybookRepository {
 
   @override
   Future<List<DaybookPostFile>> postFiles(String postId) => _guard(() async {
-    final rows = await _client
-        .from('post_files')
-        .select(
-          'storage_path, mime, library_file_id, '
-          'library:library_files(name, rev_label)',
-        )
-        .eq('post_id', postId)
-        .order('sort', ascending: true)
-        .order('created_at', ascending: true);
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'post_files_for',
+        params: {'p_post': postId},
+      ),
+    );
     return [for (final r in rows) DaybookPostFile.fromJson(r)];
   });
 

@@ -63,6 +63,15 @@ LinkService? linkServiceOf(String text) {
   return null;
 }
 
+/// Z14: whether [folder] is narrower than a post for [teamId] (null: the
+/// whole Space), so posting its file shares it wider.
+bool folderNarrowerThanPost(LibraryFolder folder, String? teamId) =>
+    switch (folder.share) {
+      FolderShare.space => false,
+      FolderShare.team => folder.shareTeamId != teamId,
+      FolderShare.person || FolderShare.onlyMe => true,
+    };
+
 /// A folder in a Space's Library, as space_library_folders gives it.
 @immutable
 class LibraryFolder {

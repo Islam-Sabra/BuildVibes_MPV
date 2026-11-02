@@ -11653,6 +11653,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This file is no longer on your phone. Remove it to send the rest.'**
   String get fileGoneLine;
+
+  /// Under a file chip, when the file's Library folder is narrower than the post's audience (review 113 Z14).
+  ///
+  /// In en, this message translates to:
+  /// **'People who see this post can open this file.'**
+  String get postFileAudienceLine;
 }
 
 class _AppLocalizationsDelegate

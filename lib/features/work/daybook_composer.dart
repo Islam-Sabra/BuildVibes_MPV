@@ -13,6 +13,9 @@ import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
+import '../../data/models/library_folder.dart';
+import '../../data/repositories/library_repository.dart'
+    show libraryFoldersProvider;
 import '../../data/models/upload_rules.dart' show FileRefused, UploadProblem;
 import '../../data/repositories/daybook_repository.dart'
     show spaceWorkTagsProvider;
@@ -1213,6 +1216,23 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
               spacing: BvSpace.s8,
               runSpacing: BvSpace.s8,
               children: added,
+            ),
+          ),
+        // Z14: a post shares its file with everyone who sees the post.
+        if (draft.files.any((f) => f.folderId != null) &&
+            (ref.watch(libraryFoldersProvider(widget.spaceId)).value ??
+                    const <LibraryFolder>[])
+                .any(
+                  (folder) =>
+                      draft.files.any((f) => f.folderId == folder.id) &&
+                      folderNarrowerThanPost(folder, draft.teamId),
+                ))
+          Padding(
+            padding: BvWritingLineSpec.chipsPadding,
+            child: Text(
+              l10n.postFileAudienceLine,
+              key: const Key('writing-file-audience'),
+              style: quiet,
             ),
           ),
         if (kind == DaybookKind.thanks)

@@ -1925,5 +1925,6 @@
   "libraryServiceGoogleDrive": "Google Drive",
   "libraryServiceDropbox": "Dropbox",
   "shareFailedPlain": "تعذّرت المشاركة. حاول مرة أخرى.",
-  "fileGoneLine": "هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي."
+  "fileGoneLine": "هذا الملف لم يعد على هاتفك. احذفه لإرسال الباقي.",
+  "postFileAudienceLine": "كل من يرى هذا المنشور يمكنه فتح هذا الملف."
 }
