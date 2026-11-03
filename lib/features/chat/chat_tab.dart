@@ -31,9 +31,9 @@ import '../spaces/former_member.dart';
 import 'thread_screen.dart' show ChatActionRow;
 import '../../core/routing/open_thread.dart';
 
-/// A thread's name: "Everyone" or the Team's.
+/// A thread's name: "Whole Space" (review 115) or the Team's.
 String threadName(AppLocalizations l10n, ChatThread t) =>
-    t.isEveryone ? l10n.chatEveryone : (t.teamName ?? l10n.chatTeam);
+    t.isEveryone ? l10n.daybookWholeSpace : (t.teamName ?? l10n.chatTeam);
 
 /// What a message is, in one line: its text, or "Photo", "Voice note"…
 String chatSnippet(AppLocalizations l10n, ChatKind? kind, String? body) =>
@@ -286,7 +286,7 @@ class _ThreadRow extends ConsumerWidget {
         child: Row(
           spacing: BvSpace.s12,
           children: [
-            // Everyone is a group, not initials ("الجميع" reads oddly).
+            // Whole Space is a group, not initials.
             if (thread.isEveryone)
               const _GroupTile()
             else

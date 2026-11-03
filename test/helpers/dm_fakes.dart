@@ -133,9 +133,28 @@ class FakeDmRepository implements DmRepository {
     );
   }
 
+  /// The next uploads fail for a weak signal.
+  int failUploadNext = 0;
+
+  /// The next upload is refused by the bucket (review 115).
+  SpaceException? refuseUploadNext;
+
+  /// The phone files each upload was asked for, in order (sent or not).
+  final uploadTried = <String>[];
+
   @override
   Future<String> upload(String messageId, PhoneFile file) async {
     _check();
+    uploadTried.add(file.local);
+    if (failUploadNext > 0) {
+      failUploadNext--;
+      throw const SpaceException(SpaceFailure.network);
+    }
+    final refused = refuseUploadNext;
+    if (refused != null) {
+      refuseUploadNext = null;
+      throw refused;
+    }
     return 'me/$messageId/${file.name}';
   }
 

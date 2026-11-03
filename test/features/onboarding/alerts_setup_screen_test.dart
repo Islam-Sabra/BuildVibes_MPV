@@ -124,7 +124,22 @@ void main() {
         ['autostart', 'floating', 'battery', 'lockRecents'],
       );
       expect(find.text(l10n.alertsOn), findsOneWidget);
-      expect(find.text(l10n.alertsTurnOn), findsNWidgets(4));
+      // Lock in recent apps opens a how-to, so it says "Show me".
+      expect(find.text(l10n.alertsTurnOn), findsNWidgets(3));
+      expect(
+        find.descendant(
+          of: _key('alerts-line-lockRecents'),
+          matching: find.text(lang == 'en' ? 'Show me' : 'أرني'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _key('alerts-line-lockRecents'),
+          matching: find.text(l10n.alertsTurnOn),
+        ),
+        findsNothing,
+      );
       expect(_key('alerts-done'), findsNothing);
     });
 

@@ -1306,7 +1306,7 @@
   "@spacesConfirmedByYou": {
     "description": "S17k line."
   },
-  "spacesRightChat": "Chat in Everyone and their Teams",
+  "spacesRightChat": "Chat in Whole Space and their Teams",
   "@spacesRightChat": {
     "description": "Right, always on."
   },
@@ -1775,19 +1775,15 @@
   "@deliveredCheckedRowNoName": {
     "description": "RE1 row label when the checker's name is hidden (a block)."
   },
-  "chatEveryone": "Everyone",
-  "@chatEveryone": {
-    "description": "The Space-wide thread."
-  },
   "chatTeam": "Team",
   "@chatTeam": {
     "description": "Thread subtitle for a Team thread."
   },
-  "chatThreadsNote": "You see threads for Everyone and your Teams.",
+  "chatThreadsNote": "You see threads for Whole Space and your Teams.",
   "@chatThreadsNote": {
     "description": "S7k footer for members."
   },
-  "chatThreadsNoteAdmin": "As a Space admin, you see Everyone and every Team.",
+  "chatThreadsNoteAdmin": "As a Space admin, you see Whole Space and every Team.",
   "@chatThreadsNoteAdmin": {
     "description": "S7k footer for admins."
   },
@@ -1859,10 +1855,6 @@
   "chatSending": "Sending…",
   "@chatSending": {
     "description": "Pending message."
-  },
-  "chatNotSent": "Not sent",
-  "@chatNotSent": {
-    "description": "Failed message."
   },
   "chatRetry": "Retry",
   "@chatRetry": {
@@ -7910,7 +7902,7 @@
   },
   "daybookWholeSpace": "Whole Space",
   "@daybookWholeSpace": {
-    "description": "Review 105 SP2: the Team row before a Team is chosen."
+    "description": "Review 105 SP2: the Team row before a Team is chosen. Also the name of the Space's chat thread for the whole Space (review 115: one word in the whole app)."
   },
   "daybookNeedYou": "{n, plural, =1{1 needs you} other{{n} need you}}",
   "@daybookNeedYou": {
@@ -10187,6 +10179,10 @@
   "alertsTurnOn": "Turn on",
   "@alertsTurnOn": {
     "description": "Opens the phone's page for a PS1 line."
+  },
+  "alertsShowMe": "Show me",
+  "@alertsShowMe": {
+    "description": "Review 115: the Lock in recent apps line's button; it opens a how-to, not a page."
   },
   "alertsHint": "Each button opens the right page in your phone's settings. Turn the switch on, then come back.",
   "@alertsHint": {

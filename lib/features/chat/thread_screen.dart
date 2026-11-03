@@ -734,7 +734,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
               Text(
                 joinMeta([
                   space.name,
-                  thread.isEveryone ? l10n.chatEveryone : l10n.chatTeam,
+                  thread.isEveryone ? l10n.daybookWholeSpace : l10n.chatTeam,
                 ]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
