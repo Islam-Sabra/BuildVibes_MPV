@@ -90,6 +90,7 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 | Send back | إرجاع |
 | Lead / Crew / Viewer | مسؤول / فريق تنفيذ / مُطّلع |
 | Pass | تصريح |
+| Team admin | مشرف الفريق |
 | Needs you | بانتظارك |
 | Project record | سجل المشروع |
 

@@ -1186,11 +1186,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesTeamDuplicate => 'يوجد فريق بهذا الاسم بالفعل.';
 
   @override
-  String spacesTeamIntro(String space) {
-    return 'فريق في $space. منشورات الفريق ومحادثاته لأعضائه فقط.';
-  }
-
-  @override
   String get spacesAddPeople => 'إضافة أشخاص';
 
   @override
@@ -4442,9 +4437,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get spacesTeamMembersTitle => 'الأعضاء';
-
-  @override
   String needsChecklist(String name, String title) {
     return 'قائمة تحقق لك من $name: $title';
   }
@@ -7053,7 +7045,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamsMakeTitle => 'إنشاء الفرق من الشركات';
 
   @override
-  String get teamsMakeCardLine => 'بضغطة واحدة، وتراجع قبل الحفظ.';
+  String get teamsMakeCardLine => 'بضغطة واحدة، وراجِعها قبل الحفظ.';
 
   @override
   String get teamsMakeIntro =>
@@ -7075,18 +7067,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamsNewByHand => 'فريق جديد يدويًا';
 
   @override
-  String get teamRowAdmin => 'المسؤول';
+  String get teamRowAdmin => 'المشرف';
 
   @override
-  String get teamAdminBadge => 'مسؤول الفريق';
+  String get teamAdminBadge => 'مشرف الفريق';
 
   @override
   String teamsAdminLine(String name) {
-    return 'مسؤول الفريق: $name';
+    return 'مشرف الفريق: $name';
   }
 
   @override
-  String get teamsAdminNone => 'مسؤول الفريق: —';
+  String get teamsAdminNone => 'مشرف الفريق: —';
 
   @override
   String teamsMergeOffer(String name, int count) {
@@ -7112,17 +7104,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get teamsNoCompany => 'بدون شركة';
-
-  @override
   String get teamsMadeDone => 'تم إنشاء الفرق.';
 
   @override
-  String get teamMakeAdmin => 'تعيين مسؤولًا للفريق';
+  String get teamMakeAdmin => 'تعيين مشرفًا للفريق';
 
   @override
   String get teamAdminNote =>
-      'مسؤول الفريق يضيف أشخاصه أو يزيلهم. مدير المساحة وحده يغيّر مسؤول الفريق (···).';
+      'مشرف الفريق يضيف أشخاصه أو يزيلهم. مدير المساحة وحده يغيّر مشرف الفريق.';
 
   @override
   String joinChosenBecause(String name, String company) {
@@ -7142,7 +7131,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whoSeesYourTeam => 'فريقك';
 
   @override
-  String get whoSeesAsTeamAdmin => 'تنشر هنا بصفتك مسؤول فريق';
+  String get whoSeesAsTeamAdmin => 'تنشر هنا بصفتك مشرف فريق';
 
   @override
   String get whoSeesAsSpaceAdmin => 'تنشر هنا بصفتك مدير المساحة';
@@ -7152,5 +7141,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesTeamAdminStays =>
-      'أنت مسؤول هذا الفريق، لذا تبقى فيه. مدير المساحة وحده يمكنه تغيير ذلك.';
+      'أنت مشرف هذا الفريق، لذا تبقى فيه. مدير المساحة وحده يمكنه تغيير ذلك.';
+
+  @override
+  String teamsMergeIntoTeam(String team) {
+    return 'تشبه فريق «$team»: أضِفها إليه';
+  }
+
+  @override
+  String teamsMergedIntoTeam(String team) {
+    return 'تنضم إلى فريق «$team»: تراجع';
+  }
 }

@@ -1175,11 +1175,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesTeamDuplicate => 'There\'s already a Team with this name.';
 
   @override
-  String spacesTeamIntro(String space) {
-    return 'A Team in $space. Posts and threads for this Team are seen only by its members.';
-  }
-
-  @override
   String get spacesAddPeople => 'Add people';
 
   @override
@@ -4426,9 +4421,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get spacesTeamMembersTitle => 'Members';
-
-  @override
   String needsChecklist(String name, String title) {
     return '$name gave you a checklist: $title';
   }
@@ -7061,9 +7053,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get teamsNoCompany => 'No company';
-
-  @override
   String get teamsMadeDone => 'Teams made.';
 
   @override
@@ -7071,7 +7060,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamAdminNote =>
-      'The Team admin adds or removes its people. Only the Space admin changes the Team admin (···).';
+      'The Team admin adds or removes its people. Only the Space admin changes who the Team admin is.';
 
   @override
   String joinChosenBecause(String name, String company) {
@@ -7102,4 +7091,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get spacesTeamAdminStays =>
       'You\'re this Team\'s admin, so you stay in it. Only the Space admin can change that.';
+
+  @override
+  String teamsMergeIntoTeam(String team) {
+    return 'Looks like the Team \"$team\": add to it';
+  }
+
+  @override
+  String teamsMergedIntoTeam(String team) {
+    return 'Goes into the Team \"$team\": undo';
+  }
 }

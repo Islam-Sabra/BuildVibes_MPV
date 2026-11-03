@@ -1626,15 +1626,6 @@
   "@spacesTeamDuplicate": {
     "description": "23505."
   },
-  "spacesTeamIntro": "A Team in {space}. Posts and threads for this Team are seen only by its members.",
-  "@spacesTeamIntro": {
-    "description": "S11k line (Figma copy fixed to this Space's name).",
-    "placeholders": {
-      "space": {
-        "type": "String"
-      }
-    }
-  },
   "spacesAddPeople": "Add people",
   "@spacesAddPeople": {
     "description": "S11k button."
@@ -6390,10 +6381,6 @@
       }
     }
   },
-  "spacesTeamMembersTitle": "Members",
-  "@spacesTeamMembersTitle": {
-    "description": "The heading above a Team's people (no count, rule 3)."
-  },
   "needsChecklist": "{name} gave you a checklist: {title}",
   "@needsChecklist": {
     "description": "Needs you: a checklist given to you with points still to tick.",
@@ -10030,10 +10017,6 @@
       }
     }
   },
-  "teamsNoCompany": "No company",
-  "@teamsNoCompany": {
-    "description": "People with no company, on the sheet and as a Team name when ticked (TM2)."
-  },
   "teamsMadeDone": "Teams made.",
   "@teamsMadeDone": {
     "description": "After Create (TM2)."
@@ -10042,7 +10025,7 @@
   "@teamMakeAdmin": {
     "description": "A person's ⋯ menu on a Team page, Space admin only (TM3)."
   },
-  "teamAdminNote": "The Team admin adds or removes its people. Only the Space admin changes the Team admin (···).",
+  "teamAdminNote": "The Team admin adds or removes its people. Only the Space admin changes who the Team admin is.",
   "@teamAdminNote": {
     "description": "Foot of a Team page (TM3)."
   },
@@ -10089,5 +10072,23 @@
   "spacesTeamAdminStays": "You're this Team's admin, so you stay in it. Only the Space admin can change that.",
   "@spacesTeamAdminStays": {
     "description": "A Team admin tried to take themselves out of their Team (BV002, review 111)."
+  },
+  "teamsMergeIntoTeam": "Looks like the Team \"{team}\": add to it",
+  "@teamsMergeIntoTeam": {
+    "description": "A company that looks like a Team already made: a tap puts its people in that Team (TM2, V4).",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "teamsMergedIntoTeam": "Goes into the Team \"{team}\": undo",
+  "@teamsMergedIntoTeam": {
+    "description": "The company goes into that Team; a tap undoes it (TM2, V4).",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
   }
 }

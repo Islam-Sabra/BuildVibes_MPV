@@ -2120,12 +2120,6 @@ abstract class AppLocalizations {
   /// **'There\'s already a Team with this name.'**
   String get spacesTeamDuplicate;
 
-  /// S11k line (Figma copy fixed to this Space's name).
-  ///
-  /// In en, this message translates to:
-  /// **'A Team in {space}. Posts and threads for this Team are seen only by its members.'**
-  String spacesTeamIntro(String space);
-
   /// S11k button.
   ///
   /// In en, this message translates to:
@@ -7418,12 +7412,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{New message} other{{count} new messages}}'**
   String dmBannerHiddenCount(int count);
 
-  /// The heading above a Team's people (no count, rule 3).
-  ///
-  /// In en, this message translates to:
-  /// **'Members'**
-  String get spacesTeamMembersTitle;
-
   /// Needs you: a checklist given to you with points still to tick.
   ///
   /// In en, this message translates to:
@@ -11726,12 +11714,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{Create 1 Team} other{Create {count} Teams}}'**
   String teamsCreate(int count);
 
-  /// People with no company, on the sheet and as a Team name when ticked (TM2).
-  ///
-  /// In en, this message translates to:
-  /// **'No company'**
-  String get teamsNoCompany;
-
   /// After Create (TM2).
   ///
   /// In en, this message translates to:
@@ -11747,7 +11729,7 @@ abstract class AppLocalizations {
   /// Foot of a Team page (TM3).
   ///
   /// In en, this message translates to:
-  /// **'The Team admin adds or removes its people. Only the Space admin changes the Team admin (···).'**
+  /// **'The Team admin adds or removes its people. Only the Space admin changes who the Team admin is.'**
   String get teamAdminNote;
 
   /// Why this Team is already chosen on the confirm sheet (TM4).
@@ -11803,6 +11785,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'re this Team\'s admin, so you stay in it. Only the Space admin can change that.'**
   String get spacesTeamAdminStays;
+
+  /// A company that looks like a Team already made: a tap puts its people in that Team (TM2, V4).
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like the Team \"{team}\": add to it'**
+  String teamsMergeIntoTeam(String team);
+
+  /// The company goes into that Team; a tap undoes it (TM2, V4).
+  ///
+  /// In en, this message translates to:
+  /// **'Goes into the Team \"{team}\": undo'**
+  String teamsMergedIntoTeam(String team);
 }
 
 class _AppLocalizationsDelegate

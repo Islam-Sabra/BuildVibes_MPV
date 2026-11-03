@@ -95,6 +95,7 @@ void main() {
           key: 'abc',
           name: 'ABC Contracting',
           adminId: 'a1',
+          adminName: omar,
           people: [
             _c('a1', omar, SpacePass.lead),
             for (var i = 2; i <= 6; i++) _c('a$i', 'Person $i'),
@@ -109,6 +110,7 @@ void main() {
           key: 'gulf',
           name: 'Gulf MEP',
           adminId: 'g1',
+          adminName: rakesh,
           people: [
             _c('g1', rakesh, SpacePass.lead),
             for (var i = 2; i <= 4; i++) _c('g$i', 'Person $i'),
@@ -118,6 +120,7 @@ void main() {
           key: 'delta',
           name: 'Delta Steel',
           adminId: 'd1',
+          adminName: khalid,
           people: [
             _c('d1', khalid, SpacePass.lead),
             for (var i = 2; i <= 5; i++) _c('d$i', 'Person $i'),
@@ -125,7 +128,6 @@ void main() {
         ),
       ],
       similar: const [(a: 'abc', b: 'a.b.c')],
-      noCompany: [for (var i = 1; i <= 3; i++) _c('n$i', 'Person $i')],
     );
 
     FakeSpaceRepository spaces({
