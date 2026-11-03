@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/text/plain_letters.dart';
 
 /// Starts Supabase once, before the app runs.
 Future<void> initSupabase() async {
@@ -10,6 +12,8 @@ Future<void> initSupabase() async {
     url: AppConfig.supabaseUrl,
     // Accepts the legacy anon key or the newer publishable key.
     publishableKey: AppConfig.supabaseAnonKey,
+    // Review 115 (5): what people save goes in plain letters.
+    httpClient: PlainLettersClient(http.Client()),
   );
 }
 
