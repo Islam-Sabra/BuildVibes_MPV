@@ -2,12 +2,14 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 3 Nov 2026 — hotfix for Teams (PGRST201) merged; build 988 made; waiting to install
+## PC update: 3 Nov 2026 — hotfix for Teams (PGRST201) merged; build 988 on the founder's phone
 
 - **Bug on build 987:** Teams showed "Something went wrong": two foreign keys join `teams` and `team_members` since review 111, so PostgREST refused the members embed (HTTP 300, PGRST201).
 - **Fix:** `teamsSelect` in `space_repository.dart` names `team_members!team_members_team_id_fkey`. Tests: a Dart test on the select (red with the old text), pgTAP `64_team_member_fks` (the two keys). On local as a signed-in user: the old select 300 PGRST201, the new one 200.
 - **Branches:** `claude/b111fix` (a8633929) merged into `slice2-app` at cf0e7782.
 - **Build 988** (versionCode 988, 0.9.0, `BV_STORAGE_LOG=true`): build 987's code (bd9c674a) plus only the hotfix, **without B2**, which ships with review 114. Its exact source is branch **`release-988`** (59419497, tree a13ee03c, the tree built). `release/988` couldn't be made: an old branch `release` (review 31) exists and git can't have both. `Desktop/BuildVibes-988.apk`, the same certificate (9d02b7db…b1df9f).
+- **On the founder's phone:** 192.168.8.33:40205 only; model 22120RN86G, 987 on it; `adb install -r`: Success; versionCode 988; disconnected, adb stopped.
+- **Phone check:** People → Teams in NBKCH opens (no "Something went wrong").
 
 ## PC update: 3 Nov 2026 — B2 fixed on `claude/b2` (pushed); not merged, not built
 
