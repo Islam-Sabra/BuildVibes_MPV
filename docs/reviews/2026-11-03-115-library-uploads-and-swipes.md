@@ -51,3 +51,17 @@
   - The DM thread's old "Not sent · Retry" uses the same "Couldn't send · Tap to fix" line and sheet as Space chat.
 - **Noticed, not part of 115:** the Explore tab shows "This part of the app is being built." Explore's people search is in the MVP: it is planned in the polish round, before the freeze.
 - **Verdict:** fix the above on `claude/r115`, then merge and build with the founder's yes.
+
+## 5. "Italic" text in the notebook (founder, 17:42; the lead's call)
+- **What the screenshot shows:** the notebook's typed letters ("xdfgh", "ffds") are drawn in a serif italic. The app's own numbers ("1.", "2.") and the screen's labels are drawn in Plus Jakarta Sans.
+- **Why (the lead, from the code):** the notebook's text styles all come from `BvType`, and nothing in `lib/` sets italic outside Chat. So these are not normal letters. They are **Unicode "mathematical" letters** (𝑥𝑑𝑓𝑔ℎ, U+1D400–1D7FF), which some keyboards' "font" or "style" feature types instead of plain letters. The phone draws them with its own maths font. The Feed showed the same on 1 Nov.
+- **Fix, test first:**
+  - a `plainLetters()` function maps the Mathematical Alphanumeric Symbols (U+1D400–1D7FF), the fullwidth Latin letters (U+FF21–FF5A), the letterlike italic h (U+210E) and its siblings to plain letters and digits;
+  - applied **when text is saved**, everywhere people type: notebook blocks and titles, posts and work items, Chat and DMs, comments, names and profile text;
+  - it never touches symbols site work needs: ², ³, °, ½, µ, ±, ×, Arabic and Arabic-Indic text;
+  - **no general NFKC:** it would turn m² into m2.
+- **Tests:**
+  - math italic and bold, script, fullwidth → plain;
+  - m², 25°C, ½, «النص العربي» → unchanged;
+  - a saved notebook block comes back plain.
+- **Existing text:** fixed the next time it's saved. No data migration.
