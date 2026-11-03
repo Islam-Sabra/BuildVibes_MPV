@@ -10,7 +10,3 @@ const feedEnabled = false;
 
 /// [feedEnabled], as a provider so a test can turn the feed on.
 final feedEnabledProvider = Provider<bool>((ref) => feedEnabled);
-
-/// Review 114 B2: one start-up log of the app's folders and largest files.
-/// On for this pilot build; remove it before the store build.
-const storageLogEnabled = true;

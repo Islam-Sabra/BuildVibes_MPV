@@ -31,7 +31,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Branch:** `claude/r111` (app, server merged in, `slice2-app` with B1 merged in). Migration `20261122120000_review111.sql`, not live. It adds the `fuzzystrmatch` extension, so live gets that too.
 - **Order:** the migration must go live before this build: the Teams read asks for `admin_id` and `admin_name`, and an older server fails the whole People load.
 - **Goldens:** 24 changed ones wait for the lead's yes, pairs in `docs/reviews/shots-111/changed/`.
-- **To remove before the store build:** `storageLogEnabled` in `lib/core/config/feature_switches.dart` and `lib/core/storage_report.dart` (review 114 B2). On for this pilot build: one start-up log of `cache/`, `files/`, `app_flutter/` and the 20 largest files, name and size only.
+- **The storage log (review 114 B2, the lead's V11):** `lib/core/storage_report.dart`, on only in a build made with `--dart-define=BV_STORAGE_LOG=true`: **the pilot build passes it**, the store build doesn't. One start-up log of `cache/`, `files/`, `app_flutter/`, each subfolder's total, and the 20 largest files as folder, extension and size, never a name.
 
 ## PC update: 2 Nov 2026 — B1 fixed on `claude/b1`, merged into `slice2-app`; not built
 
