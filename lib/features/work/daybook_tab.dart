@@ -81,7 +81,6 @@ import '../../shared/widgets/bv_proof_moment.dart';
 import '../../shared/widgets/bv_selection_bar.dart';
 import '../../shared/widgets/bv_chip.dart' show BvFilterChip;
 import '../../shared/widgets/bv_sheet.dart';
-import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
@@ -2255,8 +2254,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 child: LayoutBuilder(
                   builder: (context, constraints) => Stack(
                     children: [
-                      // One card swiped open at a time; a scroll closes it.
-                      Positioned.fill(child: BvSwipeGroup(child: body)),
+                      Positioned.fill(child: body),
                       if (_newBelow && !_writing)
                         PositionedDirectional(
                           start: 0,
@@ -2335,6 +2333,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   [for (final c in cards) c.post, ...pinned, ...mine],
                   selected,
                   me: me,
+                  spacePinned: {for (final p in pinned) p.id},
                 )
               else if (!canPost)
                 BvPostBar.viewer(
@@ -2383,17 +2382,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// The bottom bar while cards are held (review 113 (14, 16)): Unpin
-  /// for my pins; Delete while nobody has acted on any of them; Archive
-  /// once someone has; Stop for one repeating Check-in I may stop. The
-  /// server says which ("hold", "can_stop"). Share is on every card now;
-  /// Duplicate is gone. No Move: work stays in its Space (rule 8).
+  /// The bottom bar while cards are held (review 113 (14, 16); the lead's
+  /// check of 115): only what I may do on them, in this order. Pin, or
+  /// Unpin for my pins (mine only, from 105B); Reminder for one held post;
+  /// Stop for one repeating Check-in I may stop; then, last and in red,
+  /// Archive (once someone acted on my post, or a Lead's on a Checked item)
+  /// or Delete (my post while nobody has acted on it). The server says
+  /// which ("hold", "can_stop"). Share is on every card; Duplicate is gone.
+  /// No Move: work stays in its Space (rule 8).
   Widget _selectionBar(
     List<DaybookPost> shown,
     Set<String> selected, {
     required String? me,
+    required Set<String> spacePinned,
   }) {
     final l10n = AppLocalizations.of(context);
+    final later = ref.watch(workLaterProvider);
+    final lead = widget.space.myPass == SpacePass.lead;
     final posts = {
       for (final p in shown)
         if (selected.contains(p.id)) p.id: p,
@@ -2401,28 +2406,63 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final deletes =
         posts.isNotEmpty && posts.every((p) => p.hold == PostHold.delete);
     final archives =
-        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.archive);
+        posts.isNotEmpty &&
+        posts.every(
+          (p) =>
+              mayArchiveHeld(p, lead: lead, archiveOn: later.archive != null),
+        );
     final stop =
         posts.length == 1 &&
         posts.single.isCheckIn &&
         (posts.single.checkIn?.canStop ?? false);
-    // L9: held, my pinned ones can be unpinned here.
+    // L9: held, my pinned ones can be unpinned here; ones not pinned,
+    // pinned. Not an announcement pinned for the Space: it shows at the top
+    // already.
     final mineIds = _mineIds();
-    final myPinned = [
-      if (ref.watch(workLaterProvider).pin != null)
-        for (final p in posts)
-          if (mineIds.contains(p.id)) p,
-    ];
+    final pinOn =
+        later.pin != null &&
+        posts.isNotEmpty &&
+        posts.every((p) => !spacePinned.contains(p.id));
+    final toPin = pinOn && posts.every((p) => !mineIds.contains(p.id));
+    final toUnpin = pinOn && posts.every((p) => mineIds.contains(p.id));
+    final remind = posts.length == 1 ? posts.single : null;
+    final reminded =
+        remind != null &&
+        ref.watch(spaceRemindersProvider)[spaceReminderId(
+              _spaceId,
+              remind.id,
+            )] !=
+            null;
     return SelectionBar(
       actions: [
-        if (myPinned.isNotEmpty)
+        if (toPin)
+          SelectionAction(
+            key: const Key('select-pin'),
+            icon: BvIcons.pin,
+            label: l10n.workPin,
+            onTap: () {
+              _endSelection();
+              unawaited(_pinAll(posts));
+            },
+          ),
+        if (toUnpin)
           SelectionAction(
             key: const Key('select-unpin'),
             icon: BvIcons.pin,
             label: l10n.workUnpin,
             onTap: () {
               _endSelection();
-              unawaited(_unpinAll(myPinned));
+              unawaited(_unpinAll(posts));
+            },
+          ),
+        if (remind != null)
+          SelectionAction(
+            key: const Key('select-remind'),
+            icon: BvIcons.remind,
+            label: reminded ? l10n.workChangeReminder : l10n.workReminder,
+            onTap: () {
+              _endSelection();
+              unawaited(_remind(remind));
             },
           ),
         if (stop)
@@ -2433,14 +2473,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             destructive: true,
             onTap: () => unawaited(_stop(posts.single)),
           ),
+        // Hidden, not greyed, when one held can't be archived or deleted
+        // (H4). Last, in red.
         if (archives)
           SelectionAction(
             key: const Key('select-archive'),
             icon: BvIcons.archive,
             label: l10n.workArchive,
+            destructive: true,
             onTap: () => unawaited(_archiveHeld(posts)),
           ),
-        // Hidden, not greyed, when one held can't be deleted (H4).
         if (deletes)
           SelectionAction(
             key: const Key('select-delete'),
@@ -2574,55 +2616,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     await _loop.refresh();
   }
 
-  /// Swipe toward the end (SP5): Pin (from 105B) · Reminder, both mine
-  /// only; toward the start, Archive for a Lead on a Checked item (from
-  /// 105B), a round button like the others. Signatures are never here.
-  Widget _swipes(DaybookPost post, Widget card) {
-    final l10n = AppLocalizations.of(context);
-    final later = ref.watch(workLaterProvider);
-    final pin = later.pin;
-    final archive = later.archive;
-    final reminded =
-        ref.watch(spaceRemindersProvider)[spaceReminderId(_spaceId, post.id)] !=
-        null;
-    final lead = widget.space.myPass == SpacePass.lead;
-    // Review 105B: pinned by me, as the server or this card says.
-    final pinned = _mineIds().contains(post.id);
-    return BvSwipeCard(
-      id: post.id,
-      // Not while writing, nor while cards are held.
-      enabled: !_writing && ref.watch(workSelectionProvider(_spaceId)).isEmpty,
-      startFullSwipe: false,
-      endActions: [
-        if (pin != null)
-          BvSwipeAction(
-            key: Key('swipe-pin-${post.id}'),
-            icon: BvIcons.pin,
-            label: pinned ? l10n.workUnpin : l10n.workPin,
-            color: BvColors.textPrimary,
-            onTap: () => unawaited(_pin(post, on: !pinned)),
-          ),
-        BvSwipeAction(
-          key: Key('swipe-remind-${post.id}'),
-          icon: BvIcons.remind,
-          label: reminded ? l10n.workChangeReminder : l10n.workReminder,
-          color: BvColors.textWarning,
-          onTap: () => unawaited(_remind(post)),
-        ),
-      ],
-      startAction: archive != null && mayArchivePost(post, lead: lead)
-          ? BvSwipeAction(
-              key: Key('swipe-archive-${post.id}'),
-              icon: BvIcons.archive,
-              label: l10n.workArchive,
-              color: BvColors.actionPrimary,
-              onTap: () => unawaited(_archive(post)),
-            )
-          : null,
-      child: card,
-    );
-  }
-
   /// Review 105B: the posts I pinned (mine only): what daybook_extras says
   /// and any card pinned by me on the page.
   Set<String> _mineIds() => {
@@ -2669,34 +2662,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     await _loop.refresh();
   }
 
+  Future<void> _pinAll(List<DaybookPost> posts) async {
+    for (final p in posts) {
+      await _pin(p, on: true);
+      if (!mounted) return;
+    }
+  }
+
   Future<void> _unpinAll(List<DaybookPost> posts) async {
     for (final p in posts) {
       await _pin(p, on: false);
       if (!mounted) return;
     }
-  }
-
-  /// A Lead's Archive of a Checked item (review 105B): it leaves Work.
-  Future<void> _archive(DaybookPost post) async {
-    final l10n = AppLocalizations.of(context);
-    final archive = ref.read(workLaterProvider).archive;
-    if (archive == null) return;
-    try {
-      await archive(post);
-    } on SpaceException catch (e) {
-      if (mounted) showSpaceError(context, e);
-      return;
-    }
-    if (mounted) {
-      // "Archived · Undo" (L7).
-      showBvUndoBar(
-        context,
-        message: l10n.workArchived,
-        actionLabel: l10n.daybookUndo,
-        onAction: () => unawaited(_unarchive(post)),
-      );
-    }
-    await _loop.refresh();
   }
 
   Future<void> _unarchive(DaybookPost post) async {
@@ -3748,19 +3725,20 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             child: BvHighlight(
               flash: _highlighted == c.id ? _flashes : null,
               // A post not on the server yet has nothing to do on it.
+              // The lead's check of 115: one gesture model. A hold is the
+              // card's actions (SP6): Pin · Reminder, then what the server
+              // says (review 113); a sideways swipe is always the page's.
+              // The clip keeps the card as the swipe's row drew it: its
+              // shadow stops at its edge, as on the signed-off shots.
               child: unsent != null
                   ? view
-                  : _swipes(
-                      c.post,
-                      _loop.withActions(
+                  : ClipRect(
+                      child: _loop.withActions(
                         context,
                         view,
                         me: me,
                         signing: signing,
-                        // A hold selects (SP6) what the server says may be
-                        // held (review 113): my post to Delete or Archive,
-                        // a repeating Check-in to Stop.
-                        onHold: mayHoldPost(c.post) ? () => select(c.id) : null,
+                        onHold: () => select(c.id),
                       ),
                     ),
             ),

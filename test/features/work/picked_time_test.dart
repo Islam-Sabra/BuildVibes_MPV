@@ -89,9 +89,9 @@ void main() {
         final slip = find
             .descendant(of: _entry(post.id), matching: find.byType(BvSlip))
             .first;
-        await tester.drag(slip, Offset(lang == 'ar' ? -160 : 160, 0));
+        await tester.longPress(slip);
         await tester.pumpAndSettle();
-        await _tap(tester, _key('swipe-remind-${post.id}'));
+        await _tap(tester, _key('select-remind'));
       }
 
       testWidgets('Pick… leaves only the picked time, selected, with ×; × '

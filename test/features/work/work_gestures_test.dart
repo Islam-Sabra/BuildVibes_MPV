@@ -3,10 +3,12 @@
 // what the old long-press menu held is there (tap the title to edit, the
 // For line to give it, "Add an update" at the bottom, Send back for the
 // checker, ⋯ for Unpin · Save as template · Cancel). A hold selects, and
-// the bottom bar offers Delete or Archive (review 113). Swipe toward
-// the end: Reminder (Pin from 105B); toward the start: Archive for a Lead
-// on a Checked item (from 105B), round like the others. Signatures are
-// never on a swipe or a hold. In English and Arabic.
+// the bottom bar offers Pin · Reminder, then Delete or Archive (review
+// 113; the lead's check of 115: cards have no sideways swipe of their own,
+// so a sideways swipe is always the page's). Archive is also a Lead's on a
+// Checked item (from 105B). Signatures are never on a swipe or a hold. In
+// English and Arabic.
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/models/daybook.dart';
@@ -17,6 +19,7 @@ import 'package:buildvibes/features/work/proof_camera.dart';
 import 'package:buildvibes/features/work/work_gestures.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
+import 'package:buildvibes/shared/widgets/bv_swipe_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -125,6 +128,34 @@ DaybookCard _openSleeves(DaybookSamples s) => _held(
   s.sleevesCard(upTo: DaybookSamples.sleevesSentBackAt),
   PostHold.delete,
 );
+
+Future<void> _pinNothing(DaybookPost post, {required bool on}) async {}
+
+Future<void> _archiveNothing(DaybookPost post) async {}
+
+/// The hold bar's actions, in reading order (mirrored in Arabic).
+List<String> _order(WidgetTester tester, String lang) {
+  final keys = [
+    for (final k in [
+      'select-pin',
+      'select-unpin',
+      'select-remind',
+      'select-stop',
+      'select-archive',
+      'select-delete',
+    ])
+      if (_key(k).evaluate().isNotEmpty) k,
+  ];
+  double x(String k) => tester.getCenter(_key(k)).dx;
+  return keys..sort(
+    (a, b) => lang == 'ar' ? x(b).compareTo(x(a)) : x(a).compareTo(x(b)),
+  );
+}
+
+/// The colour of a hold bar action's icon.
+Color? _ink(WidgetTester tester, String k) => tester
+    .widget<Icon>(find.descendant(of: _key(k), matching: find.byType(Icon)))
+    .color;
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -250,11 +281,16 @@ void main() {
         expect(_key('selection-bar'), findsNothing);
       });
 
-      testWidgets('review 113: nothing to hold on someone else\'s post, or '
-          'a Checked one ("hold" null)', (tester) async {
+      testWidgets('review 113: no Delete or Archive on someone else\'s '
+          'post, or a Checked one ("hold" null); its Reminder still', (
+        tester,
+      ) async {
         await _open(tester, lang, posts: [s.gate()]);
         await _holdCard(tester, 'post-gate');
-        expect(_key('selection-bar'), findsNothing);
+        expect(_key('selection-bar'), findsOneWidget);
+        expect(_key('select-remind'), findsOneWidget);
+        expect(_key('select-delete'), findsNothing);
+        expect(_key('select-archive'), findsNothing);
       });
 
       testWidgets('review 113: Delete and Archive show only when every '
@@ -356,16 +392,18 @@ void main() {
         expect(_entry('post-sleeves'), findsOneWidget);
       });
 
-      testWidgets('a Viewer\'s hold selects nothing', (tester) async {
+      testWidgets('a Viewer\'s hold: their own Pin · Reminder only, as the '
+          'swipe gave them', (tester) async {
         await _open(
           tester,
           lang,
           posts: [s.sleevesCard(me: DaybookSamples.lina, viewer: true)],
           me: DaybookSamples.lina,
           pass: SpacePass.viewer,
+          later: const WorkLater(pin: _pinNothing, archive: _archiveNothing),
         );
         await _holdCard(tester, 'post-sleeves');
-        expect(_key('selection-bar'), findsNothing);
+        expect(_order(tester, lang), ['select-pin', 'select-remind']);
       });
 
       testWidgets('no signature on a hold: the owner\'s hold selects, and '
@@ -377,31 +415,97 @@ void main() {
       });
     });
 
-    group('Part 2 swipes [$lang]', () {
-      testWidgets('toward the end: Reminder; Pin waits for 105B', (
-        tester,
-      ) async {
-        await _open(tester, lang, posts: [s.rebar()]);
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        expect(_key('swipe-remind-post-rebar'), findsOneWidget);
-        expect(_key('swipe-pin-post-rebar'), findsNothing);
+    // The lead's check of 115: one gesture model. A hold is a card's
+    // actions; it has no sideways swipe of its own any more. The hold bar
+    // holds only what I may do there: Pin · Reminder, then Archive or
+    // Delete last, in red.
+    group('115 hold bar [$lang]', () {
+      const pinAndArchive = WorkLater(
+        pin: _pinNothing,
+        archive: _archiveNothing,
+      );
+
+      testWidgets('a Lead on a Checked item: Pin · Reminder · Archive, in '
+          'that order, Archive last in red', (tester) async {
+        await _open(tester, lang, posts: [s.gate()], later: pinAndArchive);
+        await _holdCard(tester, 'post-gate');
+        expect(_order(tester, lang), [
+          'select-pin',
+          'select-remind',
+          'select-archive',
+        ]);
+        expect(_key('select-delete'), findsNothing);
+        expect(_ink(tester, 'select-archive'), BvColors.textDestructive);
+        expect(_ink(tester, 'select-pin'), BvColors.iconPrimary);
+        expect(
+          find.descendant(
+            of: _key('select-pin'),
+            matching: find.text(l10n.workPin),
+          ),
+          findsOneWidget,
+        );
       });
 
-      testWidgets('with 105B: Pin and Reminder', (tester) async {
+      testWidgets('my post nobody acted on: Pin · Reminder · Delete, Delete '
+          'last in red', (tester) async {
         await _open(
           tester,
           lang,
-          posts: [s.rebar()],
-          later: WorkLater(pin: (post, {required on}) async {}),
+          posts: [_openSleeves(s)],
+          later: pinAndArchive,
         );
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        expect(_key('swipe-pin-post-rebar'), findsOneWidget);
-        expect(_key('swipe-remind-post-rebar'), findsOneWidget);
+        await _holdCard(tester, 'post-sleeves');
+        expect(_order(tester, lang), [
+          'select-pin',
+          'select-remind',
+          'select-delete',
+        ]);
+        expect(_ink(tester, 'select-delete'), BvColors.textDestructive);
       });
 
-      testWidgets('Reminder sets a phone notification for me only', (
+      testWidgets('Crew may not archive a Checked item: Pin · Reminder only', (
         tester,
       ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [s.gate()],
+          me: DaybookSamples.omar,
+          pass: SpacePass.crew,
+          later: pinAndArchive,
+        );
+        await _holdCard(tester, 'post-gate');
+        expect(_order(tester, lang), ['select-pin', 'select-remind']);
+      });
+
+      testWidgets('no Archive for a Lead before 105B brings it, nor Pin: '
+          'Reminder only', (tester) async {
+        await _open(tester, lang, posts: [s.gate()]);
+        await _holdCard(tester, 'post-gate');
+        expect(_order(tester, lang), ['select-remind']);
+      });
+
+      testWidgets('a Lead archives a Checked item from the hold bar', (
+        tester,
+      ) async {
+        final daybook = FakeDaybookRepository();
+        await _open(
+          tester,
+          lang,
+          posts: [s.gate(), s.rebar()],
+          daybook: daybook,
+          later: pinAndArchive,
+        );
+        await _holdCard(tester, 'post-gate');
+        await _tap(tester, _key('select-archive'));
+        expect(find.text(l10n.holdArchiveOpenTitle), findsNothing);
+        expect(daybook.calls, contains('archive post-gate'));
+        expect(find.text(l10n.workArchived), findsOneWidget);
+        expect(_entry('post-gate'), findsNothing);
+      });
+
+      testWidgets('Reminder sets a phone notification for me only, then '
+          'reads Change reminder', (tester) async {
         final at = DateTime(2026, 10, 15, 13, 30);
         final app = await _open(
           tester,
@@ -409,8 +513,9 @@ void main() {
           posts: [s.rebar()],
           due: (day: DateTime(2026, 10, 15), at: at),
         );
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        await _tap(tester, _key('swipe-remind-post-rebar'));
+        await _holdCard(tester, 'post-rebar');
+        await _tap(tester, _key('select-remind'));
+        expect(_key('selection-bar'), findsNothing);
         // Review 108 RM1: the Reminder sheet, Me first; Pick… then Set.
         expect(_key('reminder-sheet'), findsOneWidget);
         await _tap(tester, _key('reminder-pick'));
@@ -418,72 +523,45 @@ void main() {
         final id = spaceReminderId(DaybookSamples.space, 'post-rebar');
         expect(app.reminders.onPhone[id]?.at, at);
         expect(app.reminders.onPhone[id]?.title, s.rebar().post.title);
-        // It shows as set, and can change.
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
+        await _holdCard(tester, 'post-rebar');
         expect(
           find.descendant(
-            of: _key('swipe-remind-post-rebar'),
+            of: _key('select-remind'),
             matching: find.text(l10n.workChangeReminder),
           ),
           findsOneWidget,
         );
       });
 
-      testWidgets('toward the start: Archive only for a Lead on a Checked '
-          'item, once 105B brings it, a round button', (tester) async {
-        await _open(
-          tester,
-          lang,
-          posts: [s.gate(), _openSleeves(s)],
-          later: WorkLater(archive: (post) async {}),
-        );
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        expect(_key('swipe-archive-post-gate'), findsOneWidget);
-        final size = tester.getSize(
-          find
-              .descendant(
-                of: _key('swipe-archive-post-gate'),
-                matching: find.byType(Container),
-              )
-              .first,
-        );
-        expect(size.width, size.height);
-        await _swipe(tester, 'post-sleeves', lang, toEnd: false);
-        expect(_key('swipe-archive-post-sleeves'), findsNothing);
-      });
-
-      testWidgets('no Archive before 105B, nor for Crew', (tester) async {
-        await _open(tester, lang, posts: [s.gate()]);
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        expect(_key('swipe-archive-post-gate'), findsNothing);
-        await tester.pumpWidget(const SizedBox());
-        await _open(
-          tester,
-          lang,
-          posts: [s.gate()],
-          me: DaybookSamples.omar,
-          pass: SpacePass.crew,
-          later: WorkLater(archive: (post) async {}),
-        );
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        expect(_key('swipe-archive-post-gate'), findsNothing);
-      });
-
-      testWidgets('no swipe while cards are held', (tester) async {
+      testWidgets('Reminder is for one held card only', (tester) async {
         await _open(tester, lang, posts: [s.rebar(), s.gate()]);
-        await _holdCard(tester, 'post-gate');
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        expect(_key('swipe-remind-post-rebar'), findsNothing);
+        await _holdCard(tester, 'post-rebar');
+        expect(_key('select-remind'), findsOneWidget);
+        await _tapCard(tester, 'post-gate');
+        expect(find.text(l10n.workSelected(2)), findsOneWidget);
+        expect(_key('select-remind'), findsNothing);
       });
 
-      testWidgets('no signature on a swipe', (tester) async {
-        await _open(tester, lang, posts: [s.rebar(), s.sleevesCard()]);
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        await _swipe(tester, 'post-rebar', lang, toEnd: false);
-        await _swipe(tester, 'post-sleeves', lang, toEnd: true);
+      testWidgets('a card has no sideways swipe: no Pin, Reminder or '
+          'Archive behind it, and no signature', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [s.rebar(), s.gate(), s.sleevesCard()],
+          later: pinAndArchive,
+        );
+        expect(find.byType(BvSwipeCard), findsNothing);
+        // Toward the end, where Pin · Reminder were (toward the start is
+        // the page's: space_swipe_test).
+        for (final id in ['post-rebar', 'post-gate', 'post-sleeves']) {
+          await _swipe(tester, id, lang, toEnd: true);
+          for (final k in ['swipe-pin', 'swipe-remind', 'swipe-archive']) {
+            expect(_key('$k-$id'), findsNothing, reason: '$k-$id');
+          }
+        }
+        expect(_key('selection-bar'), findsNothing);
         expect(find.byType(ProofCamera), findsNothing);
         expect(_key('hold-sheet'), findsNothing);
-        expect(find.textContaining(l10n.daybookChecked), findsNothing);
       });
     });
   }
