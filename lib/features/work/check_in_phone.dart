@@ -24,6 +24,8 @@ import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/push_repository.dart';
 import '../../data/supabase/supabase_provider.dart' show initSupabase;
 import '../../l10n/gen/app_localizations.dart';
+import '../onboarding/alerts_setup.dart'
+    show alertTestArrivedKey, alertTestKind, lateAlertProvider;
 import '../spaces/need_you_notice.dart' show NeedYouPush;
 import '../spaces/need_you_phone.dart';
 import 'check_in_marking.dart';
@@ -221,6 +223,16 @@ Future<String?> backgroundUser() async {
 @pragma('vm:entry-point')
 Future<void> checkInBackgroundPush(RemoteMessage message) async {
   final data = {for (final e in message.data.entries) e.key: '${e.value}'};
+  if (data['kind'] == alertTestKind) {
+    // Review 114: the test reached this phone with the app in the
+    // background; the setup reads this mark when the app comes back.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      alertTestArrivedKey,
+      DateTime.now().toUtc().toIso8601String(),
+    );
+    return;
+  }
   final push = CheckInPush.fromData(data);
   final needYou = NeedYouPush.fromData(data);
   if (push == null && needYou == null) return;
@@ -369,6 +381,11 @@ class _CheckInHostState extends ConsumerState<CheckInHost> {
     });
     // Review 114 B1: over the tabs, so ← has them to go back to.
     if (route != null) unawaited(openRoute(GoRouter.of(context), route));
+    // Review 114 PS3: a check-in opening that came late.
+    ref.read(lateAlertProvider.notifier).opened({
+      'kind': checkInOpenKind,
+      'sent_at': tap.push.sentAt,
+    });
     if (!tap.mark) return;
     await checkInFromCard(
       context,

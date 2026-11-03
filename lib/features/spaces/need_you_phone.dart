@@ -19,6 +19,8 @@ import '../../data/models/need_you.dart';
 import '../../data/repositories/need_you_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../work/check_in_notice.dart' show CheckInNotice, CheckInNotifier;
+import '../onboarding/alerts_setup.dart' show lateAlertOf, lateAlertProvider;
+import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../work/check_in_phone.dart' show appLocaleOf, backgroundUser;
 import 'need_you_notice.dart';
 
@@ -228,6 +230,7 @@ class _NeedYouHostState extends ConsumerState<NeedYouHost> {
     unawaited(
       openRoute(GoRouter.of(context), AppRoutes.space(tap.push.spaceId)),
     );
+    unawaited(_late(tap.push));
     final answer = tap.answer;
     if (answer == null) return;
     await answerFromNotice(
@@ -238,6 +241,22 @@ class _NeedYouHostState extends ConsumerState<NeedYouHost> {
       l10n: l10n,
     );
     if (mounted) ref.invalidate(needYouCallsProvider(tap.push.spaceId));
+  }
+
+  /// Review 114 PS3: a call opened late. The payload holds no words, so
+  /// the caller's name comes from the calls.
+  Future<void> _late(NeedYouPush push) async {
+    final data = {'kind': needYouKind, 'sent_at': push.sentAt};
+    if (lateAlertOf(data, ref.read(clockProvider)()) == null) return;
+    String? name;
+    try {
+      final calls = await ref.read(needYouRepositoryProvider).calls();
+      name = calls.where((c) => c.id == push.callId).firstOrNull?.fromName;
+    } on Exception {
+      name = null;
+    }
+    if (!mounted) return;
+    ref.read(lateAlertProvider.notifier).opened({...data, 'from_name': name});
   }
 
   /// [data] is a need_you_answer push: the Space's line reads again, and

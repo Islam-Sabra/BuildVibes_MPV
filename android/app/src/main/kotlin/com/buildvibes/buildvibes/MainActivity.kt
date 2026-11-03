@@ -2,10 +2,12 @@ package com.buildvibes.buildvibes
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -102,6 +104,24 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        // Review 114: the alerts setup. What the phone can confirm, and the
+        // exact page for each line; the makers' pages come from the app
+        // (alert_makers.dart), so this side holds no maker list.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "buildvibes/alerts")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "status" -> result.success(alertStatus())
+                    "openAutostart", "openBattery" -> {
+                        val pages = call.argument<List<Map<String, String>>>("pages").orEmpty()
+                        result.success(if (openFirst(pages)) "maker" else openAppDetails())
+                    }
+                    "openChannel" -> {
+                        val channel = call.argument<String>("channel")
+                        result.success(openChannel(channel))
+                    }
+                    else -> result.notImplemented()
+                }
+            }
         // F5: the "sent" sound plays only when the ringer is on; silent
         // and vibrate get the haptic alone.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "buildvibes/sound")
@@ -143,6 +163,81 @@ class MainActivity : FlutterActivity() {
         }
         vibrator.vibrate(VibrationEffect.createPredefined(effect))
         return true
+    }
+
+    // Review 114: the Need you now channel on at high importance or above
+    // (null before Android 8, or before the channel is made), and battery
+    // optimisation off for BuildVibes.
+    private fun alertStatus(): Map<String, Boolean?> {
+        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getSystemService(NotificationManager::class.java)
+                .getNotificationChannel("need_you")
+                ?.let { it.importance >= NotificationManager.IMPORTANCE_HIGH }
+        } else {
+            null
+        }
+        val battery = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
+        } else {
+            true
+        }
+        return mapOf("channel" to channel, "battery" to battery)
+    }
+
+    // The first maker page this phone has. Tried, not looked up first:
+    // since Android 11 another app's activities are hidden from lookups
+    // without a <queries> entry, but starting one still works. MIUI's
+    // battery page reads this app's package and label from the extras.
+    private fun openFirst(pages: List<Map<String, String>>): Boolean {
+        for (page in pages) {
+            val pkg = page["package"] ?: continue
+            val activity = page["activity"] ?: continue
+            val intent = Intent(page["action"] ?: Intent.ACTION_MAIN)
+                .setComponent(ComponentName(pkg, activity))
+                .putExtra("package_name", packageName)
+                .putExtra("package_label", applicationInfo.loadLabel(packageManager).toString())
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                startActivity(intent)
+                return true
+            } catch (e: Exception) {
+                // Not on this phone (ActivityNotFoundException), or closed
+                // to other apps (SecurityException): the next one.
+            }
+        }
+        return false
+    }
+
+    private fun openAppDetails(): String {
+        startActivity(appDetails().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        return "app"
+    }
+
+    // The app's notification settings on one channel (MIUI shows Floating
+    // notifications there); the app's notification settings when the
+    // channel page can't open.
+    private fun openChannel(channel: String?): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channel != null) {
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        .putExtra(Settings.EXTRA_CHANNEL_ID, channel)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+                return "channel"
+            } catch (e: Exception) {
+                // Below.
+            }
+        }
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        } else {
+            appDetails()
+        }
+        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        return "app"
     }
 
     private fun appDetails() = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

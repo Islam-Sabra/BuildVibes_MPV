@@ -27,6 +27,7 @@ import '../../features/entry/phone_screen.dart';
 import '../../features/entry/welcome_screen.dart';
 import '../../features/explore/explore_screen.dart';
 import '../../features/home/home_screen.dart';
+import '../../features/onboarding/alerts_setup_screen.dart';
 import '../../features/onboarding/join_space_screen.dart';
 import '../../features/onboarding/name_screen.dart';
 import '../../features/onboarding/onboarding_state.dart';
@@ -241,6 +242,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _Screen(
         path: AppRoutes.onboardingSpace,
         builder: (context, state) => const JoinSpaceScreen(),
+      ),
+      // Review 114 PS1: so urgent alerts reach you.
+      _Screen(
+        path: AppRoutes.alertsSetup,
+        builder: (context, state) => AlertsSetupScreen(
+          next: state.uri.queryParameters[AppRoutes.alertsNextParam],
+        ),
       ),
       _Screen(
         path: AppRoutes.onboardingRole,
