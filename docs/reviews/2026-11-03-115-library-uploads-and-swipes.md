@@ -33,3 +33,21 @@
 
 ## Order
 `claude/r115`, test first. `flutter analyze`, `flutter test`, emulator checks, shots in `docs/reviews/shots-115/`. Push, report, stop.
+
+## The lead's check of `claude/r115` at `6be33c04` (3 Nov)
+- **What was checked:** all 20 shots viewed (EN/AR), and the report read against this review. Accepted: Parts 1, 2 and 4, the merge note, and the chat outbox fix (it can never stick on "Sending…" again).
+- **The swipe conflict, the lead's call:**
+  - **One gesture model.** Hold a card = its actions. Swipe sideways = change page.
+  - **Cards stop having their own sideways swipes.** Pin, Reminder and Archive move into the **hold bar** that review 113 made for Archive and Delete.
+  - The hold bar shows only what that person may do on that post: Pin · Reminder · Archive or Delete. The order: Pin, Reminder, then Archive or Delete last, in red.
+  - So swiping Work ↔ Chat works anywhere on the page, and never opens Archive by surprise.
+  - **Tests:**
+    - a swipe on a card changes the page;
+    - the hold bar holds Pin, Reminder and Archive/Delete by rights;
+    - the old card-swipe tests are removed.
+- **Small fixes:**
+  - The Xiaomi lock line's button says **"Show me"** («أرني»), not "Turn on", because it opens a how-to.
+  - **The chat thread for the whole Space is called "Whole Space"** («المساحة كلها»), not "Everyone", in the thread list, the thread's header and the Chat tab. That makes one word in the whole app.
+  - The DM thread's old "Not sent · Retry" uses the same "Couldn't send · Tap to fix" line and sheet as Space chat.
+- **Noticed, not part of 115:** the Explore tab shows "This part of the app is being built." Explore's people search is in the MVP: it is planned in the polish round, before the freeze.
+- **Verdict:** fix the above on `claude/r115`, then merge and build with the founder's yes.
