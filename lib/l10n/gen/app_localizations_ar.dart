@@ -1959,6 +1959,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifLockText => 'إظهار نص الرسالة على شاشة القفل';
 
   @override
+  String get alertsSetupRow => 'إعداد التنبيهات';
+
+  @override
   String get notifSpaces => 'المساحات';
 
   @override
