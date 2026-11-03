@@ -12,6 +12,8 @@ export type QueueRow = {
   thread_id: string | null;
   data: Record<string, string>;
   message_text: string | null;
+  // When it was queued (push_queue.created_at, from claim_push).
+  created_at: string;
 };
 
 export type Strings = Record<string, Record<string, string>>;
@@ -69,6 +71,10 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
     case "need_you":
     case "need_you_answer":
       return { route: `/spaces/${d.space_id}`, open: "need_you" };
+    // Review 114: the test alert opens Settings, Notifications, where Fix it
+    // opens the alerts setup again.
+    case "need_you_test":
+      return { route: "/profile/settings/notifications" };
     // Everything else opens its card in the Space: the work item, or the
     // daybook post (migration 19's space_post_id); the Space with neither.
     default: {
@@ -93,6 +99,12 @@ export function buildPush(
   const data: Record<string, string> = { kind: row.kind, route };
   if (open) data.open = open;
   for (const [k, v] of Object.entries(row.data ?? {})) data[k] = String(v);
+  // Review 114: when it was queued, in ISO 8601 UTC, so the app can tell
+  // how late it arrived. The queue's own time, never a value in its data;
+  // a time that can't be read sends the push without it.
+  delete data.sent_at;
+  const queued = new Date(row.created_at);
+  if (!Number.isNaN(queued.getTime())) data.sent_at = queued.toISOString();
 
   if (row.kind === "chat_message" || row.kind === "dm_message") {
     return messagePush(row, t, name, data);
@@ -117,6 +129,10 @@ export function buildPush(
   if (row.kind === "check_in_nudge") return nudgePush(row, t, data);
   if (row.kind === "need_you") return needYouPush(row, t, data);
   if (row.kind === "need_you_answer") return needYouAnswerPush(row, t, data);
+  // Review 114: one test, to the person who asked, on the strong channel.
+  if (row.kind === "need_you_test") {
+    return { title: t.need_you_test_title, body: t.need_you_test, data, tag: "needyou_test" };
+  }
   if (row.kind === "scheduled_expiring") {
     // Its title only with lock-screen text on (the queue then holds it).
     const title = row.data?.title?.trim();
@@ -397,7 +413,7 @@ export const REACTIONS_CHANNEL = "reactions";
 
 export function channelFor(kind: string | undefined): string {
   if (kind === "check_in_open") return CHECK_IN_CHANNEL;
-  if (kind === "need_you") return NEED_YOU_CHANNEL;
+  if (kind === "need_you" || kind === "need_you_test") return NEED_YOU_CHANNEL;
   if (kind === "post_reaction") return REACTIONS_CHANNEL;
   return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
 }
@@ -457,6 +473,24 @@ export function fcmMessage(token: string, push: Push): Record<string, unknown> {
             alert: { title: push.title, body: push.body },
             sound: "default",
             category: "NEED_YOU",
+            "interruption-level": "time-sensitive",
+          },
+        },
+      },
+    };
+  }
+  if (push.data.kind === "need_you_test") {
+    // Review 114: the same strong path as Need you now, so the test proves
+    // it: the need_you channel; iOS time-sensitive. No category: there is
+    // no call to answer.
+    return {
+      ...message,
+      apns: {
+        headers: { "apns-priority": "10", "apns-push-type": "alert" },
+        payload: {
+          aps: {
+            alert: { title: push.title, body: push.body },
+            sound: "default",
             "interruption-level": "time-sensitive",
           },
         },

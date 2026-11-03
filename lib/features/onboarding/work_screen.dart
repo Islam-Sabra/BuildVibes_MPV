@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
+import '../../core/push/alert_settings_phone.dart';
+import '../../core/push/push_messaging.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/market.dart';
 import '../../data/models/people.dart';
@@ -21,6 +24,7 @@ import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/onboarding_scaffold.dart';
 import '../spaces/space_errors.dart';
+import 'alerts_setup.dart' show alertsSetupRoute, offerAlertsSetup;
 import 'onboarding_state.dart';
 
 /// OB5 · What's your work? (review 107, 2699:39043; step 2 of 3): nine big
@@ -132,9 +136,21 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
     // The profile is complete once saved: this step stays open until it
     // moves on (Q5).
     finishing.set(true);
+    // Review 114: the alerts setup once, right after sign-up and before
+    // the first Space; then where it was going.
+    var alerts = false;
     void go(String location) {
-      router.go(location);
+      router.go(alerts ? alertsSetupRoute(next: location) : location);
       finishing.set(false);
+    }
+
+    Future<void> offerAlerts() async {
+      alerts = await offerAlertsSetup(
+        userId: userId,
+        messaging: ref.read(pushMessagingProvider),
+        phone: ref.read(alertSettingsPhoneProvider),
+        prefs: ref.read(sharedPreferencesProvider),
+      );
     }
 
     try {
@@ -171,6 +187,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
 
       if (invite == null) {
         await complete();
+        await offerAlerts();
         go(AppRoutes.onboardingSpace);
         return;
       }
@@ -180,6 +197,7 @@ class _WorkScreenState extends ConsumerState<WorkScreen> {
           .requestJoin(invite);
       ref.invalidate(myJoinRequestsProvider);
       await complete();
+      await offerAlerts();
       // The code is used: kept only until the request has gone (Q2).
       ref.read(inviteCodeProvider.notifier).set('');
       void home(String message) {

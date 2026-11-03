@@ -10,6 +10,7 @@ import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/people.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/features/onboarding/alerts_setup_screen.dart';
 import 'package:buildvibes/features/profile/edit/basics_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
@@ -31,6 +32,13 @@ Future<void> _tap(WidgetTester tester, String key) async {
   await tester.pumpAndSettle();
   await tester.tap(_key(key).first);
   await tester.pumpAndSettle();
+  // Review 114: after your work, the alerts setup comes once; these tests
+  // go on with Later (the setup's own test is below and in
+  // alerts_setup_screen_test.dart).
+  if (key == 'work-continue' && _key('alerts-later').evaluate().isNotEmpty) {
+    await tester.tap(_key('alerts-later'));
+    await tester.pumpAndSettle();
+  }
 }
 
 Future<void> _type(WidgetTester tester, String key, String text) async {
@@ -365,7 +373,11 @@ void main() {
         expect(saved.locale, lang);
         expect(saved.companyId, isNull);
         expect(saved.mobileE164, isNull);
-        // OB6 next: no invite.
+        // Review 114: the alerts setup once, before the first Space; Later
+        // goes on to OB6 (no invite).
+        expect(find.byType(AlertsSetupScreen), findsOneWidget);
+        expect(find.text(l10n.alertsTitle), findsOneWidget);
+        await _tap(tester, 'alerts-later');
         expect(find.text(l10n.obSpaceTitle), findsOneWidget);
       });
 

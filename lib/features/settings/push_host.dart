@@ -16,6 +16,14 @@ import '../../data/repositories/push_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
+import '../onboarding/alerts_setup.dart'
+    show
+        alertTestArrivedProvider,
+        alertTestKind,
+        alertsSetupRoute,
+        lateAlertProvider,
+        urgentAlertKinds;
+import '../onboarding/alerts_setup_screen.dart' show AlertsSetupScreen;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/check_in_notice.dart'
@@ -249,6 +257,10 @@ class _PushHostState extends ConsumerState<PushHost> {
 
   void _arrived(Map<String, String> data) {
     if (!mounted) return;
+    // Review 114 PS2: Send me a test came through.
+    if (data['kind'] == alertTestKind) {
+      ref.read(alertTestArrivedProvider.notifier).arrived();
+    }
     refreshDay(ref.invalidate);
     ref.invalidate(activityProvider);
     ref.read(pushArrivalProvider.notifier).add(data);
@@ -276,6 +288,20 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// Only the app's own pages: a Space, its item or thread, a post, a
   /// person, a direct message thread, your profile, or Scheduled.
   void _open(Map<String, String> data) {
+    if (!mounted) return;
+    // Review 114: the test push opens the alerts setup with "The test
+    // arrived" (one setup, never two).
+    if (data['kind'] == alertTestKind) {
+      ref.read(alertTestArrivedProvider.notifier).arrived();
+      if (AlertsSetupScreen.open == 0) {
+        unawaited(GoRouter.of(context).push(alertsSetupRoute()));
+      }
+      return;
+    }
+    // Review 114 PS3: an urgent alert opened late.
+    if (urgentAlertKinds.contains(data['kind'])) {
+      ref.read(lateAlertProvider.notifier).opened(data);
+    }
     if (data['open'] == checkInNudgeOpen) {
       unawaited(_openNudge(data));
       return;

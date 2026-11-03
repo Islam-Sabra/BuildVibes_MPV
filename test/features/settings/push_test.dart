@@ -1,7 +1,7 @@
 import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/features/feed/post_screen.dart';
 import 'package:buildvibes/features/settings/notifications_screen.dart';
-import 'package:buildvibes/features/settings/push_fix.dart';
+import 'package:buildvibes/features/onboarding/alerts_setup_screen.dart';
 import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -35,13 +35,6 @@ void main() {
     expect(pushRoute('/spaces/s1'), '/spaces/s1');
     expect(pushRoute('/spaces/s1/chat/t1'), '/spaces/s1/chat/t1');
     expect(pushRoute('/posts/p1'), '/posts/p1');
-  });
-
-  test('F9: Xiaomi, Redmi and POCO phones get the background steps', () {
-    expect(needsBackgroundSteps(['xiaomi', 'redmi']), isTrue);
-    expect(needsBackgroundSteps(['Xiaomi', 'POCO']), isTrue);
-    expect(needsBackgroundSteps(['samsung', 'samsung']), isFalse);
-    expect(needsBackgroundSteps(const []), isFalse);
   });
 
   for (final lang in ['en', 'ar']) {
@@ -84,7 +77,7 @@ void main() {
     });
 
     testWidgets('F9: no token after the tries: the quiet line on Home and in '
-        'Settings, counted once; Fix it opens the notification settings '
+        'Settings, counted once; Fix it opens the alerts setup (review 114) '
         '[$lang]', (tester) async {
       final push = FakePushMessaging(
         current: PushPermission.granted,
@@ -98,11 +91,15 @@ void main() {
       expect(find.text(l10n.pushFixIt), findsOneWidget);
       await _openNotifications(tester);
       expect(find.byKey(const Key('push-not-reaching')), findsOneWidget);
-      // Not a Xiaomi family phone: straight to the phone's settings.
       await tester.tap(find.text(l10n.pushFixIt));
       await tester.pumpAndSettle();
-      expect(push.openedSettings, 1);
-      expect(find.byKey(const Key('push-fix-steps')), findsNothing);
+      expect(find.byType(AlertsSetupScreen), findsOneWidget);
+      // Not a Xiaomi family phone: the one line.
+      expect(
+        find.byKey(const Key('alerts-line-notifications')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('alerts-line-autostart')), findsNothing);
     });
 
     testWidgets('F9: allowed but the phone gives no token: the same line '
@@ -115,8 +112,8 @@ void main() {
       expect(find.byKey(const Key('push-not-reaching')), findsOneWidget);
     });
 
-    testWidgets('F9: on a Xiaomi, Fix it shows the steps and opens the '
-        "app's page [$lang]", (tester) async {
+    testWidgets('F9: on a Xiaomi, Fix it opens the alerts setup with its '
+        'four lines [$lang]', (tester) async {
       final push = FakePushMessaging(
         current: PushPermission.granted,
         tokenFailures: 99,
@@ -125,19 +122,15 @@ void main() {
       await pumpApp(tester, feed: true, language: lang, push: push);
       await tester.tap(find.text(l10n.pushFixIt));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.pushFixTitle), findsOneWidget);
-      for (final step in [
-        l10n.pushFixAutostart,
-        l10n.pushFixBattery,
-        l10n.pushFixPlayServices,
-        l10n.pushFixRestart,
+      expect(find.byType(AlertsSetupScreen), findsOneWidget);
+      for (final line in [
+        'notifications',
+        'autostart',
+        'floating',
+        'battery',
       ]) {
-        expect(find.text(step), findsOneWidget);
+        expect(find.byKey(Key('alerts-line-$line')), findsOneWidget);
       }
-      await tester.tap(find.byKey(const Key('push-fix-open')));
-      await tester.pumpAndSettle();
-      expect(push.openedAppSettings, 1);
-      expect(push.openedSettings, 0);
     });
 
     testWidgets('F9: fixed on the phone, then back to the app: the token '

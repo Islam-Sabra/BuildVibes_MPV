@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +15,7 @@ import '../entry/widgets/join_wall.dart';
 import '../feed/post_draft.dart';
 import '../messages/dm_live.dart';
 import '../notebook/note_reminders.dart';
+import '../onboarding/late_alert_sheet.dart';
 import '../settings/push_host.dart';
 import '../work/check_in_phone.dart' show CheckInHost;
 import '../work/outbox_host.dart';
@@ -51,7 +51,10 @@ class AppShell extends ConsumerWidget {
             child: NeedYouHost(
               child: DmLiveHost(
                 child: SpaceReminderHost(
-                  child: ReminderHost(child: navigationShell),
+                  // Review 114 PS3: an urgent alert that came late.
+                  child: LateAlertHost(
+                    child: ReminderHost(child: navigationShell),
+                  ),
                 ),
               ),
             ),

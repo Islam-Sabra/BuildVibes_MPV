@@ -497,4 +497,12 @@ abstract final class BvIcons {
   static const googleDrive = IconData(0xe8f6, fontFamily: _family);
   // Phosphor: dropbox-logo
   static const dropbox = IconData(0xe7d0, fontFamily: _family);
+  // Review 114 PS1: the alerts setup's four lines. Phosphor: bell
+  // (Notifications), arrow-clockwise (Autostart; a turn, so it never
+  // mirrors), arrow-square-down (Floating notifications), battery-high
+  // (Battery: No restrictions).
+  static const alertsNotifications = IconData(0xe0ce, fontFamily: _family);
+  static const alertsAutostart = IconData(0xe036, fontFamily: _family);
+  static const alertsFloating = IconData(0xe06e, fontFamily: _family);
+  static const alertsBattery = IconData(0xe0c2, fontFamily: _family);
 }

@@ -8,6 +8,8 @@ import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/core/sound/sent_chime.dart';
 import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
+import 'package:buildvibes/core/push/alert_settings_phone.dart';
+import 'package:buildvibes/data/repositories/alert_test_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/core/push/push_state.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
@@ -78,6 +80,7 @@ import 'later_fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
+import 'alert_fakes.dart';
 import 'page_fakes.dart';
 import 'people_search_fakes.dart';
 import 'safety_fakes.dart';
@@ -157,6 +160,8 @@ class TestApp {
     required this.notices,
     required this.needYou,
     required this.needYouNotices,
+    required this.alertPhone,
+    required this.alertTests,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -228,6 +233,10 @@ class TestApp {
   final FakeNeedYouRepository needYou;
   final FakeCheckInNotifier needYouNotices;
 
+  /// Review 114: the phone's alert settings pages, and Send me a test.
+  final FakeAlertSettingsPhone alertPhone;
+  final FakeAlertTestRepository alertTests;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -289,6 +298,8 @@ Future<TestApp> pumpApp(
   FakeCheckInRepository? checkIns,
   FakeLocationReader? location,
   FakeNeedYouRepository? needYou,
+  FakeAlertSettingsPhone? alertPhone,
+  FakeAlertTestRepository? alertTests,
 
   /// The market pack; [testMarkets] by default.
   List<Market>? markets,
@@ -399,6 +410,8 @@ Future<TestApp> pumpApp(
   final fakeNotices = FakeCheckInNotifier();
   final fakeNeedYou = needYou ?? FakeNeedYouRepository();
   final fakeNeedYouNotices = FakeCheckInNotifier();
+  final fakeAlertPhone = alertPhone ?? FakeAlertSettingsPhone();
+  final fakeAlertTests = alertTests ?? FakeAlertTestRepository();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -462,6 +475,8 @@ Future<TestApp> pumpApp(
         checkInNotifierProvider.overrideWithValue(fakeNotices),
         needYouNotifierProvider.overrideWithValue(fakeNeedYouNotices),
         needYouRepositoryProvider.overrideWithValue(fakeNeedYou),
+        alertSettingsPhoneProvider.overrideWithValue(fakeAlertPhone),
+        alertTestRepositoryProvider.overrideWithValue(fakeAlertTests),
         // Y1: the phone's time zone.
         phoneTimeZoneProvider.overrideWithValue(() async => 'Asia/Kuwait'),
         openLinkProvider.overrideWithValue((uri) async {
@@ -609,6 +624,8 @@ Future<TestApp> pumpApp(
     notices: fakeNotices,
     needYou: fakeNeedYou,
     needYouNotices: fakeNeedYouNotices,
+    alertPhone: fakeAlertPhone,
+    alertTests: fakeAlertTests,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

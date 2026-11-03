@@ -219,4 +219,10 @@ abstract final class AppRoutes {
   static const onboardingWork = '/onboarding/work';
   static const onboardingSpace = '/onboarding/space';
   static const onboardingRole = '/onboarding/role';
+
+  /// Review 114 PS1: so urgent alerts reach you. After sign-up (with
+  /// [alertsNextParam], where it goes next), from Settings → Notifications
+  /// → Fix it, from PS3's Fix now, and from the test push.
+  static const alertsSetup = '/onboarding/alerts';
+  static const alertsNextParam = 'next';
 }

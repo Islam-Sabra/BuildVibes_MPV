@@ -3410,42 +3410,6 @@ abstract class AppLocalizations {
   /// **'Fix it'**
   String get pushFixIt;
 
-  /// F9: the steps sheet on Xiaomi, Redmi and POCO phones.
-  ///
-  /// In en, this message translates to:
-  /// **'Let notifications reach this phone'**
-  String get pushFixTitle;
-
-  /// F9 step 1 (the phone's own word: Autostart).
-  ///
-  /// In en, this message translates to:
-  /// **'Autostart: on for BuildVibes.'**
-  String get pushFixAutostart;
-
-  /// F9 step 2 (the phone's own words).
-  ///
-  /// In en, this message translates to:
-  /// **'Battery saver: \"No restrictions\" for BuildVibes.'**
-  String get pushFixBattery;
-
-  /// F9 step 3.
-  ///
-  /// In en, this message translates to:
-  /// **'The same battery setting for Google Play services.'**
-  String get pushFixPlayServices;
-
-  /// F9 step 4.
-  ///
-  /// In en, this message translates to:
-  /// **'Then restart the phone.'**
-  String get pushFixRestart;
-
-  /// F9: opens the phone's page for BuildVibes.
-  ///
-  /// In en, this message translates to:
-  /// **'Open BuildVibes settings'**
-  String get pushFixOpen;
-
   /// F11: the chip over the Home feed when new posts came in while reading further down.
   ///
   /// In en, this message translates to:
@@ -11797,6 +11761,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Goes into the Team \"{team}\": undo'**
   String teamsMergedIntoTeam(String team);
+
+  /// PS1 title (review 114).
+  ///
+  /// In en, this message translates to:
+  /// **'So urgent alerts reach you'**
+  String get alertsTitle;
+
+  /// PS1 line under the title; n is how many lines this phone needs.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{Your team can call you with Need you now, and check-ins open on time. This phone needs 1 setting. It\'s a single tap.} other{Your team can call you with Need you now, and check-ins open on time. This phone needs {n} settings. Each one is a single tap.}}'**
+  String alertsSub(int n);
+
+  /// PS1 line 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get alertsNotifications;
+
+  /// PS1 line 1, under.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow BuildVibes to notify you'**
+  String get alertsNotificationsSub;
+
+  /// PS1 line 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Autostart'**
+  String get alertsAutostart;
+
+  /// PS1 line 2, under.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts arrive with the app closed'**
+  String get alertsAutostartSub;
+
+  /// PS1 line 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating notifications'**
+  String get alertsFloating;
+
+  /// PS1 line 3, under.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent alerts drop down from the top'**
+  String get alertsFloatingSub;
+
+  /// PS1 line 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery: No restrictions'**
+  String get alertsBattery;
+
+  /// PS1 line 4, under.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone won\'t put BuildVibes to sleep'**
+  String get alertsBatterySub;
+
+  /// A PS1 line that is on.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get alertsOn;
+
+  /// Opens the phone's page for a PS1 line.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get alertsTurnOn;
+
+  /// PS1 hint under the lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Each button opens the right page in your phone\'s settings. Turn the switch on, then come back.'**
+  String get alertsHint;
+
+  /// PS1: the server sends one test alert.
+  ///
+  /// In en, this message translates to:
+  /// **'Send me a test'**
+  String get alertsSendTest;
+
+  /// PS1: skips the setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get alertsLater;
+
+  /// PS2: closes the setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get alertsDone;
+
+  /// PS2: the test push arrived.
+  ///
+  /// In en, this message translates to:
+  /// **'The test arrived. Urgent alerts will reach you.'**
+  String get alertsArrived;
+
+  /// PS1: the server took the test (not in the review's copy table).
+  ///
+  /// In en, this message translates to:
+  /// **'Test sent. It arrives in a few seconds.'**
+  String get alertsTestSent;
+
+  /// PS1: the server allows 3 tests an hour (not in the review's copy table).
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve sent 3 tests in the last hour. Try again later.'**
+  String get alertsTestTooMany;
+
+  /// PS1: Send me a test with notifications off (not in the review's copy table).
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications first, so the test can reach you.'**
+  String get alertsTestAllowFirst;
+
+  /// PS3 title.
+  ///
+  /// In en, this message translates to:
+  /// **'An urgent alert arrived late'**
+  String get alertsLate;
+
+  /// PS3, first sentence: who called and how late.
+  ///
+  /// In en, this message translates to:
+  /// **'{m, plural, =1{{name}\'s Need you now reached you 1 minute late.} other{{name}\'s Need you now reached you {m} minutes late.}}'**
+  String alertsLateBy(String name, int m);
+
+  /// PS3, first sentence without a name (a check-in, or lock-screen text off; not in the review's copy table).
+  ///
+  /// In en, this message translates to:
+  /// **'{m, plural, =1{An urgent alert reached you 1 minute late.} other{An urgent alert reached you {m} minutes late.}}'**
+  String alertsLateByPlain(int m);
+
+  /// PS3, second sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 setting on this phone is off.} other{{n} settings on this phone are off.}}'**
+  String alertsOffCount(int n);
+
+  /// PS3: opens the alerts setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix now'**
+  String get alertsFixNow;
+
+  /// PS3: closes the sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get alertsNotNow;
 }
 
 class _AppLocalizationsDelegate

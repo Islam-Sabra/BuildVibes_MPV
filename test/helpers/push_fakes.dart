@@ -13,6 +13,7 @@ class FakePushMessaging implements PushMessaging {
     this.firstTap,
     this.tokenFailures = 0,
     this.makers = const ['google', 'google'],
+    this.platform = 'android',
   });
 
   PushPermission current;
@@ -89,7 +90,7 @@ class FakePushMessaging implements PushMessaging {
   void reportNoToken() => noTokenReports++;
 
   @override
-  String get platform => 'android';
+  final String platform;
 }
 
 class FakePushRepository implements PushRepository {

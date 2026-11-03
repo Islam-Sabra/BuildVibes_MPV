@@ -194,6 +194,57 @@ void main() {
       expect(_key('reactor-bravo-p-hidden'), findsOneWidget);
     });
 
+    // Review 114 (founder, 3 Nov): React at the start, its faces right
+    // after it, Share alone at the end; mirrored in Arabic. The picker
+    // opens from the start, above React.
+    testWidgets('React at the start, the faces after it, Share at the end; '
+        'the picker opens from the start [$lang]', (tester) async {
+      await _open(tester, lang, [_reacted(s.rebar())]);
+      await scrollToRow(tester, _key('daybook-card-post-rebar'));
+      final rtl = lang == 'ar';
+      double start(Finder f) =>
+          rtl ? tester.getTopRight(f.first).dx : tester.getTopLeft(f.first).dx;
+      double end(Finder f) =>
+          rtl ? tester.getTopLeft(f.first).dx : tester.getTopRight(f.first).dx;
+      bool before(double a, double b) => rtl ? a >= b : a <= b;
+      final row = _key('card-react-row-post-rebar');
+      final react = _key('card-react-post-rebar');
+      final faces = _key('card-reactions-post-rebar');
+      final share = _key('card-share-post-rebar');
+      // React first, at the row's start; the faces after it; Share last,
+      // at the row's end.
+      expect(start(react), moreOrLessEquals(start(row), epsilon: 8));
+      expect(before(end(react), start(faces)), isTrue);
+      expect(before(end(faces), start(share)), isTrue);
+      expect(end(share), moreOrLessEquals(end(row), epsilon: 8));
+      await _tap(tester, react);
+      final picker = _key('react-picker');
+      expect(picker, findsOneWidget);
+      expect(start(picker), moreOrLessEquals(start(react), epsilon: 1));
+      expect(
+        tester.getBottomLeft(picker).dy,
+        lessThan(tester.getTopLeft(react.first).dy),
+      );
+    });
+
+    testWidgets('no reactions: React alone at the start, Share at the end '
+        '[$lang]', (tester) async {
+      await _open(tester, lang, [s.rebar()]);
+      await scrollToRow(tester, _key('daybook-card-post-rebar'));
+      final rtl = lang == 'ar';
+      final row = tester.getRect(_key('card-react-row-post-rebar'));
+      final react = tester.getRect(_key('card-react-post-rebar'));
+      final share = tester.getRect(_key('card-share-post-rebar'));
+      expect(_key('card-reactions-post-rebar'), findsNothing);
+      if (rtl) {
+        expect(react.right, moreOrLessEquals(row.right, epsilon: 8));
+        expect(share.left, moreOrLessEquals(row.left, epsilon: 8));
+      } else {
+        expect(react.left, moreOrLessEquals(row.left, epsilon: 8));
+        expect(share.right, moreOrLessEquals(row.right, epsilon: 8));
+      }
+    });
+
     testWidgets('a Viewer may react and share [$lang]', (tester) async {
       await _open(tester, lang, [s.rebar()], pass: SpacePass.viewer);
       await scrollToRow(tester, _key('daybook-card-post-rebar'));

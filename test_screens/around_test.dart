@@ -1205,27 +1205,7 @@ void main() {
       );
     });
 
-    testWidgets('F9 Fix it on a Xiaomi: the steps [$lang]', (tester) async {
-      await shoot(
-        tester,
-        'F9-fix-it-xiaomi',
-        lang,
-        (context) => const Pushed(NotificationsScreen()),
-        overrides: [
-          ...await _base(me: DaybookSamples.islam),
-          ...notReaching,
-        ],
-        before: (tester) async {
-          await tester.tap(
-            find.descendant(
-              of: find.byKey(const Key('push-not-reaching')),
-              matching: find.byType(InkWell),
-            ),
-          );
-          await tester.pumpAndSettle();
-        },
-      );
-    });
+    // Review 114: Fix it opens the alerts setup (PS1, r114_test.dart).
 
     testWidgets('H2 Write a post in place, empty [$lang]', (tester) async {
       await warmSamplePhoto(tester);

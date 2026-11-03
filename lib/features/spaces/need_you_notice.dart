@@ -48,6 +48,7 @@ class NeedYouPush {
     this.title,
     this.body,
     this.tag,
+    this.sentAt,
   });
 
   /// Null when [data] isn't a need_you push.
@@ -62,6 +63,7 @@ class NeedYouPush {
       title: data['push_title'],
       body: data['push_body'],
       tag: data['tag'] ?? 'needyou:$call',
+      sentAt: data['sent_at'],
     );
   }
 
@@ -78,6 +80,7 @@ class NeedYouPush {
         callId: j['call_id'] as String,
         spaceId: j['space_id'] as String,
         tag: j['tag'] as String?,
+        sentAt: j['sent_at'] as String?,
       );
     } on Object {
       return null;
@@ -90,9 +93,18 @@ class NeedYouPush {
   final String? body;
   final String? tag;
 
+  /// When the server sent it (ISO 8601 UTC, review 114): a tap long after
+  /// says the alert came late. A time, never words.
+  final String? sentAt;
+
   String get payload =>
       needYouPayloadPrefix +
-      jsonEncode({'call_id': callId, 'space_id': spaceId, 'tag': ?tag});
+      jsonEncode({
+        'call_id': callId,
+        'space_id': spaceId,
+        'tag': ?tag,
+        'sent_at': ?sentAt,
+      });
 }
 
 /// NN2: drawn from the server's words, with On my way · Can't now. On
