@@ -2,6 +2,28 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026, afternoon — B4 upload fix, 114b and 114c; build 1015 on the founder's phone; B3 measured
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged into `slice2-app`:**
+  - `claude/r114b` (1db81f5a): Settings → Notifications always has "Alerts setup" («إعداد التنبيهات»); the notification small icon is the BuildVibes mark (it was the October placeholder, Flutter's logo).
+  - `claude/upfix` (7f41c855), which carries `claude/r114c` ("All set. Urgent alerts will reach you." when every line is on) and B4.
+- **B4, the upload fault** (review 114, "Emulator checks on 1010 and the upload fault"):
+  - `uploadWithProgress` sent through plain `http` with the storage client's headers, so storage saw anonymous uploads and answered 400. Every Library upload from the phone failed on live; very likely the real cause of review 113 bug 7.
+  - Now it sends through `client.rest.httpClient` (Supabase's `AuthHttpClient`): the token and the public key at send time, an expired session refreshed first. Tests in `test/data/upload_progress_test.dart` (both failed on the old code).
+  - On the emulator with the fix (live, read-only logs): a 3 MB PDF from the Library (200, authenticated, 3,146,805 bytes) and a fresh PDF attached in the composer (200, authenticated).
+  - Also: a note that is only a voice note posts, titled "Voice note · 0:12" in the writer's words (the server keeps a title on every note); the long-press menu closes on a tap elsewhere and when recording starts; "Whole Space" in the composer's Team row and its waiting card.
+  - Shots updated for the six screens with the Team row or Settings → Notifications (the 114b row had not been shot).
+- **Checks:** `flutter analyze` clean; `flutter test` 3,650 pass; the changed `test_screens` files pass.
+- **Build 1015** (versionCode 1015, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1015`** (= 7f41c855). `Desktop/BuildVibes-1015.apk`. Installed over 1010 on the founder's phone (192.168.8.33:40205, model 22120RN86G); disconnected, both adb entries.
+  - Build 1010 (`release-1010` = 1db81f5a, `Desktop/BuildVibes-1010.apk`) was on the phone from 14:40 for B3.
+- **B3 measured on 1010, not valid as a background measure:** MIUI killed BuildVibes one second after Home (`ProcessSceneCleaner: SwipeUpClean`, 14:44:42), so it never ran in the background. CPU 14.5 s, all on screen; one Firebase job (3.7 s); no GPS; MIUI shows no per-app network bytes. Measure again leaving with Home only (no swipe in Recents), with Autostart on and Battery "No restrictions".
+- **Earlier "not reaching" on 1005:** the log from that time was cleared before it was read, so whether `token()` gave null or threw is unknown. The setup is now always reachable (114b) to test again.
+- **Left on live, Test site (Test Lead):** posts TS-002 (voice), TS-003 (file), TS-004 and TS-005 (notes with a PDF); Library folders "Check 114c" and "OneDrive check" (Only me); Test-3MB.pdf and the beam schedule PDF in the Library. The emulator also holds three failed drafts from before the fix and two test PDFs in Downloads.
+- **Phone checks, open (the founder's):** a 3 MB PDF to the Library on the phone; a voice note with no title; Alerts setup from Settings; the notification icon; then the earlier list below.
+- **Who has which branch:** PC has `slice2-app`; `claude/r114b`, `claude/r114c` and `claude/upfix` are merged.
+
 ## PC update: 3 Nov 2026 — review 114 live, build 1005 on the founder's phone; the phone checks wait
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
