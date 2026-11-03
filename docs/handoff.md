@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026 — B2 fixed on `claude/b2` (pushed); not merged, not built
+
+- **Cause (measured on build 987):** about 124 copies of one 9.1 MB PDF in `cache/`: pdfx's `openData` writes a copy each time and never deletes it, and every PDF card downloaded the PDF again.
+- **Fix, test first:** `lib/core/file_cache.dart`: one copy per storage path in `cache/bv_files/`, downloaded once; the first page kept in `cache/bv_thumbs/`; both capped at 200 MB (least recently used go, at start). `openFile` everywhere; a test fails if `openData(` appears in `lib/`.
+- **Clean-up at start** (after the storage log): `*.pdf` directly in `cache/`, and `file_picker/` and `share_plus/` files older than a day, never one a saved draft or outbox names.
+- **Phone check after the next build:** open the app, open a Library PDF 3 times, scroll a Daybook with a PDF card up and down, then read the storage log: `cache/` small, the 9 MB PDF there once.
+
 ## PC update: 3 Nov 2026 — review 111 live, build 987 on the founder's phone; the phone checks wait
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
