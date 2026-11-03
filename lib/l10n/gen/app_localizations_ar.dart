@@ -974,7 +974,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesConfirmedByYou => 'مؤكَّد منك';
 
   @override
-  String get spacesRightChat => 'المحادثة في «الجميع» والفِرق';
+  String get spacesRightChat => 'المحادثة في «المساحة كلها» والفِرق';
 
   @override
   String get spacesRightMarkDone => 'توقيع البنود المكلّف بها كمنجزة';
@@ -1289,17 +1289,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deliveredCheckedRowNoName => 'تم التحقق';
 
   @override
-  String get chatEveryone => 'الجميع';
-
-  @override
   String get chatTeam => 'الفريق';
 
   @override
-  String get chatThreadsNote => 'ترى محادثة «الجميع» ومحادثات فِرقك.';
+  String get chatThreadsNote => 'ترى محادثة «المساحة كلها» ومحادثات فِرقك.';
 
   @override
   String get chatThreadsNoteAdmin =>
-      'بصفتك مدير المساحة، ترى «الجميع» وكل الفِرق.';
+      'بصفتك مدير المساحة، ترى «المساحة كلها» وكل الفِرق.';
 
   @override
   String get chatNoMessages => 'لا رسائل بعد.';
@@ -1346,9 +1343,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatSending => 'جارٍ الإرسال…';
-
-  @override
-  String get chatNotSent => 'لم تُرسل';
 
   @override
   String get chatRetry => 'إعادة المحاولة';
@@ -7237,6 +7231,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alertsTurnOn => 'تشغيل';
+
+  @override
+  String get alertsShowMe => 'أرني';
 
   @override
   String get alertsHint =>

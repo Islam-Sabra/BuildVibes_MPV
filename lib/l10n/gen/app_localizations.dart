@@ -1793,7 +1793,7 @@ abstract class AppLocalizations {
   /// Right, always on.
   ///
   /// In en, this message translates to:
-  /// **'Chat in Everyone and their Teams'**
+  /// **'Chat in Whole Space and their Teams'**
   String get spacesRightChat;
 
   /// Right, set by the pass.
@@ -2294,12 +2294,6 @@ abstract class AppLocalizations {
   /// **'Checked'**
   String get deliveredCheckedRowNoName;
 
-  /// The Space-wide thread.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get chatEveryone;
-
   /// Thread subtitle for a Team thread.
   ///
   /// In en, this message translates to:
@@ -2309,13 +2303,13 @@ abstract class AppLocalizations {
   /// S7k footer for members.
   ///
   /// In en, this message translates to:
-  /// **'You see threads for Everyone and your Teams.'**
+  /// **'You see threads for Whole Space and your Teams.'**
   String get chatThreadsNote;
 
   /// S7k footer for admins.
   ///
   /// In en, this message translates to:
-  /// **'As a Space admin, you see Everyone and every Team.'**
+  /// **'As a Space admin, you see Whole Space and every Team.'**
   String get chatThreadsNoteAdmin;
 
   /// Thread with no messages.
@@ -2401,12 +2395,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sending…'**
   String get chatSending;
-
-  /// Failed message.
-  ///
-  /// In en, this message translates to:
-  /// **'Not sent'**
-  String get chatNotSent;
 
   /// Failed message action.
   ///
@@ -9236,7 +9224,7 @@ abstract class AppLocalizations {
   /// **'Voice note · {length}'**
   String daybookVoiceTitle(String length);
 
-  /// Review 105 SP2: the Team row before a Team is chosen.
+  /// Review 105 SP2: the Team row before a Team is chosen. Also the name of the Space's chat thread for the whole Space (review 115: one word in the whole app).
   ///
   /// In en, this message translates to:
   /// **'Whole Space'**
@@ -11917,6 +11905,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on'**
   String get alertsTurnOn;
+
+  /// Review 115: the Lock in recent apps line's button; it opens a how-to, not a page.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me'**
+  String get alertsShowMe;
 
   /// PS1 hint under the lines.
   ///

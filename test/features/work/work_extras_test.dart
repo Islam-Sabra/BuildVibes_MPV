@@ -230,7 +230,10 @@ void main() {
         expect(_key('share-thread-$_mep'), findsOneWidget);
         await _tap(tester, _key('share-thread-$_everyone'));
         expect(app.daybook.calls, contains('share post-rebar $_everyone'));
-        expect(find.text(l10n.workSharedIn(l10n.chatEveryone)), findsOneWidget);
+        expect(
+          find.text(l10n.workSharedIn(l10n.daybookWholeSpace)),
+          findsOneWidget,
+        );
       });
 
       testWidgets('a Team\'s post: only its Team\'s thread', (tester) async {
@@ -451,7 +454,10 @@ void main() {
         ];
         expect(tries, hasLength(2));
         expect(tries.toSet(), hasLength(1));
-        expect(find.text(l10n.workSharedIn(l10n.chatEveryone)), findsOneWidget);
+        expect(
+          find.text(l10n.workSharedIn(l10n.daybookWholeSpace)),
+          findsOneWidget,
+        );
       });
     });
 

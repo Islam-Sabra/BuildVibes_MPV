@@ -228,7 +228,7 @@ void main() {
       );
       final mep = tester.getTopLeft(find.byKey(const Key('chat-thread-$_mep')));
       expect(everyone.dy, lessThan(mep.dy));
-      expect(find.text(l10n.chatEveryone), findsOneWidget);
+      expect(find.text(l10n.daybookWholeSpace), findsOneWidget);
       expect(
         find.text(
           l10n.chatLastLine(
@@ -325,6 +325,73 @@ void main() {
       await _tap(tester, 'chat-new');
       expect(find.byKey(const Key('chat-new-group')), findsNothing);
       expect(find.byKey(const Key('chat-new-person')), findsOneWidget);
+    });
+
+    testWidgets('review 115 check: the whole-Space thread is "Whole Space" '
+        'in the list, the Chat tab\'s line and the thread\'s header, never '
+        '"Everyone" [$lang]', (tester) async {
+      final whole = lang == 'en' ? 'Whole Space' : 'المساحة كلها';
+      final everyone = lang == 'en' ? 'Everyone' : 'الجميع';
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(admin: false),
+        work: _work(),
+        chat: _chat(),
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-switch-chat');
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('chat-thread-$_everyone')),
+          matching: find.text(whole),
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining(whole), findsNWidgets(2));
+      expect(find.textContaining(everyone), findsNothing);
+
+      await _tap(tester, 'chat-thread-$_everyone');
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: find.text(whole)),
+        findsOneWidget,
+      );
+      expect(find.textContaining(everyone), findsNothing);
+    });
+
+    test('review 115 check: one word in the whole app: the Chat tab\'s '
+        'lines and the pass\'s chat right name "Whole Space" [$lang]', () {
+      final whole = lang == 'en' ? 'Whole Space' : 'المساحة كلها';
+      expect(l10n.daybookWholeSpace, whole);
+      for (final s in [
+        l10n.chatThreadsNote,
+        l10n.chatThreadsNoteAdmin,
+        l10n.spacesRightChat,
+      ]) {
+        expect(s, contains(whole), reason: s);
+        expect(s, isNot(contains(lang == 'en' ? 'Everyone' : 'الجميع')));
+      }
+    });
+
+    testWidgets('review 115 check: an admin\'s Chat tab line says "Whole '
+        'Space" too [$lang]', (tester) async {
+      final whole = lang == 'en' ? 'Whole Space' : 'المساحة كلها';
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(),
+        work: _work(),
+        chat: _chat(),
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-switch-chat');
+      expect(find.textContaining(whole), findsNWidgets(2));
+      expect(
+        find.textContaining(lang == 'en' ? 'Everyone' : 'الجميع'),
+        findsNothing,
+      );
     });
 
     testWidgets('S8k: messages, a deleted one, and a work item card [$lang]', (

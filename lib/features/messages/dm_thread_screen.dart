@@ -38,7 +38,9 @@ import '../profile/widgets/profile_parts.dart';
 import '../safety/report_flow.dart';
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
+import '../work/could_not_send.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
+import '../../data/models/upload_rules.dart' show FileRefused, UploadProblem;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart' show DaybookQuote;
 import '../../shared/widgets/bv_list_row.dart';
@@ -52,8 +54,8 @@ import '../work/daybook_writing.dart' show newPostIdProvider;
 import '../../shared/widgets/bv_name_text.dart';
 import '../notebook/notebook_state.dart';
 
-/// A message on its way, shown at once as mine ("Sending…", or "Not sent ·
-/// Retry").
+/// A message on its way, shown at once as mine: "Sending…" while it goes,
+/// otherwise "Couldn't send · Tap to fix", as in Space chat (review 115).
 class _Pending {
   _Pending({
     required this.id,
@@ -69,6 +71,10 @@ class _Pending {
   /// Photos and PDFs, or one voice note, still on the phone.
   final List<PhoneFile> files;
   var failed = false;
+
+  /// Why a file was refused (or its kept copy is gone), for Tap to fix;
+  /// null for a weak signal or anything else.
+  FileRefused? refused;
 
   PhoneFile? get voice =>
       files.length == 1 && files.single.isVoice ? files.single : null;
@@ -236,19 +242,27 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     final body = pending.body;
     final files = pending.files;
     setState(() {
-      pending.failed = false;
+      pending
+        ..failed = false
+        ..refused = null;
       if (!_pending.contains(pending)) _pending.add(pending);
     });
     try {
-      final uploads = [
-        for (final f in files)
+      final uploads = <DmUpload>[];
+      for (final f in files) {
+        // Its kept copy gone from the phone (review 113 Z13): Remove only.
+        if (!File(f.local).existsSync()) {
+          throw FileRefused(UploadProblem.gone, fileId: f.local);
+        }
+        uploads.add(
           DmUpload(
             path: await _repo.upload(pending.id, f),
             name: f.name,
             bytes: f.bytes,
             durationMs: f.durationMs,
           ),
-      ];
+        );
+      }
       final thread = _threadId;
       if (thread == null) {
         final started = await _repo.start(
@@ -261,6 +275,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
         if (!mounted) return;
         if (started.paused) {
           setState(() => _pending.remove(pending));
+          _dropKept(pending);
           _toast(
             l10n.dmPaused(
               BvTime.of(
@@ -281,15 +296,79 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           attachments: uploads,
         );
       }
-      await _reload();
+    } on FileRefused catch (e) {
+      // Tap to fix says why.
+      if (mounted) {
+        setState(
+          () => pending
+            ..failed = true
+            ..refused = e,
+        );
+      }
+      return;
     } on SpaceException catch (e) {
       if (!mounted) return;
       setState(() => pending.failed = true);
-      showSpaceError(context, e);
+      // A weak signal is said by the line; anything else is said too.
+      if (e.failure != SpaceFailure.network) showSpaceError(context, e);
+      return;
+    } on Object catch (e) {
+      // Never "Sending…" for ever: anything else waits for Tap to fix.
+      debugPrint('dm send: $e');
+      if (mounted) setState(() => pending.failed = true);
+      return;
+    }
+    // Sent: the kept copies can go.
+    _dropKept(pending);
+    if (!mounted) return;
+    try {
+      await _reload();
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
     }
   }
 
   Future<void> _retry(_Pending p) => _deliver(p);
+
+  /// Review 115, as in Space chat: Couldn't send · Tap to fix says why (a
+  /// file refused, or kept on the phone), then Try again or Remove (with
+  /// its kept files). A file gone from the phone can only be removed.
+  Future<void> _fix(_Pending p) async {
+    final l10n = AppLocalizations.of(context);
+    final refused = p.refused;
+    final picked = await showCouldNotSendFix(
+      context,
+      why: refused == null
+          ? l10n.chatCouldNotSendWhy
+          : fileRefusedText(l10n, refused),
+      refused: refused,
+      tryAgain: refused?.problem != UploadProblem.gone,
+    );
+    if (!mounted) return;
+    runCouldNotSendFix(
+      picked,
+      tryAgain: () => unawaited(_retry(p)),
+      remove: () async => _remove(p),
+    );
+  }
+
+  /// Tap to fix, Remove: the message leaves the phone with its kept files.
+  void _remove(_Pending p) {
+    if (!mounted) return;
+    setState(() => _pending.remove(p));
+    _dropKept(p);
+  }
+
+  /// The copies [p]'s files kept on the phone (small, and gone at once).
+  static void _dropKept(_Pending p) {
+    for (final f in p.files) {
+      try {
+        File(f.local).deleteSync();
+      } on FileSystemException {
+        // Already gone.
+      }
+    }
+  }
 
   Future<void> _startRecording() async {
     final l10n = AppLocalizations.of(context);
@@ -978,13 +1057,17 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               ),
         reply: p.replyTo == null ? null : _asReply(l10n, p.replyTo!),
         footer: p.failed
-            ? GestureDetector(
-                key: Key('dm-retry-${p.id}'),
-                onTap: () => unawaited(_retry(p)),
-                child: Text(
-                  '${l10n.chatNotSent} · ${l10n.chatRetry}',
-                  style: type.metadata.copyWith(
-                    color: BvColors.textDestructive,
+            ? Semantics(
+                button: true,
+                child: GestureDetector(
+                  key: Key('dm-fix-${p.id}'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => unawaited(_fix(p)),
+                  child: Text(
+                    l10n.chatCouldNotSend,
+                    style: type.metadata.copyWith(
+                      color: BvColors.textDestructive,
+                    ),
                   ),
                 ),
               )

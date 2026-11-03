@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/dm.dart';
 import '../models/library.dart';
 import '../models/space.dart';
+import '../models/upload_rules.dart' show uploadRefusalOf;
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 import 'work_repository.dart' show newUuid;
@@ -153,6 +154,8 @@ class SupabaseDmRepository implements DmRepository {
   Future<T> _guard<T>(Future<T> Function() run) async {
     try {
       return await run();
+    } on SpaceException {
+      rethrow;
     } on PostgrestException catch (e) {
       throw SpaceException(spaceFailureFor(e.code), e.message);
     } on StorageException catch (e) {
@@ -244,13 +247,18 @@ class SupabaseDmRepository implements DmRepository {
   Future<String> upload(String messageId, PhoneFile file) => _guard(() async {
     final me = _client.auth.currentUser!.id;
     final path = '$me/$messageId/${newUuid()}.${file.extension}';
-    await _client.storage
-        .from(bucket)
-        .upload(
-          path,
-          File(file.local),
-          fileOptions: FileOptions(contentType: file.mime),
-        );
+    try {
+      await _client.storage
+          .from(bucket)
+          .upload(
+            path,
+            File(file.local),
+            fileOptions: FileOptions(contentType: file.mime),
+          );
+    } on StorageException catch (e) {
+      // Review 115: storage's refusal in plain words, for Tap to fix.
+      throw uploadRefusalOf(e, file) ?? e;
+    }
     return path;
   });
 

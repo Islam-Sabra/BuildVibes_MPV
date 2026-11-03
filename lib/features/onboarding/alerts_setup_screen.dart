@@ -380,7 +380,11 @@ class _AlertsSetupScreenState extends ConsumerState<AlertsSetupScreen> {
               )
             : BvPillButton(
                 key: Key('alerts-turn-on-${line.name}'),
-                label: l10n.alertsTurnOn,
+                // Lock in recent apps opens a how-to, not a page (review
+                // 115): "Show me".
+                label: line == AlertLine.lockRecents
+                    ? l10n.alertsShowMe
+                    : l10n.alertsTurnOn,
                 onTap: () => unawaited(_turnOn(line, setup)),
               ),
       ),

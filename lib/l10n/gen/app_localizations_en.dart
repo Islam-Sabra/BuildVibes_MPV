@@ -965,7 +965,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesConfirmedByYou => 'Confirmed by you';
 
   @override
-  String get spacesRightChat => 'Chat in Everyone and their Teams';
+  String get spacesRightChat => 'Chat in Whole Space and their Teams';
 
   @override
   String get spacesRightMarkDone => 'Mark own items done';
@@ -1280,17 +1280,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveredCheckedRowNoName => 'Checked';
 
   @override
-  String get chatEveryone => 'Everyone';
-
-  @override
   String get chatTeam => 'Team';
 
   @override
-  String get chatThreadsNote => 'You see threads for Everyone and your Teams.';
+  String get chatThreadsNote =>
+      'You see threads for Whole Space and your Teams.';
 
   @override
   String get chatThreadsNoteAdmin =>
-      'As a Space admin, you see Everyone and every Team.';
+      'As a Space admin, you see Whole Space and every Team.';
 
   @override
   String get chatNoMessages => 'No messages yet.';
@@ -1337,9 +1335,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatSending => 'Sending…';
-
-  @override
-  String get chatNotSent => 'Not sent';
 
   @override
   String get chatRetry => 'Retry';
@@ -7180,6 +7175,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertsTurnOn => 'Turn on';
+
+  @override
+  String get alertsShowMe => 'Show me';
 
   @override
   String get alertsHint =>
