@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026 — review 111 live, build 987 on the founder's phone; the phone checks wait
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r111` (564cb11e) into `slice2-app` at bd9c674a. The founder kept choice 3 (Crew preselected when the company matches a Team).
+- **Live:**
+  - Read-only first: Postgres 17.11; `fuzzystrmatch` was not installed (available).
+  - `supabase db push` from a clean worktree at bd9c674a: `20261122120000_review111` is the last of 60 on live; `fuzzystrmatch` is in `extensions`; `teams.admin_id`, `create_company_teams` and `admin_name` are there. Only the usual pg-delta cache warning.
+- **Build 987** (versionCode 987, 0.9.0, commit bd9c674a, `--dart-define=BV_STORAGE_LOG=true`): `Desktop/BuildVibes-987.apk`, the same certificate (SHA-256 9d02b7db…b1df9f). Carries the hidden + (114), B1 and review 111. `google-services.json` and `env/prod.json` copied in and deleted after. The first try failed on a damaged Gradle cache folder (kotlin-dsl accessors); the second, after `gradlew --stop`, built.
+- **On the founder's phone:** 192.168.8.33:40205 only; model 22120RN86G, Android 14, 961 on it; `adb install -r`: Success (the first try returned nothing and changed nothing); versionCode 987; disconnected, adb stopped.
+- **Phone checks, open (the founder's), added to the list below:**
+  - [ ] B1: open the app from a Need you now notification, then ←: back to Spaces, no loop. The same from a check-in notification.
+  - [ ] The bottom bar has no +: Spaces · Explore · Activity · Profile.
+  - [ ] Review 111: Make Teams from companies, a Team admin's page, the join sheet's Team, Who sees it.
+  - [ ] B2: the storage log at first start (`adb logcat`, lines starting `storage`), read with the founder's yes.
+  - B3 (battery) waits for the founder.
+
 ## PC update: 3 Nov 2026 — review 111 round 2 on `claude/r111` (pushed); waiting for the lead's check; not merged, not live, not built
 
 - **Merged:** `claude/r111-cloud` (server V1–V4, V6, V8, V9, V14). pgTAP: 61 files, 4,363 checks, PASS.
