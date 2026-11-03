@@ -9224,6 +9224,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get daybookRowAdd;
 
+  /// B4 (review 114): the title a voice note gets when none was typed, e.g. Voice note · 0:12.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note · {length}'**
+  String daybookVoiceTitle(String length);
+
   /// Review 105 SP2: the Team row before a Team is chosen.
   ///
   /// In en, this message translates to:

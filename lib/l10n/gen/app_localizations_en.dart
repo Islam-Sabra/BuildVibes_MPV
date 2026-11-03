@@ -5527,6 +5527,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookRowAdd => 'Add';
 
   @override
+  String daybookVoiceTitle(String length) {
+    return 'Voice note · $length';
+  }
+
+  @override
   String get daybookWholeSpace => 'Whole Space';
 
   @override

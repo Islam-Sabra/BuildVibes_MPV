@@ -32,7 +32,8 @@ import '../chat/voice.dart'
         maxVoice,
         minVoice,
         voicePlayerProvider,
-        voiceRecorderProvider;
+        voiceRecorderProvider,
+        voiceTime;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
@@ -1127,6 +1128,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   VoiceRecorder? _recorder;
 
   Future<void> _startRecording() async {
+    // B4 (review 114): the long-press menu goes when recording starts.
+    ContextMenuController.removeAny();
     final l10n = AppLocalizations.of(context);
     final recorder = ref.read(voiceRecorderProvider);
     _recorder = recorder;
@@ -1657,6 +1660,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final draft = _writer.draft;
     if (draft != null && draft.kind == DaybookKind.report) {
       await _writer.setPage(reportPage(AppLocalizations.of(context), draft));
+      if (!mounted) return;
+    }
+    // B4 (review 114): a voice note with no title is named for what it is,
+    // in the writer's words.
+    if (draft != null && draft.untitledVoice) {
+      await _writer.setTitle(
+        AppLocalizations.of(
+          context,
+        ).daybookVoiceTitle(voiceTime(Duration(milliseconds: draft.voiceMs))),
+      );
       if (!mounted) return;
     }
     final kind = draft?.kind;

@@ -1315,7 +1315,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         BvWritingProperty.icon(
           key: const Key('writing-to'),
           icon: BvIcons.team,
-          label: l10n.daybookToAudience(draft.teamName ?? l10n.daybookEveryone),
+          label: l10n.daybookToAudience(
+            draft.teamName ?? l10n.daybookWholeSpace,
+          ),
           // F72: a file goes to the whole Space (Team-only files aren't in
           // the pilot), so its To isn't a choice.
           caret:

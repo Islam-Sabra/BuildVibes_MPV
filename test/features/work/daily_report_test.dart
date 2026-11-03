@@ -260,18 +260,19 @@ void main() {
       expect(find.text(l10n.dailyReportMenu), findsNothing);
     });
 
-    testWidgets('the report writes itself: the day, To Everyone, Done today '
+    testWidgets('the report writes itself: the day, To Whole Space, Done today '
         'from what was checked, the day\'s notes to add; ✕ takes one out; '
         'Post sends it from the built-in Daily report [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _startReport(tester, l10n);
       expect(_key('report-writing'), findsOneWidget);
       expect(find.text(words.compactDate(_today)), findsOneWidget);
-      // Review 110 CP1: the Team line, and the kind's name on top.
+      // Review 110 CP1: the Team line, and the kind's name on top. B4
+      // (review 114): "Whole Space", as everywhere in the composer.
       expect(
         find.descendant(
           of: _key('writing-to'),
-          matching: find.text(l10n.daybookEveryone),
+          matching: find.text(l10n.daybookWholeSpace),
         ),
         findsOneWidget,
       );

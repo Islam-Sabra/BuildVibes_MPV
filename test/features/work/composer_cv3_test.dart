@@ -210,6 +210,69 @@ void main() {
         expect(_draft(tester), isNull);
       });
 
+      testWidgets('B4: a voice note with no title posts, titled "Voice '
+          'note · 0:03"', (tester) async {
+        final daybook = FakeDaybookRepository()
+          ..posts[DaybookSamples.space] = DaybookSamples(lang).d1();
+        await _open(tester, lang, kind: 'note', daybook: daybook);
+        await _record(tester);
+        final ms = _draft(tester)!.voiceMs;
+        expect(_draft(tester)!.title, isEmpty);
+        await _tap(tester, _key('writing-post'));
+        final made = daybook.createdPosts.single;
+        expect(
+          made.title,
+          l10n.daybookVoiceTitle(voiceTime(Duration(milliseconds: ms))),
+        );
+        expect(_draft(tester), isNull);
+      });
+
+      testWidgets('B4: a note with no title and no voice note still waits '
+          'for words', (tester) async {
+        final daybook = FakeDaybookRepository()
+          ..posts[DaybookSamples.space] = DaybookSamples(lang).d1();
+        await _open(tester, lang, kind: 'note', daybook: daybook);
+        await _tap(tester, _key('writing-post'));
+        expect(daybook.createdPosts, isEmpty);
+      });
+
+      testWidgets('B4: the long-press menu closes on a tap elsewhere and when '
+          'recording starts', (tester) async {
+        await _open(tester, lang);
+        await tester.enterText(_key('writing-body'), 'Hello');
+        await tester.pumpAndSettle();
+        EditableTextState editable() => tester.state<EditableTextState>(
+          find.descendant(
+            of: _key('writing-body'),
+            matching: find.byType(EditableText),
+          ),
+        );
+        final menu = find.byType(AdaptiveTextSelectionToolbar);
+        editable().showToolbar();
+        await tester.pumpAndSettle();
+        expect(menu, findsOneWidget);
+        // An empty part of the page, between the words and the lines.
+        final body = tester.getRect(_key('writing-body'));
+        final lines = tester.getRect(_key('writing-lines'));
+        await tester.tapAt(
+          Offset(lines.center.dx, (body.bottom + lines.top) / 2),
+        );
+        await tester.pumpAndSettle();
+        expect(menu, findsNothing, reason: 'a tap elsewhere');
+        editable().showToolbar();
+        await tester.pumpAndSettle();
+        expect(menu, findsOneWidget);
+        final hold = await tester.startGesture(
+          tester.getCenter(_key('writing-mic')),
+        );
+        await tester.pump(const Duration(milliseconds: 550));
+        await tester.pump();
+        expect(_key('chat-recording'), findsOneWidget);
+        expect(menu, findsNothing, reason: 'recording started');
+        await hold.up();
+        await tester.pumpAndSettle();
+      });
+
       testWidgets('a slip of the thumb, or sliding away, attaches nothing', (
         tester,
       ) async {

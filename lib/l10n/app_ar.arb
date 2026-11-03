@@ -1521,6 +1521,7 @@
   "daybookRowTeam": "الفريق",
   "daybookRowChoose": "اختر",
   "daybookRowAdd": "أضف",
+  "daybookVoiceTitle": "ملاحظة صوتية · {length}",
   "daybookWholeSpace": "المساحة كلها",
   "daybookNeedYou": "{n, plural, =1{1 بانتظارك} other{{n} بانتظارك}}",
   "daybookNeedYouDue": "· {n} موعدها اليوم",

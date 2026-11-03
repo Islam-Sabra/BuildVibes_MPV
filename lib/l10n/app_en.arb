@@ -7894,6 +7894,16 @@
   "@daybookRowAdd": {
     "description": "Review 105 SP2: a row with nothing set yet (place, due, time)."
   },
+  "daybookVoiceTitle": "Voice note · {length}",
+  "@daybookVoiceTitle": {
+    "description": "B4 (review 114): the title a voice note gets when none was typed, e.g. Voice note · 0:12.",
+    "placeholders": {
+      "length": {
+        "type": "String",
+        "example": "0:12"
+      }
+    }
+  },
   "daybookWholeSpace": "Whole Space",
   "@daybookWholeSpace": {
     "description": "Review 105 SP2: the Team row before a Team is chosen."

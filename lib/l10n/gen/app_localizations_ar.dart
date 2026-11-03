@@ -5573,6 +5573,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookRowAdd => 'أضف';
 
   @override
+  String daybookVoiceTitle(String length) {
+    return 'ملاحظة صوتية · $length';
+  }
+
+  @override
   String get daybookWholeSpace => 'المساحة كلها';
 
   @override
