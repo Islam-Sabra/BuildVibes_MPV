@@ -37,6 +37,7 @@ class TeamsView extends ConsumerWidget {
       context,
       spaceId: space.id,
       preview: preview,
+      teams: teams,
       only: only,
     );
     if (made) {

@@ -413,8 +413,8 @@ void main() {
     group('TM3 Team [$lang]', () {
       final path = '/spaces/$_space/teams/t-gulf';
 
-      testWidgets('the admin comes first, with the badge, and the title '
-          'says Team · people', (tester) async {
+      testWidgets('the admin comes first, with the badge; no count (rule '
+          '3)', (tester) async {
         await _go(tester, _spaces(), lang, path);
         final admin = tester.getTopLeft(_key('team-member-p-rakesh')).dy;
         final other = tester.getTopLeft(_key('team-member-p-ali')).dy;

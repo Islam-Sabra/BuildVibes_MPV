@@ -26,10 +26,13 @@ Future<bool> showMakeTeamsSheet(
   BuildContext context, {
   required String spaceId,
   required CompanyTeamPreview preview,
+  required List<SpaceTeam> teams,
   String? only,
 }) async {
   final l10n = AppLocalizations.of(context);
-  final state = _MakeTeams(CompanyTeamPlan.of(preview, only: only));
+  final state = _MakeTeams(
+    CompanyTeamPlan.of(preview, only: only, teams: teams),
+  );
   final made = await showBvSheet<bool>(
     context: context,
     title: l10n.teamsMakeTitle,
@@ -78,7 +81,7 @@ class _Rows extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final p in row.people)
+          for (final p in state.plan.adminChoices(row))
             BvListRow(
               key: Key('make-admin-${p.id}'),
               leading: BvAvatar(name: p.name),
@@ -91,7 +94,7 @@ class _Rows extends StatelessWidget {
       ),
     );
     if (picked == null) return;
-    row.adminId = picked;
+    state.plan.pickAdmin(row, picked);
     state.changed();
   }
 
@@ -103,10 +106,11 @@ class _Rows extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final row in state.plan.rows)
+        for (final row in state.plan.shown)
           _CompanyRow(
             key: Key('make-team-${row.group.key}'),
             row: row,
+            admin: state.plan.adminName(row),
             onTick: state.saving
                 ? null
                 : (on) {
@@ -115,6 +119,10 @@ class _Rows extends StatelessWidget {
                   },
             onMerge: (key) {
               state.plan.merge(row, key);
+              state.changed();
+            },
+            onMergeTeam: (teamId) {
+              state.plan.mergeTeam(row, teamId);
               state.changed();
             },
             onTap: () => _pickAdmin(context, row),
@@ -128,14 +136,20 @@ class _CompanyRow extends StatelessWidget {
   const _CompanyRow({
     super.key,
     required this.row,
+    required this.admin,
     required this.onTick,
     required this.onMerge,
+    required this.onMergeTeam,
     required this.onTap,
   });
 
   final CompanyPlanRow row;
+
+  /// Who is Team admin once Create is done (V6).
+  final String? admin;
   final ValueChanged<bool>? onTick;
   final ValueChanged<String> onMerge;
+  final ValueChanged<String> onMergeTeam;
   final VoidCallback onTap;
 
   @override
@@ -144,10 +158,8 @@ class _CompanyRow extends StatelessWidget {
     final type = BvType.of(context);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final group = row.group;
-    final name = group.key == noCompanyKey
-        ? l10n.teamsNoCompany
-        : inOwnDirection(group.shownName);
-    final admin = row.people.where((p) => p.id == row.adminId).firstOrNull;
+    final name = inOwnDirection(group.shownName);
+    final admin = this.admin;
     return InkWell(
       onTap: onTap,
       splashFactory: NoSplash.splashFactory,
@@ -204,9 +216,7 @@ class _CompanyRow extends StatelessWidget {
                           child: Text(
                             admin == null
                                 ? l10n.teamsAdminNone
-                                : l10n.teamsAdminLine(
-                                    inOwnDirection(admin.name),
-                                  ),
+                                : l10n.teamsAdminLine(inOwnDirection(admin)),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: quiet,
@@ -225,6 +235,18 @@ class _CompanyRow extends StatelessWidget {
                               ),
                         onTap: () => onMerge(g.key),
                       ),
+                    for (final t in row.similarTeams)
+                      _MergeLine(
+                        key: Key('make-team-into-${group.key}-${t.teamId}'),
+                        label: row.intoTeam?.teamId == t.teamId
+                            ? l10n.teamsMergedIntoTeam(
+                                inOwnDirection(t.teamName),
+                              )
+                            : l10n.teamsMergeIntoTeam(
+                                inOwnDirection(t.teamName),
+                              ),
+                        onTap: () => onMergeTeam(t.teamId),
+                      ),
                   ],
                 ),
               ),
@@ -241,7 +263,8 @@ class _CompanyRow extends StatelessWidget {
   }
 }
 
-/// "A.B.C Contracting" (2) looks the same: merge. A soft pill, tapped.
+/// "A.B.C Contracting" (2) looks the same: merge; or like the Team
+/// "Delta Steel": add to it. A soft pill, tapped.
 class _MergeLine extends StatelessWidget {
   const _MergeLine({super.key, required this.label, required this.onTap});
 
@@ -296,11 +319,7 @@ class _Create extends ConsumerWidget {
     try {
       await ref
           .read(spaceRepositoryProvider)
-          .createCompanyTeams(
-            state.id!,
-            spaceId,
-            state.plan.groups(l10n.teamsNoCompany),
-          );
+          .createCompanyTeams(state.id!, spaceId, state.plan.groups());
       ref
         ..invalidate(spacePeopleProvider(spaceId))
         ..invalidate(companyTeamPreviewProvider(spaceId));
