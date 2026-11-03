@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026, evening — libfix live; build 1019 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/libfix` into `slice2-app` at f75cd0b4 (same tree).
+  - App: the Library's Add a file and Add a new version upload straight into the folder, with its sharing, and write no post. A new version at the top level or in a whole-Space or Team folder posts a small "New version: <name> · <rev>" file card to that audience; only-me and person folders, none. The Library no longer hands a file post to Work (`DaybookFileStart` is gone).
+  - Server: migration `20261124120000_libfix`: triggers refuse (42501) a file from an only-me or person folder on any post or work item, and a Team folder's file except on that Team's post. Test `65_library_private_posts`; review 113's Z3/Z14 checks now posted while the folder was the whole Space's, narrowed after.
+- **Checks on the branch:** `flutter analyze` clean; `flutter test` 3,662 pass; `test_screens` 684 pass; `supabase test db` three runs, 64 files, 4,411 checks, PASS. Emulator against live: an only-me add and an only-me new version made no post; a top-level new version made one whole-Space post.
+- **Live:** `supabase db push` from a clean worktree at f75cd0b4 (dry run first: only libfix pending). `20261124120000 libfix` is the last of 62 on live; the four triggers are there; `library_file_fits_post` isn't callable by authenticated. Only the usual pg-delta cache warning. Before the push, no live post carried a file from an only-me, person or other-Team folder.
+- **Build 1019** (versionCode 1019, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1019`** (= f75cd0b4). `Desktop/BuildVibes-1019.apk`. On the founder's phone (192.168.8.33:40205, 22120RN86G) over 1015; disconnected, both adb entries.
+- **The storage lines:** printed at once this time (cold start, read 15 s later). On 1010 they were there too, but the phone's main log had rotated by the time it was read 33 minutes later (it started at 15:01:05).
+  - 1019 at start: cache 40.4 MB (bv_files 15.4 MB, bv_thumbs 0.55 MB, two `file_picker` copies of the 9.1 MB PDF, under a day old so the clean-up keeps them), app_flutter 9.4 MB (`chat_outbox` holds the 9.1 MB PDF), files 3 KB. No PDF loose in `cache/`.
+- **Open:** a Library add shows no progress while it uploads, and with no signal it fails instead of waiting (the composer's outbox queues). Phone checks below still stand.
+- **Who has which branch:** PC has `slice2-app`; `claude/libfix` merged.
+
 ## PC update: 3 Nov 2026, afternoon — B4 upload fix, 114b and 114c; build 1015 on the founder's phone; B3 measured
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
