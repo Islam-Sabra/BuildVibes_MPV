@@ -603,12 +603,19 @@ class DaybookPostDraft {
   /// Post turns on: the words it can't go without. What it still needs
   /// (an owner, the people, a start) opens its picker first ([missing]).
   bool get readyToTry => switch (kind) {
+    // B4 (review 114): a foreman can just talk; the Daybook names it
+    // "Voice note · 0:12" as it posts.
+    DaybookKind.note when untitledVoice => true,
     DaybookKind.file => files.isNotEmpty && titleFits,
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
     // Review 109: Send stays off until the place is set.
     DaybookKind.checkIn => titleFits && placeReady && checkInTimesFit,
     _ => titleFits,
   };
+
+  /// A note that is only a voice note: no title typed.
+  bool get untitledVoice =>
+      kind == DaybookKind.note && voiceLocal != null && title.trim().isEmpty;
 
   /// What Post asks for before it sends, or null when nothing.
   DaybookMissing? missing(DateTime now) => switch (kind) {

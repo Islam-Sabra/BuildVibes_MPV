@@ -5573,6 +5573,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookRowAdd => 'أضف';
 
   @override
+  String daybookVoiceTitle(String length) {
+    return 'ملاحظة صوتية · $length';
+  }
+
+  @override
   String get daybookWholeSpace => 'المساحة كلها';
 
   @override
@@ -7157,6 +7162,9 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alertsAllSet => 'كل شيء جاهز. ستصلك التنبيهات العاجلة.';
 
   @override
   String get alertsNotifications => 'الإشعارات';

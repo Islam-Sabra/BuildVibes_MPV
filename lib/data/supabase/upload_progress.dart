@@ -10,9 +10,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 typedef UploadProgress = void Function(int sent, int total);
 
 /// Uploads [file] to [bucket] at [path] as the storage client does (a
-/// multipart POST with the signed-in headers, never replacing a file),
+/// multipart POST as the signed-in person, never replacing a file),
 /// telling [onProgress] as its bytes go out. Errors as the storage client
 /// gives them ([StorageException]).
+///
+/// B4 (review 114): sent through the Supabase client's own http client,
+/// which adds the person's token and the public key at send time, after
+/// refreshing a session that has run out. The storage client's headers
+/// carry neither: sent without them, storage saw an anonymous upload and
+/// answered 400.
 Future<void> uploadWithProgress(
   SupabaseClient client, {
   required String bucket,
@@ -51,7 +57,9 @@ Future<void> uploadWithProgress(
             contentType: MediaType.parse(contentType),
           ),
         );
-  final response = await http.Response.fromStream(await request.send());
+  final response = await http.Response.fromStream(
+    await client.rest.httpClient!.send(request),
+  );
   if (response.statusCode >= 300) {
     throw storageErrorOf(response.statusCode, response.body);
   }

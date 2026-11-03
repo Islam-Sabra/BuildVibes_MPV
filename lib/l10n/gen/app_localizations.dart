@@ -9224,6 +9224,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get daybookRowAdd;
 
+  /// B4 (review 114): the title a voice note gets when none was typed, e.g. Voice note · 0:12.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note · {length}'**
+  String daybookVoiceTitle(String length);
+
   /// Review 105 SP2: the Team row before a Team is chosen.
   ///
   /// In en, this message translates to:
@@ -11779,6 +11785,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n, plural, =1{Your team can call you with Need you now, and check-ins open on time. This phone needs 1 setting. It\'s a single tap.} other{Your team can call you with Need you now, and check-ins open on time. This phone needs {n} settings. Each one is a single tap.}}'**
   String alertsSub(int n);
+
+  /// Review 114c: the alerts setup's subtitle when every line this phone needs is already on.
+  ///
+  /// In en, this message translates to:
+  /// **'All set. Urgent alerts will reach you.'**
+  String get alertsAllSet;
 
   /// PS1 line 1.
   ///

@@ -5527,6 +5527,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookRowAdd => 'Add';
 
   @override
+  String daybookVoiceTitle(String length) {
+    return 'Voice note · $length';
+  }
+
+  @override
   String get daybookWholeSpace => 'Whole Space';
 
   @override
@@ -7100,6 +7105,9 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alertsAllSet => 'All set. Urgent alerts will reach you.';
 
   @override
   String get alertsNotifications => 'Notifications';

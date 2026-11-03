@@ -347,6 +347,11 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
   };
 
   /// The phone's own menu (Paste, Select all…), then ours (CV3 (12)).
+  /// B4 (review 114): a tap elsewhere closes the long-press menu; the
+  /// keyboard stays, as before.
+  static void _closeMenu(PointerDownEvent _) =>
+      ContextMenuController.removeAny();
+
   Widget _textMenu(
     AppLocalizations l10n,
     DaybookKind kind,
@@ -613,7 +618,8 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         BvWritingRow(
           key: const Key('writing-to'),
           label: l10n.daybookRowTeam,
-          value: draft.teamName ?? l10n.daybookEveryone,
+          // B4 (review 114): one word for the whole Space.
+          value: draft.teamName ?? l10n.daybookWholeSpace,
           onTap: teams.isEmpty || widget.editing || kind == DaybookKind.file
               ? null
               : () => widget.onMenu(DaybookWritingMenu.audience),
@@ -1083,6 +1089,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ),
                         contextMenuBuilder: (_, state) =>
                             _textMenu(l10n, kind, _title, state),
+                        onTapOutside: _closeMenu,
                         onChanged: (text) {
                           unawaited(_writer.setTitle(text));
                           _slash(_title, kind);
@@ -1107,6 +1114,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         ),
                         contextMenuBuilder: (_, state) =>
                             _textMenu(l10n, kind, _body, state),
+                        onTapOutside: _closeMenu,
                         onChanged: (text) {
                           unawaited(_writer.setBody(text));
                           _slash(_body, kind);
