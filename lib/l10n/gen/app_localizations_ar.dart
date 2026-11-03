@@ -1354,6 +1354,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatRetry => 'إعادة المحاولة';
 
   @override
+  String get chatCouldNotSend => 'تعذّر الإرسال · انقر للتصحيح';
+
+  @override
+  String get chatCouldNotSendWhy =>
+      'ما زالت هذه الرسالة على هاتفك. حاول مرة أخرى عندما تتوفر الإشارة، أو أزلها.';
+
+  @override
   String get chatReply => 'رد';
 
   @override
@@ -3378,9 +3385,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookToAudience(String audience) {
     return 'إلى: $audience';
   }
-
-  @override
-  String get daybookEveryone => 'الجميع';
 
   @override
   String daybookMastheadToday(String date) {
@@ -7216,6 +7220,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alertsBatterySub => 'لن يوقف الهاتف BuildVibes';
+
+  @override
+  String get alertsLockRecents => 'اقفل BuildVibes في التطبيقات الأخيرة';
+
+  @override
+  String get alertsLockRecentsSub =>
+      'افتح التطبيقات الأخيرة، واضغط مطولًا على بطاقة BuildVibes، ثم اضغط القفل';
+
+  @override
+  String get alertsLockRecentsNow =>
+      'افتح التطبيقات الأخيرة الآن واقفل BuildVibes، ثم ارجع.';
 
   @override
   String get alertsOn => 'مفعّل';

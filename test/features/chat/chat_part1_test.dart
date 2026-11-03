@@ -693,9 +693,8 @@ void main() {
       expect(find.byKey(const Key('chat-action-delete')), findsOneWidget);
     });
 
-    testWidgets('weak signal: Not sent · Retry, kept on the phone [$lang]', (
-      tester,
-    ) async {
+    testWidgets("weak signal: Couldn't send · Tap to fix, kept on the "
+        'phone; Try again sends it [$lang]', (tester) async {
       final chat = _chat()..failNext = 3;
       final app = await _openThread(tester, lang, chat: chat);
       await tester.enterText(
@@ -705,18 +704,19 @@ void main() {
       await tester.pumpAndSettle();
       await _tap(tester, 'chat-send');
       expect(find.text('Crane at gate 2.'), findsOneWidget);
-      expect(find.textContaining(l10n.chatNotSent), findsOneWidget);
+      expect(find.text(l10n.chatCouldNotSend), findsOneWidget);
       expect(app.prefs.getString('chat_outbox'), contains('Crane at gate 2.'));
 
-      final retry = find.byWidgetPredicate(
+      final fix = find.byWidgetPredicate(
         (w) =>
             w.key is ValueKey<String> &&
-            (w.key! as ValueKey<String>).value.startsWith('chat-retry-'),
+            (w.key! as ValueKey<String>).value.startsWith('chat-fix-'),
       );
-      await tester.tap(retry);
+      await tester.tap(fix);
       await tester.pumpAndSettle();
+      await _tap(tester, 'could-not-send-try-again');
       expect(chat.calls, contains('post $_everyone Crane at gate 2.'));
-      expect(find.textContaining(l10n.chatNotSent), findsNothing);
+      expect(find.text(l10n.chatCouldNotSend), findsNothing);
       expect(app.prefs.getString('chat_outbox'), isNot(contains('Crane')));
     });
   }

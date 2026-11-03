@@ -1868,6 +1868,14 @@
   "@chatRetry": {
     "description": "Failed message action."
   },
+  "chatCouldNotSend": "Couldn't send · Tap to fix",
+  "@chatCouldNotSend": {
+    "description": "Under a chat message that didn't go: a tap opens Try again and Remove (review 115)."
+  },
+  "chatCouldNotSendWhy": "This message is still on your phone. Try again when you have signal, or remove it.",
+  "@chatCouldNotSendWhy": {
+    "description": "The Couldn't send sheet of a chat message, when no file was refused (review 115)."
+  },
   "chatReply": "Reply",
   "@chatReply": {
     "description": "Message action."
@@ -4891,10 +4899,6 @@
         "type": "String"
       }
     }
-  },
-  "daybookEveryone": "Everyone",
-  "@daybookEveryone": {
-    "description": "Writing card and its To menu: the whole Space (F56)."
   },
   "daybookMastheadToday": "· {date}",
   "@daybookMastheadToday": {
@@ -10163,6 +10167,18 @@
   "alertsBatterySub": "The phone won't put BuildVibes to sleep",
   "@alertsBatterySub": {
     "description": "PS1 line 4, under."
+  },
+  "alertsLockRecents": "Lock BuildVibes in recent apps",
+  "@alertsLockRecents": {
+    "description": "PS1 line 5, Xiaomi, Redmi and POCO only (review 115): MIUI closes an app that isn't locked in recent apps soon after Home."
+  },
+  "alertsLockRecentsSub": "Open recent apps, hold the BuildVibes card, tap the lock",
+  "@alertsLockRecentsSub": {
+    "description": "PS1 line 5, under: the how-to (review 115)."
+  },
+  "alertsLockRecentsNow": "Open recent apps now and lock BuildVibes, then come back.",
+  "@alertsLockRecentsNow": {
+    "description": "PS1 line 5's Turn on: no app can open recent apps, so it says what to do; the line shows On when the person comes back (review 115)."
   },
   "alertsOn": "On",
   "@alertsOn": {

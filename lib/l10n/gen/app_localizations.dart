@@ -2414,6 +2414,18 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get chatRetry;
 
+  /// Under a chat message that didn't go: a tap opens Try again and Remove (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send · Tap to fix'**
+  String get chatCouldNotSend;
+
+  /// The Couldn't send sheet of a chat message, when no file was refused (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'This message is still on your phone. Try again when you have signal, or remove it.'**
+  String get chatCouldNotSendWhy;
+
   /// Message action.
   ///
   /// In en, this message translates to:
@@ -5695,12 +5707,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To: {audience}'**
   String daybookToAudience(String audience);
-
-  /// Writing card and its To menu: the whole Space (F56).
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get daybookEveryone;
 
   /// The masthead at Now, after the bold word Today (review 50 F59): "Today · Wednesday 21 October".
   ///
@@ -11881,6 +11887,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The phone won\'t put BuildVibes to sleep'**
   String get alertsBatterySub;
+
+  /// PS1 line 5, Xiaomi, Redmi and POCO only (review 115): MIUI closes an app that isn't locked in recent apps soon after Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock BuildVibes in recent apps'**
+  String get alertsLockRecents;
+
+  /// PS1 line 5, under: the how-to (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Open recent apps, hold the BuildVibes card, tap the lock'**
+  String get alertsLockRecentsSub;
+
+  /// PS1 line 5's Turn on: no app can open recent apps, so it says what to do; the line shows On when the person comes back (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Open recent apps now and lock BuildVibes, then come back.'**
+  String get alertsLockRecentsNow;
 
   /// A PS1 line that is on.
   ///

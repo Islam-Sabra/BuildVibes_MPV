@@ -505,4 +505,7 @@ abstract final class BvIcons {
   static const alertsAutostart = IconData(0xe036, fontFamily: _family);
   static const alertsFloating = IconData(0xe06e, fontFamily: _family);
   static const alertsBattery = IconData(0xe0c2, fontFamily: _family);
+  // Review 115: the fifth line on Xiaomi-type phones, Lock BuildVibes in
+  // recent apps (Phosphor lock, as [lock]).
+  static const alertsLockRecents = lock;
 }

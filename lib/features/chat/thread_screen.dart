@@ -38,7 +38,9 @@ import '../profile/widgets/profile_parts.dart';
 import '../../data/repositories/safety_repository.dart';
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
+import '../work/could_not_send.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
+import '../../data/models/upload_rules.dart' show UploadProblem;
 import 'chat_state.dart';
 import '../../data/models/daybook.dart' show DaybookQuote;
 import '../spaces/space_screen.dart' show SpaceOpen;
@@ -390,6 +392,28 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
   Future<void> _retry(String id) =>
       _deliver(() => ref.read(chatOutboxProvider.notifier).retry(id));
+
+  /// Review 115: Couldn't send · Tap to fix says why (a file refused, or
+  /// kept on the phone), then Try again or Remove (with its kept file). A
+  /// file gone from the phone can only be removed.
+  Future<void> _fix(PendingMessage p) async {
+    final l10n = AppLocalizations.of(context);
+    final refused = p.refused;
+    final picked = await showCouldNotSendFix(
+      context,
+      why: refused == null
+          ? l10n.chatCouldNotSendWhy
+          : fileRefusedText(l10n, refused),
+      refused: refused,
+      tryAgain: refused?.problem != UploadProblem.gone,
+    );
+    if (!mounted) return;
+    runCouldNotSendFix(
+      picked,
+      tryAgain: () => unawaited(_retry(p.id)),
+      remove: () => ref.read(chatOutboxProvider.notifier).remove(p.id),
+    );
+  }
 
   Future<void> _deliver(Future<bool> Function() run) async {
     try {
@@ -760,7 +784,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                               me: me,
                               iAmAdmin: space?.iAmAdmin ?? false,
                               onActions: _actions,
-                              onRetry: _retry,
+                              onFix: _fix,
                             );
                             final at = widget.atMessage;
                             if (at == null || entries[i].message?.id != at) {
@@ -844,7 +868,7 @@ class _EntryView extends ConsumerWidget {
     required this.me,
     required this.iAmAdmin,
     required this.onActions,
-    required this.onRetry,
+    required this.onFix,
   });
 
   final String spaceId;
@@ -860,7 +884,7 @@ class _EntryView extends ConsumerWidget {
   final bool iAmAdmin;
   final Future<void> Function(ChatMessage m, {required bool canDelete})
   onActions;
-  final Future<void> Function(String id) onRetry;
+  final Future<void> Function(PendingMessage p) onFix;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -987,7 +1011,7 @@ class _EntryView extends ConsumerWidget {
                 time(m.createdAt),
                 style: type.metadata.copyWith(color: BvColors.textSecondary),
               )
-            : _PendingFooter(pending: entry.pending!, onRetry: onRetry),
+            : _PendingFooter(pending: entry.pending!, onFix: onFix),
         onLongPress: m == null || m.deleted
             ? null
             : () => onActions(m, canDelete: mine || iAmAdmin),
@@ -1192,12 +1216,12 @@ class _Quote extends StatelessWidget {
   }
 }
 
-/// "Sending…", or "Not sent · Retry".
+/// "Sending…", or "Couldn't send · Tap to fix" (review 115).
 class _PendingFooter extends StatelessWidget {
-  const _PendingFooter({required this.pending, required this.onRetry});
+  const _PendingFooter({required this.pending, required this.onFix});
 
   final PendingMessage pending;
-  final Future<void> Function(String id) onRetry;
+  final Future<void> Function(PendingMessage p) onFix;
 
   @override
   Widget build(BuildContext context) {
@@ -1209,24 +1233,17 @@ class _PendingFooter extends StatelessWidget {
         style: type.metadata.copyWith(color: BvColors.textSecondary),
       );
     }
-    // Wraps rather than overflows in a narrow bubble.
-    return Wrap(
-      alignment: WrapAlignment.end,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Text(
-          '${l10n.chatNotSent} · ',
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        key: Key('chat-fix-${pending.id}'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => unawaited(onFix(pending)),
+        child: Text(
+          l10n.chatCouldNotSend,
           style: type.metadata.copyWith(color: BvColors.textDestructive),
         ),
-        GestureDetector(
-          key: Key('chat-retry-${pending.id}'),
-          onTap: () => onRetry(pending.id),
-          child: Text(
-            l10n.chatRetry,
-            style: type.labelSm.copyWith(color: BvColors.textAction),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
