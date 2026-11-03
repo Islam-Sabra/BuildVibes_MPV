@@ -96,12 +96,12 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = lookupAppLocalizations(Locale(lang));
 
-    testWidgets('PS1 on a Xiaomi: four lines, Notifications on; the copy '
-        '[$lang]', (tester) async {
+    testWidgets('PS1 on a Xiaomi: five lines (review 115: Lock in recent '
+        'apps), Notifications on; the copy [$lang]', (tester) async {
       await _open(tester, lang);
       expect(find.byType(AlertsSetupScreen), findsOneWidget);
       expect(find.text(l10n.alertsTitle), findsOneWidget);
-      expect(find.text(l10n.alertsSub(4)), findsOneWidget);
+      expect(find.text(l10n.alertsSub(5)), findsOneWidget);
       for (final t in [
         l10n.alertsNotifications,
         l10n.alertsNotificationsSub,
@@ -111,15 +111,20 @@ void main() {
         l10n.alertsFloatingSub,
         l10n.alertsBattery,
         l10n.alertsBatterySub,
+        l10n.alertsLockRecents,
+        l10n.alertsLockRecentsSub,
         l10n.alertsHint,
         l10n.alertsSendTest,
         l10n.alertsLater,
       ]) {
         expect(find.text(t), findsOneWidget, reason: t);
       }
-      _expectLines(['notifications'], ['autostart', 'floating', 'battery']);
+      _expectLines(
+        ['notifications'],
+        ['autostart', 'floating', 'battery', 'lockRecents'],
+      );
       expect(find.text(l10n.alertsOn), findsOneWidget);
-      expect(find.text(l10n.alertsTurnOn), findsNWidgets(3));
+      expect(find.text(l10n.alertsTurnOn), findsNWidgets(4));
       expect(_key('alerts-done'), findsNothing);
     });
 
@@ -135,11 +140,40 @@ void main() {
         stored: {
           alertVisitedKey(AlertLine.autostart): true,
           alertVisitedKey(AlertLine.floating): true,
+          alertVisitedKey(AlertLine.lockRecents): true,
         },
       );
-      _expectLines(['notifications', 'autostart', 'floating', 'battery'], []);
+      _expectLines([
+        'notifications',
+        'autostart',
+        'floating',
+        'battery',
+        'lockRecents',
+      ], []);
       expect(find.text(l10n.alertsAllSet), findsOneWidget);
-      expect(find.text(l10n.alertsSub(4)), findsNothing);
+      expect(find.text(l10n.alertsSub(5)), findsNothing);
+    });
+
+    testWidgets('review 115: Lock in recent apps off is one more setting, '
+        'not "All set" [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        status: const AlertPhoneStatus(
+          needYouChannelOn: true,
+          batteryUnrestricted: true,
+        ),
+        stored: {
+          alertVisitedKey(AlertLine.autostart): true,
+          alertVisitedKey(AlertLine.floating): true,
+        },
+      );
+      _expectLines(
+        ['notifications', 'autostart', 'floating', 'battery'],
+        ['lockRecents'],
+      );
+      expect(find.text(l10n.alertsAllSet), findsNothing);
+      expect(find.text(l10n.alertsSub(5)), findsOneWidget);
     });
 
     testWidgets('review 114c: the last line turned on: the subtitle becomes '
@@ -168,6 +202,15 @@ void main() {
       expect(_key('alerts-line-battery'), findsOneWidget);
       expect(_key('alerts-line-autostart'), findsNothing);
       expect(_key('alerts-line-floating'), findsNothing);
+      expect(_key('alerts-line-lockRecents'), findsNothing);
+    });
+
+    testWidgets('review 115: only Xiaomi, Redmi and POCO lock in recent '
+        'apps; an Oppo has four lines [$lang]', (tester) async {
+      await _open(tester, lang, makers: const ['oppo', 'oppo']);
+      expect(find.text(l10n.alertsSub(4)), findsOneWidget);
+      expect(_key('alerts-line-autostart'), findsOneWidget);
+      expect(_key('alerts-line-lockRecents'), findsNothing);
     });
 
     for (final (name, makers, platform) in [
@@ -186,7 +229,7 @@ void main() {
         );
         expect(find.text(l10n.alertsSub(1)), findsOneWidget);
         expect(_key('alerts-line-notifications'), findsOneWidget);
-        for (final l in ['autostart', 'floating', 'battery']) {
+        for (final l in ['autostart', 'floating', 'battery', 'lockRecents']) {
           expect(_key('alerts-line-$l'), findsNothing);
         }
       });
@@ -224,9 +267,15 @@ void main() {
       await _tap(tester, _key('alerts-turn-on-autostart'));
       expect(app.alertPhone.opened.last, startsWith('autostart com.miui'));
       // Not before the person comes back.
-      _expectLines(['notifications'], ['autostart', 'floating', 'battery']);
+      _expectLines(
+        ['notifications'],
+        ['autostart', 'floating', 'battery', 'lockRecents'],
+      );
       await _comeBack(tester);
-      _expectLines(['notifications', 'autostart'], ['floating', 'battery']);
+      _expectLines(
+        ['notifications', 'autostart'],
+        ['floating', 'battery', 'lockRecents'],
+      );
 
       final channels = app.needYouNotices.channels;
       await _tap(tester, _key('alerts-turn-on-floating'));
@@ -251,9 +300,28 @@ void main() {
         batteryUnrestricted: true,
       );
       await _comeBack(tester);
-      _expectLines(['notifications', 'autostart', 'floating', 'battery'], []);
+      _expectLines(
+        ['notifications', 'autostart', 'floating', 'battery'],
+        ['lockRecents'],
+      );
       // Coming back is remembered on this phone.
       expect(app.prefs.getBool(alertVisitedKey(AlertLine.autostart)), isTrue);
+    });
+
+    testWidgets('review 115: Lock in recent apps opens no page (no app can '
+        'lock itself there): the how-to, then On after coming back from '
+        'recent apps; remembered [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      final opened = app.alertPhone.opened.length;
+      await _tap(tester, _key('alerts-turn-on-lockRecents'));
+      expect(find.text(l10n.alertsLockRecentsNow), findsOneWidget);
+      expect(app.alertPhone.opened.length, opened);
+      expect(app.push.openedSettings, 0);
+      // Not before the person leaves for recent apps and comes back.
+      _expectLines([], ['lockRecents']);
+      await _comeBack(tester);
+      _expectLines(['notifications', 'lockRecents'], ['autostart']);
+      expect(app.prefs.getBool(alertVisitedKey(AlertLine.lockRecents)), isTrue);
     });
 
     testWidgets('a channel the phone says is low takes Floating off again '
@@ -458,7 +526,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(_key('alerts-late'), findsOneWidget);
         expect(find.text(l10n.alertsLate), findsOneWidget);
-        expect(find.textContaining(l10n.alertsOffCount(3)), findsOneWidget);
+        expect(find.textContaining(l10n.alertsOffCount(4)), findsOneWidget);
         await _tap(tester, _key('alerts-fix-now'));
         expect(_key('alerts-late'), findsNothing);
         expect(find.byType(AlertsSetupScreen), findsOneWidget);

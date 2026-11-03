@@ -211,7 +211,7 @@ void main() {
       expect(
         find.descendant(
           of: _key('template-$_pour'),
-          matching: find.text(l10n.daybookEveryone),
+          matching: find.text(l10n.daybookWholeSpace),
         ),
         findsOneWidget,
       );

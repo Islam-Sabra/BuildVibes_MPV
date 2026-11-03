@@ -10,7 +10,9 @@ export '../../core/push/alert_settings_phone.dart' show AndroidPage;
 /// one file; the setup and the phone's side read it.
 
 /// One line of the alerts setup (PS1), in the order it shows.
-enum AlertLine { notifications, autostart, floating, battery }
+/// [lockRecents] (review 115): MIUI closes an app soon after Home unless
+/// it is locked in recent apps.
+enum AlertLine { notifications, autostart, floating, battery, lockRecents }
 
 /// A maker: the names Android gives (`Build.MANUFACTURER`, `Build.BRAND`,
 /// lower case), the lines its phones need, and its pages.
@@ -29,7 +31,15 @@ class PhoneMaker {
   final List<AndroidPage> battery;
 }
 
-const _allFour = AlertLine.values;
+const _allFour = [
+  AlertLine.notifications,
+  AlertLine.autostart,
+  AlertLine.floating,
+  AlertLine.battery,
+];
+
+/// Xiaomi, Redmi and POCO: the four, then Lock in recent apps.
+const _miuiFive = [..._allFour, AlertLine.lockRecents];
 
 const _miuiAutostart = [
   AndroidPage(
@@ -110,7 +120,7 @@ const _honorAutostart = [
 const phoneMakers = <PhoneMaker>[
   PhoneMaker(
     names: {'xiaomi', 'redmi', 'poco'},
-    lines: _allFour,
+    lines: _miuiFive,
     autostart: _miuiAutostart,
     battery: _miuiBattery,
   ),

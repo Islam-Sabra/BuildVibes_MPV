@@ -10,6 +10,7 @@ import '../../core/l10n/locale_controller.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
+import '../../data/models/upload_rules.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../work/work_outbox.dart' show outboxRetryDelaysProvider;
@@ -47,7 +48,9 @@ class PendingFile {
 }
 
 /// A message written on this phone that isn't on the server yet. Shown in
-/// its thread as "Sending…", or "Not sent · Retry" after a weak signal.
+/// its thread as "Sending…" while it goes, otherwise "Couldn't send · Tap
+/// to fix" (review 115): a weak signal, a file refused ([refusal]), or one
+/// left from an earlier start of the app.
 @immutable
 class PendingMessage {
   const PendingMessage({
@@ -59,6 +62,7 @@ class PendingMessage {
     this.reply,
     this.files = const [],
     this.failed = false,
+    this.refusal,
   });
 
   factory PendingMessage.fromJson(Map<String, dynamic> json) {
@@ -82,6 +86,7 @@ class PendingMessage {
               body: reply['body'] as String?,
             ),
       failed: json['failed'] as bool? ?? false,
+      refusal: json['refusal'] as String?,
     );
   }
 
@@ -100,17 +105,27 @@ class PendingMessage {
   final List<PendingFile> files;
   final bool failed;
 
-  PendingMessage copyWith({bool? failed, List<PendingFile>? files}) =>
-      PendingMessage(
-        id: id,
-        threadId: threadId,
-        spaceId: spaceId,
-        body: body,
-        createdAt: createdAt,
-        reply: reply,
-        files: files ?? this.files,
-        failed: failed ?? this.failed,
-      );
+  /// Why its file was refused ([FileRefused.code]), for Tap to fix; null
+  /// for a weak signal or anything else.
+  final String? refusal;
+
+  FileRefused? get refused => FileRefused.fromCode(refusal);
+
+  PendingMessage copyWith({
+    bool? failed,
+    List<PendingFile>? files,
+    String? Function()? refusal,
+  }) => PendingMessage(
+    id: id,
+    threadId: threadId,
+    spaceId: spaceId,
+    body: body,
+    createdAt: createdAt,
+    reply: reply,
+    files: files ?? this.files,
+    failed: failed ?? this.failed,
+    refusal: refusal == null ? this.refusal : refusal(),
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -131,6 +146,7 @@ class PendingMessage {
             'body': reply!.body,
           },
     'failed': failed,
+    'refusal': refusal,
   };
 }
 
@@ -163,9 +179,15 @@ class ChatOutbox extends Notifier<List<PendingMessage>> {
     final raw = ref.watch(sharedPreferencesProvider).getString(_key);
     if (raw == null) return const [];
     try {
+      // Review 115: nothing sends a message kept from an earlier start (the
+      // app closed while it went), so it is never "Sending…" for ever: it
+      // waits for Tap to fix, and is not sent again by itself, since the
+      // same file may close the app again.
       return [
         for (final j in jsonDecode(raw) as List)
-          PendingMessage.fromJson(j as Map<String, dynamic>),
+          PendingMessage.fromJson(
+            j as Map<String, dynamic>,
+          ).copyWith(failed: true),
       ];
     } on FormatException {
       return const [];
@@ -196,7 +218,7 @@ class ChatOutbox extends Notifier<List<PendingMessage>> {
   Future<bool> send(PendingMessage m) async {
     final repo = ref.read(chatRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
-    var current = m.copyWith(failed: false);
+    var current = m.copyWith(failed: false, refusal: () => null);
     await _put(current);
 
     Future<T> withRetries<T>(Future<T> Function() run) async {
@@ -219,6 +241,10 @@ class ChatOutbox extends Notifier<List<PendingMessage>> {
         if (f.remote != null) {
           files.add(f);
           continue;
+        }
+        // Its kept copy gone from the phone (review 113 Z13): Remove only.
+        if (!File(f.file.local).existsSync()) {
+          throw FileRefused(UploadProblem.gone, fileId: f.file.local);
         }
         final path = await withRetries(
           () => repo.upload(current.spaceId, current.id, f.file),
@@ -247,36 +273,57 @@ class ChatOutbox extends Notifier<List<PendingMessage>> {
           ],
         ),
       );
+    } on FileRefused catch (e) {
+      // Tap to fix says why.
+      await _put(current.copyWith(failed: true, refusal: () => e.code));
+      return false;
     } on SpaceException catch (e) {
       await _put(current.copyWith(failed: true));
       if (e.failure == SpaceFailure.network) return false;
       rethrow;
+    } on Object catch (e) {
+      // Never "Sending…" for ever: anything else waits for Tap to fix.
+      debugPrint('chat send: $e');
+      await _put(current.copyWith(failed: true));
+      return false;
     }
     await _save([
       for (final i in state)
         if (i.id != m.id) i,
     ]);
     // Sent: the kept copies can go.
-    for (final f in m.files) {
-      unawaited(_deleteKept(f.file.local));
-    }
+    _deleteKept(m);
     // Shown at once in an open thread, even before the live update.
     final thread = threadMessagesProvider(m.threadId);
     if (ref.exists(thread)) await ref.read(thread.notifier).refresh(m.id);
     return true;
   }
 
-  static Future<void> _deleteKept(String path) async {
-    try {
-      await File(path).delete();
-    } on FileSystemException {
-      // Already gone.
+  /// The copies [m]'s files kept on the phone (small, and gone at once).
+  static void _deleteKept(PendingMessage m) {
+    for (final f in m.files) {
+      try {
+        File(f.file.local).deleteSync();
+      } on FileSystemException {
+        // Already gone.
+      }
     }
   }
 
   Future<bool> retry(String id) async {
     final m = state.where((i) => i.id == id).firstOrNull;
     return m == null ? false : send(m);
+  }
+
+  /// Tap to fix, Remove: the message leaves the phone with its kept files.
+  Future<void> remove(String id) async {
+    final m = state.where((i) => i.id == id).firstOrNull;
+    if (m == null) return;
+    await _save([
+      for (final i in state)
+        if (i.id != id) i,
+    ]);
+    _deleteKept(m);
   }
 }
 
