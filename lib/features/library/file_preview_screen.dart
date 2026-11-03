@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:pdfx/pdfx.dart';
 
+import '../../core/file_cache.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -236,8 +237,9 @@ class _PhotoSheet extends ConsumerWidget {
   }
 }
 
-/// A PDF, opened from its bytes by the phone's own PDF renderer; pinch to
-/// zoom, scroll for more sheets.
+/// A PDF, opened from the phone's one copy by its own PDF renderer (review
+/// 114 B2: openFile, which copies nothing); pinch to zoom, scroll for more
+/// sheets.
 class _PdfSheet extends ConsumerStatefulWidget {
   const _PdfSheet({required this.path});
 
@@ -249,9 +251,10 @@ class _PdfSheet extends ConsumerStatefulWidget {
 
 class _PdfSheetState extends ConsumerState<_PdfSheet> {
   late final _controller = PdfControllerPinch(
-    document: PdfDocument.openData(
-      ref.read(libraryRepositoryProvider).download(widget.path),
-    ),
+    document: ref
+        .read(fileCacheProvider)
+        .file(widget.path)
+        .then((f) => PdfDocument.openFile(f.path)),
   );
 
   @override

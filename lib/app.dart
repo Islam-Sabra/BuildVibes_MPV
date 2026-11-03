@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/file_cache.dart';
+import 'features/entry/entry_state.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/l10n/phone_clock.dart';
 import 'core/routing/app_router.dart';
@@ -17,6 +21,13 @@ class BuildVibesApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Review 114 B2: signed out, from wherever: the phone keeps none of
+    // the account's files.
+    ref.listen(authUserIdProvider, (was, now) {
+      if (was?.value != null && now.hasValue && now.value == null) {
+        unawaited(ref.read(fileCacheProvider).clear());
+      }
+    });
     final locale =
         ref.watch(localeControllerProvider) ??
         resolveAppLocale(PlatformDispatcher.instance.locales);

@@ -54,6 +54,7 @@ import 'package:buildvibes/features/chat/voice.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
+import 'package:buildvibes/core/file_cache.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:flutter/material.dart';
@@ -314,6 +315,7 @@ Future<TestApp> pumpApp(
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
   bool Function(String path)? localFileThere,
+  FileCache? fileCache,
 
   /// How many photos the gallery gives (up to the room left).
   int galleryPhotos = 2,
@@ -468,6 +470,14 @@ Future<TestApp> pumpApp(
         }),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         localFileThereProvider.overrideWithValue(localFileThere ?? (_) => true),
+        // Review 114 B2: the phone's copies of files, in a test folder.
+        fileCacheProvider.overrideWithValue(
+          fileCache ??
+              FileCache(
+                root: () async => _testCache,
+                download: fakeLibrary.download,
+              ),
+        ),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async => (
             file:
@@ -623,3 +633,6 @@ Future<void> backToTheApp(WidgetTester tester) async {
   }
   await tester.pumpAndSettle();
 }
+
+/// One folder for every test's copies of files.
+final _testCache = Directory.systemTemp.createTempSync('bv_test_cache');
