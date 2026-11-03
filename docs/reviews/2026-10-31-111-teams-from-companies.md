@@ -129,3 +129,16 @@
 - **V7 reversed by the lead:** kept as built. Loosening it broke an older rule (27_model_views): out of the Team, your Team view closes. An uploader reads a Team file only while they are a member of that Team or some Team's admin.
 - **V14 decided:** a Team admin outside a Team **posts** to it but doesn't read its chat or templates. They stay with the Team's members and the Space admin. Tested.
 - **For the PC:** merge `claude/r111-cloud` into `claude/r111` first, then the app side (V4–V6, V10–V13), choice 3 and the goldens.
+
+## The lead's second check: `claude/r111` at `564cb11e` (3 Nov)
+- **What was run:**
+  - The SQL stand-in: **61 files, 4,363 checks, PASS**.
+  - The storage log read line by line: folder, extension and size only, behind `BV_STORAGE_LOG`.
+  - The TM shots and changed pairs viewed in English and Arabic: «مشرف الفريق», «وراجِعها», the ended Team-page sentence, the look-alike as its own ticked row, no "No company" row.
+- **Accepted:** V4 one step deep, and the new merge line "Looks like the Team "X": add to it".
+- **Verdict: ready to merge** once the founder answers choice 3. Then live from the PC, with his yes:
+  1. Check the Postgres version (15 or later) and that `fuzzystrmatch` is not in `public`.
+  2. `db push` (20261122120000_review111).
+  3. A release build with `--dart-define=BV_STORAGE_LOG=true`.
+  4. Install on the Xiaomi 22120RN86G.
+  5. Phone checks: B1 both paths, the storage log read with `adb logcat`, Teams from companies on NBKCH.
