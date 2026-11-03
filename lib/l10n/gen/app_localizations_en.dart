@@ -7102,6 +7102,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get alertsAllSet => 'All set. Urgent alerts will reach you.';
+
+  @override
   String get alertsNotifications => 'Notifications';
 
   @override

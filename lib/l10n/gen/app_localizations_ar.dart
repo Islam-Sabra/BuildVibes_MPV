@@ -7159,6 +7159,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get alertsAllSet => 'كل شيء جاهز. ستصلك التنبيهات العاجلة.';
+
+  @override
   String get alertsNotifications => 'الإشعارات';
 
   @override

@@ -123,6 +123,43 @@ void main() {
       expect(_key('alerts-done'), findsNothing);
     });
 
+    testWidgets('review 114c: every line already on: "All set", not the '
+        'settings it needs [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        status: const AlertPhoneStatus(
+          needYouChannelOn: true,
+          batteryUnrestricted: true,
+        ),
+        stored: {
+          alertVisitedKey(AlertLine.autostart): true,
+          alertVisitedKey(AlertLine.floating): true,
+        },
+      );
+      _expectLines(['notifications', 'autostart', 'floating', 'battery'], []);
+      expect(find.text(l10n.alertsAllSet), findsOneWidget);
+      expect(find.text(l10n.alertsSub(4)), findsNothing);
+    });
+
+    testWidgets('review 114c: the last line turned on: the subtitle becomes '
+        '"All set" [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        makers: const ['google', 'google'],
+        permission: PushPermission.notAsked,
+        // Not asked at the tabs: the one line stays off.
+        stored: {pushAskedKey: true},
+      );
+      expect(find.text(l10n.alertsSub(1)), findsOneWidget);
+      expect(find.text(l10n.alertsAllSet), findsNothing);
+      app.push.current = PushPermission.granted;
+      await _comeBack(tester);
+      expect(find.text(l10n.alertsAllSet), findsOneWidget);
+      expect(find.text(l10n.alertsSub(1)), findsNothing);
+    });
+
     testWidgets('Samsung: Notifications and Battery; another Android and an '
         'iPhone: Notifications only [$lang]', (tester) async {
       await _open(tester, lang, makers: const ['samsung', 'samsung']);
@@ -144,6 +181,8 @@ void main() {
           makers: makers,
           platform: platform,
           permission: PushPermission.notAsked,
+          // Not asked at the tabs: the one line stays off.
+          stored: {pushAskedKey: true},
         );
         expect(find.text(l10n.alertsSub(1)), findsOneWidget);
         expect(_key('alerts-line-notifications'), findsOneWidget);
