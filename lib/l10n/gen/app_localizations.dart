@@ -11780,6 +11780,12 @@ abstract class AppLocalizations {
   /// **'{n, plural, =1{Your team can call you with Need you now, and check-ins open on time. This phone needs 1 setting. It\'s a single tap.} other{Your team can call you with Need you now, and check-ins open on time. This phone needs {n} settings. Each one is a single tap.}}'**
   String alertsSub(int n);
 
+  /// Review 114c: the alerts setup's subtitle when every line this phone needs is already on.
+  ///
+  /// In en, this message translates to:
+  /// **'All set. Urgent alerts will reach you.'**
+  String get alertsAllSet;
+
   /// PS1 line 1.
   ///
   /// In en, this message translates to:

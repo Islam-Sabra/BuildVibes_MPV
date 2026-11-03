@@ -242,7 +242,9 @@ class _AlertsSetupScreenState extends ConsumerState<AlertsSetupScreen> {
                     const SizedBox(height: BvSpace.s4),
                     if (setup != null) ...[
                       Text(
-                        l10n.alertsSub(setup.lines.length),
+                        setup.offCount == 0
+                            ? l10n.alertsAllSet
+                            : l10n.alertsSub(setup.lines.length),
                         style: type.bodySm.copyWith(
                           color: BvColors.textSecondary,
                         ),
