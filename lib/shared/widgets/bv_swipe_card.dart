@@ -221,6 +221,16 @@ class _BvSwipeCardState extends State<BvSwipeCard>
     return down.dx >= BvSwipeSpec.edge && down.dx <= screen - BvSwipeSpec.edge;
   }
 
+  /// A swipe that moved [dx] across the screen is the card's when the card
+  /// is open, or has something on the side it goes toward (review 115, 3).
+  bool _takes(double dx) {
+    if (_offset.value != 0) return true;
+    final towardEnd = (_rtl ? -dx : dx) > 0;
+    return towardEnd
+        ? widget.endActions.isNotEmpty
+        : widget.startAction != null;
+  }
+
   void _start(DragStartDetails d) {
     _tracking = widget.enabled && !_gone;
     if (!_tracking) return;
@@ -482,7 +492,7 @@ class _BvSwipeCardState extends State<BvSwipeCard>
                   if (widget.enabled)
                     _OffEdgeDrag:
                         GestureRecognizerFactoryWithHandlers<_OffEdgeDrag>(
-                          () => _OffEdgeDrag(_offEdge),
+                          () => _OffEdgeDrag(_offEdge, _takes),
                           (drag) => drag
                             ..dragStartBehavior = DragStartBehavior.down
                             ..onStart = _start
@@ -510,12 +520,44 @@ class _BvSwipeCardState extends State<BvSwipeCard>
 /// The card's sideways drag, for a finger that went down off the screen's
 /// edges only: one at an edge never enters the arena, so the system's
 /// back gesture (B6) has it (review 100 H7).
+///
+/// Review 115 (3): a swipe toward a side the card has nothing on (and the
+/// card closed) is not the card's either, so the tab swipe under it can
+/// take it: it lets go before it would have taken the swipe.
 class _OffEdgeDrag extends HorizontalDragGestureRecognizer {
-  _OffEdgeDrag(this.offEdge);
+  _OffEdgeDrag(this.offEdge, this.takes);
 
   final bool Function(Offset down) offEdge;
+
+  /// Whether a swipe that moved [dx] across the screen is the card's.
+  final bool Function(double dx) takes;
+
+  double _moved = 0;
+  bool _decided = false;
 
   @override
   bool isPointerAllowed(PointerEvent event) =>
       offEdge(event.position) && super.isPointerAllowed(event);
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    _moved = 0;
+    _decided = false;
+    super.addAllowedPointer(event);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (!_decided && event is PointerMoveEvent) {
+      _moved += event.delta.dx;
+      if (_moved.abs() > computeHitSlop(event.kind, gestureSettings)) {
+        _decided = true;
+        if (!takes(_moved)) {
+          resolve(GestureDisposition.rejected);
+          return;
+        }
+      }
+    }
+    super.handleEvent(event);
+  }
 }

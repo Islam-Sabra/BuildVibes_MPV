@@ -541,7 +541,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               _Screen(
                 path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
+                // Review 115 (3): each tab's main screen swipes to the next.
+                builder: (context, state) =>
+                    const ShellTabSwipe(child: HomeScreen()),
               ),
             ],
           ),
@@ -549,7 +551,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               _Screen(
                 path: AppRoutes.explore,
-                builder: (context, state) => const ExploreScreen(),
+                builder: (context, state) =>
+                    const ShellTabSwipe(child: ExploreScreen()),
               ),
             ],
           ),
@@ -557,7 +560,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               _Screen(
                 path: AppRoutes.activity,
-                builder: (context, state) => const ActivityScreen(),
+                builder: (context, state) =>
+                    const ShellTabSwipe(child: ActivityScreen()),
               ),
             ],
           ),
@@ -565,7 +569,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               _Screen(
                 path: AppRoutes.profile,
-                builder: (context, state) => const ProfileScreen(),
+                builder: (context, state) =>
+                    const ShellTabSwipe(child: ProfileScreen()),
                 routes: [
                   _Screen(
                     path: 'delivered',

@@ -6,6 +6,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import 'bv_slip.dart';
+import 'bv_tab_swipe.dart';
 
 /// One photo of a [BvPhotoStrip]: the picture (null while it loads), and
 /// whether it still waits to be sent ([waiting], a small mark on it).
@@ -29,9 +30,14 @@ class BvPhotoStrip extends StatelessWidget {
   /// without it, only the first 3 show.
   final String Function(int more)? moreLabel;
 
+  /// Review 115 (3): a sideways swipe on the photos doesn't change the tab
+  /// under them.
   @override
-  Widget build(BuildContext context) {
-    if (photos.isEmpty) return const SizedBox.shrink();
+  Widget build(BuildContext context) => photos.isEmpty
+      ? const SizedBox.shrink()
+      : BvKeepSwipe(child: _strip(context));
+
+  Widget _strip(BuildContext context) {
     Widget tile(int i, double height) {
       final p = photos[i];
       final photo = Stack(

@@ -18,6 +18,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_space_header.dart';
 import '../../shared/widgets/bv_segmented.dart';
 import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_tab_swipe.dart';
 import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
@@ -369,7 +370,17 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
             ),
             // Review 113 (18): a call and its answer show here.
             if (!composing) NeedYouStrip(spaceId: widget.spaceId),
-            Expanded(child: _body(detail)),
+            // Review 115 (3): a sideways swipe moves between Work and
+            // Chat; not while writing or choosing work items.
+            Expanded(
+              child: BvTabSwipe(
+                index: _tab,
+                count: SpaceScreen.chatTab + 1,
+                onSelect: _show,
+                enabled: !composing && selected.isEmpty,
+                child: _body(detail),
+              ),
+            ),
           ],
         ),
       ),
