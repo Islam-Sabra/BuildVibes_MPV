@@ -214,8 +214,11 @@ Future<void> _writeKind(
   DaybookKind kind,
 ) async {
   if (kind == DaybookKind.file) {
-    await _tap(tester, find.byKey(const Key('space-library')));
-    await _tap(tester, find.byKey(const Key('library-add-file')));
+    // libfix: the Library writes no post; a file goes on a note (+ → File),
+    // the attach sheet left open.
+    await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+    await chooseKind(tester, DaybookKind.note.json);
+    await addExtra(tester, 'file');
     return;
   }
   await _tap(tester, find.byKey(const Key('post-bar-notepad')));
@@ -707,7 +710,7 @@ void main() {
         ),
         before: (tester) async {
           await _writeKind(tester, l10n, DaybookKind.file);
-          await _tap(tester, find.byKey(const Key('file-from-phone')));
+          await _tap(tester, find.byKey(const Key('attach-file')));
           // F71: one single choice, then the file it replaces.
           await _tap(tester, find.byKey(const Key('replaces-version')));
           await _tap(tester, find.byKey(const Key('version-lib-m201-c')));

@@ -6960,6 +6960,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryLinkOpenFailed => 'Couldn\'t open the link.';
 
   @override
+  String libraryNewVersionPost(String name, String rev) {
+    return 'New version: $name · $rev';
+  }
+
+  @override
   String get libraryAddToFolder => 'Add a file here';
 
   @override

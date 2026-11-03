@@ -1913,6 +1913,7 @@
   "libraryFolderNotEmpty": "أخرج ملفاته أولًا.",
   "libraryFolderEmpty": "لا شيء في هذا المجلد بعد.",
   "libraryLinkOpenFailed": "تعذّر فتح الرابط.",
+  "libraryNewVersionPost": "نسخة جديدة: {name} · {rev}",
   "libraryAddToFolder": "أضف ملفًا هنا",
   "libraryServiceOneDrive": "OneDrive",
   "libraryServiceGoogleDrive": "Google Drive",

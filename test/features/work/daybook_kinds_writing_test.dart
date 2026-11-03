@@ -109,8 +109,9 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 
 /// Opens the composer, picks [kind] from # (review 110 CP2; it opens on a
 /// work item here) and types [title]. A checklist comes as a draft (a
-/// notebook share or a template). A file post starts from the Library's
-/// Add a file, its file chooser open.
+/// notebook share or a template). A file post is a note given a file (+ →
+/// File), the attach sheet left open: libfix, the Library's Add a file
+/// writes no post.
 Future<void> _write(
   WidgetTester tester,
   AppLocalizations l10n,
@@ -118,8 +119,14 @@ Future<void> _write(
   String title,
 ) async {
   if (kind == DaybookKind.file) {
-    await _tap(tester, find.byKey(const Key('space-library')));
-    await _tap(tester, find.byKey(const Key('library-add-file')));
+    await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+    await chooseKind(tester, DaybookKind.note.json);
+    if (title.isNotEmpty) {
+      await tester.enterText(find.byKey(const Key('writing-title')), title);
+      await tester.pumpAndSettle();
+    }
+    await addExtra(tester, 'file');
+    return;
   } else {
     await _tap(tester, find.byKey(const Key('post-bar-notepad')));
     if (kind == DaybookKind.checklist) {
@@ -441,25 +448,11 @@ void main() {
       expect(daybook.createdPosts.single.people, isNotEmpty);
     });
 
-    testWidgets('a file post from the Library: picking File goes straight to '
-        'the file; the title may stay empty [$lang]', (tester) async {
-      final (app: _, :daybook) = await _open(tester, lang);
-      await _write(tester, l10n, DaybookKind.file, '');
-      expect(find.byKey(const Key('file-chooser')), findsOneWidget);
-      await _tap(tester, find.byKey(Key('file-${_revC.id}')));
-      expect(_toolbar(tester).onPost, isNotNull);
-      await _post(tester);
-      final sent = daybook.createdPosts.single;
-      expect(sent.kind, DaybookPost.fileKind);
-      expect(sent.libraryFileId, _revC.id);
-      expect(sent.toParams()['p_title'], isNull);
-    });
-
     testWidgets('a file post from the phone, a new version of Rev C: into '
         'the Library first, then the post [$lang]', (tester) async {
       final (:app, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.file, 'M-201 Rev D');
-      await _tap(tester, find.byKey(const Key('file-from-phone')));
+      await _tap(tester, find.byKey(const Key('attach-file')));
       expect(find.byKey(const Key('replaces-choice')), findsOneWidget);
       // F71: New file chosen first; New version opens the files, searchable.
       await _tap(tester, find.byKey(const Key('replaces-version')));
@@ -553,13 +546,15 @@ void main() {
       final (:app, :daybook) = await _open(tester, lang);
       app.library.loseAnswer = true;
       await _write(tester, l10n, DaybookKind.file, 'M-201 Rev D');
-      await _tap(tester, find.byKey(const Key('file-from-phone')));
+      await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-none')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
       await _post(tester);
       expect(app.library.calls, hasLength(1));
       final added = app.library.filesBySpace[DaybookSamples.space]!.first;
-      expect(daybook.createdPosts.single.libraryFileId, added.id);
+      // A new file stays on its note (review 81 R2: only a new version
+      // makes a File post).
+      expect(daybook.createdPosts.single.attachedFileIds, [added.id]);
       expect(_read(tester, workOutboxProvider), isEmpty);
     });
 
@@ -571,7 +566,7 @@ void main() {
       final hold = Completer<void>();
       app.library.holdUpload = hold;
       await _write(tester, l10n, DaybookKind.file, 'M-201 Rev D');
-      await _tap(tester, find.byKey(const Key('file-from-phone')));
+      await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-none')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
       await _post(tester);
@@ -753,9 +748,13 @@ void main() {
           kind,
           kind == DaybookKind.file ? '' : s.handoverTitle,
         );
-        // A file post goes to its file first.
+        // A File post: a new version of a Library file (review 81 R2).
         if (kind == DaybookKind.file) {
-          await _tap(tester, find.byKey(const Key('file-lib-m201-c')));
+          await _tap(tester, find.byKey(const Key('attach-file')));
+          await _tap(tester, find.byKey(const Key('replaces-version')));
+          await _tap(tester, find.byKey(const Key('version-lib-m201-c')));
+          await _tap(tester, find.byKey(const Key('replaces-done')));
+          expect(composerDraft(tester)!.kind, DaybookKind.file);
         }
         await addExtra(tester, 'file');
         expect(find.byKey(const Key('attach-sheet')), findsOneWidget);
@@ -778,7 +777,7 @@ void main() {
     }
 
     testWidgets('F74, review 110 CP2: File isn\'t a kind in #; a file post '
-        'starts from the Library [$lang]', (tester) async {
+        'is a post given a file (+ → File) [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
       await _tap(tester, find.byKey(const Key('writing-kind')));

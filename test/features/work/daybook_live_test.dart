@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
@@ -206,21 +207,28 @@ void main() {
         }
       });
 
-      testWidgets('a file post from the Library: its card at Now as soon as '
+      testWidgets('a post with a Library file: its card at Now as soon as '
           'it is sent', (tester) async {
         await _open(tester, lang, offline: true, posts: [s.rebar()]);
-        // Review 105 SP2: a file post starts from the Library's Add a file
-        // (the kind chips are the five the rows serve).
-        await tester.tap(find.byKey(const Key('space-library')));
+        // libfix: the Library's Add a file writes no post; a post takes a
+        // Library file from + → File.
+        await tester.tap(find.byKey(const Key('post-bar-notepad')));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('library-add-file')));
+        await chooseKind(tester, 'note');
+        await tester.enterText(
+          find.byKey(const Key('writing-title')),
+          s.handoverTitle,
+        );
+        await tester.pumpAndSettle();
+        await addExtra(tester, 'file');
+        await tester.tap(find.byKey(const Key('attach-library')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('file-lib-m201-c')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('writing-post')));
         await tester.pumpAndSettle();
-        // The waiting card at Now, its title the file's name.
-        expect(find.textContaining('M-201.pdf'), findsWidgets);
+        // The waiting card at Now.
+        expect(find.textContaining(s.handoverTitle), findsWidgets);
         expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
       });
     });

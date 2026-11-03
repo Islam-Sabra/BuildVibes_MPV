@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show StorageException;
 
+import '../test/helpers/composer_steps.dart';
 import '../test/helpers/check_in_samples.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
@@ -114,6 +115,17 @@ Future<TestApp> _app(
   GoRouter.of(tester.element(find.byType(Navigator).first)).push(path);
   await tester.pumpAndSettle();
   return app;
+}
+
+/// A note given a file from the phone (+ → File). libfix: the Library's
+/// Add a file writes no post any more.
+Future<void> _noteWithFile(WidgetTester t) async {
+  await _tap(t, _key('post-bar-notepad'));
+  await chooseKind(t, 'note');
+  await t.enterText(_key('writing-title'), 'Level 3');
+  await t.pumpAndSettle();
+  await addExtra(t, 'file');
+  await _tap(t, _key('attach-file'));
 }
 
 void main() {
@@ -293,9 +305,7 @@ void main() {
           bytes: 38 * 1024 * 1024,
         ),
       );
-      await _tap(t, _key('space-library'));
-      await _tap(t, _key('library-add-file'));
-      await _tap(t, _key('file-from-phone'));
+      await _noteWithFile(t);
       await _snap(t, 'B7-too-big', lang);
     });
 
@@ -306,9 +316,7 @@ void main() {
         error: 'Payload too large',
         statusCode: '413',
       );
-      await _tap(t, _key('space-library'));
-      await _tap(t, _key('library-add-file'));
-      await _tap(t, _key('file-from-phone'));
+      await _noteWithFile(t);
       await _tap(t, _key('writing-post'));
       await _snap(t, 'B7-draft-could-not-send', lang);
       await t.tap(_key('writing-card-error'), warnIfMissed: false);
@@ -324,9 +332,7 @@ void main() {
       final daybook = FakeDaybookRepository()..posts[_space] = s.d1();
       await _app(t, lang, daybook: daybook);
       daybook.refuse = true;
-      await _tap(t, _key('space-library'));
-      await _tap(t, _key('library-add-file'));
-      await _tap(t, _key('file-from-phone'));
+      await _noteWithFile(t);
       await _tap(t, _key('writing-post'));
       await t.tap(_key('writing-card-error'), warnIfMissed: false);
       await t.pumpAndSettle();

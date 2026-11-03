@@ -9900,6 +9900,14 @@
   "@libraryLinkOpenFailed": {
     "description": "A link folder that would not open."
   },
+  "libraryNewVersionPost": "New version: {name} · {rev}",
+  "@libraryNewVersionPost": {
+    "description": "libfix: the small post that tells a whole-Space or Team folder's audience a file has a new version.",
+    "placeholders": {
+      "name": {"type": "String", "example": "A-501.pdf"},
+      "rev": {"type": "String", "example": "V2"}
+    }
+  },
   "libraryAddToFolder": "Add a file here",
   "@libraryAddToFolder": {
     "description": "Inside a folder: add a file into it."

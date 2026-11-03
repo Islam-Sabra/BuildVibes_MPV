@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/routing/app_routes.dart';
-import '../../data/models/library.dart';
 
 /// The card a Space's daybook opens at (F20): a work item, and the line of
 /// its history an event is about.
@@ -39,22 +38,6 @@ class DaybookTarget {
 /// so the same request never opens twice.
 class DaybookReportStart {
   DaybookReportStart();
-}
-
-/// The writing card opened from the Library (review 69 1b): every file
-/// enters through a post, so "+ Add a file" opens a Document for receipt at
-/// Now with the file chooser open, and "Add a new version" the same with
-/// [replaces] set, so the new version goes with its post (NEW VERSION,
-/// Received).
-@immutable
-class DaybookFileStart {
-  const DaybookFileStart({this.replaces, this.folderId});
-
-  /// The version in use that the new one replaces.
-  final LibraryFile? replaces;
-
-  /// Review 113 (8): the Library folder the new file goes into.
-  final String? folderId;
 }
 
 /// Opens a work item where it lives: its Space's daybook, at its card,

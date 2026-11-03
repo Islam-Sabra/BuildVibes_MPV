@@ -2,10 +2,8 @@
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/library_folder.dart';
 import 'package:buildvibes/data/models/space.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -66,16 +64,18 @@ List<LibraryFolder> sampleFolders(DaybookSamples s) => [
   ),
 ];
 
-LibraryFile _pdf(String id, String name, {String? folder}) => LibraryFile(
-  id: id,
-  spaceId: _space,
-  name: name,
-  path: '$_space/library/$id/x.pdf',
-  mime: 'application/pdf',
-  createdAt: DaybookSamples.thursday,
-  bytes: 2400000,
-  folderId: folder,
-);
+LibraryFile _pdf(String id, String name, {String? folder, int? versionNo}) =>
+    LibraryFile(
+      id: id,
+      spaceId: _space,
+      name: name,
+      path: '$_space/library/$id/x.pdf',
+      mime: 'application/pdf',
+      createdAt: DaybookSamples.thursday,
+      bytes: 2400000,
+      folderId: folder,
+      versionNo: versionNo,
+    );
 
 Future<TestApp> openLibrary(
   WidgetTester tester,
@@ -310,44 +310,136 @@ void main() {
       expect(_key('folder-menu'), findsNothing);
     });
 
-    testWidgets('Add a file here: the post\'s file goes into the folder '
-        '(p_folder) [$lang]', (tester) async {
-      final app = await openLibrary(tester, lang);
-      await _tap(tester, _key('folder-f-drawings'));
-      await _tap(tester, _key('library-add-file'));
-      expect(_key('composer'), findsOneWidget);
-      await _tap(tester, _key('file-from-phone'));
-      await _tap(tester, _key('replaces-none'));
-      await _tap(tester, _key('replaces-done'));
-      final draft = ProviderScope.containerOf(
-        tester.element(_key('composer')),
-      ).read(daybookDraftProvider(_space));
-      expect(draft!.files.single.folderId, 'f-drawings');
-      await _tap(tester, _key('writing-post'));
-      expect(app.library.calls.single, endsWith('folder:f-drawings'));
-      expect(app.library.uploadTypes, ['application/pdf']);
-    });
+    // libfix (Z14, privacy): the Library adds a file into its folder,
+    // with the folder's sharing, and writes no post: a post would open it
+    // for everyone who sees the post.
+    for (final folder in ['f-mine', 'f-omar', 'f-mep', 'f-drawings', null]) {
+      testWidgets(
+        'libfix: Add a file ${folder == null ? 'at the top' : 'in $folder'} '
+        'goes straight into the Library, with no post [$lang]',
+        (tester) async {
+          final app = await openLibrary(tester, lang, files: []);
+          if (folder != null) await _tap(tester, _key('folder-$folder'));
+          await _tap(tester, _key('library-add-file'));
+          expect(_key('composer'), findsNothing);
+          expect(
+            app.library.calls.single,
+            'add Level 3 plan.pdf team:- rev:- supersedes:-'
+            '${folder == null ? '' : ' folder:$folder'}',
+          );
+          expect(app.library.uploadTypes, ['application/pdf']);
+          expect(app.daybook.createdPosts, isEmpty);
+          // In the list at once.
+          expect(
+            _key('file-${app.library.filesBySpace[_space]!.single.id}'),
+            findsOneWidget,
+          );
+        },
+      );
+    }
 
-    for (final (folder, shows) in [
-      ('f-mine', true),
-      ('f-omar', true),
-      ('f-mep', true),
-      ('f-drawings', false),
+    for (final (folder, team) in [
+      (null, null),
+      ('f-drawings', null),
+      ('f-mep', 't-mep'),
     ]) {
-      testWidgets('Z14: a file from $folder ${shows ? 'says' : 'doesn\'t say'} '
-          'who can open it [$lang]', (tester) async {
-        await openLibrary(tester, lang);
+      testWidgets(
+        'libfix: a new version ${folder == null ? 'at the top' : 'in $folder'} '
+        'tells that same audience with a small post [$lang]',
+        (tester) async {
+          final app = await openLibrary(
+            tester,
+            lang,
+            files: [_pdf('old', 'A-501.pdf', folder: folder, versionNo: 1)],
+          );
+          if (folder != null) await _tap(tester, _key('folder-$folder'));
+          await _tap(tester, _key('library-add-file'));
+          await _tap(tester, _key('replaces-version'));
+          await _tap(tester, _key('version-old'));
+          await _tap(tester, _key('replaces-done'));
+          expect(
+            app.library.calls.single,
+            'add Level 3 plan.pdf team:- rev:- supersedes:old'
+            '${folder == null ? '' : ' folder:$folder'}',
+          );
+          final post = app.daybook.createdPosts.single;
+          expect(post.kind, 'file');
+          expect(post.teamId, team, reason: "the folder's own audience");
+          expect(
+            post.title,
+            l10n.libraryNewVersionPost(
+              'Level 3 plan.pdf',
+              l10n.libraryVersionNo(2),
+            ),
+          );
+          expect(
+            post.libraryFileId,
+            app.library.filesBySpace[_space]!.first.id,
+            reason: 'the new version',
+          );
+          expect(_key('composer'), findsNothing);
+        },
+      );
+    }
+
+    for (final folder in ['f-mine', 'f-omar']) {
+      testWidgets('libfix: a new version in $folder tells nobody [$lang]', (
+        tester,
+      ) async {
+        final app = await openLibrary(
+          tester,
+          lang,
+          files: [_pdf('old', 'A-501.pdf', folder: folder, versionNo: 1)],
+        );
         await _tap(tester, _key('folder-$folder'));
         await _tap(tester, _key('library-add-file'));
-        await _tap(tester, _key('file-from-phone'));
-        await _tap(tester, _key('replaces-none'));
+        await _tap(tester, _key('replaces-version'));
+        await _tap(tester, _key('version-old'));
         await _tap(tester, _key('replaces-done'));
         expect(
-          find.text(l10n.postFileAudienceLine),
-          shows ? findsOneWidget : findsNothing,
+          app.library.calls.single,
+          contains('supersedes:old folder:$folder'),
         );
+        expect(app.daybook.createdPosts, isEmpty);
       });
     }
+
+    testWidgets("libfix: Add a new version from a file's screen goes into its "
+        'folder too, with no composer [$lang]', (tester) async {
+      final app = await openLibrary(
+        tester,
+        lang,
+        files: [_pdf('old', 'A-501.pdf', folder: 'f-mine', versionNo: 1)],
+      );
+      await _tap(tester, _key('folder-f-mine'));
+      await _tap(tester, _key('file-old'));
+      await _tap(tester, _key('file-add-version'));
+      expect(_key('composer'), findsNothing);
+      expect(
+        app.library.calls.single,
+        'add Level 3 plan.pdf team:- rev:- supersedes:old folder:f-mine',
+      );
+      expect(app.daybook.createdPosts, isEmpty);
+    });
+
+    testWidgets("libfix: the version question offers only this folder's "
+        'files [$lang]', (tester) async {
+      await openLibrary(
+        tester,
+        lang,
+        files: [
+          _pdf('here', 'A-501.pdf', folder: 'f-drawings'),
+          _pdf('there', 'M-201.pdf', folder: 'f-mine'),
+          _pdf('top', 'Gate pass list.pdf'),
+        ],
+      );
+      await _tap(tester, _key('folder-f-drawings'));
+      await _tap(tester, _key('library-add-file'));
+      await _tap(tester, _key('replaces-version'));
+      expect(_key('version-here'), findsOneWidget);
+      expect(_key('version-there'), findsNothing);
+      expect(_key('version-top'), findsNothing);
+    });
 
     testWidgets('Z14: the line reads as the review wrote it [$lang]', (
       tester,

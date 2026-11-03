@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../library/library_add.dart';
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
@@ -77,17 +78,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       ? SpaceScreen.chatTab
       : SpaceScreen.workTab;
 
-  /// The Library asked for a file post (review 69 1b); a tab tap clears
-  /// it, so it opens once.
-  DaybookFileStart? _fileStart;
-
   /// The Space menu's Daily report (slice 7), opened once.
   DaybookReportStart? _reportStart;
-
-  void _addFile({LibraryFile? replaces, String? folderId}) => setState(() {
-    _fileStart = DaybookFileStart(replaces: replaces, folderId: folderId);
-    _tab = SpaceScreen.workTab;
-  });
 
   /// Review 94: a Check, a Cancel or a Remove whose undo bar still shows
   /// goes at once when the Space or the app is left; it was confirmed by
@@ -209,12 +201,20 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   }
 
   /// Search (review 95: in the header). A Library file found there can come
-  /// back to be replaced by a file post.
+  /// back for a new version, which goes into its folder (libfix).
   Future<void> _openSearch() async {
     final replaces = await context.push<LibraryFile>(
       AppRoutes.spaceSearch(widget.spaceId),
     );
-    if (replaces != null && mounted) _addFile(replaces: replaces);
+    if (replaces != null && mounted) {
+      await addLibraryFileHere(
+        context,
+        ref,
+        spaceId: widget.spaceId,
+        replaces: replaces,
+      );
+    }
+    if (!mounted) return;
     // Review 105C: a place found there shows Work for it.
     if (mounted && ref.read(workPlaceFilterProvider(widget.spaceId)) != null) {
       _show(SpaceScreen.workTab);
@@ -239,15 +239,9 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     }
   }
 
-  /// The Library: a file it asks for comes back as a file post on Work.
-  Future<void> _openLibrary() async {
-    final ask = await context.push<SpaceFileAsk>(
-      AppRoutes.spaceLibrary(widget.spaceId),
-    );
-    if (ask != null && mounted) {
-      _addFile(replaces: ask.replaces, folderId: ask.folderId);
-    }
-  }
+  /// The Library: its files stay there (libfix).
+  Future<void> _openLibrary() =>
+      context.push<void>(AppRoutes.spaceLibrary(widget.spaceId));
 
   /// Back (SP1, review 105 J1) is always there: with nothing under the
   /// Space (a link, a notification), it goes to Home's Spaces.
@@ -265,7 +259,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     setState(() {
       ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
       _tab = tab;
-      _fileStart = null;
       _reportStart = null;
     });
     // Review 113 (5): the Space remembers the tab last used in it.
@@ -388,7 +381,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       space: detail,
       startWriting: widget.open == SpaceOpen.write,
       target: widget.target,
-      startFile: _fileStart,
       startReport: _reportStart,
     ),
     _ => ChatTab(space: detail),
