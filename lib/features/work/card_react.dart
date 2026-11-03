@@ -34,10 +34,11 @@ String reactionName(AppLocalizations l10n, PostReaction r) => switch (r) {
   PostReaction.bravo => l10n.reactBravo,
 };
 
-/// Review 113 RX1 (2730:39887): the foot of every card. At the start, the
-/// reactions as their icons with the small faces of who reacted (never a
-/// number; a tap shows the names); at the end, React (none on a Check-in)
-/// and Share. [onReact] gets where React is, for the picker over it.
+/// Review 113 RX1 (2730:39887, redrawn for review 114): the foot of every
+/// card. At the start React (none on a Check-in), then the reactions as
+/// their icons with the small faces of who reacted (never a number; a tap
+/// shows the names); Share alone at the end. [onReact] gets where React
+/// is, for the picker over it.
 class DaybookCardReact extends StatelessWidget {
   const DaybookCardReact({
     super.key,
@@ -98,58 +99,54 @@ class DaybookCardReact extends StatelessWidget {
       ),
     );
 
+    final faces = groups.isEmpty
+        ? null
+        : Semantics(
+            button: true,
+            label: l10n.reactWho,
+            child: BvTapTarget(
+              child: GestureDetector(
+                key: Key('card-reactions-${post.id}'),
+                behavior: HitTestBehavior.opaque,
+                onTap: onReactors,
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: BvCardReactSpec.groupGap,
+                  children: [
+                    for (final g in groups)
+                      Row(
+                        key: Key('card-reaction-${post.id}-${g.kind.json}'),
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: BvCardReactSpec.kindGap,
+                        children: [
+                          Icon(
+                            reactionIcon(g.kind),
+                            size: BvCardReactSpec.kindIcon,
+                            color: reactionColor(g.kind),
+                          ),
+                          BvFaces([
+                            for (final p in g.people)
+                              (
+                                name: p.name ?? '',
+                                tint: BvAvatarTints.forId(p.id),
+                              ),
+                          ]),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+    // Review 114 (founder, 3 Nov): React at the start with the faces right
+    // after it, then the space, then Share alone at the end.
     return Padding(
       padding: const EdgeInsetsDirectional.only(top: BvCardReactSpec.top),
       child: Row(
         key: Key('card-react-row-${post.id}'),
         spacing: BvCardReactSpec.gap,
         children: [
-          Expanded(
-            child: groups.isEmpty
-                ? const SizedBox.shrink()
-                : Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Semantics(
-                      button: true,
-                      label: l10n.reactWho,
-                      child: BvTapTarget(
-                        child: GestureDetector(
-                          key: Key('card-reactions-${post.id}'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onReactors,
-                          child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: BvCardReactSpec.groupGap,
-                            children: [
-                              for (final g in groups)
-                                Row(
-                                  key: Key(
-                                    'card-reaction-${post.id}-${g.kind.json}',
-                                  ),
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: BvCardReactSpec.kindGap,
-                                  children: [
-                                    Icon(
-                                      reactionIcon(g.kind),
-                                      size: BvCardReactSpec.kindIcon,
-                                      color: reactionColor(g.kind),
-                                    ),
-                                    BvFaces([
-                                      for (final p in g.people)
-                                        (
-                                          name: p.name ?? '',
-                                          tint: BvAvatarTints.forId(p.id),
-                                        ),
-                                    ]),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
           if (!post.isCheckIn)
             action(
               key: Key('card-react-${post.id}'),
@@ -166,6 +163,12 @@ class DaybookCardReact extends StatelessWidget {
                       onReact!(box == null ? Rect.zero : bvGlobalRect(box));
                     },
             ),
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: faces,
+            ),
+          ),
           action(
             key: Key('card-share-${post.id}'),
             icon: BvIcons.shareFile,
@@ -254,11 +257,12 @@ Future<PostReaction?> showReactPicker(
         children: [
           Positioned(
             bottom: bottom.clamp(0, size.height).toDouble(),
-            // Over React, kept on the screen: its end at React's end.
-            left: rtl ? anchor.left.clamp(0, size.width).toDouble() : null,
+            // Over React, kept on the screen: its start at React's start
+            // (review 114: React is at the card's start).
+            left: rtl ? null : anchor.left.clamp(0, size.width).toDouble(),
             right: rtl
-                ? null
-                : (size.width - anchor.right).clamp(0, size.width).toDouble(),
+                ? (size.width - anchor.right).clamp(0, size.width).toDouble()
+                : null,
             child: pill,
           ),
         ],
