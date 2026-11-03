@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026, night — review 115 merged; build 1032 on the founder's phone; next: review 116 (Poll)
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r115` into `slice2-app` at 910db9cc (same tree). It carries:
+  - (1) Library uploads through the work outbox (`PendingKind.libraryFile`): "Uploading 40%", "Waiting for signal" (✕), "Couldn't upload · Tap to fix";
+  - (2) "Who sees it: Whole Space · Change" before a top-level file; anything else goes into a matching folder ("My files", the Team's or person's name), made once;
+  - (3) swipes between the bottom tabs and Work ↔ Chat; the lead's one gesture model: Work cards have no sideways swipe, the hold bar holds Pin · Reminder · Archive/Delete by rights (Viewers: Pin · Reminder);
+  - (4) "Whole Space" in templates and as the Space-wide chat thread; Xiaomi's fifth alerts line "Lock BuildVibes in recent apps" with "Show me"; Chat and DM "Couldn't send · Tap to fix" (stored chat messages from an earlier start no longer stick on "Sending…");
+  - (5) `plainLetters()`: every database write goes through `PlainLettersClient` (under the Supabase client), so mathematical and fullwidth letters are saved plain; m², °, ½, Arabic untouched.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,736 pass; `test_screens` 712 pass. Shots in `docs/reviews/shots-115/`. Emulator: offline upload waited and sent itself when the signal came back (live: file at the top, no post); tab and Work ↔ Chat swipes; edge back gesture; the hold bar.
+- **Build 1032** (versionCode 1032, `BV_STORAGE_LOG=true`): exact source on **`release-1032`** (= 910db9cc). `Desktop/BuildVibes-1032.apk`. On the founder's phone (192.168.8.33:40205, 22120RN86G) over 1019; disconnected, both adb entries. Storage at start: cache 59.2 MB (bv_files 24.6 MB, bv_thumbs 1.1 MB, three `file_picker` copies of the 9.1 MB PDF under a day old), app_flutter 9.4 MB (`chat_outbox` 9.1 MB: the chat message that failed before; it now shows Tap to fix).
+- **Open for the lead:** Viewers' hold bar (Pin · Reminder); the first-run tip "Hold a card to share or delete it" undersells the bar; the post-audience sheet still says "Everyone in the Space" (`whoSeesEveryone`, `whoSeesFoot`); with several cards held, Pin shows only when all or none are pinned.
+- **Next:** review 116 (Poll), approved: `docs/reviews/2026-11-03-116-poll.md`, on `claude/r116`.
+- **Who has which branch:** PC has `slice2-app`; `claude/r115` and its parts (`-swipes`, `-small`, `-hold`, `-words`, `-plain`) are merged.
+
 ## PC update: 3 Nov 2026, evening — libfix live; build 1019 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
