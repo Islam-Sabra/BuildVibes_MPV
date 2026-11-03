@@ -199,12 +199,11 @@ void main() {
         );
         final card = _key('daybook-card-post-formwork');
         await scrollToRow(tester, card);
-        await tester.drag(
+        await tester.longPress(
           find.descendant(of: card, matching: find.byType(BvSlip)).first,
-          Offset(lang == 'ar' ? -160 : 160, 0),
         );
         await tester.pumpAndSettle();
-        await _tap(tester, _key('swipe-remind-post-formwork'));
+        await _tap(tester, _key('select-remind'));
         await _tap(tester, _key('reminder-someone'));
         await _tap(tester, _key('reminder-pick'));
         await _tap(tester, _key('reminder-set'));
@@ -219,12 +218,11 @@ void main() {
       Future<void> openSomeone(WidgetTester tester) async {
         final card = _key('daybook-card-post-formwork');
         await scrollToRow(tester, card);
-        await tester.drag(
+        await tester.longPress(
           find.descendant(of: card, matching: find.byType(BvSlip)).first,
-          Offset(lang == 'ar' ? -160 : 160, 0),
         );
         await tester.pumpAndSettle();
-        await _tap(tester, _key('swipe-remind-post-formwork'));
+        await _tap(tester, _key('select-remind'));
         await _tap(tester, _key('reminder-someone'));
       }
 

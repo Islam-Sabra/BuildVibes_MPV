@@ -1,6 +1,6 @@
 // Review 105B: what the off flag held, now on (migration 52). Pin is mine
 // only: my pinned posts show as slim lines at the top of Work, and the
-// swipe then reads Unpin. Archive is a Lead's, on a Checked item: it
+// hold bar then reads Unpin. Archive is a Lead's, on a Checked item: it
 // leaves Work. Share, in the hold bar, picks one of this Space's threads
 // (a Team's post only its Team's) and posts the card there; in Chat the
 // card shows the kind, the title, For and the status, and a tap opens the
@@ -106,20 +106,16 @@ Future<void> _show(WidgetTester tester, String id) async {
 Finder _slip(String id) =>
     find.descendant(of: _entry(id), matching: find.byType(BvSlip)).first;
 
-Future<void> _swipe(
-  WidgetTester tester,
-  String id,
-  String lang, {
-  required bool toEnd,
-}) async {
+/// A hold on [id]'s card: its actions in the hold bar (the lead's check of
+/// 115).
+Future<void> _hold(WidgetTester tester, String id) async {
   await _show(tester, id);
-  final dx = (toEnd == (lang != 'ar')) ? 160.0 : -160.0;
-  await tester.drag(_slip(id), Offset(dx, 0));
+  await tester.longPress(_slip(id));
   await tester.pumpAndSettle();
 }
 
-/// A swipe's button, tapped as it is: a scroll would close the swipe.
-Future<void> _tapSwiped(WidgetTester tester, String key) async {
+/// One of the hold bar's actions.
+Future<void> _tapHeld(WidgetTester tester, String key) async {
   await tester.tap(_key(key));
   await tester.pumpAndSettle();
 }
@@ -160,11 +156,11 @@ void main() {
     final s = DaybookSamples(lang);
 
     group('105B Pin [$lang]', () {
-      testWidgets('the swipe pins it for me; it shows at the top of Work; '
-          'the swipe then unpins it', (tester) async {
+      testWidgets('the hold bar pins it for me; it shows at the top of '
+          'Work; held again, it unpins it', (tester) async {
         final app = await _open(tester, lang, posts: [s.rebar(), s.gate()]);
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        await _tapSwiped(tester, 'swipe-pin-post-rebar');
+        await _hold(tester, 'post-rebar');
+        await _tapHeld(tester, 'select-pin');
         expect(app.daybook.calls, contains('pin post-rebar true'));
         expect(_key('my-pin-post-rebar'), findsOneWidget);
         expect(
@@ -174,23 +170,24 @@ void main() {
           ),
           findsOneWidget,
         );
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
+        await _hold(tester, 'post-rebar');
+        expect(_key('select-pin'), findsNothing);
         expect(
           find.descendant(
-            of: _key('swipe-pin-post-rebar'),
+            of: _key('select-unpin'),
             matching: find.text(l10n.workUnpin),
           ),
           findsOneWidget,
         );
-        await _tapSwiped(tester, 'swipe-pin-post-rebar');
+        await _tapHeld(tester, 'select-unpin');
         expect(app.daybook.calls, contains('pin post-rebar false'));
         expect(_key('my-pin-post-rebar'), findsNothing);
       });
 
       testWidgets('a tap on my pinned line opens the item', (tester) async {
         await _open(tester, lang, posts: [s.rebar(), s.gate()]);
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        await _tapSwiped(tester, 'swipe-pin-post-rebar');
+        await _hold(tester, 'post-rebar');
+        await _tapHeld(tester, 'select-pin');
         await _tap(tester, _key('my-pin-post-rebar'));
         expect(_key('daybook-page'), findsOneWidget);
       });
@@ -201,8 +198,8 @@ void main() {
         tester,
       ) async {
         final app = await _open(tester, lang, posts: [s.gate(), s.rebar()]);
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        await _tapSwiped(tester, 'swipe-archive-post-gate');
+        await _hold(tester, 'post-gate');
+        await _tapHeld(tester, 'select-archive');
         expect(app.daybook.calls, contains('archive post-gate'));
         expect(find.text(l10n.workArchived), findsOneWidget);
         expect(_entry('post-gate'), findsNothing);
@@ -216,8 +213,8 @@ void main() {
           me: DaybookSamples.omar,
           pass: SpacePass.crew,
         );
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        expect(_key('swipe-archive-post-gate'), findsNothing);
+        await _hold(tester, 'post-gate');
+        expect(_key('select-archive'), findsNothing);
       });
     });
 
@@ -490,8 +487,8 @@ void main() {
     group('105B L7 Undo and Unarchive [$lang]', () {
       testWidgets('"Archived · Undo": Undo brings it back', (tester) async {
         final app = await _open(tester, lang, posts: [s.gate(), s.rebar()]);
-        await _swipe(tester, 'post-gate', lang, toEnd: false);
-        await _tapSwiped(tester, 'swipe-archive-post-gate');
+        await _hold(tester, 'post-gate');
+        await _tapHeld(tester, 'select-archive');
         expect(find.text(l10n.workArchived), findsOneWidget);
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();
@@ -648,8 +645,8 @@ void main() {
         tester,
       ) async {
         final app = await _open(tester, lang, posts: [s.rebar(), s.gate()]);
-        await _swipe(tester, 'post-rebar', lang, toEnd: true);
-        await _tapSwiped(tester, 'swipe-pin-post-rebar');
+        await _hold(tester, 'post-rebar');
+        await _tapHeld(tester, 'select-pin');
         await tester.longPress(_key('my-pin-post-rebar'));
         await tester.pumpAndSettle();
         await _tap(tester, _key('select-unpin'));

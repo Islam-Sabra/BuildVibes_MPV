@@ -171,15 +171,14 @@ void main() {
       return app;
     }
 
-    Future<void> swipeRemind(WidgetTester tester, String id) async {
+    Future<void> holdRemind(WidgetTester tester, String id) async {
       final card = _key('daybook-card-$id');
       await scrollToRow(tester, card);
-      await tester.drag(
+      await tester.longPress(
         find.descendant(of: card, matching: find.byType(BvSlip)).first,
-        Offset(lang == 'ar' ? -160 : 160, 0),
       );
       await tester.pumpAndSettle();
-      await _tap(tester, _key('swipe-remind-$id'));
+      await _tap(tester, _key('select-remind'));
     }
 
     testWidgets('B1 Reminder on an announcement: Me only [$lang]', (
@@ -200,7 +199,7 @@ void main() {
           ),
         ],
       );
-      await swipeRemind(tester, 'post-gate');
+      await holdRemind(tester, 'post-gate');
       await _snap(tester, 'B1-reminder-me-only', lang);
     });
 
@@ -212,7 +211,7 @@ void main() {
           ..failure = SpaceFailure.notAllowed
           ..failureMessage = 'not allowed',
       );
-      await swipeRemind(tester, 'post-terrace');
+      await holdRemind(tester, 'post-terrace');
       await _tap(tester, _key('reminder-someone'));
       await _tap(tester, _key('reminder-set'));
       await _snap(tester, 'B2-reminder-refused', lang);
@@ -220,7 +219,7 @@ void main() {
 
     testWidgets('C RM1d a picked time alone, with × [$lang]', (tester) async {
       await space(tester, posts: [s.card(terrace())]);
-      await swipeRemind(tester, 'post-terrace');
+      await holdRemind(tester, 'post-terrace');
       await _tap(tester, _key('reminder-someone'));
       await _tap(tester, _key('reminder-pick'));
       await _snap(tester, 'RM1d-picked', lang);
