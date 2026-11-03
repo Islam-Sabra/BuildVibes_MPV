@@ -551,6 +551,15 @@ abstract final class BvBackSwipeSpec {
   static const fling = 300.0;
 }
 
+/// A swipe between tabs (review 115, 3): it moves once it has crossed a
+/// quarter of the screen or was flung. A swipe that starts in an edge strip
+/// (the phone's own, if wider) is left to the system back gesture.
+abstract final class BvTabSwipeSpec {
+  static const edge = BvSpace.s24;
+  static const distance = 1 / 4;
+  static const fling = 300.0;
+}
+
 /// A card that swipes (review 100 Part 3b, BH3): round 48 buttons on the
 /// page's background, each in a 72 slot; a quarter of the card's width
 /// opens them, 60% is the full swipe; the card flies off in 200 ms and its
