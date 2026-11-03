@@ -1981,26 +1981,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pushFixIt => 'Fix it';
 
   @override
-  String get pushFixTitle => 'Let notifications reach this phone';
-
-  @override
-  String get pushFixAutostart => 'Autostart: on for BuildVibes.';
-
-  @override
-  String get pushFixBattery =>
-      'Battery saver: \"No restrictions\" for BuildVibes.';
-
-  @override
-  String get pushFixPlayServices =>
-      'The same battery setting for Google Play services.';
-
-  @override
-  String get pushFixRestart => 'Then restart the phone.';
-
-  @override
-  String get pushFixOpen => 'Open BuildVibes settings';
-
-  @override
   String get feedNew => 'New';
 
   @override
@@ -7101,4 +7081,119 @@ class AppLocalizationsEn extends AppLocalizations {
   String teamsMergedIntoTeam(String team) {
     return 'Goes into the Team \"$team\": undo';
   }
+
+  @override
+  String get alertsTitle => 'So urgent alerts reach you';
+
+  @override
+  String alertsSub(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other:
+          'Your team can call you with Need you now, and check-ins open on time. This phone needs $n settings. Each one is a single tap.',
+      one:
+          'Your team can call you with Need you now, and check-ins open on time. This phone needs 1 setting. It\'s a single tap.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alertsNotifications => 'Notifications';
+
+  @override
+  String get alertsNotificationsSub => 'Allow BuildVibes to notify you';
+
+  @override
+  String get alertsAutostart => 'Autostart';
+
+  @override
+  String get alertsAutostartSub => 'Alerts arrive with the app closed';
+
+  @override
+  String get alertsFloating => 'Floating notifications';
+
+  @override
+  String get alertsFloatingSub => 'Urgent alerts drop down from the top';
+
+  @override
+  String get alertsBattery => 'Battery: No restrictions';
+
+  @override
+  String get alertsBatterySub => 'The phone won\'t put BuildVibes to sleep';
+
+  @override
+  String get alertsOn => 'On';
+
+  @override
+  String get alertsTurnOn => 'Turn on';
+
+  @override
+  String get alertsHint =>
+      'Each button opens the right page in your phone\'s settings. Turn the switch on, then come back.';
+
+  @override
+  String get alertsSendTest => 'Send me a test';
+
+  @override
+  String get alertsLater => 'Later';
+
+  @override
+  String get alertsDone => 'Done';
+
+  @override
+  String get alertsArrived => 'The test arrived. Urgent alerts will reach you.';
+
+  @override
+  String get alertsTestSent => 'Test sent. It arrives in a few seconds.';
+
+  @override
+  String get alertsTestTooMany =>
+      'You\'ve sent 3 tests in the last hour. Try again later.';
+
+  @override
+  String get alertsTestAllowFirst =>
+      'Allow notifications first, so the test can reach you.';
+
+  @override
+  String get alertsLate => 'An urgent alert arrived late';
+
+  @override
+  String alertsLateBy(String name, int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$name\'s Need you now reached you $m minutes late.',
+      one: '$name\'s Need you now reached you 1 minute late.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alertsLateByPlain(int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: 'An urgent alert reached you $m minutes late.',
+      one: 'An urgent alert reached you 1 minute late.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alertsOffCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n settings on this phone are off.',
+      one: '1 setting on this phone is off.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alertsFixNow => 'Fix now';
+
+  @override
+  String get alertsNotNow => 'Not now';
 }

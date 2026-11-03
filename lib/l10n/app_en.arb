@@ -2864,30 +2864,6 @@
   "@pushFixIt": {
     "description": "F9: the quiet line's action."
   },
-  "pushFixTitle": "Let notifications reach this phone",
-  "@pushFixTitle": {
-    "description": "F9: the steps sheet on Xiaomi, Redmi and POCO phones."
-  },
-  "pushFixAutostart": "Autostart: on for BuildVibes.",
-  "@pushFixAutostart": {
-    "description": "F9 step 1 (the phone's own word: Autostart)."
-  },
-  "pushFixBattery": "Battery saver: \"No restrictions\" for BuildVibes.",
-  "@pushFixBattery": {
-    "description": "F9 step 2 (the phone's own words)."
-  },
-  "pushFixPlayServices": "The same battery setting for Google Play services.",
-  "@pushFixPlayServices": {
-    "description": "F9 step 3."
-  },
-  "pushFixRestart": "Then restart the phone.",
-  "@pushFixRestart": {
-    "description": "F9 step 4."
-  },
-  "pushFixOpen": "Open BuildVibes settings",
-  "@pushFixOpen": {
-    "description": "F9: opens the phone's page for BuildVibes."
-  },
   "feedNew": "New",
   "@feedNew": {
     "description": "F11: the chip over the Home feed when new posts came in while reading further down."
@@ -10090,5 +10066,132 @@
         "type": "String"
       }
     }
+  },
+  "alertsTitle": "So urgent alerts reach you",
+  "@alertsTitle": {
+    "description": "PS1 title (review 114)."
+  },
+  "alertsSub": "{n, plural, =1{Your team can call you with Need you now, and check-ins open on time. This phone needs 1 setting. It's a single tap.} other{Your team can call you with Need you now, and check-ins open on time. This phone needs {n} settings. Each one is a single tap.}}",
+  "@alertsSub": {
+    "description": "PS1 line under the title; n is how many lines this phone needs.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsNotifications": "Notifications",
+  "@alertsNotifications": {
+    "description": "PS1 line 1."
+  },
+  "alertsNotificationsSub": "Allow BuildVibes to notify you",
+  "@alertsNotificationsSub": {
+    "description": "PS1 line 1, under."
+  },
+  "alertsAutostart": "Autostart",
+  "@alertsAutostart": {
+    "description": "PS1 line 2."
+  },
+  "alertsAutostartSub": "Alerts arrive with the app closed",
+  "@alertsAutostartSub": {
+    "description": "PS1 line 2, under."
+  },
+  "alertsFloating": "Floating notifications",
+  "@alertsFloating": {
+    "description": "PS1 line 3."
+  },
+  "alertsFloatingSub": "Urgent alerts drop down from the top",
+  "@alertsFloatingSub": {
+    "description": "PS1 line 3, under."
+  },
+  "alertsBattery": "Battery: No restrictions",
+  "@alertsBattery": {
+    "description": "PS1 line 4."
+  },
+  "alertsBatterySub": "The phone won't put BuildVibes to sleep",
+  "@alertsBatterySub": {
+    "description": "PS1 line 4, under."
+  },
+  "alertsOn": "On",
+  "@alertsOn": {
+    "description": "A PS1 line that is on."
+  },
+  "alertsTurnOn": "Turn on",
+  "@alertsTurnOn": {
+    "description": "Opens the phone's page for a PS1 line."
+  },
+  "alertsHint": "Each button opens the right page in your phone's settings. Turn the switch on, then come back.",
+  "@alertsHint": {
+    "description": "PS1 hint under the lines."
+  },
+  "alertsSendTest": "Send me a test",
+  "@alertsSendTest": {
+    "description": "PS1: the server sends one test alert."
+  },
+  "alertsLater": "Later",
+  "@alertsLater": {
+    "description": "PS1: skips the setup."
+  },
+  "alertsDone": "Done",
+  "@alertsDone": {
+    "description": "PS2: closes the setup."
+  },
+  "alertsArrived": "The test arrived. Urgent alerts will reach you.",
+  "@alertsArrived": {
+    "description": "PS2: the test push arrived."
+  },
+  "alertsTestSent": "Test sent. It arrives in a few seconds.",
+  "@alertsTestSent": {
+    "description": "PS1: the server took the test (not in the review's copy table)."
+  },
+  "alertsTestTooMany": "You've sent 3 tests in the last hour. Try again later.",
+  "@alertsTestTooMany": {
+    "description": "PS1: the server allows 3 tests an hour (not in the review's copy table)."
+  },
+  "alertsTestAllowFirst": "Allow notifications first, so the test can reach you.",
+  "@alertsTestAllowFirst": {
+    "description": "PS1: Send me a test with notifications off (not in the review's copy table)."
+  },
+  "alertsLate": "An urgent alert arrived late",
+  "@alertsLate": {
+    "description": "PS3 title."
+  },
+  "alertsLateBy": "{m, plural, =1{{name}'s Need you now reached you 1 minute late.} other{{name}'s Need you now reached you {m} minutes late.}}",
+  "@alertsLateBy": {
+    "description": "PS3, first sentence: who called and how late.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsLateByPlain": "{m, plural, =1{An urgent alert reached you 1 minute late.} other{An urgent alert reached you {m} minutes late.}}",
+  "@alertsLateByPlain": {
+    "description": "PS3, first sentence without a name (a check-in, or lock-screen text off; not in the review's copy table).",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsOffCount": "{n, plural, =1{1 setting on this phone is off.} other{{n} settings on this phone are off.}}",
+  "@alertsOffCount": {
+    "description": "PS3, second sentence.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsFixNow": "Fix now",
+  "@alertsFixNow": {
+    "description": "PS3: opens the alerts setup."
+  },
+  "alertsNotNow": "Not now",
+  "@alertsNotNow": {
+    "description": "PS3: closes the sheet."
   }
 }

@@ -1984,24 +1984,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pushFixIt => 'إصلاح';
 
   @override
-  String get pushFixTitle => 'لتصل الإشعارات إلى هذا الهاتف';
-
-  @override
-  String get pushFixAutostart => 'التشغيل التلقائي: مفعّل لتطبيق BuildVibes.';
-
-  @override
-  String get pushFixBattery => 'توفير البطارية: «بلا قيود» لتطبيق BuildVibes.';
-
-  @override
-  String get pushFixPlayServices => 'إعداد البطارية نفسه لخدمات Google Play.';
-
-  @override
-  String get pushFixRestart => 'ثم إعادة تشغيل الهاتف.';
-
-  @override
-  String get pushFixOpen => 'فتح إعدادات BuildVibes';
-
-  @override
   String get feedNew => 'جديد';
 
   @override
@@ -7152,4 +7134,128 @@ class AppLocalizationsAr extends AppLocalizations {
   String teamsMergedIntoTeam(String team) {
     return 'تنضم إلى فريق «$team»: تراجع';
   }
+
+  @override
+  String get alertsTitle => 'حتى تصلك التنبيهات العاجلة';
+
+  @override
+  String alertsSub(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other:
+          'يستطيع فريقك طلبك بـ«مطلوب الآن»، وتسجيل الحضور يفتح في وقته. هذا الهاتف يحتاج $n إعدادًا، كل واحد بضغطة.',
+      few:
+          'يستطيع فريقك طلبك بـ«مطلوب الآن»، وتسجيل الحضور يفتح في وقته. هذا الهاتف يحتاج $n إعدادات، كل واحد بضغطة.',
+      two:
+          'يستطيع فريقك طلبك بـ«مطلوب الآن»، وتسجيل الحضور يفتح في وقته. هذا الهاتف يحتاج إعدادين، كل واحد بضغطة.',
+      one:
+          'يستطيع فريقك طلبك بـ«مطلوب الآن»، وتسجيل الحضور يفتح في وقته. هذا الهاتف يحتاج إعدادًا واحدًا، بضغطة واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alertsNotifications => 'الإشعارات';
+
+  @override
+  String get alertsNotificationsSub => 'اسمح لـ BuildVibes بإرسال الإشعارات';
+
+  @override
+  String get alertsAutostart => 'التشغيل التلقائي';
+
+  @override
+  String get alertsAutostartSub => 'لتصل التنبيهات والتطبيق مغلق';
+
+  @override
+  String get alertsFloating => 'الإشعارات العائمة';
+
+  @override
+  String get alertsFloatingSub => 'تنزل التنبيهات العاجلة من أعلى الشاشة';
+
+  @override
+  String get alertsBattery => 'البطارية: بلا قيود';
+
+  @override
+  String get alertsBatterySub => 'لن يوقف الهاتف BuildVibes';
+
+  @override
+  String get alertsOn => 'مفعّل';
+
+  @override
+  String get alertsTurnOn => 'تشغيل';
+
+  @override
+  String get alertsHint =>
+      'كل زر يفتح الصفحة الصحيحة في إعدادات هاتفك. شغّل المفتاح ثم ارجع.';
+
+  @override
+  String get alertsSendTest => 'أرسل لي تجربة';
+
+  @override
+  String get alertsLater => 'لاحقًا';
+
+  @override
+  String get alertsDone => 'تم';
+
+  @override
+  String get alertsArrived => 'وصلت التجربة. ستصلك التنبيهات العاجلة.';
+
+  @override
+  String get alertsTestSent => 'أُرسلت التجربة. تصل خلال ثوانٍ.';
+
+  @override
+  String get alertsTestTooMany =>
+      'أرسلت 3 تجارب خلال الساعة الماضية. حاول لاحقًا.';
+
+  @override
+  String get alertsTestAllowFirst => 'اسمح بالإشعارات أولًا حتى تصلك التجربة.';
+
+  @override
+  String get alertsLate => 'وصل تنبيه عاجل متأخرًا';
+
+  @override
+  String alertsLateBy(String name, int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: 'طلبك $name بـ«مطلوب الآن» ووصلك بعد $m دقيقة.',
+      few: 'طلبك $name بـ«مطلوب الآن» ووصلك بعد $m دقائق.',
+      two: 'طلبك $name بـ«مطلوب الآن» ووصلك بعد دقيقتين.',
+      one: 'طلبك $name بـ«مطلوب الآن» ووصلك بعد دقيقة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alertsLateByPlain(int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: 'وصلك تنبيه عاجل بعد $m دقيقة.',
+      few: 'وصلك تنبيه عاجل بعد $m دقائق.',
+      two: 'وصلك تنبيه عاجل بعد دقيقتين.',
+      one: 'وصلك تنبيه عاجل بعد دقيقة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alertsOffCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n إعدادًا في هذا الهاتف غير مفعّل.',
+      few: '$n إعدادات في هذا الهاتف غير مفعّلة.',
+      two: 'إعدادان في هذا الهاتف غير مفعّلين.',
+      one: 'إعداد واحد في هذا الهاتف غير مفعّل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alertsFixNow => 'أصلح الآن';
+
+  @override
+  String get alertsNotNow => 'ليس الآن';
 }

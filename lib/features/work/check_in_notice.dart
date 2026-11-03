@@ -95,6 +95,7 @@ class CheckInPush {
     this.postTitle,
     this.zone,
     this.tag,
+    this.sentAt,
   });
 
   /// Null when [data] isn't a check_in_open push.
@@ -112,6 +113,7 @@ class CheckInPush {
       postTitle: data['title'],
       zone: data['tz'],
       tag: data['tag'],
+      sentAt: data['sent_at'],
     );
   }
 
@@ -131,6 +133,7 @@ class CheckInPush {
         postTitle: j['title'] as String?,
         zone: j['tz'] as String?,
         tag: j['tag'] as String?,
+        sentAt: j['sent_at'] as String?,
       );
     } on Object {
       return null;
@@ -153,6 +156,10 @@ class CheckInPush {
   /// same tag and id 0, replaces it. Never two.
   final String? tag;
 
+  /// When the server sent it (ISO 8601 UTC, review 114): a tap long after
+  /// says the alert came late.
+  final String? sentAt;
+
   String get payload =>
       checkInPayloadPrefix +
       jsonEncode({
@@ -162,6 +169,7 @@ class CheckInPush {
         'title': ?postTitle,
         'tz': ?zone,
         'tag': ?tag,
+        'sent_at': ?sentAt,
       });
 
   /// The same notification for the same post and mark: a new one
