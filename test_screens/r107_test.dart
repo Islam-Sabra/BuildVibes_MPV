@@ -201,6 +201,8 @@ void main() {
       await _tap(tester, 'name-continue');
       await _tap(tester, 'work-tile-foreman');
       await _tap(tester, 'work-continue');
+      // Review 114: the alerts setup comes first, once; Later.
+      await _tap(tester, 'alerts-later');
       await tester.enterText(_key('code-input'), 'K7Q4MD');
       await tester.pumpAndSettle();
       await _snap(tester, 'OB6-join-space', lang);
