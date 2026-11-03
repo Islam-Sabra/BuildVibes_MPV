@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026 — review 114 live, build 1005 on the founder's phone; the phone checks wait
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r114` (with `claude/r114-server` and the Teams hotfix) into `slice2-app` at e758314d. A debug build compiled the new Android code first (`MainActivity.kt`, channel `buildvibes/alerts`): no errors.
+- **Live:**
+  - `supabase db push` from a clean worktree at e758314d: `20261123120000_review114` is the last of 61 on live; `send_test_alert()` there, not callable by anon; `need_you_test` in the push kinds. Only the usual pg-delta cache warning.
+  - `push` deployed: **v16** (`sent_at` in every push, the `need_you_test` text), verify_jwt off as before.
+- **Build 1005** (versionCode 1005, 0.9.0, `BV_STORAGE_LOG=true`): asked for as 989, but `build.gradle.kts` takes the larger of `--build-number` and the git commit count (1005). Exact source: branch **`release-1005`** (= e758314d). `Desktop/BuildVibes-1005.apk`, the same certificate (9d02b7db…b1df9f). Carries B2, review 114 (alerts setup, React at the start), the Teams hotfix, B1, review 111. `google-services.json` and `env/prod.json` copied in and deleted after.
+- **On the founder's phone:** 192.168.8.33:40205 only; model 22120RN86G, 988 on it; `adb install -r`: Success; versionCode 1005; disconnected, adb stopped.
+- **Phone checks, open (the founder's):**
+  - [ ] Review 114 on the Xiaomi: Settings → Notifications → Fix it opens the setup; each button opens its page (Autostart, floating notifications on Need you now, MIUI battery on BuildVibes); whether Battery ticks after "No restrictions"; Send me a test drops down with the app swiped away; PS3 after a late Need you now.
+  - [ ] RX1: React at the start, Share at the end, in English and Arabic.
+  - [ ] B2: open a Library PDF 3 times, scroll a Daybook with a PDF card, then the storage log: `cache/` small, the 9 MB PDF once (the start-up clean-up should already have removed the old copies).
+  - [ ] Teams in NBKCH opens (the hotfix).
+  - [ ] B1 from a Need you now and a check-in notification.
+  - B3 (battery) waits for the founder.
+
 ## PC update: 3 Nov 2026 — hotfix for Teams (PGRST201) merged; build 988 on the founder's phone
 
 - **Bug on build 987:** Teams showed "Something went wrong": two foreign keys join `teams` and `team_members` since review 111, so PostgREST refused the members embed (HTTP 300, PGRST201).
