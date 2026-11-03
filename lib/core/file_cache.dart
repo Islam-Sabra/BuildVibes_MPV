@@ -90,6 +90,20 @@ class FileCache {
     }
   }
 
+  /// Signing out or deleting the account: the phone keeps none of the
+  /// account's files.
+  Future<void> clear() async {
+    final top = (await root()).path;
+    for (final name in [_files, _thumbs]) {
+      try {
+        final dir = Directory('$top/$name');
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // In use; the cap and the next sign-out get it.
+      }
+    }
+  }
+
   Future<String> _thumbPath(String storagePath) async =>
       '${(await root()).path}/$_thumbs/${_name(storagePath)}.png';
 
@@ -141,8 +155,9 @@ final fileCacheProvider = Provider<FileCache>(
 
 /// Review 114 B2, at app start: what the app's tools leave in [cache] goes.
 /// - `*.pdf` right in it: pdfx's copies (ours are in bv_files);
-/// - `file_picker/` and `share_plus/` files older than a day, unless one of
-///   [pending] (what waits on the phone: drafts, outboxes) names it.
+/// - `file_picker/` and `share_plus/` files older than a day;
+/// never one that [pending] (what waits on the phone: drafts, outboxes)
+/// names.
 Future<void> cleanUpCache(
   Directory cache, {
   required DateTime now,
@@ -163,7 +178,7 @@ Future<void> cleanUpCache(
 
   if (!cache.existsSync()) return;
   for (final f in cache.listSync().whereType<File>()) {
-    if (f.path.toLowerCase().endsWith('.pdf')) drop(f);
+    if (f.path.toLowerCase().endsWith('.pdf') && !named(f.path)) drop(f);
   }
   for (final name in ['file_picker', 'share_plus']) {
     final dir = Directory('${cache.path}/$name');

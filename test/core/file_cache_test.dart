@@ -78,6 +78,7 @@ void main() {
     final old = now.subtract(const Duration(days: 2));
     final fresh = now.subtract(const Duration(hours: 2));
     put('a1b2.pdf', 10, fresh);
+    put('named.pdf', 10, old);
     put('keep-me.txt', 10, old);
     put('file_picker/111/drawing.pdf', 10, old);
     put('file_picker/222/waiting.pdf', 10, old);
@@ -86,13 +87,18 @@ void main() {
     put('share_plus/now.pdf', 10, fresh);
     put('bv_files/ours.pdf', 10, old);
     final waiting = '${cache.path}/file_picker/222/waiting.pdf';
+    final named = '${cache.path}/named.pdf';
     await cleanUpCache(
       cache,
       now: now,
-      pending: ['{"files":[{"local":"${waiting.replaceAll(r'\', r'\\')}"}]}'],
+      pending: [
+        '{"files":[{"local":"${waiting.replaceAll(r'\', r'\\')}"}]}',
+        '{"local":"$named"}',
+      ],
     );
     bool there(String p) => File('${cache.path}/$p').existsSync();
     expect(there('a1b2.pdf'), isFalse, reason: "pdfx's leftover");
+    expect(there('named.pdf'), isTrue, reason: 'a pending value names it');
     expect(there('keep-me.txt'), isTrue);
     expect(there('file_picker/111/drawing.pdf'), isFalse);
     expect(there('file_picker/222/waiting.pdf'), isTrue, reason: 'pending');

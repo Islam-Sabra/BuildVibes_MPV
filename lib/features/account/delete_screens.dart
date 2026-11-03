@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/file_cache.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -267,6 +268,8 @@ class _DeleteConfirmScreenState extends ConsumerState<DeleteConfirmScreen> {
         return;
       }
       await ref.read(accountRepositoryProvider).requestDeletion();
+      // Review 114 B2: the phone keeps none of the account's files.
+      await ref.read(fileCacheProvider).clear();
       // The gate moves to S14.
       ref.invalidate(myProfileProvider);
     } on AuthFailureException catch (e) {

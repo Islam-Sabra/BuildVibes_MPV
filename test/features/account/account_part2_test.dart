@@ -13,6 +13,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'dart:io';
+
+import 'package:buildvibes/core/file_cache.dart';
+
 import '../../helpers/account_fakes.dart';
 import '../../helpers/pump_app.dart';
 
@@ -99,6 +103,26 @@ void main() {
       await _openSettings(tester);
       expect(find.byKey(const Key('row-components')), findsNothing);
       expect(find.text(l10n.componentsGallery), findsNothing);
+    });
+
+    testWidgets('B2: signing out forgets the phone\'s copies of files '
+        '[$lang]', (tester) async {
+      final root = Directory.systemTemp.createTempSync('bv_signout');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final copies = _copies(root);
+      await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        fileCache: _cache(root),
+      );
+      await _openSettings(tester);
+      await _tap(tester, 'row-sign-out');
+      await _tap(tester, 'bv-dialog-confirm');
+      for (final d in copies) {
+        expect(d.existsSync(), isFalse, reason: d.path);
+      }
+      expect(File('${root.path}/other.txt').existsSync(), isTrue);
     });
 
     testWidgets('S15: sign out asks first, with code wording [$lang]', (
@@ -188,6 +212,30 @@ void main() {
       await _tap(tester, 'row-download');
       expect(find.byKey(const Key('data-request-received')), findsOneWidget);
       expect(find.byKey(const Key('download-request')), findsNothing);
+    });
+
+    testWidgets('B2: deleting the account forgets the phone\'s copies of '
+        'files [$lang]', (tester) async {
+      final root = Directory.systemTemp.createTempSync('bv_delete');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final copies = _copies(root);
+      final app = await pumpApp(
+        tester,
+        feed: true,
+        language: lang,
+        fileCache: _cache(root),
+      );
+      await _openSettings(tester);
+      await _tap(tester, 'row-account');
+      await _tap(tester, 'row-delete');
+      await _tap(tester, 'delete-continue');
+      await tester.enterText(find.byType(EditableText).first, '123456');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'delete-confirm-button');
+      expect(app.account.calls, ['delete']);
+      for (final d in copies) {
+        expect(d.existsSync(), isFalse, reason: d.path);
+      }
     });
 
     testWidgets('S12 → S13 → S14 → Restore [$lang]', (tester) async {
@@ -301,3 +349,20 @@ void main() {
     );
   });
 }
+
+/// The phone's copies of files and first pages, and a file of something
+/// else beside them.
+List<Directory> _copies(Directory root) {
+  final dirs = [
+    for (final name in ['bv_files', 'bv_thumbs'])
+      Directory('${root.path}/$name')..createSync(),
+  ];
+  for (final d in dirs) {
+    File('${d.path}/a.bin').writeAsBytesSync([1, 2, 3]);
+  }
+  File('${root.path}/other.txt').writeAsStringSync('x');
+  return dirs;
+}
+
+FileCache _cache(Directory root) =>
+    FileCache(root: () async => root, download: (_) async => Uint8List(0));
