@@ -22,7 +22,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../work/daybook_photos.dart' show filePreviewProvider;
-import '../spaces/space_sections.dart' show SpaceFileAsk;
+import 'library_add.dart';
 import 'library_folders.dart';
 import 'library_parts.dart';
 import '../../shared/widgets/bv_name_text.dart';
@@ -78,26 +78,17 @@ String libraryLine(
 /// LV1 · Space Library (2543:34980): Search files, then each file in use,
 /// newest first, with its versions, NEW VERSION when it is new for me, and
 /// who received it, as faces (never "3 received", rule 3). "Add a file"
-/// for people who may add files opens a file post ([onAddFile]): every
-/// file enters through a post (review 69 1b).
+/// for people who may add files puts it straight into the Library, with
+/// its folder's sharing and no post (libfix, Z14; [addLibraryFileHere]).
 ///
 /// Review 113 LB1: the folders I can see come first, then the files not
 /// in a folder (today's stay where they are); a search looks through
 /// every file. With [folder], only that folder's files, and Add a file
 /// puts the new one in it.
 class LibraryTab extends ConsumerStatefulWidget {
-  const LibraryTab({
-    super.key,
-    required this.space,
-    this.onAddFile,
-    this.folder,
-  });
+  const LibraryTab({super.key, required this.space, this.folder});
 
   final SpaceDetail space;
-
-  /// Opens the Work tab's writing card as a Document for receipt; with
-  /// [replaces], as a new version of it; with folderId, into that folder.
-  final void Function({LibraryFile? replaces, String? folderId})? onAddFile;
 
   /// A folder's own list (LB1).
   final LibraryFolder? folder;
@@ -127,21 +118,17 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
     ref.invalidate(libraryOverviewProvider(_spaceId));
     // A new version stays in its folder.
     if (replaces != null) {
-      widget.onAddFile?.call(replaces: replaces, folderId: replaces.folderId);
+      await addLibraryFileHere(
+        context,
+        ref,
+        spaceId: _spaceId,
+        replaces: replaces,
+      );
     }
   }
 
-  /// A folder of files hands a file post up, as the Library does.
-  Future<void> _openFolder(LibraryFolder folder) async {
-    final ask = await openLibraryFolder<SpaceFileAsk>(
-      context,
-      ref,
-      spaceId: _spaceId,
-      folder: folder,
-    );
-    if (!mounted || ask == null) return;
-    widget.onAddFile?.call(replaces: ask.replaces, folderId: ask.folderId);
-  }
+  Future<void> _openFolder(LibraryFolder folder) =>
+      openLibraryFolder<void>(context, ref, spaceId: _spaceId, folder: folder);
 
   @override
   Widget build(BuildContext context) {
@@ -154,8 +141,7 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
         ref.watch(libraryOverviewProvider(_spaceId)).value ?? const {};
     final all = files.value;
     final rights = widget.space.myRights;
-    final canAdd =
-        rights.addFiles && rights.createItems && widget.onAddFile != null;
+    final canAdd = rights.addFiles;
 
     final q = _query.trim().toLowerCase();
     final inFolder = widget.folder?.id;
@@ -228,7 +214,14 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
             label: inFolder == null
                 ? l10n.libraryAddFile
                 : l10n.libraryAddToFolder,
-            onTap: () => widget.onAddFile!.call(folderId: inFolder),
+            onTap: () => unawaited(
+              addLibraryFileHere(
+                context,
+                ref,
+                spaceId: _spaceId,
+                folder: widget.folder,
+              ),
+            ),
           ),
       ];
     }

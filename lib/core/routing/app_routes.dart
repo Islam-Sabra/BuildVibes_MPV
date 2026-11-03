@@ -191,8 +191,7 @@ abstract final class AppRoutes {
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';
 
-  /// Review 113 LB1: a Library folder's files. It pops a file post asked
-  /// for there (SpaceFileAsk), as the Library does.
+  /// Review 113 LB1: a Library folder's files.
   static String libraryFolder(String id, String folderId) =>
       '/spaces/$id/folders/$folderId';
 

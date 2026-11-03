@@ -3,8 +3,6 @@ import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_file_screen.dart';
-import 'package:buildvibes/features/spaces/space_screen.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/work_outbox.dart'
     show refusalsProvider;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -157,10 +155,6 @@ Future<TestApp> _open(
   return app;
 }
 
-DaybookPostDraft? _draft(WidgetTester tester) => ProviderScope.containerOf(
-  tester.element(find.byType(SpaceScreen)),
-).read(daybookDraftProvider(_space));
-
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
@@ -206,28 +200,23 @@ void main() {
       expect(find.byKey(const Key('library-add-file')), findsNothing);
     });
 
-    testWidgets('LV1: Add a file opens the writing card as a Document, the '
-        'chooser open [$lang]', (tester) async {
-      await _open(tester, lang, '/spaces/$_space');
+    testWidgets('LV1, libfix: Add a file goes straight into the Library, '
+        'with no post [$lang]', (tester) async {
+      final app = await _open(tester, lang, '/spaces/$_space');
       await _tap(tester, 'space-library');
       await _tap(tester, 'library-add-file');
-      // The Work tab, the composer, a file post, the chooser up.
-      expect(find.byKey(const Key('composer')), findsOneWidget);
-      expect(_draft(tester)?.kind, DaybookKind.file);
-      expect(find.byKey(const Key('file-chooser')), findsOneWidget);
-      await _tap(tester, 'file-from-phone');
+      // The phone's file at once; no composer, no post.
+      expect(find.byKey(const Key('composer')), findsNothing);
       // A Library file is in use: is it a new version of one?
       expect(find.byKey(const Key('replaces-choice')), findsOneWidget);
       await _tap(tester, 'replaces-none');
       await _tap(tester, 'replaces-done');
-      final files = _draft(tester)!.files;
-      expect(files.single.name, 'Level 3 plan.pdf');
-      expect(files.single.supersedesId, isNull);
-      // Nothing went to the Library on its own: it goes with the post.
       expect(
-        (tester.widget(find.byType(SpaceScreen)) as SpaceScreen).spaceId,
-        _space,
+        app.library.calls.single,
+        'add Level 3 plan.pdf team:- rev:- supersedes:-',
       );
+      expect(app.daybook.createdPosts, isEmpty);
+      expect(find.byKey(const Key('library-tab')), findsOneWidget);
     });
 
     testWidgets('LV2: who received it, the Received pill, the versions '
@@ -307,29 +296,32 @@ void main() {
       expect(find.byKey(const Key('file-add-version')), findsNothing);
     });
 
-    testWidgets('LV2: Add a new version opens the writing card with Replaces '
-        'set [$lang]', (tester) async {
+    testWidgets('LV2, libfix: Add a new version goes straight into the '
+        'Library; the whole Space hears of it in a small post [$lang]', (
+      tester,
+    ) async {
       final library = _library();
-      await _open(tester, lang, '/spaces/$_space', library: library);
+      final app = await _open(
+        tester,
+        lang,
+        '/spaces/$_space',
+        library: library,
+      );
       await _tap(tester, 'space-library');
       await _tap(tester, 'file-a501-d');
       await _tap(tester, 'file-add-version');
-      // Straight to the phone's files: no chooser, no question.
+      // Straight to the phone's files: no chooser, no question, no composer.
       expect(find.byKey(const Key('file-chooser')), findsNothing);
       expect(find.byKey(const Key('replaces-choice')), findsNothing);
-      final file = _draft(tester)!.files.single;
-      expect(file.supersedesId, 'a501-d');
-      // "Replaces A-501 · Rev D" (F71; no number in this fake Library).
-      expect(file.supersedesRev, endsWith('Rev D'));
+      expect(find.byKey(const Key('composer')), findsNothing);
       expect(
-        find.descendant(
-          of: find.byKey(Key('writing-replaces-${file.libraryId}')),
-          matching: find.textContaining('Rev D'),
-        ),
-        findsOneWidget,
+        library.calls.single,
+        'add Level 3 plan.pdf team:- rev:- supersedes:a501-d',
       );
-      // Never added without its post (review 69 1b).
-      expect(library.calls, isEmpty);
+      final post = app.daybook.createdPosts.single;
+      expect(post.kind, 'file');
+      expect(post.teamId, isNull);
+      expect(post.libraryFileId, library.filesBySpace[_space]!.first.id);
     });
 
     testWidgets('LV2: ⋯ has Share in chat and Download [$lang]', (

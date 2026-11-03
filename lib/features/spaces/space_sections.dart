@@ -109,7 +109,7 @@ class _SpacePeopleState extends ConsumerState<SpacePeopleScreen> {
 }
 
 /// The Space's Library (review 105 Part 1), from the header's folder icon.
-/// Adding a file goes back to Work, writing its post ([SpaceFileAsk]).
+/// Adding a file stays in the Library (libfix).
 /// Review 113 LB1: the Space's name under the title, and + for New folder
 /// and Link folder for who may add files.
 class SpaceLibraryScreen extends ConsumerWidget {
@@ -157,21 +157,14 @@ class SpaceLibraryScreen extends ConsumerWidget {
             icon: const Icon(BvIcons.add, size: BvSize.iconLg),
           ),
       ],
-      body: detail == null
-          ? null
-          : LibraryTab(
-              space: detail,
-              onAddFile: ({replaces, folderId}) => context.pop(
-                SpaceFileAsk(replaces: replaces, folderId: folderId),
-              ),
-            ),
+      body: detail == null ? null : LibraryTab(space: detail),
     );
   }
 }
 
 /// Review 113 LB1: a folder's files, with its line under its name; ⋯
 /// edits or deletes it for its creator or the Space admin. Adding a file
-/// here hands the post up with the folder.
+/// here puts it in the folder (libfix).
 class LibraryFolderScreen extends ConsumerWidget {
   const LibraryFolderScreen({
     super.key,
@@ -224,13 +217,7 @@ class LibraryFolderScreen extends ConsumerWidget {
       ],
       body: detail == null || folder == null
           ? null
-          : LibraryTab(
-              space: detail,
-              folder: folder,
-              onAddFile: ({replaces, folderId}) => context.pop(
-                SpaceFileAsk(replaces: replaces, folderId: folderId),
-              ),
-            ),
+          : LibraryTab(space: detail, folder: folder),
     );
   }
 }

@@ -11576,6 +11576,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t open the link.'**
   String get libraryLinkOpenFailed;
 
+  /// libfix: the small post that tells a whole-Space or Team folder's audience a file has a new version.
+  ///
+  /// In en, this message translates to:
+  /// **'New version: {name} · {rev}'**
+  String libraryNewVersionPost(String name, String rev);
+
   /// Inside a folder: add a file into it.
   ///
   /// In en, this message translates to:

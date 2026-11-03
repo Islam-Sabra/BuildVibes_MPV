@@ -7,6 +7,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/library.dart';
+import '../../data/models/library_folder.dart';
 import '../../data/models/space.dart';
 import '../../data/models/upload_rules.dart';
 import '../../data/repositories/library_repository.dart';
@@ -92,6 +93,11 @@ Future<DaybookAttach?> showDaybookAttach(
 ///
 /// [replaces] (LV2 "Add a new version"): straight to the phone's files,
 /// and the new one replaces it, with no question.
+///
+/// libfix (Z14, privacy): with [sameFolder] (the Library's own add), a new
+/// version is of a file in [folderId]'s folder only. For a post, only files
+/// a post may carry are offered: at the Library's top level or in a
+/// whole-Space folder (the server refuses the rest).
 Future<DraftFile?> chooseDaybookFile(
   BuildContext context,
   WidgetRef ref, {
@@ -99,13 +105,24 @@ Future<DraftFile?> chooseDaybookFile(
   LibraryFile? replaces,
   DaybookFileSource? source,
   String? folderId,
+  bool sameFolder = false,
 }) async {
   final l10n = AppLocalizations.of(context);
   final all = replaces != null
       ? const <LibraryFile>[]
       : await _libraryFiles(context, ref, spaceId);
   if (all == null || !context.mounted) return null;
-  final current = _current(all);
+  final shared = sameFolder
+      ? const <String>{}
+      : await _sharedFolders(ref, spaceId);
+  if (!context.mounted) return null;
+  final current = [
+    for (final f in _current(all))
+      if (sameFolder
+          ? f.folderId == folderId
+          : f.folderId == null || shared.contains(f.folderId))
+        f,
+  ];
   // F72: the paper clip already said where from.
   final picked = replaces != null || source == DaybookFileSource.phone
       ? _fromPhone
@@ -215,6 +232,19 @@ Future<List<LibraryFile>?> _libraryFiles(
   } on SpaceException catch (e) {
     if (context.mounted) showSpaceError(context, e);
     return null;
+  }
+}
+
+/// libfix: the whole-Space folders, whose files any post may carry.
+Future<Set<String>> _sharedFolders(WidgetRef ref, String spaceId) async {
+  try {
+    final folders = await ref.read(libraryFoldersProvider(spaceId).future);
+    return {
+      for (final d in folders)
+        if (d.share == FolderShare.space && !d.isLink) d.id,
+    };
+  } on SpaceException {
+    return const {};
   }
 }
 

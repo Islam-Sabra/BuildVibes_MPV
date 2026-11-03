@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show StorageException;
 
+import '../../helpers/composer_steps.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/library_fakes.dart';
@@ -56,6 +57,7 @@ Future<_App> _open(
     daybook: daybook,
     library: FakeLibraryRepository(now: DaybookSamples.thursday),
     now: DaybookSamples.thursday,
+    composerKind: 'note',
     pickDocument: picked == null ? null : () => picked,
     localFileThere: there,
   );
@@ -66,11 +68,14 @@ Future<_App> _open(
   return (app: app, daybook: daybook);
 }
 
-/// A file post from the Library's Add a file, the phone's file chosen.
+/// A note with a file from the phone (+ → File). libfix: the Library's
+/// Add a file writes no post any more; a post's file goes the same way.
 Future<void> _filePost(WidgetTester tester) async {
-  await _tap(tester, _key('space-library'));
-  await _tap(tester, _key('library-add-file'));
-  await _tap(tester, _key('file-from-phone'));
+  await _tap(tester, _key('post-bar-notepad'));
+  await tester.enterText(_key('writing-title'), 'Level 3');
+  await tester.pumpAndSettle();
+  await addExtra(tester, 'file');
+  await _tap(tester, _key('attach-file'));
 }
 
 DaybookPostDraft? _draft(WidgetTester tester) => ProviderScope.containerOf(

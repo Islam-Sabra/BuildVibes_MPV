@@ -7010,6 +7010,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryLinkOpenFailed => 'تعذّر فتح الرابط.';
 
   @override
+  String libraryNewVersionPost(String name, String rev) {
+    return 'نسخة جديدة: $name · $rev';
+  }
+
+  @override
   String get libraryAddToFolder => 'أضف ملفًا هنا';
 
   @override

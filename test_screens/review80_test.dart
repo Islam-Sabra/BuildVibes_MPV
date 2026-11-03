@@ -177,8 +177,16 @@ Future<void> _write(
 ) async {
   final l10n = _l10n(lang);
   if (kindName == l10n.daybookKindDocument) {
-    await _tap(tester, _key('space-library'));
-    await _tap(tester, _key('library-add-file'));
+    // libfix: the Library writes no post; a file goes on a note (+ → File),
+    // the attach sheet left open.
+    await _tap(tester, _key('post-bar-notepad'));
+    await chooseKind(tester, 'note');
+    if (title.isNotEmpty) {
+      await tester.enterText(_key('writing-title'), title);
+      await tester.pumpAndSettle();
+    }
+    await addExtra(tester, 'file');
+    return;
   } else {
     await _tap(tester, _key('post-bar-notepad'));
     // Review 110 CP2: the kind from #.
@@ -418,12 +426,11 @@ void main() {
         lang,
         files: [_m201],
         postId: 'post-review80-sending',
-        // A file post starts from the Library's Add a file (review 105).
         addFiles: true,
       );
       app.library.holdUpload = Completer<void>();
       await _write(tester, lang, l10n.daybookKindDocument, 'M-201 Rev D');
-      await _tap(tester, _key('file-from-phone'));
+      await _tap(tester, _key('attach-file'));
       await _tap(tester, _key('replaces-none'));
       await _tap(tester, _key('replaces-done'));
       await _tap(tester, _key('writing-post'));

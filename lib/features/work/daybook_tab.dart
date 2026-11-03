@@ -147,7 +147,6 @@ class DaybookTab extends ConsumerStatefulWidget {
     required this.space,
     this.startWriting = false,
     this.target,
-    this.startFile,
     this.startReport,
   });
 
@@ -161,9 +160,6 @@ class DaybookTab extends ConsumerStatefulWidget {
   /// Opened from Create's "Work item in a Space" (F1): the card opens at
   /// Now, when the reader may write work items here.
   final bool startWriting;
-
-  /// Opened from the Library: a file post at Now, its chooser open.
-  final DaybookFileStart? startFile;
 
   /// The Space menu's Daily report (slice 7): today's report opens.
   final DaybookReportStart? startReport;
@@ -370,9 +366,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         // item, whatever kind was posted here last.
         _startWriting(kind: DaybookKind.workItem);
       }
-      if (mounted && widget.startFile != null) {
-        unawaited(_startFile(widget.startFile!));
-      }
       if (mounted && widget.startReport != null) unawaited(_startReport());
       _flush();
       // Kept from an earlier visit (another page of this Space is open
@@ -387,12 +380,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void didUpdateWidget(DaybookTab old) {
     super.didUpdateWidget(old);
     if (widget.target != old.target) _target = widget.target;
-    final start = widget.startFile;
-    if (start != null && start != old.startFile) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_startFile(start));
-      });
-    }
     final report = widget.startReport;
     if (report != null && report != old.startReport) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1009,24 +996,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
     });
-  }
-
-  /// A file post from the Library (review 69 1b): the card at Now as a
-  /// Document for receipt, the file chooser open; for a new version, the
-  /// phone's files at once, replacing [DaybookFileStart.replaces].
-  Future<void> _startFile(DaybookFileStart start) async {
-    if (!widget.space.myRights.createItems) return;
-    _startWriting();
-    await _card.setKind(DaybookKind.file);
-    if (!mounted) return;
-    final file = await chooseDaybookFile(
-      context,
-      ref,
-      spaceId: _spaceId,
-      replaces: start.replaces,
-      folderId: start.folderId,
-    );
-    if (file != null) await _card.addFile(file);
   }
 
   /// Review 113 bug 7: Link folder from Tap to fix, for a drawing too big
