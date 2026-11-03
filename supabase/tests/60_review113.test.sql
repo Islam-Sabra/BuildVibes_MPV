@@ -1018,10 +1018,12 @@ select ok(exists (select 1 from public.claim_orphan_files(interval '1 day') c
                   where c.name = pg_temp.path('f30e')), 'a minute over 7 days goes');
 
 -- 3 and 4. A private folder: Tariq's, with a plain file, one a chat
--- still uses, and one a post carries.
+-- still uses, and one a post carries. libfix: a post never takes a file
+-- from a private folder, so the post took it while the folder was the whole
+-- Space's, and the folder became only his afterwards.
 select pg_temp.as_user('c3');
 set local role authenticated;
-select public.create_library_folder(pg_temp.id('f00c'), pg_temp.sp(), 'Tariq private', 'only_me');
+select public.create_library_folder(pg_temp.id('f00c'), pg_temp.sp(), 'Tariq private', 'space');
 reset role;
 select pg_temp.obj(x.f, 'c3', interval '0') from (values ('f109'), ('f10a'), ('f10b')) x(f);
 insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
@@ -1033,6 +1035,7 @@ values (pg_temp.id('fa01'), pg_temp.path('f10a'), 'image/jpeg');
 update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f10b') where id = pg_temp.id('a003');
 insert into public.post_files (post_id, library_file_id, sort, added_by)
 values (pg_temp.id('a003'), pg_temp.id('f10b'), 52, pg_temp.uid('c3'));
+update public.library_folders set share = 'only_me' where id = pg_temp.id('f00c');
 select ok(pg_temp.opens('c3', 'f109'), 'the uploader opens his private file while in the Space');
 select pg_temp.as_user('c3');
 set local role authenticated;
@@ -1104,10 +1107,11 @@ select is((select count(*)::int from public.library_folders where id = pg_temp.i
 select is((select count(*)::int from public.private_file_purges where storage_path = pg_temp.path('f10c')), 1,
   'and its path waits in the queue');
 
--- 5. Account purge: Eve's private file, attached to her post.
+-- 5. Account purge: Eve's private file, attached to her post (libfix: while
+-- the folder was the whole Space's; only hers afterwards).
 select pg_temp.as_user('f6');
 set local role authenticated;
-select public.create_library_folder(pg_temp.id('f00e'), pg_temp.sp2(), 'Eve private', 'only_me');
+select public.create_library_folder(pg_temp.id('f00e'), pg_temp.sp2(), 'Eve private', 'space');
 select public.create_space_post(pg_temp.id('a004'), pg_temp.sp2(), 'announcement', 'Eve''s post');
 reset role;
 select pg_temp.obj('f10d', 'f6', interval '0');
@@ -1117,6 +1121,7 @@ values (pg_temp.id('f10d'), pg_temp.sp2(), 'x.jpg', pg_temp.path('f10d'), 'image
 update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f10d') where id = pg_temp.id('a004');
 insert into public.post_files (post_id, library_file_id, sort, added_by)
 values (pg_temp.id('a004'), pg_temp.id('f10d'), 0, pg_temp.uid('f6'));
+update public.library_folders set share = 'only_me' where id = pg_temp.id('f00e');
 update public.profiles set deletion_scheduled_at = now() - interval '31 days' where id = pg_temp.uid('f6');
 select ok(public.purge_account(pg_temp.uid('f6')), 'the account is purged');
 select is((select count(*)::int from public.library_folders where id = pg_temp.id('f00e')), 0,
@@ -1564,7 +1569,8 @@ insert into public.space_members (space_id, profile_id, pass, confirmed_by)
 values (pg_temp.sp(), pg_temp.uid('c7'), 'crew', pg_temp.uid('a1'));
 select pg_temp.as_user('c7');
 set local role authenticated;
-select public.create_library_folder(pg_temp.id('f540'), pg_temp.sp(), 'Cleo private', 'only_me');
+-- libfix: attached while the folder was the whole Space's; only hers after.
+select public.create_library_folder(pg_temp.id('f540'), pg_temp.sp(), 'Cleo private', 'space');
 reset role;
 select pg_temp.obj(x.f, 'c7', interval '0') from (values ('f541'), ('f542')) x(f);
 insert into public.library_files (id, space_id, name, storage_path, mime, uploaded_by, folder_id)
@@ -1573,6 +1579,7 @@ from (values ('f541'), ('f542')) x(f);
 select is((select status from public.work_items where id = pg_temp.id('b003')), 'checked', 'Z3: b003 is Checked');
 insert into public.work_item_attachments (work_item_id, library_file_id, added_by)
 values (pg_temp.id('b003'), pg_temp.id('f541'), pg_temp.uid('c7'));
+update public.library_folders set share = 'only_me' where id = pg_temp.id('f540');
 
 select pg_temp.as_user('c7');
 set local role authenticated;
@@ -1744,10 +1751,12 @@ where id = pg_temp.id('fe20');
 select ok(pg_temp.locked(pg_temp.path('f551')), 'Z12: and on an update too');
 
 -- Z14. Attaching or posting a file shares it with the post's audience; the
--- folder still decides who sees it in the Library.
+-- folder still decides who sees it in the Library. libfix: a post never
+-- takes a private folder's file (65_library_private_posts), so these went on
+-- while the folder was the whole Space's, and it became only his after.
 select pg_temp.as_user('a7');
 set local role authenticated;
-select public.create_library_folder(pg_temp.id('f560'), pg_temp.sp(), 'Gus private', 'only_me');
+select public.create_library_folder(pg_temp.id('f560'), pg_temp.sp(), 'Gus private', 'space');
 select public.create_work_item(pg_temp.sp(), 'Z14 item', pg_temp.uid('b2'), p_id => pg_temp.id('b0e1'));
 select public.create_space_post(pg_temp.id('a0e1'), pg_temp.sp(), 'announcement', 'Z14 post');
 select public.create_space_post(pg_temp.id('a0e2'), pg_temp.sp(), 'announcement', 'Z14 file post');
@@ -1764,6 +1773,7 @@ insert into public.post_files (post_id, library_file_id, sort, added_by)
 values (pg_temp.id('a0e1'), pg_temp.id('f562'), 0, pg_temp.uid('a7')),
        (pg_temp.id('a003'), pg_temp.id('f564'), 90, pg_temp.uid('a7'));
 update public.space_posts set kind = 'file', library_file_id = pg_temp.id('f563') where id = pg_temp.id('a0e2');
+update public.library_folders set share = 'only_me' where id = pg_temp.id('f560');
 
 create function pg_temp.library_rows(p_id text, p text) returns integer language plpgsql as $$
 declare v integer;
