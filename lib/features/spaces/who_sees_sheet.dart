@@ -26,11 +26,12 @@ Future<({SpaceTeam? team})?> pickWhoSees(
     ...teams.where((t) => t.memberIds.contains(me)),
     ...teams.where((t) => !t.memberIds.contains(me)),
   ];
+  // V13: the Space admin's own word first, also for one who is a Team admin.
   String why(SpaceTeam t) => t.memberIds.contains(me)
       ? l10n.whoSeesYourTeam
-      : people.isTeamAdmin(me)
-      ? l10n.whoSeesAsTeamAdmin
-      : l10n.whoSeesAsSpaceAdmin;
+      : spaceAdmin
+      ? l10n.whoSeesAsSpaceAdmin
+      : l10n.whoSeesAsTeamAdmin;
 
   return showBvSheet<({SpaceTeam? team})>(
     context: context,
