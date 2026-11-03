@@ -544,6 +544,7 @@
   "notifReplies": "الردود",
   "notifMessages": "الرسائل",
   "notifLockText": "إظهار نص الرسالة على شاشة القفل",
+  "alertsSetupRow": "إعداد التنبيهات",
   "notifSpaces": "المساحات",
   "notifSpacesLine": "لكل مساحة من معلومات المساحة ← الإشعارات",
   "notifFooter": "لا تذكر الإشعارات اسم مشروع أو مساحة أو بند عمل.",

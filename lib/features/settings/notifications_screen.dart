@@ -164,6 +164,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                 ),
               ),
             ),
+          // Review 114b: the alerts setup always has a way in; the line
+          // above is only extra.
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: BvSpace.s16),
+            child: BvListGroup(
+              rows: [
+                BvListRow(
+                  key: const Key('notif-alerts-setup'),
+                  title: l10n.alertsSetupRow,
+                  onTap: () => fixPush(context, ref),
+                ),
+              ],
+            ),
+          ),
           header(l10n.notifPeople),
           faded(
             BvListGroup(
