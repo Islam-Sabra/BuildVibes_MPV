@@ -965,7 +965,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesConfirmedByYou => 'Confirmed by you';
 
   @override
-  String get spacesRightChat => 'Chat in Everyone and their Teams';
+  String get spacesRightChat => 'Chat in Whole Space and their Teams';
 
   @override
   String get spacesRightMarkDone => 'Mark own items done';
@@ -1280,17 +1280,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveredCheckedRowNoName => 'Checked';
 
   @override
-  String get chatEveryone => 'Everyone';
-
-  @override
   String get chatTeam => 'Team';
 
   @override
-  String get chatThreadsNote => 'You see threads for Everyone and your Teams.';
+  String get chatThreadsNote =>
+      'You see threads for Whole Space and your Teams.';
 
   @override
   String get chatThreadsNoteAdmin =>
-      'As a Space admin, you see Everyone and every Team.';
+      'As a Space admin, you see Whole Space and every Team.';
 
   @override
   String get chatNoMessages => 'No messages yet.';
@@ -1339,10 +1337,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatSending => 'Sending…';
 
   @override
-  String get chatNotSent => 'Not sent';
+  String get chatRetry => 'Retry';
 
   @override
-  String get chatRetry => 'Retry';
+  String get chatCouldNotSend => 'Couldn\'t send · Tap to fix';
+
+  @override
+  String get chatCouldNotSendWhy =>
+      'This message is still on your phone. Try again when you have signal, or remove it.';
 
   @override
   String get chatReply => 'Reply';
@@ -3369,9 +3371,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookToAudience(String audience) {
     return 'To: $audience';
   }
-
-  @override
-  String get daybookEveryone => 'Everyone';
 
   @override
   String daybookMastheadToday(String date) {
@@ -6884,6 +6883,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryFolderNameHint => 'Folder name';
 
   @override
+  String libraryUploading(int percent) {
+    return 'Uploading $percent%';
+  }
+
+  @override
+  String get libraryWaitingForSignal => 'Waiting for signal';
+
+  @override
+  String get libraryCouldNotUpload => 'Couldn\'t upload · Tap to fix';
+
+  @override
+  String libraryWhoSeesLine(String who) {
+    return 'Who sees it: $who';
+  }
+
+  @override
+  String get libraryWhoChange => 'Change';
+
+  @override
+  String get libraryMyFiles => 'My files';
+
+  @override
   String get libraryWhoSees => 'Who sees it';
 
   @override
@@ -7139,10 +7160,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertsBatterySub => 'The phone won\'t put BuildVibes to sleep';
 
   @override
+  String get alertsLockRecents => 'Lock BuildVibes in recent apps';
+
+  @override
+  String get alertsLockRecentsSub =>
+      'Open recent apps, hold the BuildVibes card, tap the lock';
+
+  @override
+  String get alertsLockRecentsNow =>
+      'Open recent apps now and lock BuildVibes, then come back.';
+
+  @override
   String get alertsOn => 'On';
 
   @override
   String get alertsTurnOn => 'Turn on';
+
+  @override
+  String get alertsShowMe => 'Show me';
 
   @override
   String get alertsHint =>

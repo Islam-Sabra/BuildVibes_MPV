@@ -169,9 +169,9 @@ class TemplateList extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final teams = ref.watch(spacePeopleProvider(spaceId)).value?.teams;
     String line(PostTemplate t) {
-      if (t.teamId == null) return l10n.daybookEveryone;
+      if (t.teamId == null) return l10n.daybookWholeSpace;
       return teams?.where((x) => x.id == t.teamId).firstOrNull?.name ??
-          l10n.daybookEveryone;
+          l10n.daybookWholeSpace;
     }
 
     final builtins = [

@@ -13,8 +13,10 @@ import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
 import '../../data/models/upload_rules.dart';
-import '../../data/models/daybook.dart' show DaybookQuote, DaybookTag;
+import '../../data/models/daybook.dart'
+    show DaybookPost, DaybookQuote, DaybookTag;
 import '../../data/models/library.dart';
+import '../../data/models/library_folder.dart' show FolderChange;
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../core/l10n/phone_zone.dart';
@@ -137,7 +139,14 @@ enum PendingKind {
 
   /// Remove from Space (review 94), held for the undo bar's 5 seconds
   /// first: [PendingItem.id] is the person's.
-  remove('remove_member');
+  remove('remove_member'),
+
+  /// Review 115 (1): a file added in the Library: [PendingItem.id] is the
+  /// Library file's, its one file in [PendingItem.files] (its folder
+  /// there), a folder still to make in [PendingItem.newFolder]; a new
+  /// version's small post (libfix) in [PendingItem.postId],
+  /// [PendingItem.title] and [PendingItem.teamId].
+  libraryFile('library_file');
 
   const PendingKind(this.json);
   final String json;
@@ -191,6 +200,8 @@ class PendingItem {
     this.voiceLocal,
     this.voiceMs = 0,
     this.voicePath,
+    this.refusal,
+    this.newFolder,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -252,6 +263,8 @@ class PendingItem {
     voiceLocal: json['voice_local'] as String?,
     voiceMs: (json['voice_ms'] as num?)?.toInt() ?? 0,
     voicePath: json['voice_path'] as String?,
+    refusal: json['refusal'] as String?,
+    newFolder: FolderChange.fromJson(json['new_folder']),
   );
 
   static DateTime? _time(Object? value) =>
@@ -359,6 +372,14 @@ class PendingItem {
   /// name, for its card while it waits.
   final DaybookTag? tag;
 
+  /// Review 115 (1): why a Library file was refused ([FileRefused.code]),
+  /// for its Tap to fix line. Posts keep theirs on [draft].
+  final String? refusal;
+
+  /// Review 115 (2): the folder "Who sees it" chose, made before the file
+  /// goes (the same id again is the same folder).
+  final FolderChange? newFolder;
+
   /// The card this is about.
   String get cardId => postId ?? id;
 
@@ -376,6 +397,7 @@ class PendingItem {
     bool? refused,
     bool? sent,
     DaybookPostDraft? draft,
+    String? Function()? refusal,
   }) => PendingItem(
     id: id,
     spaceId: spaceId,
@@ -412,6 +434,8 @@ class PendingItem {
     handovers: handovers,
     scheduleAt: scheduleAt,
     tag: tag,
+    refusal: refusal == null ? this.refusal : refusal(),
+    newFolder: newFolder,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -499,6 +523,8 @@ class PendingItem {
     if (handovers.isNotEmpty) 'handovers': handoversJson(handovers),
     'schedule_at': ?scheduleAt?.toUtc().toIso8601String(),
     'tag': ?tag?.toJson(),
+    'refusal': ?refusal,
+    'new_folder': ?newFolder?.toJson(),
   };
 
   /// Only the kinds this version knows are read back.
@@ -838,7 +864,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     for (;;) {
       try {
         // Z13: a file gone from the phone goes back to the draft, saying so.
-        if (item.isNewPost) {
+        if (item.isNewPost || item.kind == PendingKind.libraryFile) {
           final gone = goneDraftFile(
             ref.read(localFileThereProvider),
             photos: [
@@ -880,6 +906,12 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           );
           current = current.copyWith(voicePath: () => path);
           await _put(current);
+        }
+        // Review 115 (2): the folder "Who sees it" chose, made first.
+        if (current.newFolder case final folder?) {
+          await withRetries(
+            () => ref.read(libraryRepositoryProvider).createFolder(folder),
+          );
         }
         // New files go to the Library first, under the ids the app chose.
         final files = <DraftFile>[];
@@ -967,6 +999,18 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// never there twice. With no signal for that read, it waits, without
   /// the label, and is settled on the next try.
   Future<bool> _settle(PendingItem item) async {
+    // Review 115 (1): a Library file is there once the Library reads it.
+    if (item.kind == PendingKind.libraryFile) {
+      ref
+        ..invalidate(libraryFilesProvider(item.spaceId))
+        ..invalidate(libraryFoldersProvider(item.spaceId))
+        ..invalidate(libraryOverviewProvider(item.spaceId));
+      if (item.postId != null) unawaited(_refreshDaybook(item.spaceId));
+      ref.read(signalProvider.notifier).back();
+      await _drop(item);
+      _deleteFiles(item);
+      return true;
+    }
     if (item.kind == PendingKind.remove) {
       ref.invalidate(spacePeopleProvider(item.spaceId));
     }
@@ -1071,6 +1115,21 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       null => null,
     };
     switch (item.kind) {
+      // Review 115 (1): the file is in the Library now; only a new version
+      // tells its folder's audience (libfix), with the id the phone chose.
+      case PendingKind.libraryFile:
+        if (item.postId case final post?) {
+          await daybook.createPost(
+            NewSpacePost(
+              id: post,
+              spaceId: item.spaceId,
+              kind: DaybookPost.fileKind,
+              title: item.title,
+              libraryFileId: item.id,
+              teamId: item.teamId,
+            ),
+          );
+        }
       case PendingKind.workItem:
         final made = NewWorkItem(
           id: item.id,
@@ -1271,6 +1330,14 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await _put(kept.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
+      // Review 115 (1): it waits, refused, with why, for Tap to fix.
+      case PendingKind.libraryFile:
+        await _put(
+          item.copyWith(
+            refused: true,
+            refusal: () => e is FileRefused ? e.code : null,
+          ),
+        );
       case PendingKind.check ||
           PendingKind.cancel ||
           PendingKind.remove ||

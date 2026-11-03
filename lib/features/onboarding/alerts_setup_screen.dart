@@ -121,6 +121,11 @@ class _AlertsSetupScreenState extends ConsumerState<AlertsSetupScreen> {
       case AlertLine.battery:
         _away = line;
         await phone.openBattery(maker?.battery ?? const []);
+      case AlertLine.lockRecents:
+        // No app can open recent apps or lock itself there: it says what
+        // to do, and the line is on once the person comes back.
+        _away = line;
+        _say(AppLocalizations.of(context).alertsLockRecentsNow);
     }
     if (!mounted) return;
     ref
@@ -343,6 +348,11 @@ class _AlertsSetupScreenState extends ConsumerState<AlertsSetupScreen> {
         l10n.alertsBattery,
         l10n.alertsBatterySub,
       ),
+      AlertLine.lockRecents => (
+        BvIcons.alertsLockRecents,
+        l10n.alertsLockRecents,
+        l10n.alertsLockRecentsSub,
+      ),
     };
     final on = setup.on.contains(line);
     return BvListRow(
@@ -370,7 +380,11 @@ class _AlertsSetupScreenState extends ConsumerState<AlertsSetupScreen> {
               )
             : BvPillButton(
                 key: Key('alerts-turn-on-${line.name}'),
-                label: l10n.alertsTurnOn,
+                // Lock in recent apps opens a how-to, not a page (review
+                // 115): "Show me".
+                label: line == AlertLine.lockRecents
+                    ? l10n.alertsShowMe
+                    : l10n.alertsTurnOn,
                 onTap: () => unawaited(_turnOn(line, setup)),
               ),
       ),

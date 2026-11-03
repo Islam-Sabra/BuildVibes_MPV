@@ -1793,7 +1793,7 @@ abstract class AppLocalizations {
   /// Right, always on.
   ///
   /// In en, this message translates to:
-  /// **'Chat in Everyone and their Teams'**
+  /// **'Chat in Whole Space and their Teams'**
   String get spacesRightChat;
 
   /// Right, set by the pass.
@@ -2294,12 +2294,6 @@ abstract class AppLocalizations {
   /// **'Checked'**
   String get deliveredCheckedRowNoName;
 
-  /// The Space-wide thread.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get chatEveryone;
-
   /// Thread subtitle for a Team thread.
   ///
   /// In en, this message translates to:
@@ -2309,13 +2303,13 @@ abstract class AppLocalizations {
   /// S7k footer for members.
   ///
   /// In en, this message translates to:
-  /// **'You see threads for Everyone and your Teams.'**
+  /// **'You see threads for Whole Space and your Teams.'**
   String get chatThreadsNote;
 
   /// S7k footer for admins.
   ///
   /// In en, this message translates to:
-  /// **'As a Space admin, you see Everyone and every Team.'**
+  /// **'As a Space admin, you see Whole Space and every Team.'**
   String get chatThreadsNoteAdmin;
 
   /// Thread with no messages.
@@ -2402,17 +2396,23 @@ abstract class AppLocalizations {
   /// **'Sending…'**
   String get chatSending;
 
-  /// Failed message.
-  ///
-  /// In en, this message translates to:
-  /// **'Not sent'**
-  String get chatNotSent;
-
   /// Failed message action.
   ///
   /// In en, this message translates to:
   /// **'Retry'**
   String get chatRetry;
+
+  /// Under a chat message that didn't go: a tap opens Try again and Remove (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send · Tap to fix'**
+  String get chatCouldNotSend;
+
+  /// The Couldn't send sheet of a chat message, when no file was refused (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'This message is still on your phone. Try again when you have signal, or remove it.'**
+  String get chatCouldNotSendWhy;
 
   /// Message action.
   ///
@@ -5695,12 +5695,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To: {audience}'**
   String daybookToAudience(String audience);
-
-  /// Writing card and its To menu: the whole Space (F56).
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get daybookEveryone;
 
   /// The masthead at Now, after the bold word Today (review 50 F59): "Today · Wednesday 21 October".
   ///
@@ -9230,7 +9224,7 @@ abstract class AppLocalizations {
   /// **'Voice note · {length}'**
   String daybookVoiceTitle(String length);
 
-  /// Review 105 SP2: the Team row before a Team is chosen.
+  /// Review 105 SP2: the Team row before a Team is chosen. Also the name of the Space's chat thread for the whole Space (review 115: one word in the whole app).
   ///
   /// In en, this message translates to:
   /// **'Whole Space'**
@@ -11444,6 +11438,42 @@ abstract class AppLocalizations {
   /// **'Folder name'**
   String get libraryFolderNameHint;
 
+  /// Review 115 (1): a Library file on its way, in the Library list.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading {percent}%'**
+  String libraryUploading(int percent);
+
+  /// Review 115 (1): a Library file kept on the phone until there is signal.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal'**
+  String get libraryWaitingForSignal;
+
+  /// Review 115 (1): a Library file the server or storage refused; a tap opens Try again · Remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload · Tap to fix'**
+  String get libraryCouldNotUpload;
+
+  /// Review 115 (2): before a file goes to the Library's top level.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it: {who}'**
+  String libraryWhoSeesLine(String who);
+
+  /// Review 115 (2): opens the choice of who sees the file.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get libraryWhoChange;
+
+  /// Review 115 (2): the name of the only-me folder made for a file.
+  ///
+  /// In en, this message translates to:
+  /// **'My files'**
+  String get libraryMyFiles;
+
   /// LB1/LB2: the sharing choice label.
   ///
   /// In en, this message translates to:
@@ -11846,6 +11876,24 @@ abstract class AppLocalizations {
   /// **'The phone won\'t put BuildVibes to sleep'**
   String get alertsBatterySub;
 
+  /// PS1 line 5, Xiaomi, Redmi and POCO only (review 115): MIUI closes an app that isn't locked in recent apps soon after Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock BuildVibes in recent apps'**
+  String get alertsLockRecents;
+
+  /// PS1 line 5, under: the how-to (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Open recent apps, hold the BuildVibes card, tap the lock'**
+  String get alertsLockRecentsSub;
+
+  /// PS1 line 5's Turn on: no app can open recent apps, so it says what to do; the line shows On when the person comes back (review 115).
+  ///
+  /// In en, this message translates to:
+  /// **'Open recent apps now and lock BuildVibes, then come back.'**
+  String get alertsLockRecentsNow;
+
   /// A PS1 line that is on.
   ///
   /// In en, this message translates to:
@@ -11857,6 +11905,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on'**
   String get alertsTurnOn;
+
+  /// Review 115: the Lock in recent apps line's button; it opens a how-to, not a page.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me'**
+  String get alertsShowMe;
 
   /// PS1 hint under the lines.
   ///

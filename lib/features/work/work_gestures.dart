@@ -70,12 +70,6 @@ class WorkSelection extends Notifier<Set<String>> {
   void clear() => state = const {};
 }
 
-/// Review 113: a card is held only when the server says it can be
-/// (Delete or Archive, "hold"), or for a repeating Check-in I may stop.
-/// Someone else's post has nothing to hold.
-bool mayHoldPost(DaybookPost post) =>
-    post.hold != null || (post.isCheckIn && (post.checkIn?.canStop ?? false));
-
 /// Review 113: delete_space_post said someone has acted on it (22023).
 bool isActedOn(SpaceException e) =>
     (e.message ?? '').contains('someone has acted on it');
@@ -88,6 +82,17 @@ bool isArchivedNoLonger(SpaceException e) =>
 /// A Lead may archive a Checked work item (105B, behind [WorkLater]).
 bool mayArchivePost(DaybookPost post, {required bool lead}) =>
     lead && post.isWorkItem && post.item?.status == WorkStatus.checked;
+
+/// The hold bar's Archive (the lead's check of 115): what the server says
+/// for my own post someone acted on (review 113 "hold"), or a Lead's on a
+/// Checked item once 105B brings it ([archiveOn]).
+bool mayArchiveHeld(
+  DaybookPost post, {
+  required bool lead,
+  required bool archiveOn,
+}) =>
+    post.hold == PostHold.archive ||
+    (archiveOn && mayArchivePost(post, lead: lead));
 
 /// The Space reminders set on this phone, by [spaceReminderId], for the
 /// account that set them: when each goes off.

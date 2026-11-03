@@ -1306,7 +1306,7 @@
   "@spacesConfirmedByYou": {
     "description": "S17k line."
   },
-  "spacesRightChat": "Chat in Everyone and their Teams",
+  "spacesRightChat": "Chat in Whole Space and their Teams",
   "@spacesRightChat": {
     "description": "Right, always on."
   },
@@ -1775,19 +1775,15 @@
   "@deliveredCheckedRowNoName": {
     "description": "RE1 row label when the checker's name is hidden (a block)."
   },
-  "chatEveryone": "Everyone",
-  "@chatEveryone": {
-    "description": "The Space-wide thread."
-  },
   "chatTeam": "Team",
   "@chatTeam": {
     "description": "Thread subtitle for a Team thread."
   },
-  "chatThreadsNote": "You see threads for Everyone and your Teams.",
+  "chatThreadsNote": "You see threads for Whole Space and your Teams.",
   "@chatThreadsNote": {
     "description": "S7k footer for members."
   },
-  "chatThreadsNoteAdmin": "As a Space admin, you see Everyone and every Team.",
+  "chatThreadsNoteAdmin": "As a Space admin, you see Whole Space and every Team.",
   "@chatThreadsNoteAdmin": {
     "description": "S7k footer for admins."
   },
@@ -1860,13 +1856,17 @@
   "@chatSending": {
     "description": "Pending message."
   },
-  "chatNotSent": "Not sent",
-  "@chatNotSent": {
-    "description": "Failed message."
-  },
   "chatRetry": "Retry",
   "@chatRetry": {
     "description": "Failed message action."
+  },
+  "chatCouldNotSend": "Couldn't send · Tap to fix",
+  "@chatCouldNotSend": {
+    "description": "Under a chat message that didn't go: a tap opens Try again and Remove (review 115)."
+  },
+  "chatCouldNotSendWhy": "This message is still on your phone. Try again when you have signal, or remove it.",
+  "@chatCouldNotSendWhy": {
+    "description": "The Couldn't send sheet of a chat message, when no file was refused (review 115)."
   },
   "chatReply": "Reply",
   "@chatReply": {
@@ -4892,10 +4892,6 @@
       }
     }
   },
-  "daybookEveryone": "Everyone",
-  "@daybookEveryone": {
-    "description": "Writing card and its To menu: the whole Space (F56)."
-  },
   "daybookMastheadToday": "· {date}",
   "@daybookMastheadToday": {
     "description": "The masthead at Now, after the bold word Today (review 50 F59): \"Today · Wednesday 21 October\".",
@@ -7906,7 +7902,7 @@
   },
   "daybookWholeSpace": "Whole Space",
   "@daybookWholeSpace": {
-    "description": "Review 105 SP2: the Team row before a Team is chosen."
+    "description": "Review 105 SP2: the Team row before a Team is chosen. Also the name of the Space's chat thread for the whole Space (review 115: one word in the whole app)."
   },
   "daybookNeedYou": "{n, plural, =1{1 needs you} other{{n} need you}}",
   "@daybookNeedYou": {
@@ -9797,6 +9793,32 @@
   "@libraryFolderNameHint": {
     "description": "LB1/LB2: the name field."
   },
+  "libraryUploading": "Uploading {percent}%",
+  "@libraryUploading": {
+    "description": "Review 115 (1): a Library file on its way, in the Library list.",
+    "placeholders": {"percent": {"type": "int", "example": "40"}}
+  },
+  "libraryWaitingForSignal": "Waiting for signal",
+  "@libraryWaitingForSignal": {
+    "description": "Review 115 (1): a Library file kept on the phone until there is signal."
+  },
+  "libraryCouldNotUpload": "Couldn't upload · Tap to fix",
+  "@libraryCouldNotUpload": {
+    "description": "Review 115 (1): a Library file the server or storage refused; a tap opens Try again · Remove."
+  },
+  "libraryWhoSeesLine": "Who sees it: {who}",
+  "@libraryWhoSeesLine": {
+    "description": "Review 115 (2): before a file goes to the Library's top level.",
+    "placeholders": {"who": {"type": "String", "example": "Whole Space"}}
+  },
+  "libraryWhoChange": "Change",
+  "@libraryWhoChange": {
+    "description": "Review 115 (2): opens the choice of who sees the file."
+  },
+  "libraryMyFiles": "My files",
+  "@libraryMyFiles": {
+    "description": "Review 115 (2): the name of the only-me folder made for a file."
+  },
   "libraryWhoSees": "Who sees it",
   "@libraryWhoSees": {
     "description": "LB1/LB2: the sharing choice label."
@@ -10138,6 +10160,18 @@
   "@alertsBatterySub": {
     "description": "PS1 line 4, under."
   },
+  "alertsLockRecents": "Lock BuildVibes in recent apps",
+  "@alertsLockRecents": {
+    "description": "PS1 line 5, Xiaomi, Redmi and POCO only (review 115): MIUI closes an app that isn't locked in recent apps soon after Home."
+  },
+  "alertsLockRecentsSub": "Open recent apps, hold the BuildVibes card, tap the lock",
+  "@alertsLockRecentsSub": {
+    "description": "PS1 line 5, under: the how-to (review 115)."
+  },
+  "alertsLockRecentsNow": "Open recent apps now and lock BuildVibes, then come back.",
+  "@alertsLockRecentsNow": {
+    "description": "PS1 line 5's Turn on: no app can open recent apps, so it says what to do; the line shows On when the person comes back (review 115)."
+  },
   "alertsOn": "On",
   "@alertsOn": {
     "description": "A PS1 line that is on."
@@ -10145,6 +10179,10 @@
   "alertsTurnOn": "Turn on",
   "@alertsTurnOn": {
     "description": "Opens the phone's page for a PS1 line."
+  },
+  "alertsShowMe": "Show me",
+  "@alertsShowMe": {
+    "description": "Review 115: the Lock in recent apps line's button; it opens a how-to, not a page."
   },
   "alertsHint": "Each button opens the right page in your phone's settings. Turn the switch on, then come back.",
   "@alertsHint": {

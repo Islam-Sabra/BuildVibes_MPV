@@ -77,15 +77,15 @@ Future<TestApp> _open(
   return app;
 }
 
-/// The Reminder swipe on [id].
+/// The Reminder on [id]'s hold bar (the lead's check of 115).
 Future<void> _remind(WidgetTester tester, String id, String lang) async {
   await scrollToRow(tester, _entry(id));
   final slip = find
       .descendant(of: _entry(id), matching: find.byType(BvSlip))
       .first;
-  await tester.drag(slip, Offset(lang == 'ar' ? -160 : 160, 0));
+  await tester.longPress(slip);
   await tester.pumpAndSettle();
-  await _tap(tester, _key('swipe-remind-$id'));
+  await _tap(tester, _key('select-remind'));
 }
 
 void main() {

@@ -1,6 +1,6 @@
 // Review 114, in English and Arabic at 390 × 844 in the app's fonts: PS1
 // the alerts setup on a Xiaomi (Notifications on), and with every line on
-// already ("All set", review 114c), PS2 all four on and the
+// already ("All set", review 114c), PS2 all five on and the
 // test arrived, PS3 asked again once over the Spaces tab; RX1 React at the
 // start, Share at the end, and the picker from the start. Run:
 //   flutter test test_screens/r114_test.dart --update-goldens
@@ -99,7 +99,7 @@ void main() {
       await _snap(tester, 'PS1_setup', lang);
     });
 
-    testWidgets('review 114c: all four on already: "All set" [$lang]', (
+    testWidgets('review 114c: all five on already: "All set" [$lang]', (
       tester,
     ) async {
       await setup(
@@ -107,6 +107,7 @@ void main() {
         stored: {
           alertVisitedKey(AlertLine.autostart): true,
           alertVisitedKey(AlertLine.floating): true,
+          alertVisitedKey(AlertLine.lockRecents): true,
         },
         status: const AlertPhoneStatus(
           needYouChannelOn: true,
@@ -116,7 +117,7 @@ void main() {
       await _snap(tester, 'PS1_all_set', lang);
     });
 
-    testWidgets('PS2 all four on, the test arrived, Done [$lang]', (
+    testWidgets('PS2 all five on, the test arrived, Done [$lang]', (
       tester,
     ) async {
       final app = await setup(
@@ -124,6 +125,7 @@ void main() {
         stored: {
           alertVisitedKey(AlertLine.autostart): true,
           alertVisitedKey(AlertLine.floating): true,
+          alertVisitedKey(AlertLine.lockRecents): true,
         },
         status: const AlertPhoneStatus(
           needYouChannelOn: true,

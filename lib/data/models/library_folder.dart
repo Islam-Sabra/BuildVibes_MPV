@@ -149,6 +149,34 @@ class FolderChange {
   final String? teamId;
   final String? url;
 
+  /// Review 115 (2): kept on the phone with the file it is made for.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'space_id': spaceId,
+    'name': name,
+    'share': share.json,
+    'person_id': ?personId,
+    'team_id': ?teamId,
+    'url': ?url,
+  };
+
+  static FolderChange? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final share = FolderShare.values
+        .where((s) => s.json == json['share'])
+        .firstOrNull;
+    if (share == null) return null;
+    return FolderChange(
+      id: json['id'] as String,
+      spaceId: json['space_id'] as String,
+      name: json['name'] as String? ?? '',
+      share: share,
+      personId: json['person_id'] as String?,
+      teamId: json['team_id'] as String?,
+      url: json['url'] as String?,
+    );
+  }
+
   /// The server's rule: a person or a Team only with that choice.
   bool get complete =>
       name.trim().isNotEmpty &&

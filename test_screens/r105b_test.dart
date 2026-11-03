@@ -111,12 +111,13 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-/// Swipes post [id]'s card toward the start (Archive's side).
-Future<void> _swipeToStart(WidgetTester tester, String id, String lang) async {
+/// Holds post [id]'s card: its actions in the hold bar (the lead's check
+/// of 115; the card's Archive swipe is gone).
+Future<void> _hold(WidgetTester tester, String id) async {
   final slip = cardSlip(id);
   await tester.ensureVisible(slip.first);
   await tester.pumpAndSettle();
-  await tester.drag(slip.first, Offset(lang == 'ar' ? 160 : -160, 0));
+  await tester.longPress(slip.first);
   await tester.pumpAndSettle();
 }
 
@@ -173,18 +174,18 @@ void main() {
       );
     });
 
-    testWidgets('W2 the Archive swipe on a Checked item [$lang]', (
+    testWidgets('W2 Archive in the hold bar on a Checked item [$lang]', (
       tester,
     ) async {
       await warmSamplePhoto(tester);
       await shoot(
         tester,
-        'W2-archive-swipe',
+        'W2-archive-hold',
         lang,
         _space,
         folder: _folder,
         overrides: await _overrides(s, posts: [s.rebar(), s.gate()]),
-        before: (tester) => _swipeToStart(tester, 'post-gate', lang),
+        before: (tester) => _hold(tester, 'post-gate'),
       );
     });
 
@@ -198,8 +199,8 @@ void main() {
         folder: _folder,
         overrides: await _overrides(s, posts: [s.rebar(), s.gate()]),
         before: (tester) async {
-          await _swipeToStart(tester, 'post-gate', lang);
-          await tester.tap(find.byKey(const Key('swipe-archive-post-gate')));
+          await _hold(tester, 'post-gate');
+          await tester.tap(find.byKey(const Key('select-archive')));
           await tester.pumpAndSettle();
         },
       );

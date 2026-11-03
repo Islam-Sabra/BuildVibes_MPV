@@ -93,7 +93,8 @@ class DaybookLoop {
   /// The card's actions, as the reader [me] may use them. [signing] are
   /// the items with a sign-off waiting on the phone. Any card's quote opens
   /// its chat message (F87), for Viewers too. [onHold] selects the card
-  /// (review 105 Part 2); none on a sheet of its own.
+  /// (review 105 Part 2), for Viewers too: their Pin · Reminder are in the
+  /// hold bar (the lead's check of 115); none on a sheet of its own.
   DaybookCardView withActions(
     BuildContext context,
     DaybookCardView view, {
@@ -106,7 +107,7 @@ class DaybookLoop {
       view,
       me: me,
       signing: signing,
-      onHold: _viewer ? null : onHold,
+      onHold: onHold,
     );
     final post = v.card.post;
     final share = ref.read(workLaterProvider).share;
@@ -177,11 +178,12 @@ class DaybookLoop {
       return _kindActions(context, view, me: me, onHold: onHold);
     }
     final open = _open(context, view, me: me);
-    // A Viewer reads: the page, nothing more.
+    // A Viewer reads: the page, and holds it for their own Pin · Reminder.
     if (_viewer) {
       return view.copyWith(
         actions: DaybookCardActions(
           onOpen: open,
+          onHold: onHold,
           onOpenPage: open,
           onOpenChild: (id) => unawaited(openChild(context, id)),
         ),

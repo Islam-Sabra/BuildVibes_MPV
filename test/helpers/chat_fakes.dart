@@ -21,6 +21,9 @@ class FakeChatRepository implements ChatRepository {
 
   /// The next uploads fail as if the signal dropped.
   int failUploadNext = 0;
+
+  /// The next upload is refused by the bucket (review 113 bug 7).
+  SpaceException? refuseUploadNext;
   final uploads = <String>[];
   final posted = <List<ChatUpload>>[];
 
@@ -128,6 +131,11 @@ class FakeChatRepository implements ChatRepository {
     if (failUploadNext > 0) {
       failUploadNext--;
       throw const SpaceException(SpaceFailure.network);
+    }
+    final refused = refuseUploadNext;
+    if (refused != null) {
+      refuseUploadNext = null;
+      throw refused;
     }
     final path =
         '$spaceId/chat/$messageId/file-${uploads.length + 1}.${file.extension}';

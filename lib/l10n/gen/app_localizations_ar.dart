@@ -974,7 +974,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesConfirmedByYou => 'مؤكَّد منك';
 
   @override
-  String get spacesRightChat => 'المحادثة في «الجميع» والفِرق';
+  String get spacesRightChat => 'المحادثة في «المساحة كلها» والفِرق';
 
   @override
   String get spacesRightMarkDone => 'توقيع البنود المكلّف بها كمنجزة';
@@ -1289,17 +1289,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deliveredCheckedRowNoName => 'تم التحقق';
 
   @override
-  String get chatEveryone => 'الجميع';
-
-  @override
   String get chatTeam => 'الفريق';
 
   @override
-  String get chatThreadsNote => 'ترى محادثة «الجميع» ومحادثات فِرقك.';
+  String get chatThreadsNote => 'ترى محادثة «المساحة كلها» ومحادثات فِرقك.';
 
   @override
   String get chatThreadsNoteAdmin =>
-      'بصفتك مدير المساحة، ترى «الجميع» وكل الفِرق.';
+      'بصفتك مدير المساحة، ترى «المساحة كلها» وكل الفِرق.';
 
   @override
   String get chatNoMessages => 'لا رسائل بعد.';
@@ -1348,10 +1345,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatSending => 'جارٍ الإرسال…';
 
   @override
-  String get chatNotSent => 'لم تُرسل';
+  String get chatRetry => 'إعادة المحاولة';
 
   @override
-  String get chatRetry => 'إعادة المحاولة';
+  String get chatCouldNotSend => 'تعذّر الإرسال · انقر للتصحيح';
+
+  @override
+  String get chatCouldNotSendWhy =>
+      'ما زالت هذه الرسالة على هاتفك. حاول مرة أخرى عندما تتوفر الإشارة، أو أزلها.';
 
   @override
   String get chatReply => 'رد';
@@ -3378,9 +3379,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookToAudience(String audience) {
     return 'إلى: $audience';
   }
-
-  @override
-  String get daybookEveryone => 'الجميع';
 
   @override
   String daybookMastheadToday(String date) {
@@ -6935,6 +6933,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryFolderNameHint => 'اسم المجلد';
 
   @override
+  String libraryUploading(int percent) {
+    return 'جارٍ الرفع $percent%';
+  }
+
+  @override
+  String get libraryWaitingForSignal => 'بانتظار الإشارة';
+
+  @override
+  String get libraryCouldNotUpload => 'تعذّر الرفع · انقر للتصحيح';
+
+  @override
+  String libraryWhoSeesLine(String who) {
+    return 'من يراه: $who';
+  }
+
+  @override
+  String get libraryWhoChange => 'تغيير';
+
+  @override
+  String get libraryMyFiles => 'ملفاتي';
+
+  @override
   String get libraryWhoSees => 'من يراه';
 
   @override
@@ -7196,10 +7216,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alertsBatterySub => 'لن يوقف الهاتف BuildVibes';
 
   @override
+  String get alertsLockRecents => 'اقفل BuildVibes في التطبيقات الأخيرة';
+
+  @override
+  String get alertsLockRecentsSub =>
+      'افتح التطبيقات الأخيرة، واضغط مطولًا على بطاقة BuildVibes، ثم اضغط القفل';
+
+  @override
+  String get alertsLockRecentsNow =>
+      'افتح التطبيقات الأخيرة الآن واقفل BuildVibes، ثم ارجع.';
+
+  @override
   String get alertsOn => 'مفعّل';
 
   @override
   String get alertsTurnOn => 'تشغيل';
+
+  @override
+  String get alertsShowMe => 'أرني';
 
   @override
   String get alertsHint =>

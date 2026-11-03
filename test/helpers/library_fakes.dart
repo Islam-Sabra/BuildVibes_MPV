@@ -65,6 +65,9 @@ class FakeLibraryRepository implements LibraryRepository {
   /// While set, an upload stops half way (F73) until it completes.
   Completer<void>? holdUpload;
 
+  /// Review 115: no signal for uploads while true.
+  bool uploadsOffline = false;
+
   /// Review 113 bug 7: what storage answers the next upload with (a 400
   /// with an inner 413, an unsupported type); the bucket's own checks run
   /// first, as the app's do.
@@ -80,6 +83,7 @@ class FakeLibraryRepository implements LibraryRepository {
     PhoneFile file, {
     UploadProgress? onProgress,
   }) => uploadSpaceFile(file, (type) async {
+    if (uploadsOffline) throw const SpaceException(SpaceFailure.network);
     uploadTypes.add(type);
     final refused = storageRefuses;
     if (refused != null) {
@@ -219,6 +223,10 @@ class FakeLibraryRepository implements LibraryRepository {
 
   @override
   Future<void> createFolder(FolderChange f) async {
+    // As create_library_folder: the same id again is the same folder.
+    if ((foldersBySpace[f.spaceId] ?? const []).any((d) => d.id == f.id)) {
+      return;
+    }
     folderCalls.add(
       'create ${f.name} ${f.share.json}'
       '${f.personId == null ? '' : ' person:${f.personId}'}'

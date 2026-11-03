@@ -21,26 +21,26 @@ const _four = [
   AlertLine.battery,
 ];
 
+/// Review 115: Xiaomi, Redmi and POCO also lock the app in recent apps.
+const _five = [..._four, AlertLine.lockRecents];
+
 void main() {
   group('the maker list → which lines show', () {
-    for (final maker in [
-      'xiaomi',
-      'redmi',
-      'poco',
-      'oppo',
-      'realme',
-      'vivo',
-      'huawei',
-      'honor',
-    ]) {
-      test('$maker: all four lines', () {
+    for (final maker in ['xiaomi', 'redmi', 'poco']) {
+      test('$maker: all five lines, Lock in recent apps last', () {
+        expect(alertLinesFor(ios: false, makers: [maker, maker]), _five);
+      });
+    }
+
+    for (final maker in ['oppo', 'realme', 'vivo', 'huawei', 'honor']) {
+      test('$maker: four lines, no Lock in recent apps', () {
         expect(alertLinesFor(ios: false, makers: [maker, maker]), _four);
       });
     }
 
     test('the names Android gives, in any case, manufacturer or brand', () {
-      expect(alertLinesFor(ios: false, makers: ['Xiaomi', 'POCO']), _four);
-      expect(alertLinesFor(ios: false, makers: ['unknown', 'Redmi']), _four);
+      expect(alertLinesFor(ios: false, makers: ['Xiaomi', 'POCO']), _five);
+      expect(alertLinesFor(ios: false, makers: ['unknown', 'Redmi']), _five);
     });
 
     test('Samsung: Notifications and Battery', () {
@@ -113,6 +113,15 @@ void main() {
         'page', () {
       expect(on(AlertLine.autostart), isFalse);
       expect(on(AlertLine.autostart, visited: {AlertLine.autostart}), isTrue);
+    });
+
+    test('Lock in recent apps: no phone reports it; on after coming back '
+        'from recent apps', () {
+      expect(on(AlertLine.lockRecents), isFalse);
+      expect(
+        on(AlertLine.lockRecents, visited: {AlertLine.lockRecents}),
+        isTrue,
+      );
     });
 
     test('Floating: on after coming back, unless the phone says the '

@@ -321,6 +321,8 @@ void main() {
           final app = await openLibrary(tester, lang, files: []);
           if (folder != null) await _tap(tester, _key('folder-$folder'));
           await _tap(tester, _key('library-add-file'));
+          // Review 115 (2): at the top level, who sees it; the whole Space.
+          if (folder == null) await _tap(tester, _key('library-who-add'));
           expect(_key('composer'), findsNothing);
           expect(
             app.library.calls.single,

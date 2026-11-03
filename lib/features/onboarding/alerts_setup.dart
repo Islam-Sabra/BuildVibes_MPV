@@ -23,8 +23,8 @@ const urgentAlertKinds = {'need_you', 'check_in_open'};
 /// An urgent alert opened later than this after it was sent was late.
 const alertLateAfter = Duration(minutes: 5);
 
-/// The person came back from the Autostart or floating notifications page
-/// (no phone reports these): kept on this phone.
+/// The person came back from the Autostart or floating notifications page,
+/// or from recent apps (no phone reports these): kept on this phone.
 String alertVisitedKey(AlertLine line) => 'alerts_visited_${line.name}';
 
 /// The background handler's mark that the test push reached this phone
@@ -39,9 +39,10 @@ String alertLateAskedKey(String userId) => 'alerts_late_asked:$userId';
 
 /// Whether [line] shows "On": only where the phone can confirm it
 /// (notifications allowed, the channel's importance, battery optimisation
-/// off). Autostart and floating notifications, which no phone reports, are
-/// on once the person came back from their page; a channel the phone says
-/// is low or off turns floating off again.
+/// off). Autostart, floating notifications and the lock in recent apps,
+/// which no phone reports, are on once the person came back from their
+/// page (or from recent apps); a channel the phone says is low or off
+/// turns floating off again.
 bool alertLineOn(
   AlertLine line, {
   required PushPermission permission,
@@ -54,6 +55,7 @@ bool alertLineOn(
     status.needYouChannelOn != false && visited.contains(AlertLine.floating),
   AlertLine.battery =>
     status.batteryUnrestricted ?? visited.contains(AlertLine.battery),
+  AlertLine.lockRecents => visited.contains(AlertLine.lockRecents),
 };
 
 /// The setup for this phone: its lines, and which are on.

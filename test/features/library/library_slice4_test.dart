@@ -211,6 +211,8 @@ void main() {
       expect(find.byKey(const Key('replaces-choice')), findsOneWidget);
       await _tap(tester, 'replaces-none');
       await _tap(tester, 'replaces-done');
+      // Review 115 (2): at the top level, who sees it; the whole Space.
+      await _tap(tester, 'library-who-add');
       expect(
         app.library.calls.single,
         'add Level 3 plan.pdf team:- rev:- supersedes:-',
