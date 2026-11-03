@@ -104,6 +104,8 @@ void main() {
         CompanyGroup(
           key: 'a.b.c',
           name: 'A.B.C Contracting',
+          adminId: 'b1',
+          adminName: 'Person 7',
           people: [_c('b1', 'Person 7'), _c('b2', 'Person 8')],
         ),
         CompanyGroup(
