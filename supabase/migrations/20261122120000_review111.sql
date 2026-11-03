@@ -130,6 +130,30 @@ $$;
 -- The Team admin
 -- ---------------------------------------------------------------------------
 
+-- A Viewer of that Space (V3: a Viewer is never a Team admin).
+create function public.is_space_viewer(p_space uuid, p_profile uuid)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.space_members m
+                 where m.space_id = p_space and m.profile_id = p_profile
+                   and m.left_at is null and m.pass = 'viewer');
+$$;
+
+-- Becoming a Viewer ends being a Team admin in that Space, whichever
+-- function changes the pass.
+create function public.viewer_not_team_admin()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if new.pass = 'viewer' and old.pass is distinct from 'viewer' then
+    update public.teams set admin_id = null
+    where space_id = new.space_id and admin_id = new.profile_id;
+  end if;
+  return new;
+end;
+$$;
+create trigger space_members_viewer_not_team_admin
+  after update of pass on public.space_members
+  for each row execute function public.viewer_not_team_admin();
+
 -- The admin's name beside a Team in the app's own read of teams, as a
 -- computed field: select=id,name,admin_id,admin_name. Null across a block.
 create function public.admin_name(p_team public.teams)
@@ -153,6 +177,10 @@ begin
                    where tm.team_id = p_team and tm.profile_id = p_profile)
        or public.is_hidden_account(p_profile)) then
     raise exception 'a Team admin is a member of that Team' using errcode = '22023';
+  end if;
+  -- A Viewer only reads (the lead's check V3).
+  if p_profile is not null and public.is_space_viewer(v_space, p_profile) then
+    raise exception 'a Viewer is not a Team admin' using errcode = '22023';
   end if;
   update public.teams set admin_id = p_profile where id = p_team;
 end;
@@ -217,7 +245,9 @@ begin
     select s.key,
            -- The registered name, or the spelling most people typed.
            (array_agg(s.company order by s.registered desc, s.uses desc, s.joined, s.id))[1] as name,
-           (array_agg(s.id order by (s.pass = 'lead') desc, s.joined, s.id))[1] as suggested
+           -- A Lead, else Crew, first to join; never a Viewer (V3).
+           (array_agg(s.id order by (s.pass = 'lead') desc, s.joined, s.id)
+              filter (where s.pass <> 'viewer'))[1] as suggested
     from spelled s group by s.key
   ),
   groups as (
@@ -238,12 +268,21 @@ begin
   select jsonb_build_object(
     'groups', coalesce((select jsonb_agg(jsonb_build_object(
         'key', g.key, 'name', g.name, 'team_id', g.team_id, 'team_name', g.team_name,
-        'people', g.people, 'admin_id', g.admin_id) order by g.name, g.key)
+        'people', g.people, 'admin_id', g.admin_id,
+        -- V6: the name of whoever Create will set, even if already in the Team.
+        'admin_name', public.space_person_name(g.admin_id)) order by g.name, g.key)
       from shown g), '[]'),
     'similar', coalesce((select jsonb_agg(jsonb_build_object('a', a.key, 'b', b.key)
                                           order by a.key, b.key)
       from shown a join shown b on a.key < b.key
       where public.company_keys_similar(a.key, b.key)), '[]'),
+    -- V4: a group that looks like an existing Team it isn't already: merge offered.
+    'similar_teams', coalesce((select jsonb_agg(jsonb_build_object(
+        'key', g.key, 'team_id', t.id, 'team_name', t.name) order by g.key, t.name, t.id)
+      from shown g
+      join public.teams t on t.space_id = p_space and t.id is distinct from g.team_id
+      where public.company_key(t.name) is not null
+        and public.company_keys_similar(g.key, public.company_key(t.name))), '[]'),
     'no_company', coalesce((select jsonb_agg(jsonb_build_object('id', pe.id, 'name', pe.name, 'pass', pe.pass)
                                              order by pe.joined, pe.id)
       from people pe where pe.key is null), '[]'))
@@ -267,11 +306,12 @@ declare
   v_ids uuid[] := '{}';
   v_result jsonb;
 begin
-  -- One change to a Space's Teams at a time, and one run of an id.
-  perform 1 from public.spaces where id = p_space for update;
   if p_id is null or not public.is_space_admin(p_space) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  -- One change to a Space's Teams at a time, and one run of an id; only
+  -- after the admin check, so nobody else can hold the Space (V8).
+  perform 1 from public.spaces where id = p_space for update;
   select * into v_run from public.company_team_runs where id = p_id;
   if v_run.id is not null then
     if v_run.space_id <> p_space then
@@ -326,6 +366,9 @@ begin
          or public.is_hidden_account(v_admin) then
         raise exception 'a Team admin is a member of that Team' using errcode = '22023';
       end if;
+      if public.is_space_viewer(p_space, v_admin) then
+        raise exception 'a Viewer is not a Team admin' using errcode = '22023';
+      end if;
       update public.teams set admin_id = v_admin where id = v_team;
     end if;
 
@@ -350,7 +393,16 @@ language plpgsql stable security definer set search_path = '' as $$
 declare
   v_company text;
 begin
-  if not public.is_space_admin(p_space) then
+  -- Only for someone asking to join this Space, or a member of it; never
+  -- across a block or for an account going away (V2).
+  if not public.is_space_admin(p_space)
+     or p_profile is null
+     or public.is_blocked_with(p_profile)
+     or public.is_hidden_account(p_profile)
+     or not (public.is_active_member(p_space, p_profile)
+             or exists (select 1 from public.space_join_requests r
+                        where r.space_id = p_space and r.profile_id = p_profile
+                          and r.status = 'pending')) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   v_company := public.person_company(p_profile);
@@ -374,7 +426,9 @@ declare
   -- Live has CRLF in some function bodies.
   v_def text := replace(pg_get_functiondef(p_fn), chr(13), '');
 begin
-  if position(p_old in v_def) = 0 then
+  -- Exactly once (V9): a second copy would be changed too.
+  if position(p_old in v_def) = 0
+     or position(p_old in substr(v_def, position(p_old in v_def) + 1)) > 0 then
     raise exception 'review 111: % is not as expected', p_fn;
   end if;
   execute replace(v_def, p_old, p_new);
@@ -398,9 +452,12 @@ select pg_temp.r111_patch(
 select pg_temp.r111_patch(
   'public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb, jsonb, uuid, jsonb, jsonb, timestamptz, text)',
   $old$  -- From a work item template (migration 20): one the caller may read in$old$,
-  $new$  -- A Team work item: the post rule, unless its Team came with a parent or
-  -- a Team chat message the caller was already checked for above.
-  if v_team is not null and v_parent.id is null and v_thread_team is null
+  $new$  -- A Team work item: the post rule, unless its Team is the one it took
+  -- from its parent or its Team chat message, checked above (V1: a Team
+  -- the caller passed under an Everyone parent is still checked).
+  if v_team is not null
+     and v_team is distinct from v_parent.team_id
+     and v_team is distinct from v_thread_team
      and not public.can_post_to_team(p_space, v_team) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
@@ -408,7 +465,9 @@ select pg_temp.r111_patch(
   -- From a work item template (migration 20): one the caller may read in$new$);
 
 -- A file post carries a Library file of that Team, and a model view goes the
--- same way; a Team admin outside the Team may read what they put there.
+-- same way; a Team admin outside the Team may read what they put there. Out
+-- of the Team and no longer an admin, it closes, as a Team's view does for
+-- someone taken out of the Team (V7 kept as built: 27_model_views).
 select pg_temp.r111_patch(
   'public.add_library_file(uuid, uuid, text, text, text, bigint, uuid, text, text, uuid, uuid)',
   $old$if p_team is not null and not exists (
@@ -459,6 +518,8 @@ drop function pg_temp.r111_patch(regprocedure, text, text);
 -- ---------------------------------------------------------------------------
 
 revoke all on function public.is_any_team_admin(uuid) from public, anon, authenticated;
+revoke all on function public.is_space_viewer(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.viewer_not_team_admin() from public, anon, authenticated;
 revoke all on function public.is_team_admin(uuid) from public, anon, authenticated;
 revoke all on function public.can_post_to_team(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.company_key(text) from public, anon, authenticated;
