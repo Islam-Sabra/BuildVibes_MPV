@@ -19,6 +19,7 @@ const row = (kind: string, extra: Partial<QueueRow> = {}): QueueRow => ({
   thread_id: null,
   data: { space_id: "s1", work_item_id: "i1" },
   message_text: null,
+  created_at: "2026-11-03T07:15:30.123456+00:00",
   ...extra,
 });
 
@@ -32,7 +33,7 @@ test("every kind has its text in English and Arabic", () => {
     "dm_message", "dm_request", "dm_follow_up",
     "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
     "post_reaction", "work_item_archived", "check_in_nudge", "need_you", "need_you_answer",
-    "scheduled_expiring",
+    "scheduled_expiring", "need_you_test",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -587,4 +588,55 @@ test("the lead, 2 Nov: a failed Post later is cancelled tomorrow; it opens Sched
   }), "en", null, strings);
   assert.equal(on.title, "⁨Pour notice⁩");
   assert.equal(on.body, "Your scheduled post will be cancelled tomorrow");
+});
+
+test("review 114: every push carries sent_at, its queue row's created_at in ISO 8601 UTC", () => {
+  const kinds = [
+    "item_assigned", "chat_message", "dm_message", "dm_follow_up", "work_reminder",
+    "check_in_open", "check_in_summary", "post_reaction", "work_item_archived",
+    "check_in_nudge", "need_you", "need_you_answer", "scheduled_expiring", "scheduled_failed",
+    "need_you_test",
+  ];
+  for (const kind of kinds) {
+    for (const locale of ["en", "ar"]) {
+      const p = buildPush(row(kind), locale, "Sara Ali", strings);
+      assert.equal(p.data.sent_at, "2026-11-03T07:15:30.123Z", `${kind} ${locale}`);
+      const m = fcmMessage("tok", p) as AnyFcm;
+      assert.equal(m.data.sent_at, "2026-11-03T07:15:30.123Z", `${kind} ${locale} reaches FCM`);
+    }
+  }
+  // Another offset is still told in UTC.
+  const kw = buildPush(row("item_assigned", { created_at: "2026-11-03T10:15:30+03:00" }), "en", null, strings);
+  assert.equal(kw.data.sent_at, "2026-11-03T07:15:30.000Z");
+  // The queue's own time wins over anything in the row's data.
+  const odd = buildPush(row("item_assigned", { data: { space_id: "s1", sent_at: "x" } }), "en", null, strings);
+  assert.equal(odd.data.sent_at, "2026-11-03T07:15:30.123Z");
+  // A time that can't be read never drops the push; it goes without sent_at.
+  const bad = buildPush(row("item_assigned", { created_at: "not a time" }), "en", null, strings);
+  assert.equal(bad.data.sent_at, undefined);
+  assert.ok(bad.body.length > 0);
+});
+
+test("review 114: the test alert, on the strong channel, in English and Arabic", () => {
+  const test114 = row("need_you_test", { actor_id: null, data: {} });
+  const en = buildPush(test114, "en", null, strings);
+  assert.equal(en.title, "Test alert from BuildVibes");
+  assert.equal(en.body, "Urgent alerts will reach you.");
+  assert.equal(en.data.kind, "need_you_test");
+  assert.equal(en.data.route, "/profile/settings/notifications");
+  assert.equal(en.data.sent_at, "2026-11-03T07:15:30.123Z");
+  const ar = buildPush(test114, "ar", null, strings);
+  assert.equal(ar.title, "تنبيه تجريبي من BuildVibes");
+  assert.equal(ar.body, "ستصلك التنبيهات العاجلة.");
+  assert.equal(channelFor("need_you_test"), NEED_YOU_CHANNEL);
+  const m = fcmMessage("tok", en) as AnyFcm;
+  assert.deepEqual(m.notification, { title: en.title, body: en.body }, "a notification Android draws");
+  assert.equal(m.android.priority, "high");
+  assert.equal(m.android.notification.channel_id, NEED_YOU_CHANNEL);
+  assert.equal(m.android.notification.default_sound, true);
+  assert.ok(Object.values(m.data).every((v) => typeof v === "string"), "FCM data values are strings");
+  assert.equal(m.apns?.headers["apns-priority"], "10");
+  assert.equal(m.apns?.payload.aps["interruption-level"], "time-sensitive");
+  assert.equal(m.apns?.payload.aps.sound, "default");
+  assert.equal(m.apns?.payload.aps.category, undefined, "no call to answer: no On my way");
 });
