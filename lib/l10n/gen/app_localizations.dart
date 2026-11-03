@@ -11444,6 +11444,42 @@ abstract class AppLocalizations {
   /// **'Folder name'**
   String get libraryFolderNameHint;
 
+  /// Review 115 (1): a Library file on its way, in the Library list.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading {percent}%'**
+  String libraryUploading(int percent);
+
+  /// Review 115 (1): a Library file kept on the phone until there is signal.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal'**
+  String get libraryWaitingForSignal;
+
+  /// Review 115 (1): a Library file the server or storage refused; a tap opens Try again · Remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload · Tap to fix'**
+  String get libraryCouldNotUpload;
+
+  /// Review 115 (2): before a file goes to the Library's top level.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it: {who}'**
+  String libraryWhoSeesLine(String who);
+
+  /// Review 115 (2): opens the choice of who sees the file.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get libraryWhoChange;
+
+  /// Review 115 (2): the name of the only-me folder made for a file.
+  ///
+  /// In en, this message translates to:
+  /// **'My files'**
+  String get libraryMyFiles;
+
   /// LB1/LB2: the sharing choice label.
   ///
   /// In en, this message translates to:

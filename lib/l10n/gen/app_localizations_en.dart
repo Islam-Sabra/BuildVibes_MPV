@@ -6884,6 +6884,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryFolderNameHint => 'Folder name';
 
   @override
+  String libraryUploading(int percent) {
+    return 'Uploading $percent%';
+  }
+
+  @override
+  String get libraryWaitingForSignal => 'Waiting for signal';
+
+  @override
+  String get libraryCouldNotUpload => 'Couldn\'t upload · Tap to fix';
+
+  @override
+  String libraryWhoSeesLine(String who) {
+    return 'Who sees it: $who';
+  }
+
+  @override
+  String get libraryWhoChange => 'Change';
+
+  @override
+  String get libraryMyFiles => 'My files';
+
+  @override
   String get libraryWhoSees => 'Who sees it';
 
   @override

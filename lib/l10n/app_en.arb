@@ -9797,6 +9797,32 @@
   "@libraryFolderNameHint": {
     "description": "LB1/LB2: the name field."
   },
+  "libraryUploading": "Uploading {percent}%",
+  "@libraryUploading": {
+    "description": "Review 115 (1): a Library file on its way, in the Library list.",
+    "placeholders": {"percent": {"type": "int", "example": "40"}}
+  },
+  "libraryWaitingForSignal": "Waiting for signal",
+  "@libraryWaitingForSignal": {
+    "description": "Review 115 (1): a Library file kept on the phone until there is signal."
+  },
+  "libraryCouldNotUpload": "Couldn't upload · Tap to fix",
+  "@libraryCouldNotUpload": {
+    "description": "Review 115 (1): a Library file the server or storage refused; a tap opens Try again · Remove."
+  },
+  "libraryWhoSeesLine": "Who sees it: {who}",
+  "@libraryWhoSeesLine": {
+    "description": "Review 115 (2): before a file goes to the Library's top level.",
+    "placeholders": {"who": {"type": "String", "example": "Whole Space"}}
+  },
+  "libraryWhoChange": "Change",
+  "@libraryWhoChange": {
+    "description": "Review 115 (2): opens the choice of who sees the file."
+  },
+  "libraryMyFiles": "My files",
+  "@libraryMyFiles": {
+    "description": "Review 115 (2): the name of the only-me folder made for a file."
+  },
   "libraryWhoSees": "Who sees it",
   "@libraryWhoSees": {
     "description": "LB1/LB2: the sharing choice label."

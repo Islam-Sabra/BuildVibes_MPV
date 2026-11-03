@@ -22,6 +22,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../work/daybook_photos.dart' show filePreviewProvider;
+import '../work/work_outbox.dart' show workOutboxProvider;
 import 'library_add.dart';
 import 'library_folders.dart';
 import 'library_parts.dart';
@@ -148,6 +149,13 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
     final folders = inFolder != null
         ? const <LibraryFolder>[]
         : ref.watch(libraryFoldersProvider(_spaceId)).value ?? const [];
+    // Review 115 (1): files on their way here, at once.
+    final waiting = libraryWaiting(
+      ref.watch(workOutboxProvider),
+      _spaceId,
+      inFolder,
+      folders,
+    );
     final shown = all == null
         ? const <LibraryFile>[]
         : [
@@ -188,9 +196,11 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
                     )
                   : null,
             ),
-        if (inFolder != null && shown.isEmpty && q.isEmpty)
+        if (q.isEmpty)
+          for (final i in waiting) LibraryPendingRow(item: i),
+        if (inFolder != null && shown.isEmpty && q.isEmpty && waiting.isEmpty)
           _Margins(EmptyNote(l10n.libraryFolderEmpty))
-        else if (all.isEmpty && folders.isEmpty)
+        else if (all.isEmpty && folders.isEmpty && waiting.isEmpty)
           _Margins(EmptyNote(l10n.libraryEmpty))
         else if (shown.isEmpty && q.isNotEmpty)
           _Margins(EmptyNote(l10n.libraryNoMatch)),

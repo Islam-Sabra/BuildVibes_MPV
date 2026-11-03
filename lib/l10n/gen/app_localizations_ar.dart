@@ -6935,6 +6935,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryFolderNameHint => 'اسم المجلد';
 
   @override
+  String libraryUploading(int percent) {
+    return 'جارٍ الرفع $percent%';
+  }
+
+  @override
+  String get libraryWaitingForSignal => 'بانتظار الإشارة';
+
+  @override
+  String get libraryCouldNotUpload => 'تعذّر الرفع · انقر للتصحيح';
+
+  @override
+  String libraryWhoSeesLine(String who) {
+    return 'من يراه: $who';
+  }
+
+  @override
+  String get libraryWhoChange => 'تغيير';
+
+  @override
+  String get libraryMyFiles => 'ملفاتي';
+
+  @override
   String get libraryWhoSees => 'من يراه';
 
   @override

@@ -272,6 +272,71 @@ Future<bool> folderMenu(
   return true;
 }
 
+/// A person of [spaceId] other than me, for a folder (or, review 115, a
+/// file at the Library's top level) only they and I see. Null when closed.
+Future<({String id, String name})?> pickFolderPerson(
+  BuildContext context,
+  WidgetRef ref,
+  String spaceId,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final me = ref.read(authUserIdProvider).value;
+  final people = await ref.read(spacePeopleProvider(spaceId).future);
+  if (!context.mounted) return null;
+  final picked = await showBvSheet<SpaceMember>(
+    context: context,
+    title: l10n.libraryChoosePerson,
+    builder: (sheet) => Column(
+      key: const Key('folder-person-picker'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final m in people.members)
+          if (m.person.id != me)
+            BvListRow(
+              key: Key('folder-person-${m.person.id}'),
+              title: inOwnDirection(m.person.fullName),
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(m),
+            ),
+      ],
+    ),
+  );
+  return picked == null
+      ? null
+      : (id: picked.person.id, name: picked.person.fullName);
+}
+
+/// A Team of [spaceId], for a folder (or a top-level file) its members
+/// see. Null when closed.
+Future<({String id, String name})?> pickFolderTeam(
+  BuildContext context,
+  WidgetRef ref,
+  String spaceId,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final people = await ref.read(spacePeopleProvider(spaceId).future);
+  if (!context.mounted) return null;
+  final picked = await showBvSheet<SpaceTeam>(
+    context: context,
+    title: l10n.libraryChooseTeam,
+    builder: (sheet) => Column(
+      key: const Key('folder-team-picker'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final t in people.teams)
+          BvListRow(
+            key: Key('folder-team-${t.id}'),
+            title: inOwnDirection(t.name),
+            leading: const BvRowIcon(BvIcons.team, ink: true),
+            trailing: const BvRowTrailing.none(),
+            onTap: () => Navigator.of(sheet).pop(t),
+          ),
+      ],
+    ),
+  );
+  return picked == null ? null : (id: picked.id, name: picked.name);
+}
+
 /// LB1's New folder, LB2's Link folder ([link]), or a folder's Edit
 /// ([editing]). True when it was saved.
 Future<bool> showFolderSheet(
@@ -359,58 +424,15 @@ class _FolderSheetState extends ConsumerState<FolderSheet> {
   );
 
   Future<void> _pickPerson() async {
-    final l10n = AppLocalizations.of(context);
-    final me = ref.read(authUserIdProvider).value;
-    final people = await ref.read(spacePeopleProvider(widget.space.id).future);
-    if (!mounted) return;
-    final picked = await showBvSheet<SpaceMember>(
-      context: context,
-      title: l10n.libraryChoosePerson,
-      builder: (sheet) => Column(
-        key: const Key('folder-person-picker'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final m in people.members)
-            if (m.person.id != me)
-              BvListRow(
-                key: Key('folder-person-${m.person.id}'),
-                title: inOwnDirection(m.person.fullName),
-                trailing: const BvRowTrailing.none(),
-                onTap: () => Navigator.of(sheet).pop(m),
-              ),
-        ],
-      ),
-    );
+    final picked = await pickFolderPerson(context, ref, widget.space.id);
     if (picked == null || !mounted) return;
-    setState(
-      () => _person = (id: picked.person.id, name: picked.person.fullName),
-    );
+    setState(() => _person = picked);
   }
 
   Future<void> _pickTeam() async {
-    final l10n = AppLocalizations.of(context);
-    final people = await ref.read(spacePeopleProvider(widget.space.id).future);
-    if (!mounted) return;
-    final picked = await showBvSheet<SpaceTeam>(
-      context: context,
-      title: l10n.libraryChooseTeam,
-      builder: (sheet) => Column(
-        key: const Key('folder-team-picker'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final t in people.teams)
-            BvListRow(
-              key: Key('folder-team-${t.id}'),
-              title: inOwnDirection(t.name),
-              leading: const BvRowIcon(BvIcons.team, ink: true),
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(t),
-            ),
-        ],
-      ),
-    );
+    final picked = await pickFolderTeam(context, ref, widget.space.id);
     if (picked == null || !mounted) return;
-    setState(() => _team = (id: picked.id, name: picked.name));
+    setState(() => _team = picked);
   }
 
   Future<void> _choose(FolderShare share) async {
