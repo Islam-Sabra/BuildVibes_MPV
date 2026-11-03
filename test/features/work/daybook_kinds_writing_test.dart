@@ -393,10 +393,7 @@ void main() {
         expect(find.byKey(Key('who-sees-${t.id}')), findsOneWidget);
       }
       final mep = s.people().teams.first;
-      await _tap(
-        tester,
-        find.byKey(Key('who-sees-${mep.id}')),
-      );
+      await _tap(tester, find.byKey(Key('who-sees-${mep.id}')));
       expect(
         find.descendant(of: to, matching: find.text(mep.name)),
         findsOneWidget,

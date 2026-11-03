@@ -64,18 +64,27 @@ CompanyTeamPreview _companies() => CompanyTeamPreview(
       key: 'abc',
       name: 'ABC Contracting',
       adminId: 'a1',
+      adminName: 'Name a1',
       people: [_c('a1', SpacePass.lead), _c('a2'), _c('a3')],
     ),
-    CompanyGroup(key: 'a.b.c', name: 'A.B.C Contracting', people: [_c('b1')]),
+    CompanyGroup(
+      key: 'a.b.c',
+      name: 'A.B.C Contracting',
+      adminId: 'b1',
+      adminName: 'Name b1',
+      people: [_c('b1')],
+    ),
     CompanyGroup(
       key: 'delta',
       name: 'Delta Steel',
       adminId: 'd1',
+      adminName: 'Name d1',
       people: [_c('d1'), _c('d2')],
     ),
   ],
   similar: const [(a: 'abc', b: 'a.b.c')],
-  noCompany: [_c('n1')],
+  // V4: "Delta Steel" looks like the Space's Team "Civil" here, for the test.
+  similarTeams: const [(key: 'delta', teamId: 't-civil', teamName: 'Civil')],
 );
 
 FakeSpaceRepository _spaces({
@@ -261,24 +270,49 @@ void main() {
         return spaces;
       }
 
-      testWidgets('every company ticked with its count and Team admin, No '
-          'company unticked, Create N Teams', (tester) async {
+      testWidgets('every company ticked with its count and Team admin; the '
+          'look-alike its own row (V4); no No company (V5); Create N Teams', (
+        tester,
+      ) async {
         await open(tester);
         expect(find.text(l10n.teamsMakeIntro), findsOneWidget);
         expect(_key('make-team-abc'), findsOneWidget);
-        expect(_key('make-team-a.b.c'), findsNothing);
+        expect(_key('make-team-a.b.c'), findsOneWidget);
+        expect(_key('make-team-'), findsNothing);
+        // V6: the server's name for whoever Create sets, never "—".
         expect(
           find.text(l10n.teamsAdminLine(inOwnDirection('Name a1'))),
           findsOneWidget,
         );
-        expect(find.text(l10n.teamsNoCompany), findsOneWidget);
-        expect(find.text(l10n.teamsCreate(2)), findsOneWidget);
+        expect(find.text(l10n.teamsAdminNone), findsNothing);
+        expect(find.text(l10n.teamsCreate(3)), findsOneWidget);
+      });
+
+      testWidgets('V4: merge into an existing Team: its people join it and '
+          'its admin stays, named on the row', (tester) async {
+        final spaces = await open(tester);
+        await _tap(tester, _key('make-team-into-delta-t-civil'));
+        expect(
+          find.text(l10n.teamsMergedIntoTeam(inOwnDirection('Civil'))),
+          findsOneWidget,
+        );
+        expect(
+          find.text(l10n.teamsAdminLine(inOwnDirection('Omar X'))),
+          findsOneWidget,
+        );
+        await _tap(tester, _key('make-teams-create'));
+        expect(spaces.companyTeamCalls.single.groups.last.toJson(), {
+          'name': 'Civil',
+          'team_id': 't-civil',
+          'people': ['d1', 'd2'],
+        });
       });
 
       testWidgets('Create sends what is ticked, with the Team admin; the '
           'Teams appear', (tester) async {
         final spaces = await open(tester);
         await _tap(tester, _key('make-team-tick-delta'));
+        await _tap(tester, _key('make-team-tick-a.b.c'));
         expect(find.text(l10n.teamsCreate(1)), findsOneWidget);
         await _tap(tester, _key('make-teams-create'));
         final call = spaces.companyTeamCalls.single;
@@ -301,6 +335,8 @@ void main() {
           find.text(l10n.teamsMergedUndo(inOwnDirection('A.B.C Contracting'))),
           findsOneWidget,
         );
+        expect(_key('make-team-a.b.c'), findsNothing);
+        expect(find.text(l10n.teamsCreate(2)), findsOneWidget);
         await _tap(tester, _key('make-teams-create'));
         expect(spaces.companyTeamCalls.single.groups.first.people, [
           'a1',
@@ -364,6 +400,7 @@ void main() {
       testWidgets('nothing ticked: Create does nothing', (tester) async {
         final spaces = await open(tester);
         await _tap(tester, _key('make-team-tick-abc'));
+        await _tap(tester, _key('make-team-tick-a.b.c'));
         await _tap(tester, _key('make-team-tick-delta'));
         expect(
           tester.widget<BvButton>(_key('make-teams-create')).onPressed,
@@ -597,6 +634,28 @@ void main() {
         await tester.pumpAndSettle();
         expect(_key('who-sees-t-gulf'), findsOneWidget);
         expect(_key('who-sees-t-civil'), findsNothing);
+      });
+
+      testWidgets('V13: a Space admin who is also a Team admin is told as a '
+          'Space admin', (tester) async {
+        await pumpApp(tester, language: lang);
+        final context = tester.element(find.byType(Navigator).first);
+        pickWhoSees(
+          context,
+          people: people,
+          me: 'p-rakesh',
+          spaceAdmin: true,
+          chosen: null,
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(
+            of: _key('who-sees-t-civil'),
+            matching: find.text(l10n.whoSeesAsSpaceAdmin),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text(l10n.whoSeesAsTeamAdmin), findsNothing);
       });
 
       testWidgets('a Space admin outside the Team is told as a Space admin', (
