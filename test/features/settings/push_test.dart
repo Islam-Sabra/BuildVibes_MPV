@@ -205,6 +205,18 @@ void main() {
       expect(push.openedSettings, 1);
     });
 
+    testWidgets('S3: "Alerts setup" is always there and opens the setup; '
+        'the not-reaching line is only extra (review 114b) [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(tester, feed: true, language: lang);
+      await _openNotifications(tester);
+      expect(find.byKey(const Key('push-not-reaching')), findsNothing);
+      expect(find.text(l10n.alertsSetupRow), findsOneWidget);
+      await _tap(tester, 'notif-alerts-setup');
+      expect(find.byType(AlertsSetupScreen), findsOneWidget);
+    });
+
     testWidgets('S3: the MVP switches, saved on the server [$lang]', (
       tester,
     ) async {

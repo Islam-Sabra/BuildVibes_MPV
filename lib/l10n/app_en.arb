@@ -2832,6 +2832,10 @@
   "@notifLockText": {
     "description": "S3 switch, off by default."
   },
+  "alertsSetupRow": "Alerts setup",
+  "@alertsSetupRow": {
+    "description": "Review 114b: Settings → Notifications row that always opens the alerts setup."
+  },
   "notifSpaces": "SPACES",
   "@notifSpaces": {
     "description": "S3 section."

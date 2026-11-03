@@ -3362,6 +3362,12 @@ abstract class AppLocalizations {
   /// **'Show message text on lock screen'**
   String get notifLockText;
 
+  /// Review 114b: Settings → Notifications row that always opens the alerts setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts setup'**
+  String get alertsSetupRow;
+
   /// S3 section.
   ///
   /// In en, this message translates to:

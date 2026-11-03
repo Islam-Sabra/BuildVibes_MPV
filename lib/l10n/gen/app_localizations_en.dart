@@ -1954,6 +1954,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifLockText => 'Show message text on lock screen';
 
   @override
+  String get alertsSetupRow => 'Alerts setup';
+
+  @override
   String get notifSpaces => 'SPACES';
 
   @override
