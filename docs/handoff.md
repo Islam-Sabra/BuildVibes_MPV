@@ -2,6 +2,14 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 3 Nov 2026 — review 111 round 2 on `claude/r111` (pushed); waiting for the lead's check; not merged, not live, not built
+
+- **Merged:** `claude/r111-cloud` (server V1–V4, V6, V8, V9, V14). pgTAP: 61 files, 4,363 checks, PASS.
+- **App, test first:** V4 (look-alikes never dropped; merge into an existing Team), V5 (no "No company" row), V6 (`admin_name` on each row), V10 (مشرف الفريق, in both glossaries), V11 (storage log: folder, extension and size only, behind `--dart-define=BV_STORAGE_LOG=true`), V12, V13; choice 7 done; choice 3 left as built (the founder hasn't answered).
+- **Goldens:** the 24 accepted ones and 7 changed r111 shots updated; 31 old/new pairs in `docs/reviews/shots-111/changed/`.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,549 pass; `flutter test test_screens` 674 pass.
+- **Before going live (the lead's list):** live Postgres 15 or later; `fuzzystrmatch` not already in `public`; then `db push` → the build (with `BV_STORAGE_LOG=true`) → install.
+
 ## Cloud update: 2 Nov 2026, evening — review 111's server fixes on `claude/r111-cloud` (pushed); not merged, not live
 
 - **Branch:** `claude/r111-cloud`, from `claude/r111` at 5f541fa4. **The PC merges it into `claude/r111`** before doing the app part. Nobody else works on `claude/r111-cloud`.
