@@ -142,3 +142,13 @@
   3. A release build with `--dart-define=BV_STORAGE_LOG=true`.
   4. Install on the Xiaomi 22120RN86G.
   5. Phone checks: B1 both paths, the storage log read with `adb logcat`, Teams from companies on NBKCH.
+
+## Bug on build 987: Teams in NBKCH shows "Something went wrong" (3 Nov, founder)
+- **The live log:** every read of `/rest/v1/teams?select=id,name,admin_id,admin_name,members:team_members(profile_id)&space_id=eq.<NBKCH>` returns **HTTP 300, PostgREST PGRST201** (ambiguous embedding), from 07:01 to 07:02 UTC, again and again.
+- **Why:** review 111 added `teams_admin_in_team_fkey` (teams → team_members), so there are now **two** relationships between `teams` and `team_members`. The other is `team_members_team_id_fkey` (team_members → teams). PostgREST can't choose, so the embed `team_members(...)` fails.
+- **Why the tests missed it:** pgTAP doesn't go through PostgREST, and the app tests use fakes.
+- **Fix (app, one line):** `space_repository.dart:373`: `members:team_members!team_members_team_id_fkey(profile_id)`. That's the only place in `lib/` that embeds `team_members` from `teams`.
+- **Guard against it happening again:**
+  - a Dart test that this select names the relationship;
+  - a pgTAP test listing the foreign keys between `teams` and `team_members`, with a comment that any embed between them must name `team_members_team_id_fkey`.
+- **Ship:** hotfix build 988 now, so the founder can test Teams. No server change.
