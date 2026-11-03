@@ -139,11 +139,12 @@ void main() {
         ),
         findsOneWidget,
       );
-      // Teams as chips, + New team for the admin.
-      expect(find.byKey(const Key('team-chip-team-mep')), findsOneWidget);
-      expect(find.byKey(const Key('people-new-team')), findsOneWidget);
       // No member count anywhere (rule 3).
       expect(find.textContaining(RegExp(r'\b2\b')), findsNothing);
+      // Review 111 TM1: the Teams on their own side, New Team for the admin.
+      await _tap(tester, 'people-view-teams');
+      expect(find.byKey(const Key('team-row-team-mep')), findsOneWidget);
+      expect(find.byKey(const Key('people-new-team')), findsOneWidget);
     });
 
     testWidgets('members see no requests and no New team [$lang]', (
@@ -184,8 +185,8 @@ void main() {
       expect(find.text(l10n.spacesCodeCopied), findsOneWidget);
     });
 
-    testWidgets('P2: Let in opens the passes in place, nothing chosen; '
-        'Let in as Crew [$lang]', (tester) async {
+    testWidgets('TM4: Confirm opens the sheet, nothing chosen with no '
+        'matching company; Crew, one single choice [$lang]', (tester) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openPeople(tester);
@@ -200,16 +201,9 @@ void main() {
       expect(spaces.calls, isEmpty);
 
       await _tap(tester, 'request-pass-crew');
-      expect(
-        find.text(l10n.peopleLetInAs(l10n.spacesPassCrew)),
-        findsOneWidget,
-      );
-      // One single choice: Viewer replaces Crew.
+      expect(find.text(l10n.peopleChoosePass), findsNothing);
+      // One single choice: Viewer replaces Crew, Crew replaces Viewer.
       await _tap(tester, 'request-pass-viewer');
-      expect(
-        find.text(l10n.peopleLetInAs(l10n.spacesPassViewer)),
-        findsOneWidget,
-      );
       await _tap(tester, 'request-pass-crew');
       await _tap(tester, 'request-confirm-req-1');
       expect(spaces.calls, ['confirm req-1 crew']);

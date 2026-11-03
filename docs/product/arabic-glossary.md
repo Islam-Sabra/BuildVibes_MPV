@@ -20,6 +20,7 @@
 | Send back | إرجاع |
 | Lead / Crew / Viewer | مسؤول / فريق تنفيذ / مُطّلع |
 | Pass | تصريح |
+| Team admin | مشرف الفريق |
 | Needs you | بانتظارك |
 | Project sheet / record | سجل المشروع |
 | Open (status) | مفتوح (in chips: مفتوحة) |

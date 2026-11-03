@@ -19,6 +19,8 @@ class SpacePersonRow extends StatelessWidget {
     this.trailing,
     this.selected = false,
     this.onTap,
+    this.nameMark,
+    this.onPage = false,
   });
 
   final SpacePerson person;
@@ -28,6 +30,12 @@ class SpacePersonRow extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
+  /// A small mark after the name (TM3: the Team admin badge).
+  final Widget? nameMark;
+
+  /// On the page's own colour, not on a white list (TM3).
+  final bool onPage;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -35,7 +43,11 @@ class SpacePersonRow extends StatelessWidget {
     final lang = Localizations.localeOf(context).languageCode;
     final role = joinMeta([?person.roleLabel(lang), ?person.companyLabel]);
     return Material(
-      color: selected ? BvColors.surfaceBrandSoft : BvColors.surfaceElevated,
+      color: selected
+          ? BvColors.surfaceBrandSoft
+          : onPage
+          ? BvColors.surfaceApp
+          : BvColors.surfaceElevated,
       child: InkWell(
         onTap: onTap,
         splashFactory: NoSplash.splashFactory,
@@ -53,11 +65,19 @@ class SpacePersonRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: BvListRowSpec.textGap,
                   children: [
-                    Text(
-                      isMe
-                          ? joinMeta([person.fullName, l10n.spacesYouTag])
-                          : person.fullName,
-                      style: type.titleMd,
+                    Row(
+                      spacing: BvSpace.s8,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            isMe
+                                ? joinMeta([person.fullName, l10n.spacesYouTag])
+                                : person.fullName,
+                            style: type.titleMd,
+                          ),
+                        ),
+                        ?nameMark,
+                      ],
                     ),
                     if (role.isNotEmpty)
                       Text(

@@ -10,14 +10,6 @@ abstract final class BvPeopleSpec {
   static const requestTop = BvSpace.s16;
   static const requestGap = BvSpace.s12;
 
-  /// P2's three passes: a radio and the name; the chosen one outlined.
-  static const optionHeight = 40.0;
-  static const optionRadius = BvRadius.controlAll;
-  static const optionPadding = BvSpace.s12;
-  static const optionGap = BvSpace.s12;
-  static const optionsTop = BvSpace.s12;
-  static const optionsGap = BvSpace.s4;
-
   /// Section labels: Leads, Crew, Viewers, Teams.
   static const sectionTop = BvSpace.s16;
   static const sectionBottom = BvSpace.s4;
@@ -45,6 +37,28 @@ abstract final class BvPeopleSpec {
   static const invitePadding = BvSpace.s12;
   static const inviteIcon = BvSize.iconSm;
   static const inviteGap = BvSpace.s12;
+}
+
+/// Review 111's Teams (TM1 to TM5).
+abstract final class BvTeamsSpec {
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const lineGap = BvSpace.s2;
+
+  /// A Team's mark on its row (TM1), on the card and in Who sees it (TM5).
+  static const rowDisc = 36.0;
+  static const cardDisc = 40.0;
+  static const whoDisc = 32.0;
+  static const cardPadding = BvSpace.s12;
+
+  /// The look-alike spelling's pill (TM2).
+  static const mergePadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: BvSpace.s6,
+  );
+
+  /// Between the confirm sheet's parts (TM4).
+  static const confirmGap = BvSpace.s12;
 }
 
 /// Slice 4's Library (LV1 2543:34980) and a file's page (LV2 2543:35101).

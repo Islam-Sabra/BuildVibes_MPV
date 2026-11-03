@@ -1175,11 +1175,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesTeamDuplicate => 'There\'s already a Team with this name.';
 
   @override
-  String spacesTeamIntro(String space) {
-    return 'A Team in $space. Posts and threads for this Team are seen only by its members.';
-  }
-
-  @override
   String get spacesAddPeople => 'Add people';
 
   @override
@@ -3600,11 +3595,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get peopleChoosePass => 'Choose a pass';
 
   @override
-  String peopleLetInAs(String pass) {
-    return 'Let in as $pass';
-  }
-
-  @override
   String get peopleLeads => 'Leads';
 
   @override
@@ -4429,9 +4419,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get spacesTeamMembersTitle => 'Members';
 
   @override
   String needsChecklist(String name, String title) {
@@ -7006,4 +6993,112 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get postFileAudienceLine =>
       'People who see this post can open this file.';
+
+  @override
+  String get teamsMakeTitle => 'Make Teams from companies';
+
+  @override
+  String get teamsMakeCardLine => 'One tap, you check before it saves.';
+
+  @override
+  String get teamsMakeIntro =>
+      'Each company becomes a Team with its people inside. Untick any you don\'t want.';
+
+  @override
+  String teamsNewLine(int count, String company) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new people from $company: make a Team?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamsNewByHand => 'New Team by hand';
+
+  @override
+  String get teamRowAdmin => 'admin';
+
+  @override
+  String get teamAdminBadge => 'Team admin';
+
+  @override
+  String teamsAdminLine(String name) {
+    return 'Team admin: $name';
+  }
+
+  @override
+  String get teamsAdminNone => 'Team admin: —';
+
+  @override
+  String teamsMergeOffer(String name, int count) {
+    return '\"$name\" ($count) looks the same: merge';
+  }
+
+  @override
+  String teamsMergedUndo(String name) {
+    return '\"$name\" merged: undo';
+  }
+
+  @override
+  String teamsCreate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Create $count Teams',
+      one: 'Create 1 Team',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamsMadeDone => 'Teams made.';
+
+  @override
+  String get teamMakeAdmin => 'Make Team admin';
+
+  @override
+  String get teamAdminNote =>
+      'The Team admin adds or removes its people. Only the Space admin changes who the Team admin is.';
+
+  @override
+  String joinChosenBecause(String name, String company) {
+    return 'Chosen because $name works at $company.';
+  }
+
+  @override
+  String get joinAnother => 'Another';
+
+  @override
+  String get whoSeesTitle => 'Who sees it';
+
+  @override
+  String get whoSeesEveryone => 'Everyone in the Space';
+
+  @override
+  String get whoSeesYourTeam => 'Your Team';
+
+  @override
+  String get whoSeesAsTeamAdmin => 'You post here as a Team admin';
+
+  @override
+  String get whoSeesAsSpaceAdmin => 'You post here as a Space admin';
+
+  @override
+  String get whoSeesFoot => 'Members see Everyone and their own Teams only.';
+
+  @override
+  String get spacesTeamAdminStays =>
+      'You\'re this Team\'s admin, so you stay in it. Only the Space admin can change that.';
+
+  @override
+  String teamsMergeIntoTeam(String team) {
+    return 'Looks like the Team \"$team\": add to it';
+  }
+
+  @override
+  String teamsMergedIntoTeam(String team) {
+    return 'Goes into the Team \"$team\": undo';
+  }
 }

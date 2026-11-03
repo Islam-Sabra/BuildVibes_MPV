@@ -15,7 +15,6 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:buildvibes/shared/widgets/bv_faces.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
-import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -384,23 +383,17 @@ void main() {
         findsOneWidget,
       );
       await _tap(tester, to);
-      final menu = tester.widget<BvPopoverMenu<String>>(
-        find.byKey(const Key('writing-to-menu')),
-      );
-      expect(menu.picker, isTrue);
-      // A Space admin may post to any Team.
+      // TM5: Everyone, and a Space admin may post to any Team.
+      final sheet = find.byKey(const Key('who-sees-sheet'));
       expect(
-        [for (final i in menu.items) i.label],
-        [l10n.daybookEveryone, for (final t in s.people().teams) t.name],
+        find.descendant(of: sheet, matching: find.text(l10n.whoSeesEveryone)),
+        findsOneWidget,
       );
+      for (final t in s.people().teams) {
+        expect(find.byKey(Key('who-sees-${t.id}')), findsOneWidget);
+      }
       final mep = s.people().teams.first;
-      await _tap(
-        tester,
-        find.descendant(
-          of: find.byKey(const Key('writing-to-menu')),
-          matching: find.text(mep.name),
-        ),
-      );
+      await _tap(tester, find.byKey(Key('who-sees-${mep.id}')));
       expect(
         find.descendant(of: to, matching: find.text(mep.name)),
         findsOneWidget,

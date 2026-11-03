@@ -355,6 +355,8 @@ abstract final class BvIcons {
   static const pagePhone = IconData(0xe3b8, fontFamily: _family);
   // Phosphor: star
   static const pageStar = IconData(0xe46a, fontFamily: _family);
+  // The same star marks a Team admin (review 111).
+  static const teamAdmin = pageStar;
   // Phosphor: wrench
   static const pageWrench = IconData(0xe5d4, fontFamily: _family);
   // Phosphor: tree-structure. Merge pages (PG5).

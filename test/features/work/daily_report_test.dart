@@ -350,13 +350,7 @@ void main() {
       await _startReport(tester, l10n);
       expect(app.templates.calls, contains('fill everyone'));
       await _tap(tester, _key('writing-to'));
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('writing-to-menu'),
-          matching: find.text(s.t('MEP', 'الكهروميكانيك')),
-        ),
-      );
+      await _tap(tester, _key('who-sees-t-mep'));
       expect(app.templates.calls, contains('fill t-mep'));
       expect(_key('report-done-$_mepTray'), findsOneWidget);
     });

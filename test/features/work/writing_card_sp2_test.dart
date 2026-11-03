@@ -151,13 +151,7 @@ void main() {
           'with its Team', (tester) async {
         final app = await _write(tester, lang);
         await _tap(tester, _key('writing-to'));
-        await _tap(
-          tester,
-          find.descendant(
-            of: _key('writing-to-menu'),
-            matching: find.text(s.t('MEP', 'الكهروميكانيك')),
-          ),
-        );
+        await _tap(tester, _key('who-sees-t-mep'));
         expect(_row(tester, 'writing-to').value, s.t('MEP', 'الكهروميكانيك'));
         await tester.enterText(_key('writing-title'), 'Sleeves at C7');
         await tester.pumpAndSettle();

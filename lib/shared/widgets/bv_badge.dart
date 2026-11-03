@@ -5,7 +5,7 @@ import '../../core/design/bv_tokens.dart';
 
 /// [action] is the solid badge for counts that need a tap (S1 "1 needs
 /// you").
-enum BvBadgeTone { neutral, brand, positive, warning, action }
+enum BvBadgeTone { neutral, brand, positive, positiveSoft, warning, action }
 
 /// Spec §10 ("DS · Avatar & Badge"). An optional [icon] sits before the
 /// label in the same colour (E2: "Confirmed by teammates").
@@ -27,6 +27,10 @@ class BvBadge extends StatelessWidget {
       BvBadgeTone.neutral => (BvColors.surfaceSubtle, BvColors.textSecondary),
       BvBadgeTone.brand => (BvColors.surfaceBrandSoft, BvColors.textAction),
       BvBadgeTone.positive => (BvColors.surfaceSubtle, BvColors.textPositive),
+      BvBadgeTone.positiveSoft => (
+        BvColors.surfacePositiveSoft,
+        BvColors.textPositive,
+      ),
       BvBadgeTone.warning => (BvColors.surfaceSubtle, BvColors.textWarning),
       BvBadgeTone.action => (
         BvColors.actionPrimary,

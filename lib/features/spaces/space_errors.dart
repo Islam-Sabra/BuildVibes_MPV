@@ -10,6 +10,7 @@ String spaceErrorText(AppLocalizations l10n, SpaceException e) =>
       SpaceFailure.notAllowed => l10n.spacesNotAllowed,
       SpaceFailure.network => l10n.errorNetwork,
       SpaceFailure.openWork => l10n.spacesHandOverFirst,
+      SpaceFailure.teamAdminStays => l10n.spacesTeamAdminStays,
       // Review 112: a work item for yourself.
       _ when (e.message ?? '').toLowerCase().contains(workItemForSomeoneElse) =>
         l10n.workItemForSomeoneElse,
