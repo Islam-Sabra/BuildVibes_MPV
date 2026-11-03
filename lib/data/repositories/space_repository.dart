@@ -369,9 +369,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .order('created_at', ascending: true);
     final teams = await _client
         .from('teams')
-        .select(
-          'id, name, admin_id, admin_name, members:team_members(profile_id)',
-        )
+        .select(teamsSelect)
         .eq('space_id', spaceId)
         .order('name', ascending: true);
 
@@ -755,3 +753,10 @@ final memberRightsProvider = FutureProvider.autoDispose
           .watch(spaceRepositoryProvider)
           .memberRights(key.spaceId, key.profileId),
     );
+
+/// A Space's Teams, each with its admin and its members (review 111).
+/// Two foreign keys join teams and team_members, so the embed names the
+/// members' one: without it PostgREST answers 300 (PGRST201).
+const teamsSelect =
+    'id, name, admin_id, admin_name, '
+    'members:team_members!team_members_team_id_fkey(profile_id)';
