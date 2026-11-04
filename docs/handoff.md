@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, noon — review 116 (Poll) live; build 1042 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r116` into `slice2-app` at 43efef1d (same tree), after the lead's second check (accepted at 9b53f5c4). It carries review 116 (Poll: composer, card, close, DECIDED/TIED, Make it a work item, Edit before the first vote) with the lead's P1–P12, and the small items of the check of 115 (the hold tip, "Whole Space", the hold bar with several cards). The two sections below are the branch notes.
+- **Checks on the branch:** `flutter analyze` clean; `flutter test` 3,793 pass; `test_screens` 724 pass; `supabase test db` 66 files, 4,493 checks, PASS; deno 36 pass. Emulator against the local server: create, Edit, vote, change vote, quick taps, close, decided, Make it a work item.
+- **Live:**
+  - `supabase db push` from a clean worktree at 43efef1d (dry run first: only `20261125120000_review116_poll`). It is the last of 63 on live. Only the usual pg-delta cache warning.
+  - Read-only check: the three poll tables with RLS; `vote_poll` granted and locking; `close_due_polls` not callable by the app; `poll_tied` in the kind lists; `poll_person_name` gone.
+  - `push` deployed: **v17** (was v16), JWT check off as before.
+  - `supabase/ops/poll_cron.sql` run: `poll-close` (`*/5 * * * *`, `select public.close_due_polls();`) active; 13 cron jobs, all active.
+- **Build 1042** (versionCode 1042, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1042`** (= 43efef1d). `Desktop/BuildVibes-1042.apk`. On the founder's phone (22120RN86G) over 1032. Wireless debugging had to be paired again (pairing at 192.168.8.33:38187), then connected at 192.168.8.33:34163; disconnected after.
+- **Open:**
+  - The emulator still has a debug build pointing at the local server: reinstall the live build on it before the next live check.
+  - The lead's next small round: a first-run tip never blocks the tap under it (its dimmed overlay swallowed taps on a fresh install).
+- **Who has which branch:** PC has `slice2-app`; `claude/r116` and `claude/r116-server` are merged.
+
 ## PC update: 4 Nov 2026, midday — the lead's check of 116 (P1–P12) done; waiting for the lead again
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
