@@ -66,3 +66,31 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
 
 - **SC2** is the phone's own scanner, so it isn't drawn.
 - **The Library's "Add a file → Scan a document"** and **the chat's attach sheet** get the same row as SC5.
+
+## Founder's changes (4 Nov)
+- **Where Scan lives (founder, 12:25):** not inside the + / 📎 menu. **Scan gets its own button in the bar above the keyboard, right after the camera:** + · camera · **Scan** · mic · Send.
+  - It's in the Space composer, and in the same place in the notebook's writing bar.
+  - It stays in the Library's "Add a file", the chat attach sheet, and Sign as done (Photo | Scan).
+  - Icon: Phosphor `scan`.
+  - Frame **SC7**: EN `2744:40173`, AR `2744:40248` (the CV3 composer with the Scan button). SC1's and SC5's menu rows for Scan are dropped where the bar button exists.
+- **Compression (founder, 12:25: "an effective PDF compressor and image compressor"), the lead's calls:**
+  - **One photo compressor everywhere a photo enters:**
+    - Work already does it (1600 px, JPEG 80, no location);
+    - extend the same to Chat, DMs, Library images, the notebook and the profile, through one function;
+    - a photo already under 1600 px and 500 KB is left as it is;
+    - text on drawings and labels stays readable;
+    - tests per place.
+  - **Scans are compressed at the source:** about 200–300 KB a page, as above.
+  - **Uploaded PDFs are never changed automatically.** They are records, and computer-drawn PDFs barely shrink.
+  - **"Make it smaller" («صغّر الملف»):**
+    - shown on the "too large" sheet next to Link folder;
+    - the phone renders each page to a compressed image (pdfx, 150 dpi, JPEG ~75) and rebuilds the PDF (`pdf` package);
+    - before confirming, a line says: "Text can't be selected afterwards, and fine lines get softer." («لن يمكن تحديد النص بعد ذلك، وتصبح الخطوط الدقيقة أنعم.»);
+    - the original on the phone is untouched;
+    - it shows the new size before adding;
+    - all on the phone, with no outside service.
+- **OCR, "Extract text" («استخرج النص»): waiting for the founder's decision.**
+  - Phone-only OCR (ML Kit) doesn't read Arabic.
+  - The lead's recommendation: a cloud reader (Google Document AI or Microsoft Read, chosen after checking current prices and data terms), called **only when someone taps the button**.
+  - The text shows under the file, can be copied, and becomes searchable in Space search and notebook search.
+  - Needs: the founder's yes on sending documents to a cloud reader, a privacy-policy line, and a lawyer's look.
