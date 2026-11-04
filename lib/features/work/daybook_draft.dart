@@ -132,6 +132,23 @@ class DraftFile {
     pages: pages,
   );
 
+  /// Review 103: the same file from another copy on the phone (Make it
+  /// smaller).
+  DraftFile withLocal(String local, {int? bytes}) => DraftFile(
+    libraryId: libraryId,
+    name: name,
+    mime: mime,
+    bytes: bytes ?? this.bytes,
+    local: local,
+    revLabel: revLabel,
+    supersedesId: supersedesId,
+    supersedesRev: supersedesRev,
+    added: added,
+    folderId: folderId,
+    scanned: scanned,
+    pages: pages,
+  );
+
   DraftFile get inLibrary => DraftFile(
     libraryId: libraryId,
     name: name,

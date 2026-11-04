@@ -1450,6 +1450,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatAttachPdf => 'ملف PDF من هاتفك';
 
   @override
+  String get pdfSmaller => 'صغّر الملف';
+
+  @override
+  String get pdfSmallerTitle => 'صغّر الملف';
+
+  @override
+  String get pdfSmallerMaking => 'جارٍ تصغير الملف…';
+
+  @override
+  String pdfSmallerResult(String before, String after) {
+    return '$before ← $after';
+  }
+
+  @override
+  String get pdfSmallerWarning =>
+      'لن يمكن تحديد النص بعد ذلك، وتصبح الخطوط الدقيقة أنعم.';
+
+  @override
+  String get pdfUseSmaller => 'استخدم الأصغر';
+
+  @override
+  String get pdfKeepOriginal => 'احتفظ بالأصلي';
+
+  @override
+  String get pdfSmallerFailed => 'تعذّر تصغير ملف PDF هذا.';
+
+  @override
+  String pdfStillTooLarge(String size, String max) {
+    return 'لا يزال كبيرًا جدًا ($size ميجابايت). الحد الأقصى $max ميجابايت.';
+  }
+
+  @override
+  String get fileExtractText => 'استخرج النص';
+
+  @override
+  String get fileTextTitle => 'النص';
+
+  @override
+  String get fileTextCopy => 'انسخ النص';
+
+  @override
+  String get fileTextCopied => 'تم نسخ النص';
+
+  @override
+  String get fileTextReading => 'جارٍ قراءة النص…';
+
+  @override
+  String get fileTextFailed => 'تعذّرت قراءة هذا الملف';
+
+  @override
+  String get fileTextEmpty => 'لا يوجد نص في هذا الملف.';
+
+  @override
+  String get fileTextLimit => 'قرأت 50 صفحة اليوم. حاول مرة أخرى غدًا.';
+
+  @override
   String get scanBar => 'مسح';
 
   @override

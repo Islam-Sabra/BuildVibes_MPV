@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../scan/pdf_smaller.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
+import '../../data/models/library.dart' show PhoneFile;
 import '../../data/models/check_in.dart' show checkInFitsDay;
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart' show Note, noteBulletMark;
@@ -677,6 +679,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
   }
 
   /// What was added from + (CP4): small chips with ×.
+  /// Review 103: the smaller copy in place of [f], when it is used.
+  Future<void> _smaller(DraftFile f) async {
+    final smaller = await makeSmaller(
+      context,
+      ref,
+      PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+    );
+    if (smaller == null || !mounted) return;
+    await _writer.swapFile(f, local: smaller.local, bytes: smaller.bytes);
+  }
+
   List<Widget> _added(
     AppLocalizations l10n,
     DaybookPostDraft draft,
@@ -827,6 +840,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
           clearLabel: l10n.daybookRemoveFile,
           onClear: () => unawaited(_writer.removeFile(f)),
         ),
+      // Review 103: Make it smaller, on a PDF of 1 MB or more still on
+      // the phone; an offer, never automatic.
+      for (final (i, f) in draft.files.indexed)
+        if (offersSmaller(f.local, f.mime, f.bytes))
+          BvChip(
+            key: Key('writing-file-smaller-$i'),
+            icon: BvIcons.download,
+            label: l10n.pdfSmaller,
+            tight: true,
+            onTap: () => unawaited(_smaller(f)),
+          ),
       // F71: "Replaces M-201.pdf · Rev C", with × to make it a new file.
       for (final f in draft.files)
         if (f.supersedesRev != null && f.local != null)

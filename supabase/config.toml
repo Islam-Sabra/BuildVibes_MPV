@@ -469,3 +469,8 @@ verify_jwt = false
 # secret, not by a signed-in user.
 [functions.check-in-report]
 verify_jwt = false
+
+# Extract text (review 103, OCR). Called by the app with the person's own
+# sign-in; the gateway checks it, and the function asks as them.
+[functions.extract-text]
+verify_jwt = true

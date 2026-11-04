@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../scan/pdf_smaller.dart';
 import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
@@ -273,6 +274,16 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         ),
       ),
     );
+  }
+
+  /// Review 103: the smaller copy in place of [f], when it is used.
+  Future<void> _smaller(PhoneFile f) async {
+    final smaller = await makeSmaller(context, ref, f);
+    if (smaller == null || !mounted) return;
+    setState(() {
+      final i = _files.indexOf(f);
+      if (i >= 0) _files[i] = smaller;
+    });
   }
 
   Future<void> _startRecording() async {
@@ -844,6 +855,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                 ? _attach
                 : null,
             onRemove: (f) => setState(() => _files.remove(f)),
+            onSmaller: (f) => unawaited(_smaller(f)),
             recording: _recording,
             cancelling: _cancelling,
             elapsed: _elapsed,
@@ -1424,7 +1436,11 @@ class ChatComposer extends StatelessWidget {
     required this.onRecordEnd,
     required this.onRecordTap,
     this.shared = const [],
+    this.onSmaller,
   });
+
+  /// Review 103: Make it smaller on a picked PDF of 1 MB or more.
+  final ValueChanged<PhoneFile>? onSmaller;
 
   /// F77: a Library file waiting in the message box, not sent yet.
   final List<Widget> shared;
@@ -1480,8 +1496,15 @@ class ChatComposer extends StatelessWidget {
                   spacing: BvSpace.s8,
                   children: [
                     ...shared,
-                    for (final f in files)
-                      _PickedChip(file: f, onRemove: () => onRemove(f)),
+                    for (final (i, f) in files.indexed)
+                      _PickedChip(
+                        index: i,
+                        file: f,
+                        onRemove: () => onRemove(f),
+                        onSmaller: onSmaller == null
+                            ? null
+                            : () => onSmaller!(f),
+                      ),
                   ],
                 ),
               ),
@@ -1800,10 +1823,19 @@ class _FileChip extends StatelessWidget {
 
 /// A file picked for the next message, with Remove.
 class _PickedChip extends StatelessWidget {
-  const _PickedChip({required this.file, required this.onRemove});
+  const _PickedChip({
+    required this.index,
+    required this.file,
+    required this.onRemove,
+    this.onSmaller,
+  });
 
+  final int index;
   final PhoneFile file;
   final VoidCallback onRemove;
+
+  /// Review 103: Make it smaller, on a PDF of 1 MB or more.
+  final VoidCallback? onSmaller;
 
   @override
   Widget build(BuildContext context) {
@@ -1843,7 +1875,14 @@ class _PickedChip extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
               // A camera photo's file name means nothing to people.
               child: file.isPdf
-                  ? BvNameText(file.name, style: type.bodySm)
+                  // Review 103: a PDF shows its size.
+                  ? BvNameText(
+                      [
+                        file.name,
+                        if (file.bytes != null) fileSize(l10n, file.bytes),
+                      ].join(' · '),
+                      style: type.bodySm,
+                    )
                   : Text(
                       l10n.chatPhoto,
                       maxLines: 1,
@@ -1852,6 +1891,18 @@ class _PickedChip extends StatelessWidget {
                     ),
             ),
           ),
+          if (onSmaller != null &&
+              offersSmaller(file.local, file.mime, file.bytes))
+            IconButton(
+              key: Key('chat-picked-smaller-$index'),
+              tooltip: l10n.pdfSmaller,
+              icon: const Icon(
+                BvIcons.download,
+                size: BvSize.iconSm,
+                color: BvColors.iconAction,
+              ),
+              onPressed: onSmaller,
+            ),
           IconButton(
             tooltip: l10n.chatRemoveFile,
             icon: const Icon(

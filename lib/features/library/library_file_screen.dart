@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/repositories/file_text_repository.dart' show FileTextKind;
+import 'file_text_section.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -199,6 +201,12 @@ class LibraryFileScreen extends ConsumerWidget {
             file: f,
             onTap: () => context.push(AppRoutes.libraryFile(spaceId, f.id)),
           ),
+          // Review 103, OCR: Extract text, for a PDF or a photo.
+          if (f.isPdf || f.mime.startsWith('image/'))
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
+              child: FileTextSection(kind: FileTextKind.library, ref: f.id),
+            ),
           _Received(
             fileId: fileId,
             mineToMark: f.uploadedById == null || f.uploadedById != me,

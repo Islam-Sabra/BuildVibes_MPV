@@ -891,6 +891,28 @@ class DaybookWriter {
     }
   }
 
+  /// Review 103: [file]'s phone copy replaced by [local] ([bytes] long),
+  /// the old copy deleted.
+  Future<void> swapFile(
+    DraftFile file, {
+    required String local,
+    int? bytes,
+  }) async {
+    await _put(
+      (d) => d.copyWith(
+        files: [
+          for (final f in d.files)
+            f.libraryId == file.libraryId
+                ? f.withLocal(local, bytes: bytes)
+                : f,
+        ],
+      ),
+    );
+    if (file.local case final old? when old != local) {
+      unawaited(DaybookDraft.deleteKept(old));
+    }
+  }
+
   /// F71: the file goes as a new file, not a new version.
   Future<void> notReplacing(DraftFile file) => _put(
     (d) => d.copyWith(

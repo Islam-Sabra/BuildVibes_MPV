@@ -1442,6 +1442,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAttachPdf => 'PDF from your phone';
 
   @override
+  String get pdfSmaller => 'Make it smaller';
+
+  @override
+  String get pdfSmallerTitle => 'Make it smaller';
+
+  @override
+  String get pdfSmallerMaking => 'Making it smaller…';
+
+  @override
+  String pdfSmallerResult(String before, String after) {
+    return '$before → $after';
+  }
+
+  @override
+  String get pdfSmallerWarning =>
+      'Text can\'t be selected afterwards, and fine lines get softer.';
+
+  @override
+  String get pdfUseSmaller => 'Use smaller';
+
+  @override
+  String get pdfKeepOriginal => 'Keep original';
+
+  @override
+  String get pdfSmallerFailed => 'This PDF couldn\'t be made smaller.';
+
+  @override
+  String pdfStillTooLarge(String size, String max) {
+    return 'Still too large ($size MB). The most is $max MB.';
+  }
+
+  @override
+  String get fileExtractText => 'Extract text';
+
+  @override
+  String get fileTextTitle => 'Text';
+
+  @override
+  String get fileTextCopy => 'Copy text';
+
+  @override
+  String get fileTextCopied => 'Text copied';
+
+  @override
+  String get fileTextReading => 'Reading the text…';
+
+  @override
+  String get fileTextFailed => 'Couldn\'t read this file';
+
+  @override
+  String get fileTextEmpty => 'No text found in this file.';
+
+  @override
+  String get fileTextLimit =>
+      'You\'ve read 50 pages today. Try again tomorrow.';
+
+  @override
   String get scanBar => 'Scan';
 
   @override

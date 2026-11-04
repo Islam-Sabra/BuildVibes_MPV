@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../scan/pdf_smaller.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
@@ -218,17 +219,35 @@ Future<DraftFile?> chooseDaybookFile(
     );
   }
   if (picked != _fromPhone || !context.mounted) return null;
-  final (file: phone, :refused) = await ref.read(pickDocumentProvider)();
+  final picked0 = await ref.read(pickDocumentProvider)();
+  var phone = picked0.file;
   if (!context.mounted) return null;
   // Review 74 H1: a photo nobody could open doesn't go.
-  if (refused) showSpaceMessage(context, l10n.photoCannotOpen);
+  if (picked0.refused) showSpaceMessage(context, l10n.photoCannotOpen);
   if (phone == null) return null;
   // Review 113 bug 7: over the bucket's limit, said before it goes, with
-  // Link folder for big drawings.
+  // Link folder for big drawings; review 103: a PDF gets Make it smaller
+  // first.
   final cannot = checkSpaceFile(phone, library: true);
   if (cannot != null) {
-    await showFileRefused(context, ref, spaceId: spaceId, refused: cannot);
-    return null;
+    if (cannot.problem != UploadProblem.tooBig || !phone.isPdf) {
+      await showFileRefused(context, ref, spaceId: spaceId, refused: cannot);
+      return null;
+    }
+    phone = await fitTooLarge(
+      context,
+      ref,
+      file: phone,
+      maxBytes: spaceFilesMaxBytes,
+      spaceId: spaceId,
+    );
+    if (phone == null || !context.mounted) return null;
+  }
+  // Review 103: the Library's add goes at once, so a PDF of 1 MB or more
+  // is offered smaller first; the composer offers it on its chip.
+  if (sameFolder && replaces == null) {
+    phone = await offerSmaller(context, ref, phone);
+    if (!context.mounted) return null;
   }
   // Kept in the app's folder until it is in the Library.
   final kept = await ref.read(keepFileProvider)(phone.local, phone.extension);

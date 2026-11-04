@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/data/repositories/file_text_repository.dart';
+import 'package:buildvibes/features/scan/pdf_smaller.dart';
 import 'package:buildvibes/features/scan/scan.dart';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/config/feature_switches.dart';
@@ -329,6 +331,8 @@ Future<TestApp> pumpApp(
   PhoneFile? Function()? pickDocument,
   DocumentScanner? scanner,
   ScanPdfBuilder? scanBuilder,
+  FakePdfShrinker? shrinker,
+  FileTextRepository? fileTexts,
   bool Function(String path)? localFileThere,
   FileCache? fileCache,
 
@@ -502,6 +506,13 @@ Future<TestApp> pumpApp(
           scanner ?? FakeDocumentScanner(pages: List.filled(3, testPhotoPath)),
         ),
         scanDirProvider.overrideWithValue(testScanDir),
+        // Review 103: no text read unless a test says so.
+        fileTextRepositoryProvider.overrideWithValue(
+          fileTexts ?? const NoFileTexts(),
+        ),
+        pdfShrinkerProvider.overrideWithValue(
+          (shrinker ?? FakePdfShrinker()).call,
+        ),
         scanPdfBuilderProvider.overrideWithValue(scanBuilder ?? buildScanPdf),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async => (

@@ -2558,6 +2558,108 @@ abstract class AppLocalizations {
   /// **'PDF from your phone'**
   String get chatAttachPdf;
 
+  /// Review 103: offered on a PDF of 1 MB or more; it compresses on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it smaller'**
+  String get pdfSmaller;
+
+  /// Review 103: the sheet with the result.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it smaller'**
+  String get pdfSmallerTitle;
+
+  /// Review 103: while the phone compresses the PDF.
+  ///
+  /// In en, this message translates to:
+  /// **'Making it smaller…'**
+  String get pdfSmallerMaking;
+
+  /// Review 103: the size before and after.
+  ///
+  /// In en, this message translates to:
+  /// **'{before} → {after}'**
+  String pdfSmallerResult(String before, String after);
+
+  /// Review 103: said before Use smaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Text can\'t be selected afterwards, and fine lines get softer.'**
+  String get pdfSmallerWarning;
+
+  /// Review 103: the smaller copy replaces the file being sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Use smaller'**
+  String get pdfUseSmaller;
+
+  /// Review 103: the file goes as it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep original'**
+  String get pdfKeepOriginal;
+
+  /// Review 103: the phone couldn't read it.
+  ///
+  /// In en, this message translates to:
+  /// **'This PDF couldn\'t be made smaller.'**
+  String get pdfSmallerFailed;
+
+  /// Review 103: after compressing, still over the limit; only Link folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Still too large ({size} MB). The most is {max} MB.'**
+  String pdfStillTooLarge(String size, String max);
+
+  /// Review 103 OCR: reads the file's text (Google Cloud Vision), only when tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Extract text'**
+  String get fileExtractText;
+
+  /// Review 103 OCR: the section with the text read from the file.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get fileTextTitle;
+
+  /// Review 103 OCR.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get fileTextCopy;
+
+  /// Review 103 OCR.
+  ///
+  /// In en, this message translates to:
+  /// **'Text copied'**
+  String get fileTextCopied;
+
+  /// Review 103 OCR: while the file is read.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the text…'**
+  String get fileTextReading;
+
+  /// Review 103 OCR: any failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read this file'**
+  String get fileTextFailed;
+
+  /// Review 103 OCR: read, but no words.
+  ///
+  /// In en, this message translates to:
+  /// **'No text found in this file.'**
+  String get fileTextEmpty;
+
+  /// Review 103 OCR: the daily limit.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve read 50 pages today. Try again tomorrow.'**
+  String get fileTextLimit;
+
   /// Review 103 SC7: the Scan button on the writing bar, after the camera.
   ///
   /// In en, this message translates to:

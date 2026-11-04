@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../scan/pdf_smaller.dart';
 import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/around_specs.dart' show BvSpaceEmblemSpec;
@@ -543,6 +544,16 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     );
   }
 
+  /// Review 103: the smaller copy in place of [f], when it is used.
+  Future<void> _smaller(PhoneFile f) async {
+    final smaller = await makeSmaller(context, ref, f);
+    if (smaller == null || !mounted) return;
+    setState(() {
+      final i = _files.indexOf(f);
+      if (i >= 0) _files[i] = smaller;
+    });
+  }
+
   /// DM3: Reply, Copy, and Delete for my own or Report for theirs.
   Future<void> _actions(DmMessage m) async {
     final l10n = AppLocalizations.of(context);
@@ -994,6 +1005,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               onSend: () => unawaited(_send()),
               onAttach: _files.length < _maxFiles ? _attach : null,
               onRemove: (f) => setState(() => _files.remove(f)),
+              onSmaller: (f) => unawaited(_smaller(f)),
               recording: _recording,
               cancelling: _cancelling,
               elapsed: _elapsed,

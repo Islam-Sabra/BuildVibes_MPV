@@ -74,6 +74,11 @@ void main() {
       await _tap(tester, 'library-add-file');
       // Review 103: File from the phone, or Scan.
       await _tap(tester, 'file-from-phone');
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-uploading', lang);
       app.library.holdUpload!.complete();
@@ -86,6 +91,11 @@ void main() {
       await _tap(tester, 'library-add-file');
       // Review 103: File from the phone, or Scan.
       await _tap(tester, 'file-from-phone');
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-waiting', lang);
     });
@@ -100,6 +110,11 @@ void main() {
       await _tap(tester, 'library-add-file');
       // Review 103: File from the phone, or Scan.
       await _tap(tester, 'file-from-phone');
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-could-not-upload', lang);
       await tester.tap(find.textContaining('Level 3 plan.pdf').first);
@@ -112,6 +127,11 @@ void main() {
       await _tap(tester, 'library-add-file');
       // Review 103: File from the phone, or Scan.
       await _tap(tester, 'file-from-phone');
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       await _snap(tester, 'L2-who-sees', lang);
       await _tap(tester, 'library-who-change');
       await _snap(tester, 'L2-who-change', lang);
