@@ -94,3 +94,14 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
   - The lead's recommendation: a cloud reader (Google Document AI or Microsoft Read, chosen after checking current prices and data terms), called **only when someone taps the button**.
   - The text shows under the file, can be copied, and becomes searchable in Space search and notebook search.
   - Needs: the founder's yes on sending documents to a cloud reader, a privacy-policy line, and a lawyer's look.
+- **"Make it smaller" for every PDF (founder, 12:28), replacing "only when too large":**
+  - **Any PDF attached** (composer, Library, chat, notebook) shows its size on the chip with **Make it smaller** («صغّر الملف»). This is an offer, never automatic. Not shown under 1 MB, where there's nothing to gain.
+  - Tapping it compresses on the phone, then shows before → after ("9.1 MB → 2.3 MB") with the warning line, and **Use smaller** · **Keep original**.
+  - **Over 25 MB:** the "too large" sheet offers Make it smaller first, with Link folder beside it.
+  - **Still over 25 MB after compressing:** "Still too large (31 MB). The most is 25 MB." with **Link folder** only. It can't be uploaded.
+  - **Tests:**
+    - the offer shows at 1 MB and up;
+    - before → after;
+    - Keep original;
+    - over the limit → smaller → fits;
+    - still too large → only Link folder.
