@@ -203,7 +203,8 @@ class LibraryFileScreen extends ConsumerWidget {
             onTap: () => context.push(AppRoutes.libraryFile(spaceId, f.id)),
           ),
           // Review 103, OCR: Extract text, for a PDF or a photo.
-          if (f.isPdf || f.mime.startsWith('image/'))
+          if ((f.isPdf || f.mime.startsWith('image/')) &&
+              showsFileText(ref, FileTextKind.library, f.id))
             Padding(
               padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
               child: FileTextSection(

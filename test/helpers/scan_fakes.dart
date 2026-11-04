@@ -72,6 +72,10 @@ class FakePdfShrinker {
 class NoFileTexts implements FileTextRepository {
   const NoFileTexts();
 
+  /// Extract text is on (D25), so screens show its button.
+  @override
+  Future<bool> available() async => true;
+
   @override
   Future<FileText?> read(FileTextKind kind, String ref) async => null;
 
