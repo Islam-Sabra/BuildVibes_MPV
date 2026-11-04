@@ -542,6 +542,31 @@ void main() {
         expect(_key('select-remind'), findsNothing);
       });
 
+      testWidgets('the lead, 4 Nov: with several held, no Pin and no '
+          'Reminder; Archive only when every held card allows it', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [s.gate(), s.rebar()],
+          later: pinAndArchive,
+        );
+        await _holdCard(tester, 'post-gate');
+        expect(_order(tester, lang), [
+          'select-pin',
+          'select-remind',
+          'select-archive',
+        ]);
+        await _tapCard(tester, 'post-rebar');
+        expect(find.text(l10n.workSelected(2)), findsOneWidget);
+        expect(_key('select-pin'), findsNothing);
+        expect(_key('select-unpin'), findsNothing);
+        expect(_key('select-remind'), findsNothing);
+        // The open work item may not be archived: so not both.
+        expect(_key('select-archive'), findsNothing);
+      });
+
       testWidgets('a card has no sideways swipe: no Pin, Reminder or '
           'Archive behind it, and no signature', (tester) async {
         await _open(

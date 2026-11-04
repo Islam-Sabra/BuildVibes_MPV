@@ -33,7 +33,7 @@ test("every kind has its text in English and Arabic", () => {
     "dm_message", "dm_request", "dm_follow_up",
     "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
     "post_reaction", "work_item_archived", "check_in_nudge", "need_you", "need_you_answer",
-    "scheduled_expiring", "need_you_test",
+    "scheduled_expiring", "need_you_test", "poll_new", "poll_closed", "poll_tied",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -52,7 +52,8 @@ test("the text names the person, never the work item; ids go in data", () => {
 
 test("a daybook post opens its card (slice 10); its id travels in the data", () => {
   for (const kind of ["announcement_new", "checklist_for_you", "activity_invited",
-                      "activity_starting", "file_new_version", "item_edited", "item_cancelled"]) {
+                      "activity_starting", "file_new_version", "item_edited", "item_cancelled",
+                      "poll_new", "poll_closed", "poll_tied"]) {
     const p = buildPush(row(kind, { data: { space_id: "s1", space_post_id: "sp1" } }),
                         "en", "Sara Ali", strings);
     assert.equal(p.data.route, "/spaces/s1/items/sp1", kind);
@@ -639,4 +640,11 @@ test("review 114: the test alert, on the strong channel, in English and Arabic",
   assert.equal(m.apns?.payload.aps["interruption-level"], "time-sensitive");
   assert.equal(m.apns?.payload.aps.sound, "default");
   assert.equal(m.apns?.payload.aps.category, undefined, "no call to answer: no On my way");
+});
+
+test("the lead's check of 116, P7: a tied poll asks its creator to pick", () => {
+  assert.equal(buildPush(row("poll_tied"), "en", null, strings).body,
+               "Your poll is tied. Pick the answer that wins.");
+  assert.equal(buildPush(row("poll_tied"), "ar", null, strings).body,
+               "تعادل في تصويتك. اختر الإجابة الفائزة.");
 });

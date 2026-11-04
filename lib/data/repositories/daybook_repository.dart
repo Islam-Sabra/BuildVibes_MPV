@@ -103,6 +103,24 @@ abstract class DaybookRepository {
   /// so sending it again is the same post.
   Future<void> createThanks(NewThanks thanks);
 
+  /// Review 116: a poll (create_poll), with the ids the phone chose.
+  Future<void> createPoll(NewPoll poll);
+
+  /// Review 116: the reader's choices on [postId] become exactly
+  /// [optionIds]; none takes them back (vote_poll).
+  Future<void> votePoll(String postId, List<String> optionIds);
+
+  /// Review 116: closes [postId] for good (close_poll): its creator or a
+  /// Space admin.
+  Future<void> closePoll(String postId);
+
+  /// Review 116: picks the winner of a closed, tied poll (decide_poll).
+  Future<void> decidePoll(String postId, String optionId);
+
+  /// The lead's check of 116, P5: its creator changes it before the first
+  /// vote (edit_poll).
+  Future<void> editPoll(EditPoll poll);
+
   /// space_work_tags (review 110 TG1): the tags a work item here may take,
   /// from its market's list, in order.
   Future<List<DaybookTag>> workTags(String spaceId);
@@ -504,6 +522,72 @@ class NewThanks {
   };
 }
 
+/// Review 116: a poll as create_poll takes it: the question, its 2 to 6
+/// options (ids the phone chose, in order), one answer or more than one,
+/// when it closes, and its Team (null: the whole Space).
+@immutable
+class NewPoll {
+  const NewPoll({
+    required this.id,
+    required this.spaceId,
+    required this.question,
+    required this.options,
+    this.multi = false,
+    this.closesAt,
+    this.teamId,
+  });
+
+  final String id;
+  final String spaceId;
+  final String question;
+  final List<({String id, String label})> options;
+  final bool multi;
+  final DateTime? closesAt;
+  final String? teamId;
+
+  Map<String, Object?> toParams() => {
+    'p_id': id,
+    'p_space': spaceId,
+    'p_question': question.trim(),
+    'p_options': [
+      for (final o in options) {'id': o.id, 'label': o.label.trim()},
+    ],
+    'p_multi': multi,
+    'p_closes_at': closesAt == null ? null : _instant(closesAt!),
+    'p_team': teamId,
+  };
+}
+
+/// The lead's check of 116, P5: a poll as edit_poll takes it, before the
+/// first vote: the question, its options (kept ids keep their place, new
+/// ones are the phone's), one answer or more than one, and when it closes.
+@immutable
+class EditPoll {
+  const EditPoll({
+    required this.postId,
+    required this.question,
+    required this.options,
+    this.multi = false,
+    this.closesAt,
+  });
+
+  final String postId;
+  final String question;
+  final List<({String id, String label})> options;
+  final bool multi;
+  final DateTime? closesAt;
+
+  Map<String, Object?> toParams() => {
+    'p_post': postId,
+    'p_question': question.trim(),
+    'p_options': [
+      for (final o in options) {'id': o.id, 'label': o.label.trim()},
+    ],
+    'p_multi': multi,
+    'p_closes_at': closesAt == null ? null : _instant(closesAt!),
+  };
+}
+
 /// Review 113 (11): an uploaded voice note and its length.
 typedef PostVoiceFile = ({String path, int durationMs});
 
@@ -702,6 +786,34 @@ class SupabaseDaybookRepository implements DaybookRepository {
   Future<void> createThanks(NewThanks thanks) => _guard(
     () => _client.rpc<String>('create_thanks', params: thanks.toParams()),
   );
+
+  @override
+  Future<void> createPoll(NewPoll poll) =>
+      _guard(() => _client.rpc<String>('create_poll', params: poll.toParams()));
+
+  @override
+  Future<void> votePoll(String postId, List<String> optionIds) => _guard(
+    () => _client.rpc<void>(
+      'vote_poll',
+      params: {'p_post': postId, 'p_options': optionIds},
+    ),
+  );
+
+  @override
+  Future<void> closePoll(String postId) =>
+      _guard(() => _client.rpc<void>('close_poll', params: {'p_post': postId}));
+
+  @override
+  Future<void> decidePoll(String postId, String optionId) => _guard(
+    () => _client.rpc<void>(
+      'decide_poll',
+      params: {'p_post': postId, 'p_option': optionId},
+    ),
+  );
+
+  @override
+  Future<void> editPoll(EditPoll poll) =>
+      _guard(() => _client.rpc<void>('edit_poll', params: poll.toParams()));
 
   @override
   Future<List<DaybookTag>> workTags(String spaceId) => _guard(() async {

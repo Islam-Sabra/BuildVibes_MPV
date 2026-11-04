@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/space.dart';
+import '../../data/repositories/work_repository.dart' show newUuid;
 import 'daybook_draft.dart';
 
 /// Review 110 CP3: what + adds, in the grid's order (founder, 11:49).
@@ -23,7 +24,10 @@ enum ComposerExtra {
   /// Review 109 CI1b: a Check-in's check-out (a time and an allowance),
   /// and Every day (the market pack's working days).
   checkOut('check_out'),
-  everyDay('every_day');
+  everyDay('every_day'),
+
+  /// Review 116: a poll's optional closing time.
+  closes('closes');
 
   const ComposerExtra(this.key);
 
@@ -40,6 +44,8 @@ const composerKinds = [
   DaybookKind.workItem,
   DaybookKind.announcement,
   DaybookKind.activity,
+  // Review 116: for Lead and Crew (create_items).
+  DaybookKind.poll,
   DaybookKind.checkIn,
   DaybookKind.thanks,
 ];
@@ -90,6 +96,8 @@ List<ComposerExtra> composerExtras(DaybookKind kind) => switch (kind) {
   DaybookKind.report => const [],
   // Review 109 CI1b: + offers exactly Check-out and Every day.
   DaybookKind.checkIn => const [ComposerExtra.checkOut, ComposerExtra.everyDay],
+  // Review 116 PL1: its options are on the card; + offers Closes.
+  DaybookKind.poll => const [ComposerExtra.closes],
 };
 
 /// An edit of a posted work item changes only its place and its due from
@@ -174,7 +182,9 @@ List<ComposerDrop> composerDrops(DaybookPostDraft draft, DaybookKind kind) {
             draft.daily ||
             draft.checkInTeams.isNotEmpty))
       ComposerDrop.checkIn,
-    if (kind == DaybookKind.checkIn && draft.photos.isNotEmpty)
+    // Review 116: a poll takes no photo either.
+    if ((kind == DaybookKind.checkIn || kind == DaybookKind.poll) &&
+        draft.photos.isNotEmpty)
       ComposerDrop.photos,
   ];
 }
@@ -224,6 +234,19 @@ DaybookPostDraft composerSwitched(
   drop(ComposerDrop.photos, ['photos']);
   // A pin is an announcement's alone; it goes quietly.
   if (kind != DaybookKind.announcement) json.remove('pinned_until');
+  // Review 116: a poll's options and closing time are its own; a new poll
+  // starts with two empty options.
+  if (kind != DaybookKind.poll) {
+    json
+      ..remove('poll_options')
+      ..remove('poll_multi')
+      ..remove('poll_closes_at');
+  } else if (draft.pollOptions.isEmpty) {
+    json['poll_options'] = [
+      for (var i = 0; i < DaybookPostDraft.pollOptionsMin; i++)
+        {'id': newUuid(), 'text': ''},
+    ];
+  }
   if (drops.contains(ComposerDrop.tables)) {
     json['blocks'] = [
       for (final b in draft.blocks)

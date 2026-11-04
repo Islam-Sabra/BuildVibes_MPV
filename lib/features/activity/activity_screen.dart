@@ -392,6 +392,21 @@ ActivityWords activityWords(AppLocalizations l10n, ActivityRow row) {
       name: name,
       where: space,
     ),
+    ActivityKind.pollNew => (
+      text: l10n.activityPollNew(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.pollClosed => (
+      text: l10n.activityPollClosed(title),
+      name: null,
+      where: space,
+    ),
+    ActivityKind.pollTied => (
+      text: l10n.activityPollTied(title),
+      name: null,
+      where: space,
+    ),
   };
 }
 

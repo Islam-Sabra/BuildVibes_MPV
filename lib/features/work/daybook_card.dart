@@ -43,6 +43,7 @@ import 'daybook_report.dart' show DaybookReportBody;
 import 'daybook_state.dart' show daybookCardsProvider;
 import 'daybook_target_card.dart' show DaybookTargetRows;
 import 'daybook_words.dart';
+import 'poll_card.dart';
 
 /// What a card lets the reader do (the loop). Null callbacks are not
 /// offered: a Viewer gets none.
@@ -66,6 +67,9 @@ class DaybookCardActions {
     this.onReactors,
     this.onShare,
     this.onFace,
+    this.onPollVote,
+    this.onPollDecide,
+    this.onPollWorkItem,
   });
 
   /// The same, with React, the names of who reacted, and Share (review
@@ -92,6 +96,9 @@ class DaybookCardActions {
     onReactors: reactors,
     onShare: share,
     onFace: onFace,
+    onPollVote: onPollVote,
+    onPollDecide: onPollDecide,
+    onPollWorkItem: onPollWorkItem,
   );
 
   /// The same, with [onOpenQuote] (F87), [onOpenNewer] (F76) and [onFace].
@@ -117,6 +124,9 @@ class DaybookCardActions {
     onReactors: onReactors,
     onShare: onShare,
     onFace: face ?? onFace,
+    onPollVote: onPollVote,
+    onPollDecide: onPollDecide,
+    onPollWorkItem: onPollWorkItem,
   );
 
   /// Review 113 (18): the author's face: Need you now.
@@ -169,6 +179,12 @@ class DaybookCardActions {
   final ValueChanged<Rect>? onReact;
   final VoidCallback? onReactors;
   final VoidCallback? onShare;
+
+  /// Review 116: a poll's vote (Viewers too), a tie's winner and Make it a
+  /// work item (its creator or a Space admin).
+  final Future<void> Function(Set<String>)? onPollVote;
+  final ValueChanged<String>? onPollDecide;
+  final ValueChanged<String>? onPollWorkItem;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -792,6 +808,7 @@ class DaybookCardView extends StatelessWidget {
     DaybookPost.fileKind => l10n.daybookKindFileWord,
     DaybookPost.reportKind => l10n.daybookKindReportWord,
     DaybookPost.checkInKind => l10n.daybookKindCheckIn,
+    DaybookPost.pollKind => l10n.daybookKindPoll,
     _ => l10n.daybookToEveryone,
   };
 
@@ -875,6 +892,21 @@ class DaybookCardView extends StatelessWidget {
             words: words,
             spaceId: spaceId,
             lifted: lifted || waiting || viewer,
+          ),
+        ];
+      // Review 116 PL2, PL3: the question, its options and how it closed.
+      case DaybookPost.pollKind:
+        final still = lifted || waiting;
+        return [
+          DaybookPollBody(
+            post: post,
+            words: words,
+            spaceId: spaceId,
+            me: me,
+            now: now,
+            onVote: still ? null : actions.onPollVote,
+            onDecide: still ? null : actions.onPollDecide,
+            onWorkItem: still ? null : actions.onPollWorkItem,
           ),
         ];
       case DaybookPost.checklistKind:

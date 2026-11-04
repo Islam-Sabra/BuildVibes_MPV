@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'check_in.dart';
+import 'poll.dart';
 import 'work_item.dart';
 
 DateTime? _time(Object? value) =>
@@ -537,6 +538,7 @@ class DaybookPost {
     this.tag,
     this.thanks,
     this.checkIn,
+    this.poll,
     this.parentId,
     this.children,
     this.blocks = const [],
@@ -609,6 +611,7 @@ class DaybookPost {
       tag: DaybookTag.fromJson(json['tag']),
       thanks: DaybookThanks.fromJson(json['thanks']),
       checkIn: CheckInSetup.fromJson(json['check_in']),
+      poll: DaybookPoll.fromJson(json['poll']),
       parentId: json['parent_id'] as String?,
       children: DaybookChildren.fromJson(json['children']),
       // A report draws its page on its card (R2); other kinds open it.
@@ -649,6 +652,10 @@ class DaybookPost {
   /// Review 109: a Check-in, for Leads to post.
   static const checkInKind = 'check_in';
 
+  /// Review 116: a Poll, for Lead and Crew to post; anyone who sees it
+  /// votes.
+  static const pollKind = 'poll';
+
   /// The kinds the daybook draws; a kind this version doesn't know is
   /// kept for paging only.
   static const shownKinds = {
@@ -661,6 +668,7 @@ class DaybookPost {
     reportKind,
     thanksKind,
     checkInKind,
+    pollKind,
   };
 
   final String id;
@@ -780,6 +788,11 @@ class DaybookPost {
 
   bool get isCheckIn => kind == checkInKind;
 
+  /// Review 116: a poll's options, choices and state.
+  final DaybookPoll? poll;
+
+  bool get isPoll => kind == pollKind;
+
   /// The work item it is under (slice 6), if any.
   final String? parentId;
 
@@ -834,6 +847,7 @@ class DaybookPost {
     PostReaction? Function()? myReaction,
     PostHold? hold,
     DaybookVoice? voice,
+    DaybookPoll? poll,
   }) => DaybookPost(
     id: id,
     kind: kind,
@@ -878,6 +892,7 @@ class DaybookPost {
     tag: tag,
     thanks: thanks,
     checkIn: checkIn,
+    poll: poll ?? this.poll,
     parentId: parentId,
     children: children ?? this.children,
     blocks: blocks,

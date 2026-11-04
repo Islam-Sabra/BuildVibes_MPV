@@ -302,8 +302,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// The reader's open items on the page, for the proof screen's list.
   var _openItems = const <DaybookPost>[];
 
-  DaybookLoop get _loop =>
-      DaybookLoop(ref, widget.space, onEdit: _startEdit, openItems: _openItems);
+  DaybookLoop get _loop => DaybookLoop(
+    ref,
+    widget.space,
+    onEdit: _startEdit,
+    openItems: _openItems,
+    onWorkItemFrom: _workItemFrom,
+  );
 
   @override
   void initState() {
@@ -997,6 +1002,26 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     });
   }
 
+  /// Review 116 PL3: Make it a work item from a decided poll: a new work
+  /// item card titled with the question and its answer. A card already
+  /// being written opens instead, as for a daily report.
+  void _workItemFrom(String title) {
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    if (kept != null && !kept.isEmpty) {
+      showSpaceMessage(
+        context,
+        AppLocalizations.of(context).dailyReportDraftFirst,
+      );
+      _fromBefore = true;
+      _startWriting();
+      return;
+    }
+    _fromBefore = false;
+    if (kept != null) unawaited(_writer.setKind(DaybookKind.workItem));
+    _startWriting(kind: DaybookKind.workItem);
+    unawaited(_writer.setTitle(title));
+  }
+
   /// Review 113 bug 7: Link folder from Tap to fix, for a drawing too big
   /// for a Space.
   Future<void> _linkFolder() =>
@@ -1231,7 +1256,37 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         await _pickCheckOut();
       case ComposerExtra.everyDay:
         await _card.setDaily(true);
+      case ComposerExtra.closes:
+        await _pickPollCloses();
     }
+  }
+
+  /// Review 116: a poll's closing time: a day and, if chosen, its time
+  /// (else the end of that day); Remove takes it off. One that has passed
+  /// is refused before sending.
+  Future<void> _pickPollCloses() async {
+    _setMenu(null);
+    final now = ref.read(clockProvider)();
+    final closes = _card.draft?.pollClosesAt;
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: now,
+      day: closes == null ? null : dayOf(closes),
+      at: closes,
+    );
+    if (picked == null || !mounted) return;
+    final day = picked.day;
+    if (day == null) {
+      await _card.setPollClosesAt(null);
+      return;
+    }
+    final at =
+        picked.at ?? dayOf(day).add(const Duration(days: 1, minutes: -1));
+    if (!at.isAfter(now)) {
+      showSpaceMessage(context, AppLocalizations.of(context).pollClosesLater);
+      return;
+    }
+    await _card.setPollClosesAt(at);
   }
 
   /// Review 109 CI1: a Check-in's lines.
@@ -1779,13 +1834,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // (a Viewer) has no # at all.
     final kinds = composerKindsFor(widget.space);
     final laterNote = l10n.plCantYet;
-    // Review 113 (11): a new post takes a voice note; a Check-in, a report
-    // and a file post don't.
+    // Review 113 (11): a new post takes a voice note; a Check-in, a report,
+    // a file post and a poll (review 116) don't.
     final voice =
         !_editing &&
         kind != DaybookKind.checkIn &&
         kind != DaybookKind.report &&
-        kind != DaybookKind.file;
+        kind != DaybookKind.file &&
+        kind != DaybookKind.poll;
     final bar = BvWritingToolbar.tools(
       holdsInOrder: true,
       field: _recording
@@ -1807,8 +1863,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   _panel == ComposerPanel.extras ? null : ComposerPanel.extras,
                 ),
         ),
-        // Review 109: a Check-in has no camera.
-        if (kind != DaybookKind.checkIn)
+        // Review 109: a Check-in has no camera; review 116: a poll neither.
+        if (kind != DaybookKind.checkIn && kind != DaybookKind.poll)
           BvWritingTool(
             key: const Key('writing-camera'),
             icon: BvIcons.camera,
@@ -1833,7 +1889,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // Post turns on with what the kind can't go without (review 46);
       // what it still needs opens first.
       onPost: _editing
-          ? (cardDraft?.titleFits ?? false ? _save : null)
+          ? ((cardDraft?.kind == DaybookKind.poll
+                        ? cardDraft?.readyToTry
+                        : cardDraft?.titleFits) ??
+                    false
+                ? _save
+                : null)
           : (!alone && (cardDraft?.readyToTry ?? false)
                 ? () => unawaited(_postOrAsk(myName))
                 : null),
@@ -2115,10 +2176,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final cardDraft = _editing ? edit : draft;
     // W7: a Thanks can be scheduled too.
+    // Review 116: a poll goes now only (no scheduled create_poll yet).
     final laterBlocked =
         cardDraft != null &&
-        cardDraft.kind == DaybookKind.workItem &&
-        (cardDraft.files.isNotEmpty || cardDraft.placeId != null);
+        (cardDraft.kind == DaybookKind.poll ||
+            (cardDraft.kind == DaybookKind.workItem &&
+                (cardDraft.files.isNotEmpty || cardDraft.placeId != null)));
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
     final atToday = _writing || !_wasAway || shown == today;
@@ -2415,13 +2478,31 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         posts.length == 1 &&
         posts.single.isCheckIn &&
         (posts.single.checkIn?.canStop ?? false);
+    // The lead's check of 116, P5: Edit, for its creator, while open and
+    // before anyone voted.
+    final held = posts.length == 1 ? posts.single : null;
+    final editPoll =
+        held != null &&
+        held.isPoll &&
+        held.authorId != null &&
+        held.authorId == me &&
+        !(held.poll?.voted ?? true) &&
+        !(held.poll?.isClosed(ref.read(clockProvider)()) ?? true);
+    // Review 116: Close poll, for its creator or a Space admin, while open.
+    final closePoll =
+        posts.length == 1 &&
+        posts.single.isPoll &&
+        !(posts.single.poll?.isClosed(ref.read(clockProvider)()) ?? true) &&
+        _loop.mayRunPoll(posts.single, me: me);
     // L9: held, my pinned ones can be unpinned here; ones not pinned,
     // pinned. Not an announcement pinned for the Space: it shows at the top
     // already.
     final mineIds = _mineIds();
+    // The lead, 4 Nov: Pin and Reminder are for one held card; with
+    // several, only what every one of them allows (Archive or Delete).
     final pinOn =
         later.pin != null &&
-        posts.isNotEmpty &&
+        posts.length == 1 &&
         posts.every((p) => !spacePinned.contains(p.id));
     final toPin = pinOn && posts.every((p) => !mineIds.contains(p.id));
     final toUnpin = pinOn && posts.every((p) => mineIds.contains(p.id));
@@ -2472,6 +2553,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             label: l10n.checkInStop,
             destructive: true,
             onTap: () => unawaited(_stop(posts.single)),
+          ),
+        if (editPoll)
+          SelectionAction(
+            key: const Key('select-edit-poll'),
+            icon: BvIcons.edit,
+            label: l10n.daybookEdit,
+            onTap: () {
+              _endSelection();
+              _startEdit(held);
+            },
+          ),
+        if (closePoll)
+          SelectionAction(
+            key: const Key('select-close-poll'),
+            icon: BvIcons.lock,
+            label: l10n.pollClose,
+            onTap: () => unawaited(_closePoll(posts.single)),
           ),
         // Hidden, not greyed, when one held can't be archived or deleted
         // (H4). Last, in red.
@@ -2571,6 +2669,21 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }
     if (mounted) showSpaceMessage(context, l10n.checkInStoppedDone);
     await _loop.refresh();
+  }
+
+  /// Close poll (review 116 PL3), asked once: nobody votes after it.
+  Future<void> _closePoll(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final yes = await showBvDialog(
+      context: context,
+      title: l10n.pollCloseTitle,
+      body: l10n.pollCloseBody,
+      cancelLabel: l10n.commonCancel,
+      confirmLabel: l10n.pollClose,
+    );
+    if (!yes || !mounted) return;
+    _endSelection();
+    await _loop.closePoll(context, post);
   }
 
   /// Delete (SP6), asked first: each is gone from Work for everyone. The

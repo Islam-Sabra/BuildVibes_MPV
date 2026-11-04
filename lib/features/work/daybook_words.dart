@@ -469,6 +469,11 @@ class DaybookWords {
 
   bool get _arabic => locale.startsWith('ar');
 
+  /// Review 116: when a poll closes or closed: its time on its day, else
+  /// "Tomorrow, 5:00 pm" or "Sat 17 Oct, 5:00 pm"; never a countdown.
+  String pollWhen(DateTime at, DateTime now) =>
+      activityWhen(at, null, now, cancelled: true);
+
   /// When an activity is, as its card says it: "Tomorrow, 7:00 to 8:00
   /// am", "Sat 17 Oct, 7:00 am"; on its day only the time, with "starts
   /// in 30 min" in its last hour and "on now" until it ends. A [cancelled]

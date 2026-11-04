@@ -75,6 +75,7 @@ class DaybookLoop {
     this.space, {
     required this.onEdit,
     this.openItems = const [],
+    this.onWorkItemFrom,
   });
 
   final WidgetRef ref;
@@ -86,6 +87,10 @@ class DaybookLoop {
 
   /// Edit opens the post's card in place (the daybook page holds it).
   final ValueChanged<DaybookPost> onEdit;
+
+  /// Review 116 PL3: a new work item card with this title (a decided
+  /// poll's Make it a work item); null where no card can be written.
+  final ValueChanged<String>? onWorkItemFrom;
 
   String get _spaceId => space.id;
   bool get _viewer => space.myPass == SpacePass.viewer;
@@ -409,8 +414,69 @@ class DaybookLoop {
         onShareReport: post.isReport
             ? () => unawaited(shareReportPdf(context, ref, space, post))
             : null,
+        // Review 116: everyone who sees a poll votes, Viewers too; its
+        // creator or a Space admin picks a tie's winner and makes it a
+        // work item (a Viewer writes no work item).
+        onPollVote: post.isPoll ? (ids) => votePoll(context, post, ids) : null,
+        onPollDecide: post.isPoll && mayRunPoll(post, me: me)
+            ? (id) => unawaited(decidePoll(context, post, id))
+            : null,
+        // P4: its creator and Leads (Space admins too).
+        onPollWorkItem:
+            post.isPoll &&
+                !post.cancelled &&
+                (mayRunPoll(post, me: me) || space.myPass == SpacePass.lead) &&
+                space.myRights.createItems
+            ? onWorkItemFrom
+            : null,
       ),
     );
+  }
+
+  /// Review 116: a poll's creator, or a Space admin, closes it, picks a
+  /// tie's winner and makes it a work item (the server decides again).
+  bool mayRunPoll(DaybookPost post, {required String? me}) =>
+      !post.cancelled &&
+      ((post.authorId != null && post.authorId == me) || space.iAmAdmin);
+
+  /// The reader's choices on a poll, all at once; none takes the vote back.
+  Future<void> votePoll(
+    BuildContext context,
+    DaybookPost post,
+    Set<String> optionIds,
+  ) => _pollCall(
+    context,
+    () => ref
+        .read(daybookRepositoryProvider)
+        .votePoll(post.id, optionIds.toList()),
+  );
+
+  /// A tied poll's winner.
+  Future<void> decidePoll(
+    BuildContext context,
+    DaybookPost post,
+    String optionId,
+  ) => _pollCall(
+    context,
+    () => ref.read(daybookRepositoryProvider).decidePoll(post.id, optionId),
+  );
+
+  /// Close poll (the hold bar): nobody votes after it.
+  Future<void> closePoll(BuildContext context, DaybookPost post) => _pollCall(
+    context,
+    () => ref.read(daybookRepositoryProvider).closePoll(post.id),
+  );
+
+  Future<void> _pollCall(
+    BuildContext context,
+    Future<void> Function() call,
+  ) async {
+    try {
+      await call();
+    } on SpaceException catch (e) {
+      if (context.mounted) showSpaceError(context, e);
+    }
+    await refresh();
   }
 
   /// Whether [me] is [post]'s author, or an admin acting for an author who

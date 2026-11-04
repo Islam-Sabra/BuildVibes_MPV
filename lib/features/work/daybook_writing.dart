@@ -468,6 +468,7 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.file => l10n.daybookKindDocument,
   DaybookKind.report => l10n.daybookKindReport,
   DaybookKind.checkIn => l10n.daybookKindCheckIn,
+  DaybookKind.poll => l10n.daybookKindPoll,
 };
 
 /// The kind menu's icon for [kind] (E6 v14 2598:36360).
@@ -482,6 +483,8 @@ IconData kindIcon(DaybookKind kind) => switch (kind) {
   DaybookKind.report => BvIcons.clipboard,
   // Review 109: the map pin, as on # and the card.
   DaybookKind.checkIn => BvIcons.place,
+  // Review 116: a list with ticks, as the card's Poll tag.
+  DaybookKind.poll => BvIcons.todoList,
 };
 
 /// Writing in one Space: the card's changes, its photos and files, the
@@ -518,6 +521,13 @@ class DaybookWriter {
       kind: kind,
       pinnedUntil: kind == DaybookKind.announcement && d.pinnedUntil == null
           ? () => pinToEndOf(dayOf(ref.read(clockProvider)()))
+          : null,
+      // Review 116: a new poll starts with two empty options.
+      pollOptions: kind == DaybookKind.poll && d.pollOptions.isEmpty
+          ? [
+              for (var i = 0; i < DaybookPostDraft.pollOptionsMin; i++)
+                (id: newUuid(), text: ''),
+            ]
           : null,
     ),
   );
@@ -593,6 +603,42 @@ class DaybookWriter {
 
   /// Every day (the market pack's working days), or once.
   Future<void> setDaily(bool on) => _put((d) => d.copyWith(daily: on));
+
+  /// Review 116: a poll's option [id] reads [text].
+  Future<void> setPollOption(String id, String text) => _put(
+    (d) => d.copyWith(
+      pollOptions: [
+        for (final o in d.pollOptions) o.id == id ? (id: id, text: text) : o,
+      ],
+    ),
+  );
+
+  /// Review 116: one more option (up to six).
+  Future<void> addPollOption() => _put(
+    (d) => d.pollOptions.length >= DaybookPostDraft.pollOptionsMax
+        ? d
+        : d.copyWith(
+            pollOptions: [...d.pollOptions, (id: newUuid(), text: '')],
+          ),
+  );
+
+  /// Review 116: ✕ on an option.
+  Future<void> removePollOption(String id) => _put(
+    (d) => d.copyWith(
+      pollOptions: [
+        for (final o in d.pollOptions)
+          if (o.id != id) o,
+      ],
+    ),
+  );
+
+  /// Review 116: One answer · More than one (rule 6).
+  Future<void> setPollMulti(bool multi) =>
+      _put((d) => d.copyWith(pollMulti: multi));
+
+  /// Review 116: + → Closes, or its ✕.
+  Future<void> setPollClosesAt(DateTime? at) =>
+      _put((d) => d.copyWith(pollClosesAt: () => at));
 
   /// The site: where the Lead stood when they tapped Set place here.
   Future<void> setSite(({double lat, double lng})? site) => _put(
@@ -991,10 +1037,27 @@ class DaybookWriter {
     );
   }
 
-  /// Save an edit: edit_space_post with only what changed.
+  /// Save an edit: edit_space_post with only what changed; a poll, as
+  /// edit_poll takes it, whole (the lead's check of 116, P5).
   Future<void> save() async {
     final edit = changes();
     final d = draft;
+    if (d != null && d.kind == DaybookKind.poll) {
+      await ref
+          .read(daybookRepositoryProvider)
+          .editPoll(
+            EditPoll(
+              postId: d.id,
+              question: d.title,
+              options: [
+                for (final o in d.writtenOptions) (id: o.id, label: o.text),
+              ],
+              multi: d.pollMulti,
+              closesAt: d.pollClosesAt,
+            ),
+          );
+      return;
+    }
     final was = ref.read(daybookEditProvider(spaceId).notifier).original;
     final id = d?.id;
     if (id == null) return;
@@ -1114,6 +1177,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.checklist ||
     DaybookKind.thanks ||
     DaybookKind.checkIn ||
+    DaybookKind.poll ||
     DaybookKind.file ||
     DaybookKind.report => l10n.daybookBodyNote,
   };
@@ -1253,7 +1317,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         team,
       ],
       // Note has no For or Due (review 105 Part 3).
-      DaybookKind.note || DaybookKind.announcement => [team],
+      DaybookKind.note ||
+      DaybookKind.announcement ||
+      DaybookKind.poll => [team],
       // A Thanks is written in the composer only (review 110 TH1).
       // A Check-in too (review 109).
       DaybookKind.thanks ||
@@ -1902,7 +1968,10 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     }
     return switch (kind) {
       // A note has nothing to set: its words, photos and files only (F58).
-      DaybookKind.note || DaybookKind.thanks || DaybookKind.checkIn => const [],
+      DaybookKind.note ||
+      DaybookKind.thanks ||
+      DaybookKind.checkIn ||
+      DaybookKind.poll => const [],
       DaybookKind.workItem => [if (!widget.editing) assign, location, due],
       DaybookKind.checklist => [people, due],
       DaybookKind.announcement => [

@@ -5971,7 +5971,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get obTipCamera => 'اضغط الكاميرا لنشر صورة عملك.';
 
   @override
-  String get obTipHold => 'اضغط مطوّلًا على البطاقة لمشاركتها أو حذفها.';
+  String get obTipHold => 'اضغط مطولًا على البطاقة للتثبيت والتذكير والمزيد';
 
   @override
   String get obTipSignDone => 'وقّع كمنجز عندما ينتهي عملك.';
@@ -6427,6 +6427,119 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get workItemForSomeoneElse =>
       'بند العمل لشخص آخر. لنفسك استخدم دفترك.';
+
+  @override
+  String get daybookKindPoll => 'تصويت';
+
+  @override
+  String get cpNewPoll => 'تصويت جديد';
+
+  @override
+  String get cpAddPoll => 'أضف إلى هذا التصويت';
+
+  @override
+  String get pollQuestionHint => 'اطرح سؤالًا';
+
+  @override
+  String pollOptionHint(int n) {
+    return 'الخيار $n';
+  }
+
+  @override
+  String get pollAddOption => 'أضف خيارًا';
+
+  @override
+  String get pollRemoveOption => 'احذف الخيار';
+
+  @override
+  String get pollOneAnswer => 'إجابة واحدة';
+
+  @override
+  String get pollMoreThanOne => 'أكثر من إجابة';
+
+  @override
+  String get pollClosesExtra => 'موعد الإغلاق';
+
+  @override
+  String pollCloses(String when) {
+    return 'يُغلق $when';
+  }
+
+  @override
+  String pollNotYet(String names) {
+    return 'لم يصوّت بعد: $names';
+  }
+
+  @override
+  String pollNamesMore(String names, int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$names و$n آخر',
+      few: '$names و$n آخرين',
+      two: '$names وآخران',
+      one: '$names وآخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pollDecided => 'تقرّر';
+
+  @override
+  String get pollTied => 'تعادل';
+
+  @override
+  String get pollPickWinner => 'انقر على الإجابة الفائزة.';
+
+  @override
+  String pollClosedBy(String name, String when) {
+    return 'أغلقه $name · $when';
+  }
+
+  @override
+  String pollClosedAt(String when) {
+    return 'أُغلق · $when';
+  }
+
+  @override
+  String get pollNoAnswers => 'أُغلق دون إجابات';
+
+  @override
+  String get pollMakeWorkItem => 'حوّله إلى بند عمل';
+
+  @override
+  String pollWorkItemTitle(String question, String answer) {
+    return '$question: $answer';
+  }
+
+  @override
+  String get pollClose => 'أغلق التصويت';
+
+  @override
+  String get pollCloseTitle => 'إغلاق هذا التصويت؟';
+
+  @override
+  String get pollCloseBody =>
+      'لن يتمكن أحد من التصويت بعد ذلك. تُعتمد الإجابة الأكثر اختيارًا.';
+
+  @override
+  String activityPollNew(String name, String title) {
+    return 'طلب $name من الفريق التصويت: $title';
+  }
+
+  @override
+  String activityPollTied(String title) {
+    return 'تعادل في تصويتك. اختر الإجابة الفائزة: $title';
+  }
+
+  @override
+  String activityPollClosed(String title) {
+    return 'أُغلق تصويتك: $title';
+  }
+
+  @override
+  String get pollClosesLater => 'اختر موعد إغلاق لم يمضِ بعد.';
 
   @override
   String get daybookKindCheckIn => 'تسجيل حضور';
@@ -7140,7 +7253,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whoSeesTitle => 'من يراه';
 
   @override
-  String get whoSeesEveryone => 'الجميع في المساحة';
+  String get whoSeesEveryone => 'المساحة كلها';
 
   @override
   String get whoSeesYourTeam => 'فريقك';
@@ -7152,7 +7265,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whoSeesAsSpaceAdmin => 'تنشر هنا بصفتك مدير المساحة';
 
   @override
-  String get whoSeesFoot => 'الأعضاء يرون «الجميع» وفرقهم فقط.';
+  String get whoSeesFoot => 'الأعضاء يرون «المساحة كلها» وفرقهم فقط.';
 
   @override
   String get spacesTeamAdminStays =>
