@@ -16,14 +16,24 @@ import '../spaces/space_errors.dart' show showSpaceMessage;
 /// tap: the file goes to Google Cloud Vision through the extract-text
 /// function. Its text then shows here in a Text section that folds, with
 /// Copy, and is found by search. A failure says "Couldn't read this file";
-/// past 50 pages a day, so.
+/// past 50 pages a day, so. Over 10 MB it says so, with Make it smaller
+/// when [onMakeSmaller] is given (the lead's check, D7). A file over 20
+/// pages says "First 20 pages" (D3).
 class FileTextSection extends ConsumerStatefulWidget {
-  const FileTextSection({super.key, required this.kind, required this.ref});
+  const FileTextSection({
+    super.key,
+    required this.kind,
+    required this.ref,
+    this.onMakeSmaller,
+  });
 
   final FileTextKind kind;
 
   /// A Library file's id, or a note file's storage path.
   final String ref;
+
+  /// Makes the file smaller (a new version); none, no button.
+  final Future<void> Function()? onMakeSmaller;
 
   @override
   ConsumerState<FileTextSection> createState() => _FileTextSectionState();
@@ -84,12 +94,23 @@ class _FileTextSectionState extends ConsumerState<FileTextSection> {
           ),
           if (_failed case final failed?)
             Text(
-              failed == FileTextFailure.dailyLimit
-                  ? l10n.fileTextLimit
-                  : l10n.fileTextFailed,
+              switch (failed) {
+                FileTextFailure.dailyLimit => l10n.fileTextLimit,
+                FileTextFailure.tooLarge => l10n.fileTextTooLarge,
+                FileTextFailure.failed => l10n.fileTextFailed,
+              },
               key: const Key('file-text-failed'),
               style: type.bodySm.copyWith(color: BvColors.textDestructive),
             ),
+          if (_failed == FileTextFailure.tooLarge)
+            if (widget.onMakeSmaller case final smaller?)
+              BvButton(
+                key: const Key('file-text-smaller'),
+                label: l10n.pdfSmaller,
+                style: BvButtonStyle.secondary,
+                expand: true,
+                onPressed: () => unawaited(smaller()),
+              ),
         ],
       );
     }
@@ -118,6 +139,16 @@ class _FileTextSectionState extends ConsumerState<FileTextSection> {
                         color: BvColors.iconSecondary,
                       ),
                       Text(l10n.fileTextTitle, style: type.labelMd),
+                      if (kept.partial)
+                        Flexible(
+                          child: Text(
+                            l10n.fileTextPartial,
+                            key: const Key('file-text-partial'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: quiet,
+                          ),
+                        ),
                     ],
                   ),
                 ),

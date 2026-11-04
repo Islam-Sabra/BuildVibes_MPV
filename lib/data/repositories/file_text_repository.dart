@@ -17,21 +17,32 @@ enum FileTextKind {
 /// The text Extract text read in a file.
 @immutable
 class FileText {
-  const FileText({required this.text, this.lang, this.pages = 0});
+  const FileText({
+    required this.text,
+    this.lang,
+    this.pages = 0,
+    this.partial = false,
+  });
 
   factory FileText.fromJson(Map<String, dynamic> json) => FileText(
     text: json['text'] as String? ?? '',
     lang: json['lang'] as String?,
     pages: (json['pages'] as num?)?.toInt() ?? 0,
+    partial: json['partial'] as bool? ?? false,
   );
 
   final String text;
   final String? lang;
   final int pages;
+
+  /// The lead's check, D3: the file has more than 20 pages and only the
+  /// first 20 were read.
+  final bool partial;
 }
 
-/// Why a file couldn't be read.
-enum FileTextFailure { failed, dailyLimit }
+/// Why a file couldn't be read: [tooLarge] is over 10 MB (D7), made
+/// smaller on the phone first.
+enum FileTextFailure { failed, dailyLimit, tooLarge }
 
 class FileTextException implements Exception {
   const FileTextException(this.failure);
@@ -55,7 +66,7 @@ class SupabaseFileTextRepository implements FileTextRepository {
   Future<FileText?> read(FileTextKind kind, String ref) async {
     final row = await _client
         .from('file_texts')
-        .select('text, lang, pages')
+        .select('text, lang, pages, partial')
         .eq('file_kind', kind.json)
         .eq('file_ref', ref)
         .maybeSingle();
@@ -71,9 +82,11 @@ class SupabaseFileTextRepository implements FileTextRepository {
       );
       return FileText.fromJson(Map<String, dynamic>.from(res.data as Map));
     } on FunctionException catch (e) {
-      throw FileTextException(
-        e.status == 429 ? FileTextFailure.dailyLimit : FileTextFailure.failed,
-      );
+      throw FileTextException(switch (e.status) {
+        429 => FileTextFailure.dailyLimit,
+        413 => FileTextFailure.tooLarge,
+        _ => FileTextFailure.failed,
+      });
     } on Exception {
       throw const FileTextException(FileTextFailure.failed);
     }

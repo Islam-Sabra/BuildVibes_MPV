@@ -2570,11 +2570,11 @@ abstract class AppLocalizations {
   /// **'Make it smaller'**
   String get pdfSmallerTitle;
 
-  /// Review 103: while the phone compresses the PDF.
+  /// Review 103 (D14): while the phone compresses the PDF, page by page.
   ///
   /// In en, this message translates to:
-  /// **'Making it smaller…'**
-  String get pdfSmallerMaking;
+  /// **'Making it smaller… page {page} of {total}'**
+  String pdfSmallerMaking(int page, int total);
 
   /// Review 103: the size before and after.
   ///
@@ -2659,6 +2659,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'ve read 50 pages today. Try again tomorrow.'**
   String get fileTextLimit;
+
+  /// Review 103 (D3): the file has more than 20 pages; only the first 20 were read.
+  ///
+  /// In en, this message translates to:
+  /// **'First 20 pages'**
+  String get fileTextPartial;
+
+  /// Review 103 (D7): over 10 MB the file isn't read; Make it smaller beside it.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large to read. Make it smaller first.'**
+  String get fileTextTooLarge;
 
   /// Review 103 SC7: the Scan button on the writing bar, after the camera.
   ///

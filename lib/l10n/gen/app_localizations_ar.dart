@@ -1456,7 +1456,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdfSmallerTitle => 'صغّر الملف';
 
   @override
-  String get pdfSmallerMaking => 'جارٍ تصغير الملف…';
+  String pdfSmallerMaking(int page, int total) {
+    return 'جارٍ تصغير الملف… صفحة $page من $total';
+  }
 
   @override
   String pdfSmallerResult(String before, String after) {
@@ -1474,7 +1476,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdfKeepOriginal => 'احتفظ بالأصلي';
 
   @override
-  String get pdfSmallerFailed => 'تعذّر تصغير ملف PDF هذا.';
+  String get pdfSmallerFailed => 'لم يمكن تصغير هذا الملف.';
 
   @override
   String pdfStillTooLarge(String size, String max) {
@@ -1504,6 +1506,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fileTextLimit => 'قرأت 50 صفحة اليوم. حاول مرة أخرى غدًا.';
+
+  @override
+  String get fileTextPartial => 'أول 20 صفحة';
+
+  @override
+  String get fileTextTooLarge => 'كبير جدًا للقراءة. صغّره أولًا.';
 
   @override
   String get scanBar => 'مسح';
@@ -1595,14 +1603,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatRemoveFile => 'إزالة';
 
   @override
-  String get chatFileTooBig => 'حتى 25 ميغابايت للملف.';
+  String get chatFileTooBig => 'حتى 25 ميجابايت للملف.';
 
   @override
   String get chatOneDocument => 'ملف PDF واحد في كل رسالة.';
 
   @override
   String fileSizeMb(String size) {
-    return '$size ميغابايت';
+    return '$size ميجابايت';
   }
 
   @override
@@ -4025,7 +4033,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookSendingBytes(String sent, String total) {
-    return 'يُرسل · $sent من $total ميغابايت';
+    return 'يُرسل · $sent من $total ميجابايت';
   }
 
   @override

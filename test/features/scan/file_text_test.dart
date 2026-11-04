@@ -48,9 +48,14 @@ class _FakeTexts implements FileTextRepository {
   }
 }
 
-Future<void> _open(WidgetTester tester, String lang, _FakeTexts texts) async {
+Future<TestApp> _open(
+  WidgetTester tester,
+  String lang,
+  _FakeTexts texts, {
+  int bytes = 600000,
+}) async {
   final s = DaybookSamples(lang);
-  await pumpApp(
+  final app = await pumpApp(
     tester,
     language: lang,
     spaces: FakeSpaceRepository()
@@ -65,7 +70,7 @@ Future<void> _open(WidgetTester tester, String lang, _FakeTexts texts) async {
           name: 'Delivery note.pdf',
           path: '$_space/library/f-scan/a.pdf',
           mime: 'application/pdf',
-          bytes: 600000,
+          bytes: bytes,
           createdAt: DaybookSamples.thursday,
           scanned: true,
           pageCount: 2,
@@ -78,6 +83,7 @@ Future<void> _open(WidgetTester tester, String lang, _FakeTexts texts) async {
     tester.element(find.byType(Navigator).first),
   ).push('/spaces/$_space/library/f-scan/page');
   await tester.pumpAndSettle();
+  return app;
 }
 
 void main() {
@@ -140,6 +146,47 @@ void main() {
       await _open(tester, lang, _FakeTexts(text: ''));
       await _tap(tester, _key('file-extract-text'));
       expect(find.text(l10n.fileTextEmpty), findsOneWidget);
+    });
+
+    // The lead's check, D3: a file over 20 pages says it is only a part.
+    testWidgets('D3: the first 20 pages say so [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        _FakeTexts(
+          kept: const FileText(text: 'Spec section 03', pages: 20, partial: true),
+        ),
+      );
+      expect(find.text(l10n.fileTextPartial), findsOneWidget);
+    });
+
+    // D7: over 10 MB the function says so before reading; the file page
+    // offers Make it smaller, which sends a smaller new version.
+    testWidgets('D7: too large to read: Make it smaller sends a smaller '
+        'version [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        _FakeTexts(fails: FileTextFailure.tooLarge),
+        bytes: 14 * 1024 * 1024,
+      );
+      await _tap(tester, _key('file-extract-text'));
+      expect(find.text(l10n.fileTextTooLarge), findsOneWidget);
+      // The file is downloaded and written on the phone: real time.
+      await tester.runAsync(() async {
+        await tester.tap(_key('file-text-smaller'));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('pdf-use-smaller'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        app.library.calls.where((c) => c.contains('supersedes:f-scan')),
+        hasLength(1),
+      );
     });
   }
 }

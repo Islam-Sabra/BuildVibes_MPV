@@ -1448,7 +1448,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdfSmallerTitle => 'Make it smaller';
 
   @override
-  String get pdfSmallerMaking => 'Making it smaller…';
+  String pdfSmallerMaking(int page, int total) {
+    return 'Making it smaller… page $page of $total';
+  }
 
   @override
   String pdfSmallerResult(String before, String after) {
@@ -1497,6 +1499,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fileTextLimit =>
       'You\'ve read 50 pages today. Try again tomorrow.';
+
+  @override
+  String get fileTextPartial => 'First 20 pages';
+
+  @override
+  String get fileTextTooLarge => 'Too large to read. Make it smaller first.';
 
   @override
   String get scanBar => 'Scan';

@@ -33,6 +33,7 @@ import '../work/daybook_words.dart';
 import '../work/work_outbox.dart'
     show DaybookRefusal, RefusalWhy, RefusedAction;
 import 'library_actions.dart';
+import 'library_add.dart' show addSmallerVersion;
 import 'library_parts.dart';
 
 enum _FileMenu { share, download }
@@ -205,7 +206,13 @@ class LibraryFileScreen extends ConsumerWidget {
           if (f.isPdf || f.mime.startsWith('image/'))
             Padding(
               padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
-              child: FileTextSection(kind: FileTextKind.library, ref: f.id),
+              child: FileTextSection(
+                kind: FileTextKind.library,
+                ref: f.id,
+                onMakeSmaller: f.isPdf
+                    ? () => addSmallerVersion(context, ref, file: f)
+                    : null,
+              ),
             ),
           _Received(
             fileId: fileId,

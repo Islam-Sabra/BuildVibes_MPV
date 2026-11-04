@@ -417,9 +417,9 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | It goes to the Space Library too. | يُضاف إلى مكتبة المساحة أيضًا. |
 | Remove | إزالة |
 | Only PDF files and photos. | ملفات PDF والصور فقط. |
-| Files up to 25 MB. | حتى 25 ميغابايت للملف. |
+| Files up to 25 MB. | حتى 25 ميجابايت للملف. |
 | One PDF per message. | ملف PDF واحد في كل رسالة. |
-| {size} MB | {size} ميغابايت |
+| {size} MB | {size} ميجابايت |
 | {size} KB | {size} كيلوبايت |
 | Search titles and file names | ابحث في العناوين وأسماء الملفات |
 | All | الكل |
