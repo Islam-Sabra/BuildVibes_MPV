@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, evening — review 116b and the Arabic poll wording live; build 1050 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged into `slice2-app`:** `claude/tipsfix` (cb49a0d7: a first-run tip never blocks the tap under it), `claude/r116b` (c4f6b5ed: V1 a vote shows on other phones at once; V2 a tap picks, the button sends), and the Arabic poll wording on `claude/r116b` (0c5e71a9).
+  - Arabic: a poll is «استطلاع» («استطلاع جديد», «أغلق الاستطلاع»); the button «اعتمد اختياري» / «غيّر اختياري» / «ألغِ اختياري»; «لم يختر بعد»; Activity rows and push texts the same; «استطلاع» in `CLAUDE.md` and `arabic-glossary.md`. The hold bar says «إغلاق» (one word, as تثبيت، تعديل، حذف: the longer words overflowed with four actions), and the bar's labels keep to one line.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,800 pass; `test_screens` 726 pass; `supabase test db` 67 files, 4,501 checks, PASS; push deno 37 pass.
+- **Live:**
+  - `supabase db push` from a clean worktree at c4f6b5ed (dry run first: only `20261126120000_review116b_poll_live`). It is the last of 64 on live; read-only check: `vote_poll`, `edit_poll`, `poll_close`, `decide_poll` all call `daybook_send`. Only the usual pg-delta cache warning.
+  - `push` deployed from 0c5e71a9 for the Arabic texts: **v18**.
+- **Build 1050** (versionCode 1050, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1050`** (= 0c5e71a9). `Desktop/BuildVibes-1050.apk`. On the founder's phone (22120RN86G, 192.168.8.33:34163) over 1042; disconnected, both entries. Build 1048 (`release-1048`, before the Arabic wording) was never installed.
+- **Emulator:** 1050, signed in as Test Lead (Test site, Lead).
+- **Next:** review 103 (Scan documents), approved, on `claude/r103`.
+- **Who has which branch:** PC has `slice2-app`; `claude/r116b` and `claude/tipsfix` are merged.
+
 ## PC update: 4 Nov 2026, afternoon — review 116b (the founder's poll test) on `claude/r116b`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
