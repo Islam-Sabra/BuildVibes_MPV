@@ -83,6 +83,21 @@ bool isArchivedNoLonger(SpaceException e) =>
 bool mayArchivePost(DaybookPost post, {required bool lead}) =>
     lead && post.isWorkItem && post.item?.status == WorkStatus.checked;
 
+/// Review 118 F3: what holding my post offers. The server's "hold", but a
+/// poll someone other than me voted on is never deleted (a vote is acting:
+/// deleting would erase their answers).
+PostHold? holdOf(DaybookPost post) {
+  final poll = post.poll;
+  if (post.hold == PostHold.delete && poll != null) {
+    final others = poll.options.fold<int>(
+      0,
+      (n, o) => n + o.count - (o.mine ? 1 : 0),
+    );
+    if (others > 0) return PostHold.archive;
+  }
+  return post.hold;
+}
+
 /// The hold bar's Archive (the lead's check of 115): what the server says
 /// for my own post someone acted on (review 113 "hold"), or a Lead's on a
 /// Checked item once 105B brings it ([archiveOn]).
@@ -91,7 +106,7 @@ bool mayArchiveHeld(
   required bool lead,
   required bool archiveOn,
 }) =>
-    post.hold == PostHold.archive ||
+    holdOf(post) == PostHold.archive ||
     (archiveOn && mayArchivePost(post, lead: lead));
 
 /// The Space reminders set on this phone, by [spaceReminderId], for the

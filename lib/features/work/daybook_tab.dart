@@ -2499,7 +2499,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         if (selected.contains(p.id)) p.id: p,
     }.values.toList();
     final deletes =
-        posts.isNotEmpty && posts.every((p) => p.hold == PostHold.delete);
+        posts.isNotEmpty && posts.every((p) => holdOf(p) == PostHold.delete);
     final archives =
         posts.isNotEmpty &&
         posts.every(

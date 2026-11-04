@@ -5534,6 +5534,12 @@ abstract class AppLocalizations {
   /// **', '**
   String get daybookNamesComma;
 
+  /// Review 118 F1: the last of a list of names when it is written in the other direction (a Latin name in Arabic): «و» stands apart from it.
+  ///
+  /// In en, this message translates to:
+  /// **'{list} and {last}'**
+  String daybookNamesAndApart(String list, String last);
+
   /// The first names, then and others (never a number).
   ///
   /// In en, this message translates to:

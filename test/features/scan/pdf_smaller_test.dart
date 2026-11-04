@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_icons.dart';
 
 import 'package:buildvibes/data/models/dm.dart';
@@ -187,6 +188,16 @@ void main() {
         await _tap(tester, _key('library-add-file'));
         await _tap(tester, _key('file-from-phone'));
         expect(_key('pdf-offer'), findsOneWidget);
+        // Review 118 F2: the offer names the file without ".pdf".
+        expect(
+          find.descendant(
+            of: _key('pdf-offer'),
+            matching: find.text(
+              '${fileTitle('A-501 Rev D.pdf')} · ${fileSize(l10n, 9 * _mb)}',
+            ),
+          ),
+          findsOneWidget,
+        );
         await _tap(tester, _key('pdf-offer-smaller'));
         await _tap(tester, _key('pdf-use-smaller'));
         await _tap(tester, _key('library-who-add'));

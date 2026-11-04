@@ -31,6 +31,12 @@ String inOwnDirection(String text) {
   return '${String.fromCharCode(open)}$text${String.fromCharCode(_pdi)}';
 }
 
+/// Text people wrote, put in a line or on a card (review 118 F1: a poll's
+/// question and options, the names in "Not chosen yet"): in the direction
+/// of its first strong letter, whatever the app language, so «?Pour time»
+/// reads "Pour time on level 4?" and «am 7» reads "7 am".
+String textRun(String text) => inOwnDirection(text);
+
 /// A file's name on a row, chip, title or bubble (the lead's checks of
 /// review 103, D17 and D23): without its extension, since the icon and
 /// "PDF" say the type, and in its own direction. Downloads and shares keep
@@ -40,7 +46,7 @@ String fileTitle(String name) {
   final base = dot > 0 && name.length - dot <= _extensionMax
       ? name.substring(0, dot)
       : name;
-  return inOwnDirection(base);
+  return textRun(base);
 }
 
 /// ".pdf", ".jpeg": longer after its dot is a name, not an extension.
