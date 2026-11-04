@@ -74,7 +74,13 @@ enum SendBackReason {
 /// A photo on a sign-off, in the private bucket.
 @immutable
 class WorkPhoto {
-  const WorkPhoto({required this.path, this.takenAt, this.place, this.pages});
+  const WorkPhoto({
+    required this.path,
+    this.takenAt,
+    this.place,
+    this.pages,
+    this.thumb,
+  });
 
   final String path;
   final DateTime? takenAt;
@@ -82,6 +88,9 @@ class WorkPhoto {
 
   /// Review 103: a scanned PDF (its [path] ends in .pdf), [pages] long.
   final int? pages;
+
+  /// The lead's check, D10: a scan's page 1 thumbnail, beside it.
+  final String? thumb;
 
   bool get isScan => path.toLowerCase().endsWith('.pdf');
 }

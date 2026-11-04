@@ -138,7 +138,7 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
     final dir = await ref.read(scanDirProvider)();
     final id = newUuid();
     final out = '$dir/$id.pdf';
-    final thumb = '$dir/$id.jpg';
+    final thumb = scanThumbFor(out);
     final made = await ref.read(scanPdfBuilderProvider)(
       pages: _pages,
       out: out,

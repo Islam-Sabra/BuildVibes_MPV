@@ -150,6 +150,7 @@ class SupabaseWorkRepository implements WorkRepository {
         'taken_at': p.takenAt?.toUtc().toIso8601String(),
         'place': p.place,
         'page_count': ?p.pages,
+        'thumb_path': ?p.thumb,
       },
   ];
 

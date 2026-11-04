@@ -157,7 +157,11 @@ void main() {
         tester,
         lang,
         _FakeTexts(
-          kept: const FileText(text: 'Spec section 03', pages: 20, partial: true),
+          kept: const FileText(
+            text: 'Spec section 03',
+            pages: 20,
+            partial: true,
+          ),
         ),
       );
       expect(find.text(l10n.fileTextPartial), findsOneWidget);

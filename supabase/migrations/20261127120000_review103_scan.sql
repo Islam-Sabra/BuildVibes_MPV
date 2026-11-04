@@ -8,6 +8,11 @@
 -- 2. A work item's proof can be a scanned PDF: evidence kind 'scan' with
 --    its page count. add_evidence takes a photo (.jpg, .jpeg) or a PDF
 --    (.pdf) in the item's folder, nothing else.
+-- 3. The lead's check (D10): page 1's thumbnail goes up with a scan, beside
+--    it in its folder, and the row points to it (library_files and
+--    work_item_evidence thumb_path). Cards and proofs show it, never
+--    downloading the whole PDF. It opens where its file opens, is never
+--    swept as a loose upload, and goes with its file.
 -- Each follows its place's existing read rules.
 
 alter table public.library_files
@@ -23,9 +28,32 @@ alter table public.work_item_evidence
   add constraint work_item_evidence_kind_check check (kind in ('photo', 'scan')),
   add column page_count smallint check (page_count between 1 and 20);
 
+alter table public.library_files add column thumb_path text;
+alter table public.work_item_evidence add column thumb_path text;
+
+-- D10: [p_thumb] is a scan's thumbnail beside [p_file] in [p_bucket]: the
+-- same folder, a JPEG, uploaded by the caller.
+create function public.scan_thumb_ok(p_bucket text, p_file text, p_thumb text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_thumb not like '%..%' and p_thumb <> p_file
+    and lower(p_thumb) ~ '\.jpe?g$'
+    and regexp_replace(p_thumb, '[^/]+$', '') = regexp_replace(p_file, '[^/]+$', '')
+    and exists (select 1 from storage.objects o
+                where o.bucket_id = p_bucket and o.name = p_thumb
+                  and o.owner_id = auth.uid()::text);
+$$;
+revoke all on function public.scan_thumb_ok(text, text, text) from public, anon, authenticated;
+
 -- The Library file [p_file], just added by the caller, was scanned: [p_pages]
--- pages.
-create function public.mark_library_file_scanned(p_file uuid, p_pages integer)
+-- pages, with page 1's thumbnail at [p_thumb] (D10; kept when a retry has
+-- none).
+create function public.mark_library_file_scanned(p_file uuid, p_pages integer,
+                                                 p_thumb text default null)
 returns void
 language plpgsql
 security definer
@@ -42,11 +70,17 @@ begin
   if v_file.mime <> 'application/pdf' or p_pages is null or p_pages not between 1 and 20 then
     raise exception 'a scan is a PDF of 1 to 20 pages' using errcode = '22023';
   end if;
-  update public.library_files set scanned = true, page_count = p_pages where id = p_file;
+  if p_thumb is not null
+     and not coalesce(public.scan_thumb_ok('space-files', v_file.storage_path, p_thumb), false) then
+    raise exception 'a thumbnail goes beside its scan' using errcode = '22023';
+  end if;
+  update public.library_files
+  set scanned = true, page_count = p_pages, thumb_path = coalesce(p_thumb, thumb_path)
+  where id = p_file;
 end;
 $$;
-revoke all on function public.mark_library_file_scanned(uuid, integer) from public, anon;
-grant execute on function public.mark_library_file_scanned(uuid, integer) to authenticated;
+revoke all on function public.mark_library_file_scanned(uuid, integer, text) from public, anon;
+grant execute on function public.mark_library_file_scanned(uuid, integer, text) to authenticated;
 
 create function pg_temp.r103_patch(p_fn regprocedure, p_old text, p_new text)
 returns void language plpgsql as $$
@@ -99,13 +133,17 @@ select pg_temp.r103_patch(
             nullif(v_photo ->> 'taken_at', '')::timestamptz,
             nullif(trim(v_photo ->> 'place'), ''));$old$,
   $new$    insert into public.work_item_evidence (event_id, work_item_id, storage_path, taken_at, place_text,
-                                           kind, page_count)
+                                           kind, page_count, thumb_path)
     values (p_event, p_item.id, v_path,
             nullif(v_photo ->> 'taken_at', '')::timestamptz,
             nullif(trim(v_photo ->> 'place'), ''),
             case when lower(v_path) like '%.pdf' then 'scan' else 'photo' end,
             case when lower(v_path) like '%.pdf'
-                 then nullif(v_photo ->> 'page_count', '')::smallint end);$new$);
+                 then nullif(v_photo ->> 'page_count', '')::smallint end,
+            -- D10: a scan's thumbnail beside it; any other is left off.
+            case when lower(v_path) like '%.pdf'
+                      and public.scan_thumb_ok('space-files', v_path, v_photo ->> 'thumb_path')
+                 then v_photo ->> 'thumb_path' end);$new$);
 
 -- The lead's check (D1): a scanned proof is a PDF upload; a photo stays a
 -- photo. Each path's own type, as the phone sent it.
@@ -119,3 +157,52 @@ select pg_temp.r103_patch(
       end if;
     elsif coalesce(public.upload_mime(v_path, null), 'image/') not like 'image/%' then
       raise exception 'evidence must be a photo or a scanned PDF' using errcode = '22023';$new$);
+
+-- D10: a Library scan's thumbnail opens where its file opens.
+select pg_temp.r103_patch(
+  'public.may_read_file(text, text)',
+  $old$  if public.is_shown_photo(p_name) then
+    return true;
+  end if;$old$,
+  $new$  if public.is_shown_photo(p_name) then
+    return true;
+  end if;
+  -- Review 103 (D10): a scan's thumbnail opens where its file does.
+  if exists (select 1 from public.library_files f
+             where f.thumb_path = p_name and f.private_gone_at is null
+               and public.can_open_library_file(f.id)) then
+    return true;
+  end if;$new$);
+
+-- D10: never swept as a loose upload.
+select pg_temp.r103_patch(
+  'public.is_referenced_file(text)',
+  $old$      or exists (select 1 from public.model_views mv where mv.thumb_path = p_path)$old$,
+  $new$      or exists (select 1 from public.model_views mv where mv.thumb_path = p_path)
+      or exists (select 1 from public.library_files f
+                 where f.thumb_path = p_path and f.private_gone_at is null)
+      or exists (select 1 from public.work_item_evidence e
+                 join public.space_posts p on p.id = e.work_item_id
+                 where e.thumb_path = p_path and p.deleted_at is null)$new$);
+
+-- D10: it goes with its file.
+select pg_temp.r103_patch(
+  'public.library_gone(uuid[])',
+  $old$  select mv.thumb_path from public.model_views mv where mv.library_file_id = any (v_ids)$old$,
+  $new$  select mv.thumb_path from public.model_views mv where mv.library_file_id = any (v_ids)
+  union
+  select f.thumb_path from public.library_files f
+  where f.id = any (v_ids) and f.thumb_path is not null$new$);
+
+-- D10: the card carries them: a file post's scan, and a proof's (with its
+-- pages).
+select pg_temp.r103_patch(
+  'public.space_post_json(public.space_posts, boolean)',
+  $old$'path', lf.storage_path,$old$,
+  $new$'path', lf.storage_path,
+        'scanned', lf.scanned, 'page_count', lf.page_count, 'thumb_path', lf.thumb_path,$new$);
+select pg_temp.r103_patch(
+  'public.space_post_json(public.space_posts, boolean)',
+  $old$'place', ev.place_text)$old$,
+  $new$'place', ev.place_text,
+                                   'page_count', ev.page_count, 'thumb_path', ev.thumb_path)$new$);

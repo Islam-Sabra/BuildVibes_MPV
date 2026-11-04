@@ -70,7 +70,7 @@ void main() {
           app.library.calls.where((c) => c.startsWith('add Permit 22.pdf')),
           hasLength(1),
         );
-        expect(app.library.scannedMarks.single, endsWith(' 3'));
+        expect(app.library.scannedMarks.single, contains(' 3 thumb:'));
       });
 
       testWidgets('a scanned file\'s row says "Scanned · 3 pages"', (

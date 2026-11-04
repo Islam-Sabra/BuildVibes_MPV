@@ -404,7 +404,15 @@ class DaybookFilePreview extends ConsumerWidget {
     final path = file.path;
     final image = path == null
         ? null
-        : ref.watch(filePreviewProvider((path: path, mime: file.mime))).value;
+        : ref
+              .watch(
+                filePreviewProvider((
+                  path: path,
+                  mime: file.mime,
+                  thumb: file.thumbPath,
+                )),
+              )
+              .value;
     // F75: "REPLACES V1", else the older one's revision or name.
     final replaced = file.replacesVersionNo != null
         ? l10n.libraryVersionNo(file.replacesVersionNo!)

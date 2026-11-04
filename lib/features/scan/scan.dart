@@ -25,6 +25,18 @@ const scanPageQuality = 60;
 /// Page 1's thumbnail for cards and lists: its long side.
 const scanThumbSide = 400;
 
+/// The lead's check, D10: where a scan's page 1 thumbnail is on the phone,
+/// beside its PDF ([pdf] with .jpg for .pdf).
+String scanThumbFor(String pdf) =>
+    '${pdf.substring(0, pdf.length - '.pdf'.length)}.jpg';
+
+/// The thumbnail beside [pdf], when the phone still has it.
+String? scanThumbOf(String pdf) {
+  if (!pdf.toLowerCase().endsWith('.pdf')) return null;
+  final thumb = scanThumbFor(pdf);
+  return File(thumb).existsSync() ? thumb : null;
+}
+
 /// The phone's own document scanner (Google's on Android, Apple's on
 /// iPhone), or none: then the app's camera takes pages one by one.
 abstract interface class DocumentScanner {

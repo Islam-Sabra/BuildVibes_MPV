@@ -314,7 +314,13 @@ class _Preview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final image = ref
-        .watch(filePreviewProvider((path: file.path, mime: file.mime)))
+        .watch(
+          filePreviewProvider((
+            path: file.path,
+            mime: file.mime,
+            thumb: file.thumbPath,
+          )),
+        )
         .value;
     return Semantics(
       button: true,

@@ -139,7 +139,18 @@ void main() {
         await tester.enterText(_key('writing-title'), 'Delivery note');
         await tester.pumpAndSettle();
         await _tap(tester, _key('writing-post'));
-        expect(app.library.scannedMarks, ['$id 3']);
+        // The lead's check, D10: with page 1's thumbnail, in its folder.
+        expect(
+          app.library.scannedMarks.single,
+          matches(
+            RegExp(
+              '^$id 3 thumb:'
+              r'\S+/library/'
+              '$id'
+              r'/\S+\.jpg$',
+            ),
+          ),
+        );
       });
 
       testWidgets('✕ on a page takes it off; Scan more pages adds', (

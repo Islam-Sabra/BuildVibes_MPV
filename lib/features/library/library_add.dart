@@ -150,16 +150,12 @@ Future<void> addSmallerVersion(
     if (context.mounted) showSpaceError(context, e);
     return;
   }
+  final bytes = file.bytes ?? await File(local).length();
   if (!context.mounted) return unawaited(_deleteKept(local));
   final made = await makeSmaller(
     context,
     ref,
-    PhoneFile(
-      local: local,
-      name: file.name,
-      mime: file.mime,
-      bytes: file.bytes ?? await File(local).length(),
-    ),
+    PhoneFile(local: local, name: file.name, mime: file.mime, bytes: bytes),
   );
   // The downloaded copy is never needed again (D19).
   unawaited(_deleteKept(local));

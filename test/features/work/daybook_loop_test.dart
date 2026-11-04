@@ -691,9 +691,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
-      expect(app.work.uploads.single, endsWith('.pdf'));
+      // The lead's check, D10: page 1's thumbnail goes up beside it.
+      expect(app.work.uploads, [endsWith('.pdf'), endsWith('.jpg')]);
       expect(app.work.signedPhotos.single.path, endsWith('.pdf'));
       expect(app.work.signedPhotos.single.pages, 3);
+      expect(app.work.signedPhotos.single.thumb, app.work.uploads.last);
     });
 
     testWidgets('F6: a proof with no photo shows the note and DONE with no '

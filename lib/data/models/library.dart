@@ -36,6 +36,7 @@ class LibraryFile {
     this.folderId,
     this.scanned = false,
     this.pageCount,
+    this.thumbPath,
   });
 
   /// A row of library_files with `team:teams(name)` and
@@ -69,12 +70,17 @@ class LibraryFile {
       folderId: json['folder_id'] as String?,
       scanned: json['scanned'] as bool? ?? false,
       pageCount: (json['page_count'] as num?)?.toInt(),
+      thumbPath: json['thumb_path'] as String?,
     );
   }
 
   /// Review 103: a scanned document, [pageCount] pages.
   final bool scanned;
   final int? pageCount;
+
+  /// The lead's check, D10: a scan's page 1, beside it (cards and rows show
+  /// it, never downloading the PDF).
+  final String? thumbPath;
 
   final String id;
   final String spaceId;

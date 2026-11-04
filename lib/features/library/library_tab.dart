@@ -373,7 +373,13 @@ class LibraryThumb extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final image = ref
-        .watch(filePreviewProvider((path: file.path, mime: file.mime)))
+        .watch(
+          filePreviewProvider((
+            path: file.path,
+            mime: file.mime,
+            thumb: file.thumbPath,
+          )),
+        )
         .value;
     Widget sheet({ImageProvider? image}) => Container(
       width: BvLibrarySpec.thumbWidth,

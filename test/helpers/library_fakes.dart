@@ -117,8 +117,10 @@ class FakeLibraryRepository implements LibraryRepository {
   final scannedMarks = <String>[];
 
   @override
-  Future<void> markScanned(String fileId, int pages) async =>
-      scannedMarks.add('$fileId $pages');
+  Future<void> markScanned(String fileId, int pages, {String? thumb}) async =>
+      scannedMarks.add(
+        thumb == null ? '$fileId $pages' : '$fileId $pages thumb:$thumb',
+      );
 
   @override
   Future<void> add({

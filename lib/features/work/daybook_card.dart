@@ -593,7 +593,11 @@ class DaybookCardView extends StatelessWidget {
             stamp: stamp,
           )
         else if (proof != null && proof.photos.isNotEmpty)
-          _Photo(path: proof.photos.first.path, stamp: stamp)
+          _Photo(
+            path: proof.photos.first.path,
+            thumb: proof.photos.first.thumb,
+            stamp: stamp,
+          )
         // A target's photos are on its rows' strip, not here.
         else if (proof == null &&
             !post.isTarget &&
@@ -1239,9 +1243,12 @@ class DaybookCardView extends StatelessWidget {
 
 /// A photo from the Space's private files, on a card.
 class _Photo extends ConsumerWidget {
-  const _Photo({required this.path, this.stamp});
+  const _Photo({required this.path, this.thumb, this.stamp});
 
   final String path;
+
+  /// A scan's page 1 (D10): shown as a photo, the PDF never fetched.
+  final String? thumb;
   final Widget? stamp;
 
   @override
@@ -1249,11 +1256,20 @@ class _Photo extends ConsumerWidget {
     height: BvSlipSpec.photoHeightCard,
     stamp: stamp,
     // Review 103: a scanned proof shows its page 1, stamped the same way.
-    image: path.toLowerCase().endsWith('.pdf')
-        ? ref
-              .watch(filePreviewProvider((path: path, mime: 'application/pdf')))
-              .value
-        : ref.watch(daybookPhotoProvider(path)),
+    image: switch (thumb) {
+      final thumb? => ref.watch(daybookPhotoProvider(thumb)),
+      _ when path.toLowerCase().endsWith('.pdf') =>
+        ref
+            .watch(
+              filePreviewProvider((
+                path: path,
+                mime: 'application/pdf',
+                thumb: null,
+              )),
+            )
+            .value,
+      _ => ref.watch(daybookPhotoProvider(path)),
+    },
   );
 }
 

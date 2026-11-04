@@ -78,7 +78,7 @@ select is(pg_temp.reads('b2', format($$select count(*)::int from public.library_
 select is(pg_temp.reads('e5', format($$select count(*)::int from public.library_files
                                        where id = %L$$, pg_temp.id('f1'))), 0,
   'someone outside the Space reads nothing');
-select ok(not has_function_privilege('anon', 'public.mark_library_file_scanned(uuid, integer)', 'execute'),
+select ok(not has_function_privilege('anon', 'public.mark_library_file_scanned(uuid, integer, text)', 'execute'),
   'not for the signed out');
 
 -- The notebook: Omar's note with a scanned PDF.

@@ -47,8 +47,8 @@ abstract class LibraryRepository {
   });
 
   /// Review 103: the file just added was scanned, [pages] pages
-  /// (mark_library_file_scanned).
-  Future<void> markScanned(String fileId, int pages);
+  /// (mark_library_file_scanned), with page 1's [thumb] beside it (D10).
+  Future<void> markScanned(String fileId, int pages, {String? thumb});
 
   /// Review 113 LB1: the folders I can see (space_library_folders).
   Future<List<LibraryFolder>> folders(String spaceId);
@@ -92,7 +92,7 @@ class SupabaseLibraryRepository implements LibraryRepository {
   static const _file =
       'id, space_id, team_id, name, storage_path, mime, bytes, rev_label, '
       'note, supersedes_id, source, uploaded_by, created_at, version_no, '
-      'chain_id, folder_id, scanned, page_count, team:teams(name), '
+      'chain_id, folder_id, scanned, page_count, thumb_path, team:teams(name), '
       'uploader:profiles!library_files_uploaded_by_fkey(first_name, last_name)';
 
   Future<T> _guard<T>(Future<T> Function() run) async {
@@ -274,10 +274,10 @@ class SupabaseLibraryRepository implements LibraryRepository {
   );
 
   @override
-  Future<void> markScanned(String fileId, int pages) => _guard(
+  Future<void> markScanned(String fileId, int pages, {String? thumb}) => _guard(
     () => _client.rpc<void>(
       'mark_library_file_scanned',
-      params: {'p_file': fileId, 'p_pages': pages},
+      params: {'p_file': fileId, 'p_pages': pages, 'p_thumb': ?thumb},
     ),
   );
 

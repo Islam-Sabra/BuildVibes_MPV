@@ -29,6 +29,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
 import '../notebook/notebook_state.dart';
+import '../scan/scan.dart' show scanThumbOf;
 import 'daybook_draft.dart';
 import 'daybook_marks.dart' show daybookExtrasProvider;
 import 'daybook_state.dart';
@@ -43,6 +44,7 @@ class PendingPhoto {
     this.remote,
     this.place,
     this.pages,
+    this.thumb,
   });
 
   factory PendingPhoto.fromJson(Map<String, dynamic> json) => PendingPhoto(
@@ -51,6 +53,7 @@ class PendingPhoto {
     remote: json['remote'] as String?,
     place: json['place'] as String?,
     pages: (json['pages'] as num?)?.toInt(),
+    thumb: json['thumb'] as String?,
   );
 
   final String local;
@@ -61,14 +64,18 @@ class PendingPhoto {
   /// Review 103: a scan (a PDF on the phone), [pages] long.
   final int? pages;
 
+  /// The lead's check, D10: a scan's page 1 thumbnail, once uploaded.
+  final String? thumb;
+
   bool get isScan => local.toLowerCase().endsWith('.pdf');
 
-  PendingPhoto uploaded(String path) => PendingPhoto(
+  PendingPhoto uploaded(String path, {String? thumb}) => PendingPhoto(
     local: local,
     takenAt: takenAt,
     remote: path,
     place: place,
     pages: pages,
+    thumb: thumb,
   );
 
   /// Back to the phone copy only, to upload again.
@@ -81,6 +88,7 @@ class PendingPhoto {
     'remote': remote,
     'place': place,
     'pages': pages,
+    'thumb': thumb,
   };
 }
 
@@ -896,16 +904,21 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             continue;
           }
           // A new name on every try: nothing is ever overwritten.
-          final path = await withRetries(
+          Future<String> up(String local) => withRetries(
             () => item.isNewPost
                 ? daybook.uploadPostPhoto(
                     item.spaceId,
                     item.photoPost(i),
-                    File(p.local),
+                    File(local),
                   )
-                : repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
+                : repo.uploadPhoto(item.spaceId, item.id, File(local)),
           );
-          photos.add(p.uploaded(path));
+          final path = await up(p.local);
+          // The lead's check, D10: a scan's page 1 goes up beside it.
+          final thumb = p.isScan ? scanThumbOf(p.local) : null;
+          photos.add(
+            p.uploaded(path, thumb: thumb == null ? null : await up(thumb)),
+          );
           current = current.copyWith(
             photos: [...photos, ...current.photos.skip(photos.length)],
           );
@@ -1068,6 +1081,22 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       // Review 113 bug 7: which file, so Tap to fix can take it off.
       throw e.withFile(f.libraryId);
     }
+    // The lead's check, D10: a scan's page 1 beside it, before the file's
+    // row is made (a Library folder takes no upload after that). None on a
+    // retry once it was made: the first one is kept.
+    String? thumb;
+    final pageOne = f.scanned ? scanThumbOf(f.local!) : null;
+    if (pageOne != null) {
+      try {
+        thumb = await library.upload(
+          spaceId,
+          f.libraryId,
+          PhoneFile(local: pageOne, name: 'page-1.jpg', mime: 'image/jpeg'),
+        );
+      } on Object {
+        thumb = null;
+      }
+    }
     try {
       await library.add(
         id: f.libraryId,
@@ -1087,9 +1116,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       }
     }
     // Review 103: "Scanned · 3 pages" in the Library too (again on a
-    // retry: the same mark).
+    // retry: the same mark), with page 1's thumbnail (D10).
     if (f.scanned && f.pages != null) {
-      await library.markScanned(f.libraryId, f.pages!);
+      await library.markScanned(f.libraryId, f.pages!, thumb: thumb);
     }
   }
 
@@ -1297,6 +1326,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                     takenAt: p.takenAt,
                     place: p.place,
                     pages: p.pages,
+                    thumb: p.thumb,
                   ),
               ],
             );
