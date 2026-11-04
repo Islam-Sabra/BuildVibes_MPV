@@ -2,7 +2,7 @@
 
 **Founder (26 Oct):** add document scanning to the notebook and to Spaces. It is in the plan before the pilot (queue item 4).
 
-**Status:** draft. Frames SC1–SC5 follow (EN and AR) for the founder's look; nothing is built before his yes.
+**Status:** approved by the founder (4 Nov 12:25–12:29) with the changes at the end: Scan next to the camera (SC7), compression, Make it smaller on every PDF, and **OCR before the pilot**.
 
 ## Why
 Site paperwork reaches the phone today as crooked photos with shadows: a delivery note, an inspection request, a cube test certificate, a permit, a signed checklist, the consultant's marked-up comments.
@@ -105,3 +105,29 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
     - Keep original;
     - over the limit → smaller → fits;
     - still too large → only Link folder.
+
+## OCR, "Extract text": approved for before the pilot (founder, 12:29)
+- **Provider (the lead's call): Google Cloud Vision, document text detection.**
+  - It reads Arabic, English and most languages, including mixed pages.
+  - **Price (checked 4 Nov on Google's pricing page):** the first 1,000 pages each month are free, then US$1.50 per 1,000 pages. The pilot fits in the free tier.
+  - Microsoft's page shows no prices without its calculator, so it isn't chosen.
+- **Only on a tap:** "Extract text" («استخرج النص») on a scan or an image PDF. Never automatic, and never for a file the person can't read.
+- **Server:**
+  - **An edge function `extract-text`:**
+    - signed-in callers only;
+    - checks `can_open_library_file`, or the note's or post's own read rule, for that file;
+    - at most 20 pages a file and 50 pages a person a day;
+    - reads the file from storage and sends the pages to Vision;
+    - stores the text.
+  - **A table `file_texts`** (file reference, language detected, text, created_at). RLS reads it exactly as the file is read. pgTAP: a non-member can't read a file's text.
+  - **The API key** sits only in a function secret (`GOOGLE_VISION_KEY`), never in the app. Setting it up is a live step for the founder: a Google Cloud project with the Vision API on and a key restricted to Vision.
+- **App:**
+  - the text shows under the file in a collapsible "Text" section, with **Copy**;
+  - the words become searchable in Space search and notebook search;
+  - "Couldn't read this file" on failure;
+  - tests with a faked function.
+- **Privacy:**
+  - the privacy policy gets a line ("When you tap Extract text, the document is sent to Google Cloud to read its text, and the text is stored with the file");
+  - a lawyer looks at it with the location wording;
+  - Google's data terms (no use for training) to be confirmed when the project is set up.
+- **Order:** Scan, then compression, then OCR. OCR merges only after the key exists.
