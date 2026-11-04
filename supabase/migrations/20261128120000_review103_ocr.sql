@@ -144,7 +144,7 @@ grant execute on function public.text_pages_left(uuid) to service_role;
 -- Searchable
 -- ---------------------------------------------------------------------------
 
-create function pg_temp.r103_patch(p_fn regprocedure, p_old text, p_new text)
+create function pg_temp.r103_ocr_patch(p_fn regprocedure, p_old text, p_new text)
 returns void language plpgsql as $$
 declare
   v_def text := replace(pg_get_functiondef(p_fn), chr(13), '');
@@ -157,7 +157,7 @@ begin
 end;
 $$;
 
-select pg_temp.r103_patch(
+select pg_temp.r103_ocr_patch(
   'public.search_space(uuid, text)',
   $old$       and f.search_text like v_pat
        and public.can_read_library_file(f.id)$old$,
@@ -184,12 +184,12 @@ $$;
 revoke all on function public.note_files_text(uuid) from public, anon, authenticated;
 
 -- The note's own words and its files' text, for the snippet and the match.
-select pg_temp.r103_patch(
+select pg_temp.r103_ocr_patch(
   'public.search_notebook(text, text, uuid)',
   $old$            concat_ws(' ', n.body, public.blocks_plain_text(n.blocks),$old$,
   $new$            concat_ws(' ', n.body, public.blocks_plain_text(n.blocks),
                       public.note_files_text(n.id),$new$);
-select pg_temp.r103_patch(
+select pg_temp.r103_ocr_patch(
   'public.search_notebook(text, text, uuid)',
   $old$     and (v_q = '' or public.search_fold(concat_ws(' ', n.title, n.body,
                                                    public.blocks_plain_text(n.blocks),$old$,
