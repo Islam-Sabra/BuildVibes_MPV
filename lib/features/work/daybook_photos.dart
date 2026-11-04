@@ -31,12 +31,19 @@ final localPhotoProvider = Provider.autoDispose.family<ImageProvider, String>(
 /// Review 114 B2: the PDF is the phone's one copy ([fileCacheProvider]),
 /// and its first page, once drawn, is kept: a card shown again neither
 /// downloads nor draws.
+///
+/// The lead's check of review 103, D10: a scan's own page 1 ([thumb], put
+/// beside it when it was scanned) is shown as it is; the PDF isn't fetched.
 final filePreviewProvider = FutureProvider.autoDispose
-    .family<ImageProvider?, ({String path, String mime})>((ref, file) async {
+    .family<ImageProvider?, ({String path, String mime, String? thumb})>((
+      ref,
+      file,
+    ) async {
       final path = file.path;
-      if (file.mime.startsWith('image/')) {
+      if (file.thumb ?? (file.mime.startsWith('image/') ? path : null)
+          case final image?) {
         final library = ref.watch(libraryRepositoryProvider);
-        return NetworkImage(await library.fileUrl(path));
+        return NetworkImage(await library.fileUrl(image));
       }
       if (file.mime != _pdf) return null;
       final files = ref.watch(fileCacheProvider);

@@ -8,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../scan/pdf_smaller.dart';
+import '../scan/scan_review.dart';
+import '../scan/scan.dart' show dropScanCopy, scanDirProvider;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -24,6 +27,7 @@ import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
@@ -201,6 +205,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
             label: l10n.chatAttachGallery,
             onTap: () => Navigator.of(context).pop(_Attach.gallery),
           ),
+          // Review 103: Scan a document, one PDF.
+          ChatActionRow(
+            key: const Key('chat-attach-scan'),
+            icon: BvIcons.scan,
+            label: l10n.scanADocument,
+            onTap: () => Navigator.of(context).pop(_Attach.scan),
+          ),
           ChatActionRow(
             key: const Key('chat-attach-pdf'),
             icon: BvIcons.document,
@@ -214,11 +225,22 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     if (choice == null || !mounted) return;
     PhoneFile? picked;
     var refused = false;
-    if (choice == _Attach.pdf) {
-      if (_files.any((f) => f.isPdf)) {
-        _toast(l10n.chatOneDocument);
-        return;
+    if ((choice == _Attach.pdf || choice == _Attach.scan) &&
+        _files.any((f) => f.isPdf)) {
+      _toast(l10n.chatOneDocument);
+      return;
+    }
+    if (choice == _Attach.scan) {
+      final doc = await scanDocument(context, ref, maxBytes: maxFileBytes);
+      if (doc != null) {
+        picked = PhoneFile(
+          local: doc.local,
+          name: doc.fileName,
+          mime: 'application/pdf',
+          bytes: doc.bytes,
+        );
       }
+    } else if (choice == _Attach.pdf) {
       (file: picked, :refused) = await ref.read(pickDocumentProvider)(
         pdfOnly: true,
       );
@@ -235,14 +257,31 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     if (refused) _toast(l10n.photoCannotOpen);
     if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
-      _toast(l10n.chatFileTooBig);
-      return;
+      // The lead's check of 103, D2: a PDF gets the too-large sheet, Make
+      // it smaller first.
+      if (!picked.isPdf) {
+        _toast(l10n.chatFileTooBig);
+        return;
+      }
+      picked = await fitTooLarge(
+        context,
+        ref,
+        file: picked,
+        maxBytes: maxFileBytes,
+        spaceId: widget.spaceId,
+      );
+      if (picked == null || !mounted) return;
     }
     // A copy of our own, so it survives until the message is sent.
     final kept = await ref.read(keepFileProvider)(
       picked.local,
       picked.extension,
     );
+    // The lead's check of review 103, D19: a scan's own copy (or its
+    // smaller copy) goes; the message keeps its own until it is sent.
+    if (picked.local.startsWith(await ref.read(scanDirProvider)())) {
+      dropScanCopy(picked.local, kept: kept);
+    }
     if (!mounted) return;
     setState(
       () => _files.add(
@@ -254,6 +293,16 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         ),
       ),
     );
+  }
+
+  /// Review 103: the smaller copy in place of [f], when it is used.
+  Future<void> _smaller(PhoneFile f) async {
+    final smaller = await makeSmaller(context, ref, f);
+    if (smaller == null || !mounted) return;
+    setState(() {
+      final i = _files.indexOf(f);
+      if (i >= 0) _files[i] = smaller;
+    });
   }
 
   Future<void> _startRecording() async {
@@ -825,6 +874,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                 ? _attach
                 : null,
             onRemove: (f) => setState(() => _files.remove(f)),
+            onSmaller: (f) => unawaited(_smaller(f)),
             recording: _recording,
             cancelling: _cancelling,
             elapsed: _elapsed,
@@ -843,7 +893,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
 enum _Action { reply, workItem, meeting, copy, delete, report, notebook }
 
-enum _Attach { camera, gallery, pdf }
+enum _Attach { camera, gallery, scan, pdf }
 
 /// A message from the server, or one still on this phone.
 class _Entry {
@@ -1405,7 +1455,11 @@ class ChatComposer extends StatelessWidget {
     required this.onRecordEnd,
     required this.onRecordTap,
     this.shared = const [],
+    this.onSmaller,
   });
+
+  /// Review 103: Make it smaller on a picked PDF of 1 MB or more.
+  final ValueChanged<PhoneFile>? onSmaller;
 
   /// F77: a Library file waiting in the message box, not sent yet.
   final List<Widget> shared;
@@ -1461,8 +1515,15 @@ class ChatComposer extends StatelessWidget {
                   spacing: BvSpace.s8,
                   children: [
                     ...shared,
-                    for (final f in files)
-                      _PickedChip(file: f, onRemove: () => onRemove(f)),
+                    for (final (i, f) in files.indexed)
+                      _PickedChip(
+                        index: i,
+                        file: f,
+                        onRemove: () => onRemove(f),
+                        onSmaller: onSmaller == null
+                            ? null
+                            : () => onSmaller!(f),
+                      ),
                   ],
                 ),
               ),
@@ -1762,7 +1823,11 @@ class _FileChip extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BvNameText(file.name, maxLines: 2, style: type.labelMd),
+                  BvNameText(
+                    fileTitle(file.name),
+                    maxLines: 2,
+                    style: type.labelMd,
+                  ),
                   Text(
                     joinMeta([?file.revLabel, fileSize(l10n, file.bytes)]),
                     style: type.metadata.copyWith(
@@ -1781,10 +1846,19 @@ class _FileChip extends StatelessWidget {
 
 /// A file picked for the next message, with Remove.
 class _PickedChip extends StatelessWidget {
-  const _PickedChip({required this.file, required this.onRemove});
+  const _PickedChip({
+    required this.index,
+    required this.file,
+    required this.onRemove,
+    this.onSmaller,
+  });
 
+  final int index;
   final PhoneFile file;
   final VoidCallback onRemove;
+
+  /// Review 103: Make it smaller, on a PDF of 1 MB or more.
+  final VoidCallback? onSmaller;
 
   @override
   Widget build(BuildContext context) {
@@ -1824,7 +1898,14 @@ class _PickedChip extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
               // A camera photo's file name means nothing to people.
               child: file.isPdf
-                  ? BvNameText(file.name, style: type.bodySm)
+                  // Review 103: a PDF shows its size.
+                  ? BvNameText(
+                      joinMeta([
+                        fileTitle(file.name),
+                        if (file.bytes != null) fileSize(l10n, file.bytes),
+                      ]),
+                      style: type.bodySm,
+                    )
                   : Text(
                       l10n.chatPhoto,
                       maxLines: 1,
@@ -1833,6 +1914,16 @@ class _PickedChip extends StatelessWidget {
                     ),
             ),
           ),
+          if (onSmaller != null &&
+              offersSmaller(file.local, file.mime, file.bytes))
+            // The lead's check, D12: in words.
+            BvButton(
+              key: Key('chat-picked-smaller-$index'),
+              label: l10n.pdfSmaller,
+              style: BvButtonStyle.tertiary,
+              size: BvButtonSize.medium,
+              onPressed: onSmaller,
+            ),
           IconButton(
             tooltip: l10n.chatRemoveFile,
             icon: const Icon(
@@ -1917,7 +2008,7 @@ class _SharedFileChip extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
-              child: BvNameText(file.name, style: type.bodySm),
+              child: BvNameText(fileTitle(file.name), style: type.bodySm),
             ),
           ),
           IconButton(

@@ -131,6 +131,9 @@ String fileMeta(AppLocalizations l10n, LibraryFile f, String? me) => joinMeta([
     l10n.chatYou
   else
     personFirstName(l10n, f.uploadedByName),
+  // Review 103: "Scanned · 3 pages".
+  if (f.scanned && f.pageCount != null)
+    l10n.scannedPages(l10n.scanPages(f.pageCount!)),
   fileSize(l10n, f.bytes),
 ]);
 
@@ -153,7 +156,7 @@ class FileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BvListRow(
       key: Key('file-${file.id}'),
-      title: inOwnDirection(file.name),
+      title: fileTitle(file.name),
       subtitle: subtitle,
       leading: BvRowIcon(
         file.isImage ? BvIcons.image : BvIcons.document,

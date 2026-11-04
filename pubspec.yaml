@@ -69,6 +69,10 @@ dependencies:
   # Review 109 Y1: the phone's IANA time zone, for a check-in in a Space
   # with none (plain platform channels, no native-asset hooks).
   flutter_timezone: 5.1.1
+  # Review 103: Scan a document (Google's scanner on Android, Apple's on
+  # iPhone), pinned (the lead's check, D21). It asks for no permission of
+  # its own: Google's scanner runs in Play services.
+  cunning_document_scanner: 3.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

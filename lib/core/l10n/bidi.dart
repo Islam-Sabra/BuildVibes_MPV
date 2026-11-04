@@ -31,6 +31,21 @@ String inOwnDirection(String text) {
   return '${String.fromCharCode(open)}$text${String.fromCharCode(_pdi)}';
 }
 
+/// A file's name on a row, chip, title or bubble (the lead's checks of
+/// review 103, D17 and D23): without its extension, since the icon and
+/// "PDF" say the type, and in its own direction. Downloads and shares keep
+/// the real name.
+String fileTitle(String name) {
+  final dot = name.lastIndexOf('.');
+  final base = dot > 0 && name.length - dot <= _extensionMax
+      ? name.substring(0, dot)
+      : name;
+  return inOwnDirection(base);
+}
+
+/// ".pdf", ".jpeg": longer after its dot is a name, not an extension.
+const _extensionMax = 5;
+
 /// The dot between the parts of a meta line.
 const metaDot = '·';
 

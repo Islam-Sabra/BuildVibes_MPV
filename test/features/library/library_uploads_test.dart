@@ -96,6 +96,13 @@ void main() {
         app.library.holdUpload = Completer<void>();
         await _tap(tester, _key('folder-f-mine'));
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await tester.pump();
         expect(_pending(tester), findsOneWidget);
         expect(
@@ -126,6 +133,13 @@ void main() {
         final app = await _open(tester, lang);
         app.library.uploadsOffline = true;
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('library-who-add'));
         expect(
           find.descendant(
@@ -160,6 +174,13 @@ void main() {
         final app = await _open(tester, lang);
         app.library.uploadsOffline = true;
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('library-who-add'));
         final kept = _waiting(tester).single.files.single.local!;
         expect(File(kept).existsSync(), isTrue);
@@ -189,6 +210,13 @@ void main() {
           statusCode: '413',
         );
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('library-who-add'));
         expect(
           find.descendant(
@@ -212,6 +240,13 @@ void main() {
           statusCode: '415',
         );
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('library-who-add'));
         await _tap(tester, _pending(tester));
         await _tap(tester, _key('could-not-send-try-again'));
@@ -225,6 +260,13 @@ void main() {
           'the file at the top', (tester) async {
         final app = await _open(tester, lang);
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         expect(
           find.descendant(
             of: _key('library-who-line'),
@@ -269,6 +311,13 @@ void main() {
           final app = await _open(tester, lang);
           Future<void> addOne() async {
             await _tap(tester, _key('library-add-file'));
+            // Review 103: File from the phone, or Scan.
+            await _tap(tester, _key('file-from-phone'));
+            // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+            if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+              await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+              await tester.pumpAndSettle();
+            }
             await _tap(tester, _key('library-who-change'));
             await _tap(tester, _key('library-who-${share.json}'));
             if (pick != null) await _tap(tester, _key(pick));
@@ -290,6 +339,13 @@ void main() {
       testWidgets('an only-me folder already there takes it', (tester) async {
         final app = await _open(tester, lang, folders: const [_onlyMe]);
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('library-who-change'));
         await _tap(tester, _key('library-who-only_me'));
         await _tap(tester, _key('library-who-add'));
@@ -303,6 +359,13 @@ void main() {
         final app = await _open(tester, lang, folders: const [_onlyMe]);
         await _tap(tester, _key('folder-f-mine'));
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         expect(_key('library-who-line'), findsNothing);
         expect(app.library.calls.single, endsWith('folder:f-mine'));
       });

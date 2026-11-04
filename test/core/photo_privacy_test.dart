@@ -27,6 +27,14 @@ Uint8List _withApp1(Uint8List jpeg, List<int> tiff) {
   ]);
 }
 
+/// [jpeg]'s picture: everything from its start of scan.
+List<int> _scan(Uint8List jpeg) {
+  for (var i = 2; i + 1 < jpeg.length; i++) {
+    if (jpeg[i] == 0xFF && jpeg[i + 1] == 0xDA) return jpeg.sublist(i);
+  }
+  return const [];
+}
+
 List<int> _ascii0(String s) => [...s.codeUnits, 0];
 
 /// What a Xiaomi phone writes (big-endian): Make, Model, Software and
@@ -150,22 +158,63 @@ void main() {
       expect(exif.exif.containsKey(0x0112), isFalse);
     });
 
-    testWidgets('a large photo is made 2560 on its longest side', (
+    // Review 103 (founder, 4 Nov): one compressor everywhere a photo
+    // enters: 1600 px, JPEG 80, no location.
+    test('one size and quality for every photo: 1600 px, JPEG 80', () {
+      expect(photoMaxSide, 1600);
+      expect(photoQuality, 80);
+      expect(photoKeepBytes, 500 * 1024);
+    });
+
+    testWidgets('a photo already under 1600 px and 500 KB keeps its picture '
+        'as it is; its location, phone and thumbnail go, its time stays', (
+      tester,
+    ) async {
+      final picture = _picture(800, 600, quality: 92);
+      final before = _withApp1(picture, _phoneTiff());
+      expect(before.length, lessThan(photoKeepBytes));
+      final after = (await cleanForTest(tester, before))!;
+      // The same picture: not drawn again.
+      expect(_scan(after), _scan(picture));
+      for (final word in _phoneWords) {
+        expect(hasBytes(after, word.codeUnits), isFalse, reason: word);
+      }
+      final exif = exifBlocks(after).single;
+      expect(exif.exif.keys.toSet(), {0x9003, 0x9011});
+    });
+
+    testWidgets('under 1600 px but over 500 KB: drawn again, smaller', (
+      tester,
+    ) async {
+      final noisy = img.Image(width: 1400, height: 1000);
+      var seed = 7;
+      for (final p in noisy) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        p.setRgb(seed & 0xFF, (seed >> 8) & 0xFF, (seed >> 16) & 0xFF);
+      }
+      final before = img.encodeJpg(noisy, quality: 100);
+      expect(before.length, greaterThan(photoKeepBytes));
+      final after = (await cleanForTest(tester, before))!;
+      expect(after.length, lessThan(before.length));
+      expect(_scan(after), isNot(_scan(before)));
+    });
+
+    testWidgets('a large photo is made 1600 on its longest side', (
       tester,
     ) async {
       final before = _withApp1(_picture(4000, 3000, quality: 50), _phoneTiff());
       final after = (await cleanForTest(tester, before))!;
       final picture = img.decodeJpg(after)!;
-      expect((picture.width, picture.height), (photoMaxSide, 1920));
+      expect((picture.width, picture.height), (photoMaxSide, 1200));
       // Sideways too: made smaller and turned upright, never squashed.
       final sideways = _withApp1(
         _picture(4000, 3000, quality: 50),
         _phoneTiff(orientation: 6),
       );
       final upright = img.decodeJpg((await cleanForTest(tester, sideways))!)!;
-      expect((upright.width, upright.height), (1920, photoMaxSide));
-      expect(upright.getPixel(960, 100).r, lessThan(60));
-      expect(upright.getPixel(960, 2400).r, greaterThan(200));
+      expect((upright.width, upright.height), (1200, photoMaxSide));
+      expect(upright.getPixel(600, 100).r, lessThan(60));
+      expect(upright.getPixel(600, 1500).r, greaterThan(200));
     });
 
     testWidgets('a small photo is never made bigger', (tester) async {

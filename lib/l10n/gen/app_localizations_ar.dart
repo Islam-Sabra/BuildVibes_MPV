@@ -1450,20 +1450,170 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatAttachPdf => 'ملف PDF من هاتفك';
 
   @override
+  String get pdfSmaller => 'صغّر الملف';
+
+  @override
+  String get pdfSmallerTitle => 'صغّر الملف';
+
+  @override
+  String pdfSmallerMaking(int page, int total) {
+    return 'جارٍ تصغير الملف… صفحة $page من $total';
+  }
+
+  @override
+  String pdfSmallerResult(String before, String after) {
+    return '$before ← $after';
+  }
+
+  @override
+  String get pdfSmallerWarning =>
+      'لن يمكن تحديد النص بعد ذلك، وتصبح الخطوط الدقيقة أنعم.';
+
+  @override
+  String get pdfUseSmaller => 'استخدم الأصغر';
+
+  @override
+  String get pdfKeepOriginal => 'احتفظ بالأصلي';
+
+  @override
+  String get pdfSmallerFailed => 'لم يمكن تصغير هذا الملف.';
+
+  @override
+  String pdfStillTooLarge(String size, String max) {
+    return 'لا يزال كبيرًا جدًا ($size ميجابايت). الحد الأقصى $max ميجابايت.';
+  }
+
+  @override
+  String get fileExtractText => 'استخرج النص';
+
+  @override
+  String get fileTextTitle => 'النص';
+
+  @override
+  String get fileTextCopy => 'انسخ النص';
+
+  @override
+  String get fileTextCopied => 'تم نسخ النص';
+
+  @override
+  String get fileTextReading => 'جارٍ قراءة النص…';
+
+  @override
+  String get fileTextFailed => 'تعذّرت قراءة هذا الملف';
+
+  @override
+  String get fileTextEmpty => 'لا يوجد نص في هذا الملف.';
+
+  @override
+  String get fileTextLimit => 'قرأت 50 صفحة اليوم. حاول مرة أخرى غدًا.';
+
+  @override
+  String get fileTextPartial => 'أول 20 صفحة';
+
+  @override
+  String get fileTextTooLarge => 'كبير جدًا للقراءة. صغّره أولًا.';
+
+  @override
+  String get scanBar => 'مسح';
+
+  @override
+  String get scanADocument => 'مسح مستند';
+
+  @override
+  String get scanADocumentNote => 'مستقيم وواضح، في ملف PDF واحد';
+
+  @override
+  String scanDefaultName(String day, String time) {
+    return 'مسح · $day $time';
+  }
+
+  @override
+  String get scanReviewTitle => 'مستند ممسوح';
+
+  @override
+  String scanPages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n صفحة',
+      few: '$n صفحات',
+      two: 'صفحتان',
+      one: 'صفحة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanMorePages => 'امسح صفحات أخرى';
+
+  @override
+  String get scanAddPage => 'أضف صفحة';
+
+  @override
+  String get scanName => 'الاسم';
+
+  @override
+  String get scanAdd => 'إضافة';
+
+  @override
+  String get scanRemovePage => 'احذف هذه الصفحة';
+
+  @override
+  String get scanDiscardTitle => 'تجاهل هذا المسح؟';
+
+  @override
+  String get scanDiscardBody => 'ستُحذف الصفحات من الهاتف.';
+
+  @override
+  String get scanDiscard => 'تجاهل';
+
+  @override
+  String get scanKeep => 'متابعة المسح';
+
+  @override
+  String get scanTooLarge => 'كبير جدًا: احذف بعض الصفحات';
+
+  @override
+  String get scanNoScanner =>
+      'لا يوجد ماسح مستندات في هذا الهاتف، لذا الصفحات صور عادية.';
+
+  @override
+  String get scanPageUnreadable => 'تعذّرت قراءة صفحة. امسحها مرة أخرى.';
+
+  @override
+  String get scanMaking => 'جارٍ إنشاء ملف PDF…';
+
+  @override
+  String scannedPages(String pages) {
+    return 'ممسوح · $pages';
+  }
+
+  @override
+  String get proofPhoto => 'صورة';
+
+  @override
+  String get proofScan => 'مسح';
+
+  @override
+  String proofScanned(String pages) {
+    return 'مستند ممسوح · $pages';
+  }
+
+  @override
   String get chatAttachPdfHelp => 'يُضاف إلى مكتبة المساحة أيضًا.';
 
   @override
   String get chatRemoveFile => 'إزالة';
 
   @override
-  String get chatFileTooBig => 'حتى 25 ميغابايت للملف.';
+  String get chatFileTooBig => 'حتى 25 ميجابايت للملف.';
 
   @override
   String get chatOneDocument => 'ملف PDF واحد في كل رسالة.';
 
   @override
   String fileSizeMb(String size) {
-    return '$size ميغابايت';
+    return '$size ميجابايت';
   }
 
   @override
@@ -3886,7 +4036,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookSendingBytes(String sent, String total) {
-    return 'يُرسل · $sent من $total ميغابايت';
+    return 'يُرسل · $sent من $total ميجابايت';
   }
 
   @override

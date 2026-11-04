@@ -50,7 +50,10 @@ import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/models/upload_rules.dart' show spaceFilesMaxBytes;
 import '../../data/repositories/daybook_live.dart';
+import '../../data/repositories/work_repository.dart' show newUuid;
+import '../scan/scan_review.dart';
 import '../../data/repositories/check_in_repository.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
@@ -1022,6 +1025,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     unawaited(_writer.setTitle(title));
   }
 
+  /// Review 103 SC7: a scanned document on the card being written, as its
+  /// file (a file post's one file).
+  Future<void> _scan() async {
+    final doc = await scanDocument(context, ref, maxBytes: spaceFilesMaxBytes);
+    if (doc == null || !mounted) return;
+    await _writer.addFile(
+      DraftFile(
+        libraryId: newUuid(),
+        name: doc.fileName,
+        mime: 'application/pdf',
+        bytes: doc.bytes,
+        local: doc.local,
+        scanned: true,
+        pages: doc.pages,
+      ),
+    );
+  }
+
   /// Review 113 bug 7: Link folder from Tap to fix, for a drawing too big
   /// for a Space.
   Future<void> _linkFolder() =>
@@ -1873,6 +1894,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             onTap: _editing
                 ? null
                 : () => unawaited(_photos(_writer.addPhoto())),
+          ),
+        // Review 103 SC7: Scan, right after the camera, where the kind
+        // takes a file.
+        if (!_editing &&
+            (kind == DaybookKind.file ||
+                composerExtras(kind).contains(ComposerExtra.file)))
+          BvWritingTool(
+            key: const Key('writing-scan'),
+            icon: BvIcons.scan,
+            label: l10n.scanBar,
+            onTap: () => unawaited(_scan()),
           ),
         if (voice)
           BvWritingTool(

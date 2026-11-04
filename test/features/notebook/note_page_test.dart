@@ -6,6 +6,7 @@
 // English and Arabic.
 import 'dart:async';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/network/signal_state.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -297,7 +298,7 @@ void main() {
       // File: a PDF, its name and size.
       await _add(tester, 'file');
       expect(_key('note-file-0'), findsOneWidget);
-      expect(find.text('Level 3 plan.pdf'), findsOneWidget);
+      expect(find.text(fileTitle('Level 3 plan.pdf')), findsOneWidget);
 
       // Date and Remind me.
       await _add(tester, 'date');

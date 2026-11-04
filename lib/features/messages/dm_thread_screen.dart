@@ -8,6 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../scan/pdf_smaller.dart';
+import '../scan/scan_review.dart';
+import '../scan/scan.dart' show dropScanCopy, scanDirProvider;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/around_specs.dart' show BvSpaceEmblemSpec;
 import '../../core/design/bv_specs.dart';
@@ -479,6 +482,13 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
             label: l10n.chatAttachGallery,
             onTap: () => Navigator.of(sheet).pop(1),
           ),
+          // Review 103: Scan a document, one PDF.
+          ChatActionRow(
+            key: const Key('dm-attach-scan'),
+            icon: BvIcons.scan,
+            label: l10n.scanADocument,
+            onTap: () => Navigator.of(sheet).pop(3),
+          ),
           ChatActionRow(
             icon: BvIcons.document,
             label: l10n.chatAttachPdf,
@@ -490,7 +500,17 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     if (choice == null || !mounted) return;
     PhoneFile? picked;
     var refused = false;
-    if (choice == 2) {
+    if (choice == 3) {
+      final doc = await scanDocument(context, ref, maxBytes: maxFileBytes);
+      if (doc != null) {
+        picked = PhoneFile(
+          local: doc.local,
+          name: doc.fileName,
+          mime: 'application/pdf',
+          bytes: doc.bytes,
+        );
+      }
+    } else if (choice == 2) {
       (file: picked, :refused) = await ref.read(pickDocumentProvider)(
         pdfOnly: true,
       );
@@ -505,13 +525,30 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     if (refused) _toast(l10n.photoCannotOpen);
     if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
-      _toast(l10n.chatFileTooBig);
-      return;
+      // The lead's check of 103, D2: a PDF gets the too-large sheet, Make
+      // it smaller first.
+      if (!picked.isPdf) {
+        _toast(l10n.chatFileTooBig);
+        return;
+      }
+      picked = await fitTooLarge(
+        context,
+        ref,
+        file: picked,
+        maxBytes: maxFileBytes,
+        spaceId: null,
+      );
+      if (picked == null || !mounted) return;
     }
     final kept = await ref.read(keepFileProvider)(
       picked.local,
       picked.extension,
     );
+    // The lead's check of review 103, D19: a scan's own copy (or its
+    // smaller copy) goes; the message keeps its own until it is sent.
+    if (picked.local.startsWith(await ref.read(scanDirProvider)())) {
+      dropScanCopy(picked.local, kept: kept);
+    }
     if (!mounted) return;
     setState(
       () => _files.add(
@@ -523,6 +560,16 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
         ),
       ),
     );
+  }
+
+  /// Review 103: the smaller copy in place of [f], when it is used.
+  Future<void> _smaller(PhoneFile f) async {
+    final smaller = await makeSmaller(context, ref, f);
+    if (smaller == null || !mounted) return;
+    setState(() {
+      final i = _files.indexOf(f);
+      if (i >= 0) _files[i] = smaller;
+    });
   }
 
   /// DM3: Reply, Copy, and Delete for my own or Report for theirs.
@@ -976,6 +1023,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               onSend: () => unawaited(_send()),
               onAttach: _files.length < _maxFiles ? _attach : null,
               onRemove: (f) => setState(() => _files.remove(f)),
+              onSmaller: (f) => unawaited(_smaller(f)),
               recording: _recording,
               cancelling: _cancelling,
               elapsed: _elapsed,

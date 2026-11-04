@@ -315,6 +315,7 @@ class DaybookFile {
     this.newerVersionNo,
     this.newerAt,
     this.newerPostId,
+    this.thumbPath,
   });
 
   factory DaybookFile.fromJson(Map<String, dynamic> json) {
@@ -338,6 +339,7 @@ class DaybookFile {
           ? null
           : DateTime.parse(newer!['at'] as String),
       newerPostId: newer?['post_id'] as String?,
+      thumbPath: json['thumb_path'] as String?,
     );
   }
 
@@ -369,6 +371,9 @@ class DaybookFile {
   final int? newerVersionNo;
   final DateTime? newerAt;
   final String? newerPostId;
+
+  /// The lead's check of review 103, D10: a scan's page 1 thumbnail.
+  final String? thumbPath;
 
   bool get isPdf => mime == 'application/pdf';
 }
@@ -925,6 +930,8 @@ List<WorkPhoto> _photos(Object? value) => [
         path: p['path'] as String,
         takenAt: _time(p['taken_at']),
         place: p['place'] as String?,
+        pages: (p['page_count'] as num?)?.toInt(),
+        thumb: p['thumb_path'] as String?,
       ),
 ];
 

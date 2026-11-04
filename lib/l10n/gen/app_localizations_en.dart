@@ -1442,6 +1442,155 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAttachPdf => 'PDF from your phone';
 
   @override
+  String get pdfSmaller => 'Make it smaller';
+
+  @override
+  String get pdfSmallerTitle => 'Make it smaller';
+
+  @override
+  String pdfSmallerMaking(int page, int total) {
+    return 'Making it smaller… page $page of $total';
+  }
+
+  @override
+  String pdfSmallerResult(String before, String after) {
+    return '$before → $after';
+  }
+
+  @override
+  String get pdfSmallerWarning =>
+      'Text can\'t be selected afterwards, and fine lines get softer.';
+
+  @override
+  String get pdfUseSmaller => 'Use smaller';
+
+  @override
+  String get pdfKeepOriginal => 'Keep original';
+
+  @override
+  String get pdfSmallerFailed => 'This PDF couldn\'t be made smaller.';
+
+  @override
+  String pdfStillTooLarge(String size, String max) {
+    return 'Still too large ($size MB). The most is $max MB.';
+  }
+
+  @override
+  String get fileExtractText => 'Extract text';
+
+  @override
+  String get fileTextTitle => 'Text';
+
+  @override
+  String get fileTextCopy => 'Copy text';
+
+  @override
+  String get fileTextCopied => 'Text copied';
+
+  @override
+  String get fileTextReading => 'Reading the text…';
+
+  @override
+  String get fileTextFailed => 'Couldn\'t read this file';
+
+  @override
+  String get fileTextEmpty => 'No text found in this file.';
+
+  @override
+  String get fileTextLimit =>
+      'You\'ve read 50 pages today. Try again tomorrow.';
+
+  @override
+  String get fileTextPartial => 'First 20 pages';
+
+  @override
+  String get fileTextTooLarge => 'Too large to read. Make it smaller first.';
+
+  @override
+  String get scanBar => 'Scan';
+
+  @override
+  String get scanADocument => 'Scan a document';
+
+  @override
+  String get scanADocumentNote => 'Straight and clean, in one PDF';
+
+  @override
+  String scanDefaultName(String day, String time) {
+    return 'Scan · $day $time';
+  }
+
+  @override
+  String get scanReviewTitle => 'Scanned document';
+
+  @override
+  String scanPages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n pages',
+      one: '1 page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanMorePages => 'Scan more pages';
+
+  @override
+  String get scanAddPage => 'Add a page';
+
+  @override
+  String get scanName => 'Name';
+
+  @override
+  String get scanAdd => 'Add';
+
+  @override
+  String get scanRemovePage => 'Remove this page';
+
+  @override
+  String get scanDiscardTitle => 'Discard this scan?';
+
+  @override
+  String get scanDiscardBody => 'The pages will be removed from the phone.';
+
+  @override
+  String get scanDiscard => 'Discard';
+
+  @override
+  String get scanKeep => 'Keep scanning';
+
+  @override
+  String get scanTooLarge => 'Too large: remove some pages';
+
+  @override
+  String get scanNoScanner =>
+      'This phone has no document scanner, so pages are plain photos.';
+
+  @override
+  String get scanPageUnreadable => 'A page couldn\'t be read. Scan it again.';
+
+  @override
+  String get scanMaking => 'Making the PDF…';
+
+  @override
+  String scannedPages(String pages) {
+    return 'Scanned · $pages';
+  }
+
+  @override
+  String get proofPhoto => 'Photo';
+
+  @override
+  String get proofScan => 'Scan';
+
+  @override
+  String proofScanned(String pages) {
+    return 'Scanned document · $pages';
+  }
+
+  @override
   String get chatAttachPdfHelp => 'It goes to the Space Library too.';
 
   @override

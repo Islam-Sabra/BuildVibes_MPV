@@ -1,6 +1,7 @@
 // F105: every way into a chat gives the same Back. From a Space thread,
 // Back goes to that Space's Chat tab, then where the person came from;
 // from a direct message, to Messages, then where they came from.
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/chat.dart';
@@ -276,7 +277,7 @@ void main() {
     await _tapKey(tester, 'preview-share');
     await _tapKey(tester, 'share-to-$_thread');
     // F77: the file waits in the message box.
-    expect(find.text('Level 3 plan.pdf'), findsOneWidget);
+    expect(find.text(fileTitle('Level 3 plan.pdf')), findsOneWidget);
     await _backToSpaceChat(tester);
     await _back(tester);
     expect(find.byType(SpaceScreen), findsNothing);

@@ -96,6 +96,18 @@ void main() {
       expect(File(kept).existsSync(), isFalse);
     });
 
+    // Review 103: Scan a document on the attach sheet.
+    testWidgets('Scan a document sends one PDF [$lang]', (tester) async {
+      final dm = FakeDmRepository()..pages['t-omar'] = _omar();
+      await _open(tester, lang, dm);
+      await _tap(tester, _key('chat-attach'));
+      await _tap(tester, find.text(l10n.scanADocument));
+      await _tap(tester, _key('scan-add'));
+      await _tap(tester, _key('chat-send'));
+      expect(dm.calls, contains('send t-omar null files 1'));
+      expect(dm.uploadTried.single, endsWith('.pdf'));
+    });
+
     testWidgets('a file refused: the sheet says why; Remove takes the '
         'message off and deletes its kept file [$lang]', (tester) async {
       const refused = FileRefused(UploadProblem.tooBig, bytes: 39000000);

@@ -41,11 +41,19 @@ import 'package:path_provider/path_provider.dart';
 // timing on a real phone (review 74 H3): see [photoLogPrefix].
 
 /// The longest side of a photo that leaves the phone; a smaller one is
-/// never made bigger.
-const photoMaxSide = 2560;
+/// never made bigger. Review 103 (founder, 4 Nov): one compressor
+/// everywhere a photo enters (Work, Chat, direct messages, the Library,
+/// the notebook, the profile), as Work did: 1600 px, JPEG 80. Text on a
+/// drawing or a label stays readable.
+const photoMaxSide = 1600;
 
 /// The JPEG quality a photo is written at.
-const photoQuality = 85;
+const photoQuality = 80;
+
+/// Review 103: an upright JPEG already no longer than [photoMaxSide] and
+/// no bigger than this keeps its picture as it is (drawing it again would
+/// only lose detail); its metadata still goes, but for the time taken.
+const photoKeepBytes = 500 * 1024;
 
 /// How long cleaning may take before the photo slots say "Preparing…"
 /// (review 74 H2).
@@ -236,6 +244,8 @@ Future<CleanedBytes> cleanPhotoBytes(Uint8List bytes) async {
     after: null,
   );
   if (_isJpeg(bytes)) {
+    final kept = await _keepSmallJpeg(bytes);
+    if (kept != null) return kept;
     final redrawn = await _redrawJpeg(bytes);
     if (redrawn != null) return redrawn;
     final stripped = _stripJpeg(bytes);
@@ -335,6 +345,79 @@ Future<CleanedBytes?> _redrawJpeg(Uint8List bytes) async {
     before: before,
     after: '${width}x$height',
   );
+}
+
+/// Review 103: an upright JPEG already small enough ([photoMaxSide],
+/// [photoKeepBytes]) as it is, without its metadata but for the time it
+/// was taken. Null when it must be drawn again: bigger, turned by its
+/// EXIF, or unreadable.
+Future<CleanedBytes?> _keepSmallJpeg(Uint8List bytes) async {
+  if (bytes.length > photoKeepBytes) return null;
+  final turn = _orientation(bytes);
+  if (turn != null && turn != 1) return null;
+  final int width;
+  final int height;
+  try {
+    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+    final descriptor = await ui.ImageDescriptor.encoded(buffer);
+    width = descriptor.width;
+    height = descriptor.height;
+    descriptor.dispose();
+    buffer.dispose();
+  } on Exception {
+    return null;
+  }
+  if (max(width, height) > photoMaxSide) return null;
+  final stripped = _stripJpeg(bytes);
+  if (stripped == null) return null;
+  final taken = _takenAt(bytes);
+  final size = '${width}x$height';
+  return (
+    result: PhotoCleaning.cleaned,
+    bytes: taken.isEmpty ? stripped : _withExif(stripped, _exifSegment(taken)),
+    step: 'kept',
+    before: size,
+    after: size,
+  );
+}
+
+/// The EXIF orientation of [b] (1 upright, 6 a quarter clockwise …), or
+/// null when it says none.
+int? _orientation(Uint8List b) {
+  var i = 2;
+  while (i + 4 <= b.length && b[i] == 0xFF) {
+    final marker = b[i + 1];
+    if (marker == 0xDA || marker == 0xD9) return null;
+    final length = (b[i + 2] << 8) | b[i + 3];
+    if (length < 2 || i + 2 + length > b.length) return null;
+    if (marker == 0xE1 && _ascii(b, i + 4, _exifHeader)) {
+      final base = i + 4 + _exifHeader.length;
+      final end = i + 2 + length;
+      if (base + 8 > end) return null;
+      final Endian order;
+      if (b[base] == 0x49 && b[base + 1] == 0x49) {
+        order = Endian.little;
+      } else if (b[base] == 0x4D && b[base + 1] == 0x4D) {
+        order = Endian.big;
+      } else {
+        return null;
+      }
+      final view = ByteData.sublistView(b, 0, end);
+      final ifd = base + view.getUint32(base + 4, order);
+      if (ifd + 2 > end) return null;
+      final n = view.getUint16(ifd, order);
+      for (var e = 0; e < n; e++) {
+        final at = ifd + 2 + e * 12;
+        if (at + 12 > end) return null;
+        if (view.getUint16(at, order) == 0x0112) {
+          return view.getUint16(at + 8, order);
+        }
+      }
+      return null;
+    }
+    i += 2 + length;
+  }
+  return null;
 }
 
 /// Step 2: [b] without APP1 to APP15 and comments, read marker by marker

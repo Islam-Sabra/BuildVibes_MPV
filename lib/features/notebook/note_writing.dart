@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/repositories/file_text_repository.dart' show FileTextKind;
+import '../library/file_text_section.dart';
+import '../scan/pdf_smaller.dart';
+import '../../data/models/library.dart' show PhoneFile;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
@@ -425,6 +431,11 @@ class NoteAdditions extends ConsumerWidget {
         NoteFileRow(
           key: Key('note-file-$i'),
           file: f,
+          index: i,
+          // Review 103: Make it smaller, on a PDF still on the phone.
+          onSmaller: writing && offersSmaller(f.local, f.mime, f.bytes)
+              ? () => unawaited(_noteSmaller(context, ref, onChange, i, f))
+              : null,
           removeLabel: l10n.notebookRemoveFile,
           onRemove: writing
               ? () => onChange(
@@ -432,6 +443,14 @@ class NoteAdditions extends ConsumerWidget {
                 )
               : null,
         ),
+      // The lead's check, D9: Extract text on a PDF already sent.
+      for (final f in draft.files)
+        if (f.path case final path? when f.mime == 'application/pdf')
+          FileTextSection(
+            key: Key('note-file-text-$path'),
+            kind: FileTextKind.note,
+            ref: path,
+          ),
       if (draft.dueAt != null || draft.remindAt != null)
         Wrap(
           key: const Key('note-chips'),
@@ -544,9 +563,15 @@ class NoteFileRow extends StatelessWidget {
     required this.file,
     this.onRemove,
     this.removeLabel,
+    this.index = 0,
+    this.onSmaller,
   });
 
   final NoteFile file;
+  final int index;
+
+  /// Review 103: Make it smaller.
+  final VoidCallback? onSmaller;
   final VoidCallback? onRemove;
   final String? removeLabel;
 
@@ -555,6 +580,11 @@ class NoteFileRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final size = fileSize(l10n, file.bytes);
+    final meta = [
+      if (file.scanned && file.pages != null)
+        l10n.scannedPages(l10n.scanPages(file.pages!)),
+      if (size.isNotEmpty) size,
+    ].join(' · ');
     return Row(
       spacing: BvNoteBlocksSpec.fileGap,
       children: [
@@ -565,27 +595,55 @@ class NoteFileRow extends StatelessWidget {
             color: BvColors.surfaceBrandSoft,
             borderRadius: BvNoteBlocksSpec.photoRadius,
           ),
-          child: const Icon(
-            BvIcons.document,
+          child: Icon(
+            file.scanned ? BvIcons.scan : BvIcons.document,
             size: BvNoteBlocksSpec.fileIcon,
             color: BvColors.iconAction,
           ),
         ),
         Flexible(
           child: Text(
-            file.name,
+            fileTitle(file.name),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textDirection: directionOf(file.name),
             style: type.labelSm.copyWith(color: BvColors.textPrimary),
           ),
         ),
-        if (size.isNotEmpty)
-          Text(
-            '· $size',
-            style: type.metadata.copyWith(color: BvColors.textSecondary),
+        // Review 103 SC4: "· Scanned · 3 pages · 2.3 MB", shortened with
+        // "…" before the name is.
+        if (meta.isNotEmpty)
+          Flexible(
+            child: Text(
+              '· $meta',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: type.metadata.copyWith(color: BvColors.textSecondary),
+            ),
           ),
         const Spacer(),
+        if (onSmaller != null)
+          BvTapTarget(
+            child: Semantics(
+              button: true,
+              label: l10n.pdfSmaller,
+              child: GestureDetector(
+                key: Key('note-file-smaller-$index'),
+                behavior: HitTestBehavior.opaque,
+                onTap: onSmaller,
+                // Words, not a second small icon beside ✕.
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: BvSpace.s8,
+                  ),
+                  child: Text(
+                    l10n.pdfSmaller,
+                    style: type.labelSm.copyWith(color: BvColors.textAction),
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (onRemove != null)
           BvTapTarget(
             child: Semantics(
@@ -707,4 +765,38 @@ class NoteChip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Review 103: a note's PDF made smaller on the phone; the smaller copy in
+/// its place when it is used.
+Future<void> _noteSmaller(
+  BuildContext context,
+  WidgetRef ref,
+  void Function(NoteDraft Function(NoteDraft d) change) onChange,
+  int i,
+  NoteFile f,
+) async {
+  final smaller = await makeSmaller(
+    context,
+    ref,
+    PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+  );
+  if (smaller == null) return;
+  onChange(
+    (d) => d.copyWith(
+      files: [
+        for (final (k, file) in d.files.indexed)
+          k == i
+              ? NoteFile(
+                  local: smaller.local,
+                  name: file.name,
+                  mime: file.mime,
+                  bytes: smaller.bytes,
+                  scanned: file.scanned,
+                  pages: file.pages,
+                )
+              : file,
+      ],
+    ),
+  );
 }

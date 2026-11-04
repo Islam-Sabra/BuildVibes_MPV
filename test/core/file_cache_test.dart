@@ -123,7 +123,11 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      const file = (path: 's/library/f2/B.pdf', mime: 'application/pdf');
+      const file = (
+        path: 's/library/f2/B.pdf',
+        mime: 'application/pdf',
+        thumb: null,
+      );
       final first = await container.read(filePreviewProvider(file).future);
       expect(first, isA<ImageProvider>());
       expect(drawn, hasLength(1));

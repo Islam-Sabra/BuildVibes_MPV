@@ -6,6 +6,7 @@
 |---|---|---|
 | `terms-draft-en.md` | Terms of use | Draft, English |
 | `privacy-draft-en.md` | Privacy policy | Draft, English |
+| `privacy-draft-ar.md` | Privacy policy, Arabic | Started (review 103, D22): the approved Arabic lines so far; the full translation follows the lawyer's English |
 
 ## How they go live
 1. The founder takes both to a lawyer in Kuwait. The lawyer corrects them and answers the questions marked **[Lawyer]**.

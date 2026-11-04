@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/data/repositories/file_text_repository.dart';
+import 'package:buildvibes/features/scan/pdf_smaller.dart';
+import 'package:buildvibes/features/scan/scan.dart';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/config/feature_switches.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
@@ -73,6 +76,7 @@ import 'check_in_fakes.dart';
 import 'need_you_fakes.dart';
 import 'location_fakes.dart';
 import 'daybook_fakes.dart';
+import 'scan_fakes.dart';
 import 'dm_fakes.dart';
 import 'daybook_samples.dart';
 import 'fakes.dart';
@@ -325,6 +329,11 @@ Future<TestApp> pumpApp(
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
+  DocumentScanner? scanner,
+  ScanPdfBuilder? scanBuilder,
+  FakePdfShrinker? shrinker,
+  Future<String> Function()? scanDir,
+  FileTextRepository? fileTexts,
   bool Function(String path)? localFileThere,
   FileCache? fileCache,
 
@@ -493,6 +502,19 @@ Future<TestApp> pumpApp(
                 download: fakeLibrary.download,
               ),
         ),
+        // Review 103: the phone's scanner, three pages; scans made at once.
+        documentScannerProvider.overrideWithValue(
+          scanner ?? FakeDocumentScanner(pages: List.filled(3, testPhotoPath)),
+        ),
+        scanDirProvider.overrideWithValue(scanDir ?? testScanDir),
+        // Review 103: no text read unless a test says so.
+        fileTextRepositoryProvider.overrideWithValue(
+          fileTexts ?? const NoFileTexts(),
+        ),
+        pdfShrinkerProvider.overrideWithValue(
+          (shrinker ?? FakePdfShrinker()).call,
+        ),
+        scanPdfBuilderProvider.overrideWithValue(scanBuilder ?? buildScanPdf),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async => (
             file:

@@ -72,6 +72,9 @@ String libraryLine(
   required DateTime now,
 }) => joinMeta([
   ?f.revLabel,
+  // Review 103: "Scanned · 3 pages".
+  if (f.scanned && f.pageCount != null)
+    l10n.scannedPages(l10n.scanPages(f.pageCount!)),
   if (older > 0) l10n.libraryOlderVersions(older),
   libraryDay(l10n, locale, f.createdAt.toLocal(), now),
 ]);
@@ -318,7 +321,7 @@ class LibraryFileRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvSpace.s2,
                     children: [
-                      BvNameText(file.name, style: type.bodyMd),
+                      BvNameText(fileTitle(file.name), style: type.bodyMd),
                       Text(
                         line,
                         maxLines: 1,
@@ -370,7 +373,13 @@ class LibraryThumb extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final image = ref
-        .watch(filePreviewProvider((path: file.path, mime: file.mime)))
+        .watch(
+          filePreviewProvider((
+            path: file.path,
+            mime: file.mime,
+            thumb: file.thumbPath,
+          )),
+        )
         .value;
     Widget sheet({ImageProvider? image}) => Container(
       width: BvLibrarySpec.thumbWidth,

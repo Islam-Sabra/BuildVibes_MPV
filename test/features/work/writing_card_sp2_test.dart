@@ -183,8 +183,9 @@ void main() {
         ]);
       });
 
-      testWidgets('the bar (review 113 CV3): + · camera · mic, then Send; '
-          'no #', (tester) async {
+      // Review 103 SC7 (founder, 4 Nov): Scan right after the camera.
+      testWidgets('the bar (review 113 CV3, 103 SC7): + · camera · Scan · '
+          'mic, then Send; no #', (tester) async {
         await _write(tester, lang);
         final bar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
@@ -192,6 +193,7 @@ void main() {
         expect(bar.tools!.map((t) => t.key), const [
           Key('writing-add'),
           Key('writing-camera'),
+          Key('writing-scan'),
           Key('writing-mic'),
         ]);
         expect(bar.tools!.last.holds, isTrue, reason: 'hold to record');

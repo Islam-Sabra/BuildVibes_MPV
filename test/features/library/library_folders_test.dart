@@ -321,6 +321,13 @@ void main() {
           final app = await openLibrary(tester, lang, files: []);
           if (folder != null) await _tap(tester, _key('folder-$folder'));
           await _tap(tester, _key('library-add-file'));
+          // Review 103: File from the phone, or Scan.
+          await _tap(tester, _key('file-from-phone'));
+          // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+          if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+            await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+            await tester.pumpAndSettle();
+          }
           // Review 115 (2): at the top level, who sees it; the whole Space.
           if (folder == null) await _tap(tester, _key('library-who-add'));
           expect(_key('composer'), findsNothing);
@@ -356,6 +363,13 @@ void main() {
           );
           if (folder != null) await _tap(tester, _key('folder-$folder'));
           await _tap(tester, _key('library-add-file'));
+          // Review 103: File from the phone, or Scan.
+          await _tap(tester, _key('file-from-phone'));
+          // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+          if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+            await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+            await tester.pumpAndSettle();
+          }
           await _tap(tester, _key('replaces-version'));
           await _tap(tester, _key('version-old'));
           await _tap(tester, _key('replaces-done'));
@@ -395,6 +409,13 @@ void main() {
         );
         await _tap(tester, _key('folder-$folder'));
         await _tap(tester, _key('library-add-file'));
+        // Review 103: File from the phone, or Scan.
+        await _tap(tester, _key('file-from-phone'));
+        // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+        if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+          await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+          await tester.pumpAndSettle();
+        }
         await _tap(tester, _key('replaces-version'));
         await _tap(tester, _key('version-old'));
         await _tap(tester, _key('replaces-done'));
@@ -437,6 +458,13 @@ void main() {
       );
       await _tap(tester, _key('folder-f-drawings'));
       await _tap(tester, _key('library-add-file'));
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, _key('file-from-phone'));
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       await _tap(tester, _key('replaces-version'));
       expect(_key('version-here'), findsOneWidget);
       expect(_key('version-there'), findsNothing);

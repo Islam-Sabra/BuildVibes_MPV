@@ -19,6 +19,9 @@ import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../scan/pdf_smaller.dart' show makeSmaller;
+import '../scan/scan.dart' show scanDirProvider;
+import '../spaces/space_errors.dart' show showSpaceError;
 import '../work/could_not_send.dart';
 import '../work/daybook_attach.dart';
 import '../work/daybook_draft.dart';
@@ -72,6 +75,8 @@ Future<void> addLibraryFileHere(
     source: DaybookFileSource.phone,
     folderId: folderId,
     sameFolder: true,
+    // Review 103: Add a file offers Scan a document.
+    scan: replaces == null,
   );
   final local = file?.local;
   if (file == null || local == null || !context.mounted) return;
@@ -116,11 +121,77 @@ Future<void> addLibraryFileHere(
         revLabel: file.revLabel,
         supersedesId: file.supersedesId,
         folderId: target,
+        scanned: file.scanned,
+        pages: file.pages,
       ),
     ],
     postId: to == null ? null : newUuid(),
     teamId: to?.teamId,
     newFolder: make,
+  );
+  unawaited(ref.read(workOutboxProvider.notifier).send(item));
+}
+
+/// The lead's check, D7: a Library PDF too large to read, made smaller on
+/// the phone (Use smaller · Keep original) and sent as its new version in
+/// its own folder, through the outbox as Add a new version is.
+Future<void> addSmallerVersion(
+  BuildContext context,
+  WidgetRef ref, {
+  required LibraryFile file,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final String local;
+  try {
+    final bytes = await ref.read(libraryRepositoryProvider).download(file.path);
+    local = '${await ref.read(scanDirProvider)()}/${newUuid()}.pdf';
+    await File(local).writeAsBytes(bytes, flush: true);
+  } on SpaceException catch (e) {
+    if (context.mounted) showSpaceError(context, e);
+    return;
+  }
+  final bytes = file.bytes ?? await File(local).length();
+  if (!context.mounted) return unawaited(_deleteKept(local));
+  final made = await makeSmaller(
+    context,
+    ref,
+    PhoneFile(local: local, name: file.name, mime: file.mime, bytes: bytes),
+  );
+  // The downloaded copy is never needed again (D19).
+  unawaited(_deleteKept(local));
+  if (made == null || !context.mounted) return;
+  final folders = await _folders(ref, file.spaceId);
+  final into = folders.where((f) => f.id == file.folderId).firstOrNull;
+  final to = newVersionAudience(into);
+  final id = newUuid();
+  final item = PendingItem(
+    id: id,
+    spaceId: file.spaceId,
+    kind: PendingKind.libraryFile,
+    title: to == null
+        ? ''
+        : l10n.libraryNewVersionPost(
+            file.name,
+            l10n.libraryVersionNo((file.versionNo ?? 1) + 1),
+          ),
+    ownerId: '',
+    ownerName: '',
+    madeAt: ref.read(clockProvider)(),
+    files: [
+      DraftFile(
+        libraryId: id,
+        name: file.name,
+        mime: file.mime,
+        bytes: made.bytes,
+        local: made.local,
+        supersedesId: file.id,
+        folderId: file.folderId,
+        scanned: file.scanned,
+        pages: file.pageCount,
+      ),
+    ],
+    postId: to == null ? null : newUuid(),
+    teamId: to?.teamId,
   );
   unawaited(ref.read(workOutboxProvider.notifier).send(item));
 }

@@ -197,6 +197,21 @@ void main() {
       expect(chat.posted.single.single.name, 'Level 3 plan.pdf');
     });
 
+    // Review 103: Scan a document on the attach sheet, a PDF card.
+    testWidgets('chat: Scan a document sends one PDF [$lang]', (tester) async {
+      final chat = _chat();
+      await _open(tester, lang, '/spaces/$_space/chat/$_everyone', chat: chat);
+      await _tap(tester, 'chat-attach');
+      expect(find.text(l10n.scanADocument), findsOneWidget);
+      await _tap(tester, 'chat-attach-scan');
+      await tester.enterText(find.byKey(const Key('scan-name')), 'Permit 22');
+      await _tap(tester, 'scan-add');
+      await _tap(tester, 'chat-send');
+      expect(chat.uploads.single, endsWith('.pdf'));
+      expect(chat.posted.single.single.name, 'Permit 22.pdf');
+      expect(chat.posted.single.single.mime, 'application/pdf');
+    });
+
     testWidgets('chat: a Viewer chats in text only [$lang]', (tester) async {
       await _open(
         tester,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/repositories/file_text_repository.dart' show FileTextKind;
+import 'file_text_section.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -31,6 +33,7 @@ import '../work/daybook_words.dart';
 import '../work/work_outbox.dart'
     show DaybookRefusal, RefusalWhy, RefusedAction;
 import 'library_actions.dart';
+import 'library_add.dart' show addSmallerVersion;
 import 'library_parts.dart';
 
 enum _FileMenu { share, download }
@@ -175,7 +178,7 @@ class LibraryFileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: BvNameText(f.name),
+        title: BvNameText(fileTitle(f.name)),
         actions: [
           IconButton(
             key: const Key('file-more'),
@@ -199,6 +202,18 @@ class LibraryFileScreen extends ConsumerWidget {
             file: f,
             onTap: () => context.push(AppRoutes.libraryFile(spaceId, f.id)),
           ),
+          // Review 103, OCR: Extract text, for a PDF or a photo.
+          if (f.isPdf || f.mime.startsWith('image/'))
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
+              child: FileTextSection(
+                kind: FileTextKind.library,
+                ref: f.id,
+                onMakeSmaller: f.isPdf
+                    ? () => addSmallerVersion(context, ref, file: f)
+                    : null,
+              ),
+            ),
           _Received(
             fileId: fileId,
             mineToMark: f.uploadedById == null || f.uploadedById != me,
@@ -299,7 +314,13 @@ class _Preview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final image = ref
-        .watch(filePreviewProvider((path: file.path, mime: file.mime)))
+        .watch(
+          filePreviewProvider((
+            path: file.path,
+            mime: file.mime,
+            thumb: file.thumbPath,
+          )),
+        )
         .value;
     return Semantics(
       button: true,

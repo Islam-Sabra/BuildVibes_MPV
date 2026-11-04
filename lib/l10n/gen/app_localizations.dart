@@ -2558,6 +2558,258 @@ abstract class AppLocalizations {
   /// **'PDF from your phone'**
   String get chatAttachPdf;
 
+  /// Review 103: offered on a PDF of 1 MB or more; it compresses on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it smaller'**
+  String get pdfSmaller;
+
+  /// Review 103: the sheet with the result.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it smaller'**
+  String get pdfSmallerTitle;
+
+  /// Review 103 (D14): while the phone compresses the PDF, page by page.
+  ///
+  /// In en, this message translates to:
+  /// **'Making it smaller… page {page} of {total}'**
+  String pdfSmallerMaking(int page, int total);
+
+  /// Review 103: the size before and after.
+  ///
+  /// In en, this message translates to:
+  /// **'{before} → {after}'**
+  String pdfSmallerResult(String before, String after);
+
+  /// Review 103: said before Use smaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Text can\'t be selected afterwards, and fine lines get softer.'**
+  String get pdfSmallerWarning;
+
+  /// Review 103: the smaller copy replaces the file being sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Use smaller'**
+  String get pdfUseSmaller;
+
+  /// Review 103: the file goes as it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep original'**
+  String get pdfKeepOriginal;
+
+  /// Review 103: the phone couldn't read it.
+  ///
+  /// In en, this message translates to:
+  /// **'This PDF couldn\'t be made smaller.'**
+  String get pdfSmallerFailed;
+
+  /// Review 103: after compressing, still over the limit; only Link folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Still too large ({size} MB). The most is {max} MB.'**
+  String pdfStillTooLarge(String size, String max);
+
+  /// Review 103 OCR: reads the file's text (Google Cloud Vision), only when tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Extract text'**
+  String get fileExtractText;
+
+  /// Review 103 OCR: the section with the text read from the file.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get fileTextTitle;
+
+  /// Review 103 OCR.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get fileTextCopy;
+
+  /// Review 103 OCR.
+  ///
+  /// In en, this message translates to:
+  /// **'Text copied'**
+  String get fileTextCopied;
+
+  /// Review 103 OCR: while the file is read.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the text…'**
+  String get fileTextReading;
+
+  /// Review 103 OCR: any failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read this file'**
+  String get fileTextFailed;
+
+  /// Review 103 OCR: read, but no words.
+  ///
+  /// In en, this message translates to:
+  /// **'No text found in this file.'**
+  String get fileTextEmpty;
+
+  /// Review 103 OCR: the daily limit.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve read 50 pages today. Try again tomorrow.'**
+  String get fileTextLimit;
+
+  /// Review 103 (D3): the file has more than 20 pages; only the first 20 were read.
+  ///
+  /// In en, this message translates to:
+  /// **'First 20 pages'**
+  String get fileTextPartial;
+
+  /// Review 103 (D7): over 10 MB the file isn't read; Make it smaller beside it.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large to read. Make it smaller first.'**
+  String get fileTextTooLarge;
+
+  /// Review 103 SC7: the Scan button on the writing bar, after the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get scanBar;
+
+  /// Review 103: the row that opens the phone's document scanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a document'**
+  String get scanADocument;
+
+  /// Review 103: under Scan a document on an attach sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight and clean, in one PDF'**
+  String get scanADocumentNote;
+
+  /// Review 103: a scan's name until it is changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan · {day} {time}'**
+  String scanDefaultName(String day, String time);
+
+  /// Review 103 SC3: the sheet after scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned document'**
+  String get scanReviewTitle;
+
+  /// Review 103: how many pages a scan has.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 page} other{{n} pages}}'**
+  String scanPages(int n);
+
+  /// Review 103 SC3: reopens the scanner to add pages.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan more pages'**
+  String get scanMorePages;
+
+  /// Review 103: on a phone without a document scanner, one more photo as a page.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a page'**
+  String get scanAddPage;
+
+  /// Review 103 SC3: the scan's name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get scanName;
+
+  /// Review 103 SC3: adds the scan where it was started.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get scanAdd;
+
+  /// Review 103: ✕ on a page in the strip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this page'**
+  String get scanRemovePage;
+
+  /// Review 103: Cancel on the review sheet asks once.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this scan?'**
+  String get scanDiscardTitle;
+
+  /// Review 103: what Discard does.
+  ///
+  /// In en, this message translates to:
+  /// **'The pages will be removed from the phone.'**
+  String get scanDiscardBody;
+
+  /// Review 103: confirms throwing the scan away.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get scanDiscard;
+
+  /// Review 103: goes back to the review sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep scanning'**
+  String get scanKeep;
+
+  /// Review 103: the scan is over the place's file limit; Add is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large: remove some pages'**
+  String get scanTooLarge;
+
+  /// Review 103: a phone without Google Play services.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has no document scanner, so pages are plain photos.'**
+  String get scanNoScanner;
+
+  /// Review 103 (D20): the phone couldn't read a page's image; nothing is added.
+  ///
+  /// In en, this message translates to:
+  /// **'A page couldn\'t be read. Scan it again.'**
+  String get scanPageUnreadable;
+
+  /// Review 103: while the pages become one PDF on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the PDF…'**
+  String get scanMaking;
+
+  /// Review 103 SC4: a scanned file's line.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned · {pages}'**
+  String scannedPages(String pages);
+
+  /// Review 103 SC6: Sign as done takes a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get proofPhoto;
+
+  /// Review 103 SC6: Sign as done takes a scan (a signed inspection request).
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get proofScan;
+
+  /// Review 103: the scan waiting to be sent as proof.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned document · {pages}'**
+  String proofScanned(String pages);
+
   /// Attach sheet helper.
   ///
   /// In en, this message translates to:

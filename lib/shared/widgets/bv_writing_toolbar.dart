@@ -211,12 +211,28 @@ class BvWritingToolbar extends StatelessWidget {
                   for (final t in tools!) _tool(t),
                   const Spacer(),
                 ] else ...[
-                  if (categories case final c?)
-                    _Categories(tool: c, open: categoriesOpen),
-                  for (final t in tools!)
-                    if (!t.holds) _tool(t),
-                  for (final t in beside) _tool(t),
-                  const Spacer(),
+                  // Review 103: with ⇥ ⇤ and Scan the notebook's tools
+                  // can be wider than the phone; then they scroll
+                  // sideways, each still a thumb wide.
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: SingleChildScrollView(
+                        key: const Key('writing-tools-scroll'),
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (categories case final c?)
+                              _Categories(tool: c, open: categoriesOpen),
+                            for (final t in tools!)
+                              if (!t.holds) _tool(t),
+                            for (final t in beside) _tool(t),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   for (final t in tools!)
                     if (t.holds) _tool(t),
                 ],

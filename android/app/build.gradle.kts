@@ -97,4 +97,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Review 103: whether Google Play services (the document scanner) are
+    // on the phone. The same library the scanner and Firebase already use.
+    implementation("com.google.android.gms:play-services-base:18.5.0")
 }

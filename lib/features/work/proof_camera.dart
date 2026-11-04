@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/upload_rules.dart' show spaceFilesMaxBytes;
+import '../../shared/widgets/bv_segmented.dart';
+import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_loop_specs.dart';
@@ -78,6 +81,9 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
   /// proof opens again this way.
   late var _noPhoto =
       widget.photos.isEmpty && (widget.note ?? '').trim().isNotEmpty;
+
+  /// Review 103 SC6: Photo or Scan, one choice above the shutter.
+  late var _scanMode = widget.photos.any((p) => p.isScan);
   var _switching = false;
   var _sending = false;
 
@@ -134,6 +140,29 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         ),
       ),
     );
+  }
+
+  /// Review 103 SC6: a scanned document (a signed inspection request) as
+  /// the proof, one PDF in place of photos.
+  Future<void> _addScan() async {
+    final doc = await scanDocument(context, ref, maxBytes: spaceFilesMaxBytes);
+    if (doc == null || !mounted) return;
+    final old = _new.toList();
+    setState(() {
+      _photos
+        ..clear()
+        ..add(
+          PendingPhoto(
+            local: doc.local,
+            takenAt: ref.read(clockProvider)(),
+            place: _place,
+            pages: doc.pages,
+          ),
+        );
+    });
+    for (final p in old) {
+      unawaited(DaybookDraft.deleteKept(p.local));
+    }
   }
 
   /// The photos taken here, not the refused sign-off's.
@@ -205,6 +234,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
             takenAt: p.takenAt,
             place: _place,
             remote: moved ? null : p.remote,
+            pages: p.pages,
           ),
       ],
       madeAt: refused?.madeAt ?? ref.read(clockProvider)(),
@@ -232,6 +262,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     final inverse = BvColors.textInverse;
     final choices = _choices;
     final photo = _photos.isNotEmpty;
+    final scan = _photos.where((p) => p.isScan).firstOrNull;
     final noteField = Container(
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: BvProofCameraSpec.notePaddingHorizontal,
@@ -300,7 +331,29 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                   builder: (context, constraints) => Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (photo) ...[
+                      // Review 103 SC6: the scan waiting to go.
+                      if (scan != null)
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: BvSpace.s12,
+                            children: [
+                              Icon(
+                                BvIcons.scan,
+                                size: BvProofCameraSpec.shutterIcon,
+                                color: inverse,
+                              ),
+                              Text(
+                                l10n.proofScanned(
+                                  l10n.scanPages(scan.pages ?? 1),
+                                ),
+                                key: const Key('proof-scanned'),
+                                style: type.labelMd.copyWith(color: inverse),
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (photo) ...[
                         Image(
                           image: ref.watch(
                             localPhotoProvider(_photos.last.local),
@@ -329,11 +382,48 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                           inverse: true,
                         )
                       else
-                        // Camera only (founder, review 47), one tap away.
+                        // Camera only (founder, review 47), one tap away;
+                        // review 103 SC6: or Scan, chosen above it.
                         Center(
-                          child: _Shutter(
-                            label: l10n.daybookCamera,
-                            onTap: _addPhoto,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: BvProofCameraSpec.controlsGap,
+                            children: [
+                              SizedBox(
+                                width: BvProofCameraSpec.modeWidth,
+                                child: BvSegmented<bool>(
+                                  key: const Key('proof-mode'),
+                                  value: _scanMode,
+                                  segments: [
+                                    BvSegment(
+                                      key: const Key('proof-mode-photo'),
+                                      value: false,
+                                      label: l10n.proofPhoto,
+                                    ),
+                                    BvSegment(
+                                      key: const Key('proof-mode-scan'),
+                                      value: true,
+                                      label: l10n.proofScan,
+                                    ),
+                                  ],
+                                  onChanged: (v) =>
+                                      setState(() => _scanMode = v),
+                                ),
+                              ),
+                              if (_scanMode)
+                                _Shutter(
+                                  key: const Key('proof-scan'),
+                                  icon: BvIcons.scan,
+                                  label: l10n.scanADocument,
+                                  onTap: _addScan,
+                                )
+                              else
+                                _Shutter(
+                                  key: const Key('proof-take-photo'),
+                                  label: l10n.daybookCamera,
+                                  onTap: _addPhoto,
+                                ),
+                            ],
                           ),
                         ),
                       if (_switching)
@@ -416,7 +506,11 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: BvProofCameraSpec.controlsGap,
                     children: [
-                      if (photo) ...[
+                      if (scan != null) ...[
+                        noteField,
+                        Center(child: send),
+                        sendLabel,
+                      ] else if (photo) ...[
                         noteField,
                         Row(
                           children: [
@@ -461,10 +555,18 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
 /// Before the first photo: the camera in the middle, a white ring with
 /// "Take a photo" under it (F6).
 class _Shutter extends StatelessWidget {
-  const _Shutter({required this.label, required this.onTap});
+  const _Shutter({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.icon = BvIcons.camera,
+  });
 
   final String label;
   final VoidCallback onTap;
+
+  /// The camera, or Scan (review 103 SC6).
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -472,7 +574,6 @@ class _Shutter extends StatelessWidget {
     label: label,
     excludeSemantics: true,
     child: GestureDetector(
-      key: const Key('proof-take-photo'),
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
@@ -489,8 +590,8 @@ class _Shutter extends StatelessWidget {
                 width: BvProofCameraSpec.shutterStroke,
               ),
             ),
-            child: const Icon(
-              BvIcons.camera,
+            child: Icon(
+              icon,
               size: BvProofCameraSpec.shutterIcon,
               color: BvColors.iconInverse,
             ),

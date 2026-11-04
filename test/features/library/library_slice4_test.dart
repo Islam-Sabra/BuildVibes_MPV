@@ -205,6 +205,13 @@ void main() {
       final app = await _open(tester, lang, '/spaces/$_space');
       await _tap(tester, 'space-library');
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
+      // A 4.8 MB PDF: review 103 offers it smaller; it goes as it is.
+      if (find.byKey(const Key('pdf-offer')).evaluate().isNotEmpty) {
+        await tester.tap(find.byKey(const Key('pdf-offer-keep')));
+        await tester.pumpAndSettle();
+      }
       // The phone's file at once; no composer, no post.
       expect(find.byKey(const Key('composer')), findsNothing);
       // A Library file is in use: is it a new version of one?
