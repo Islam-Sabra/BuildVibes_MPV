@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/repositories/file_text_repository.dart' show FileTextKind;
+import '../library/file_text_section.dart';
 import '../scan/pdf_smaller.dart';
 import '../../data/models/library.dart' show PhoneFile;
 import '../../core/design/bv_icons.dart';
@@ -441,6 +443,14 @@ class NoteAdditions extends ConsumerWidget {
                 )
               : null,
         ),
+      // The lead's check, D9: Extract text on a PDF already sent.
+      for (final f in draft.files)
+        if (f.path case final path? when f.mime == 'application/pdf')
+          FileTextSection(
+            key: Key('note-file-text-$path'),
+            kind: FileTextKind.note,
+            ref: path,
+          ),
       if (draft.dueAt != null || draft.remindAt != null)
         Wrap(
           key: const Key('note-chips'),

@@ -4,6 +4,7 @@
 // failure says "Couldn't read this file"; 50 pages a day. The extract-text
 // function is faked here. In English and Arabic.
 import 'package:buildvibes/data/models/library.dart';
+import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/repositories/file_text_repository.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'package:go_router/go_router.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/library_fakes.dart';
+import '../../helpers/notebook_fakes.dart';
+import '../../helpers/notebook_samples.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -187,6 +190,38 @@ void main() {
         app.library.calls.where((c) => c.contains('supersedes:f-scan')),
         hasLength(1),
       );
+    });
+
+    // D9: a PDF on a note reads too, as the note's file.
+    testWidgets('D9: Extract text on a notebook PDF [$lang]', (tester) async {
+      final texts = _FakeTexts();
+      await pumpApp(
+        tester,
+        language: lang,
+        now: NotebookSamples.now,
+        notebook: FakeNotebookRepository(
+          notes: [
+            Note(
+              id: 'note-pdf',
+              kind: NoteKind.text,
+              body: 'Rebar delivery',
+              files: const [
+                NoteFile(path: 'user-1/note-pdf/a.pdf', name: 'Note.pdf'),
+              ],
+              createdAt: DateTime(2026, 10, 15, 9),
+            ),
+          ],
+        ),
+        fileTexts: texts,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/notebook/pages/page-my-notes');
+      await tester.pumpAndSettle();
+      await _tap(tester, find.text('Rebar delivery'));
+      await _tap(tester, _key('file-extract-text'));
+      expect(texts.asked, ['note user-1/note-pdf/a.pdf']);
+      expect(find.text('Rebar 16 mm, 4 tonnes'), findsOneWidget);
     });
   }
 }
