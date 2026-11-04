@@ -210,3 +210,24 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
   4. The founder creates the Google Cloud key (the lead guides him), and it's set as the `GOOGLE_VISION_KEY` secret.
   5. Build and install.
   6. Phone check: scan a real delivery note → Extract text in Arabic and English.
+
+## D25. Extract text hidden until the Google trial starts (founder, 4 Nov)
+- **The founder's decision:** no paid plan now. Google Vision needs a billing account even for its free 1,000 pages. A free-trial account (card only for checking, 90 days, $300 credit, **no charge unless he upgrades himself**) starts around **mid-January 2027**, so it covers the whole pilot from 1 February.
+- **Until then the button is hidden, from the server, with no new build needed to turn it on:**
+  - **Server:**
+    - a new `app_settings` row `ocr_enabled` = `false`;
+    - a function `ocr_available()` (security definer, `search_path=''`, stable, granted to `authenticated` only) that returns the flag;
+    - `extract-text` answers 503 `not_set_up` while the flag is false, even if the key exists.
+    - pgTAP tests: anon can't call it; it's false by default; it's true after the row is set.
+  - **App:**
+    - `ocrAvailableProvider` reads `ocr_available()` once per app start, and on error counts it as false;
+    - while it's false, `FileTextSection` shows **nothing**: no button, no empty space. A text already kept still shows with Copy;
+    - the notebook PDF and the Library file page both follow it.
+    - Widget tests: hidden when false or on error, shown when true.
+  - **Unchanged:** Scan, the compressor, Make it smaller, `ocr_usage`, the function and its 13 deno tests.
+- **To turn it on in January (PC, with the founder's yes):**
+  1. the founder starts the Google trial and creates the key restricted to Cloud Vision;
+  2. he sets `GOOGLE_VISION_KEY` himself;
+  3. one SQL line: `update public.app_settings set value = 'true' where key = 'ocr_enabled';`
+  4. phone check.
+- **Plan reminder:** turn on the Google trial and OCR around **15 January 2027**.
