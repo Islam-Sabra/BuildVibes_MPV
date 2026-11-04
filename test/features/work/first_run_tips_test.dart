@@ -5,6 +5,7 @@
 // once. In English and Arabic.
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/first_run_tip.dart';
+import 'package:buildvibes/data/models/poll.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ Future<TestApp> _open(
   List<DaybookCard> posts = const [],
   Set<FirstRunTip> seen = const {},
   SpaceDetail? detail,
+  FakeDaybookRepository? daybook,
 }) async {
   final s = DaybookSamples(lang);
   final app = await pumpApp(
@@ -44,7 +46,8 @@ Future<TestApp> _open(
       ..details[DaybookSamples.space] =
           detail ?? s.detail(pass: SpacePass.crew, admin: false)
       ..spacePeople[DaybookSamples.space] = s.people(),
-    daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = posts,
+    daybook: (daybook ?? FakeDaybookRepository())
+      ..posts[DaybookSamples.space] = posts,
     tips: FakeTipsRepository(seen: Set.of(seen)),
     now: DaybookSamples.thursday,
   );
@@ -189,5 +192,43 @@ void main() {
         _spotlightOn(tester, find.text(l10n.daybookSignAsDone));
       },
     );
+
+    // The lead, 4 Nov (tipsfix): a tip never blocks the tap under it. One
+    // tap on a poll option, with a tip showing, votes; the tip goes as seen.
+    testWidgets('with a tip showing, one tap on a poll option votes [$lang]', (
+      tester,
+    ) async {
+      final daybook = FakeDaybookRepository();
+      final poll = s.card(
+        DaybookPost(
+          id: 'post-poll',
+          kind: DaybookPost.pollKind,
+          createdAt: DateTime(2026, 10, 15, 8),
+          title: s.t('Which day?', 'أي يوم؟'),
+          authorId: DaybookSamples.islam,
+          authorName: s.islamName,
+          poll: DaybookPoll(
+            options: [
+              PollOption(id: 'opt-thu', label: s.t('Thursday', 'الخميس')),
+              PollOption(
+                id: 'opt-sat',
+                label: s.t('Saturday', 'السبت'),
+                sort: 1,
+              ),
+            ],
+          ),
+        ),
+      );
+      final app = await _open(tester, lang, posts: [poll], daybook: daybook);
+      expect(_key('tip-card'), findsOneWidget, reason: 'a tip is showing');
+      await tester.tap(_key('poll-option-opt-sat'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(daybook.calls, contains('vote post-poll opt-sat'));
+      expect(
+        app.tips.marked,
+        contains(FirstRunTip.camera),
+        reason: 'the tip goes, as seen',
+      );
+    });
   }
 }

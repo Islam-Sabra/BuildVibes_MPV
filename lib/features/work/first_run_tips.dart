@@ -22,6 +22,8 @@ final tipsSeenProvider = FutureProvider<Set<FirstRunTip>>((ref) async {
 /// a [FirstRunTip] as id): the camera, a card to hold, and Sign as done the
 /// first time an item is given to me. A tip whose control isn't on screen
 /// waits. Next keeps it as seen and moves on; Skip tips keeps all three.
+/// A touch anywhere else reaches what is under it and closes the tip, as
+/// seen.
 /// Kept per account on the server, so each shows once on every phone.
 /// Only [tips], the ones this person will see, show; they are counted out
 /// of those ("Tip 1 of 2", the lead's check Q4).
@@ -125,6 +127,9 @@ class _FirstRunTipsState extends ConsumerState<FirstRunTips> {
             nextLabel: l10n.obTipNext,
             onSkip: () => _seen(FirstRunTip.values),
             onNext: () => _seen([tip]),
+            // The lead, 4 Nov: a tip never blocks the tap under it; that
+            // tap goes through and the tip goes, as seen.
+            onTouchOutside: () => _seen([tip]),
           );
         },
         child: widget.child,

@@ -137,6 +137,7 @@ class BvTipLayer extends StatelessWidget {
     required this.nextLabel,
     required this.onSkip,
     required this.onNext,
+    this.onTouchOutside,
   });
 
   /// The control, in global coordinates.
@@ -149,6 +150,11 @@ class BvTipLayer extends StatelessWidget {
   final String nextLabel;
   final VoidCallback onSkip;
   final VoidCallback onNext;
+
+  /// A touch anywhere but the tip's card (the lead, 4 Nov): the dimmed
+  /// screen never blocks it, so the same tap still reaches what is under
+  /// it; this only hears that it happened.
+  final VoidCallback? onTouchOutside;
 
   @override
   Widget build(BuildContext context) {
@@ -166,11 +172,14 @@ class BvTipLayer extends StatelessWidget {
     );
     return Stack(
       children: [
+        // Translucent: it hears the touch and lets it through.
         Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {},
-            child: CustomPaint(painter: _Spotlight(hole)),
+          child: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) => onTouchOutside?.call(),
+            child: IgnorePointer(
+              child: CustomPaint(painter: _Spotlight(hole)),
+            ),
           ),
         ),
         Positioned.fromRect(
