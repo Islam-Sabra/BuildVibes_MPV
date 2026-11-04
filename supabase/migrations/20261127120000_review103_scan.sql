@@ -106,3 +106,16 @@ select pg_temp.r103_patch(
             case when lower(v_path) like '%.pdf' then 'scan' else 'photo' end,
             case when lower(v_path) like '%.pdf'
                  then nullif(v_photo ->> 'page_count', '')::smallint end);$new$);
+
+-- The lead's check (D1): a scanned proof is a PDF upload; a photo stays a
+-- photo. Each path's own type, as the phone sent it.
+select pg_temp.r103_patch(
+  'public.add_evidence(public.work_items, uuid, jsonb)',
+  $old$    if coalesce(public.upload_mime(v_path, null), 'image/') not like 'image/%' then
+      raise exception 'evidence must be a photo' using errcode = '22023';$old$,
+  $new$    if lower(v_path) like '%.pdf' then
+      if coalesce(public.upload_mime(v_path, null), '') <> 'application/pdf' then
+        raise exception 'evidence must be a photo or a scanned PDF' using errcode = '22023';
+      end if;
+    elsif coalesce(public.upload_mime(v_path, null), 'image/') not like 'image/%' then
+      raise exception 'evidence must be a photo or a scanned PDF' using errcode = '22023';$new$);

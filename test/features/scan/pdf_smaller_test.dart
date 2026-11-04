@@ -278,5 +278,91 @@ void main() {
         expect(draft.files.single.bytes, 5 * _mb ~/ 4);
       });
     });
+
+    // The lead's check, D2: over 25 MB in messages and the notebook gets
+    // the same sheet as the composer, never a toast.
+    group('D2 too large in messages and the notebook [$lang]', () {
+      Future<void> dm(WidgetTester tester, FakePdfShrinker shrinker) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          dm: FakeDmRepository()
+            ..pages['t-omar'] = const DmThreadPage(
+              threadId: 't-omar',
+              person: DmPerson(id: 'p-omar', name: 'Omar Haddad'),
+              messages: [],
+            ),
+          pickDocument: () => _pdf(38 * _mb),
+          shrinker: shrinker,
+        );
+        GoRouter.of(
+          tester.element(find.byType(Scaffold).first),
+        ).push('/messages/t-omar');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('chat-attach'));
+        await _tap(tester, find.text(l10n.chatAttachPdf));
+      }
+
+      testWidgets('a message: Make it smaller first; smaller, it is picked', (
+        tester,
+      ) async {
+        await dm(tester, FakePdfShrinker(bytes: 12 * _mb));
+        expect(find.text(l10n.chatFileTooBig), findsNothing);
+        expect(_key('file-refused-smaller'), findsOneWidget);
+        await _tap(tester, _key('file-refused-smaller'));
+        await _tap(tester, _key('pdf-use-smaller'));
+        expect(find.textContaining(fileSize(l10n, 12 * _mb)), findsOneWidget);
+      });
+
+      testWidgets('a message: still too large, nothing is picked', (
+        tester,
+      ) async {
+        await dm(tester, FakePdfShrinker(bytes: 31 * _mb));
+        await _tap(tester, _key('file-refused-smaller'));
+        expect(find.text(l10n.pdfStillTooLarge('31', '25')), findsOneWidget);
+        expect(_key('chat-picked'), findsNothing);
+      });
+
+      testWidgets('the notebook: the sheet, then the smaller PDF', (
+        tester,
+      ) async {
+        final repo = NotebookPageSamples(lang).repository();
+        await pumpApp(
+          tester,
+          language: lang,
+          now: NotebookPageSamples.now,
+          notebook: repo,
+          pickDocument: () => _pdf(38 * _mb),
+          shrinker: FakePdfShrinker(bytes: 12 * _mb),
+          stored: {
+            'notebook_draft:user-1': jsonEncode(
+              NoteDraft(
+                id: 'draft-1',
+                startedAt: NotebookPageSamples.now,
+                title: 'Drawings',
+                blocks: [PageText('l-1', 'Full set')],
+                pageId: NotebookPageSamples.siteA,
+              ).toJson(),
+            ),
+          },
+        );
+        GoRouter.of(
+          tester.element(find.byType(Navigator).first),
+        ).push('/notebook/pages/${NotebookPageSamples.siteA}');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('note-draft-card-draft-1'));
+        await tester.tap(find.text('Full set'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('note-tool-add'));
+        await _tap(tester, _key('note-add-file'));
+        expect(find.text(l10n.chatFileTooBig), findsNothing);
+        await _tap(tester, _key('file-refused-smaller'));
+        await _tap(tester, _key('pdf-use-smaller'));
+        final draft = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold).first),
+        ).read(noteDraftProvider)!;
+        expect(draft.files.single.bytes, 12 * _mb);
+      });
+    });
   }
 }

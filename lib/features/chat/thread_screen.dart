@@ -255,8 +255,20 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     if (refused) _toast(l10n.photoCannotOpen);
     if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
-      _toast(l10n.chatFileTooBig);
-      return;
+      // The lead's check of 103, D2: a PDF gets the too-large sheet, Make
+      // it smaller first.
+      if (!picked.isPdf) {
+        _toast(l10n.chatFileTooBig);
+        return;
+      }
+      picked = await fitTooLarge(
+        context,
+        ref,
+        file: picked,
+        maxBytes: maxFileBytes,
+        spaceId: widget.spaceId,
+      );
+      if (picked == null || !mounted) return;
     }
     // A copy of our own, so it survives until the message is sent.
     final kept = await ref.read(keepFileProvider)(

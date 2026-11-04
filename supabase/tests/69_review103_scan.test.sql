@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(19);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000069' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -102,9 +102,12 @@ select pg_temp.as_user('a1');
 set local role authenticated;
 select public.create_work_item(pg_temp.sp(), 'Inspect the slab', pg_temp.uid('b2'), p_id => pg_temp.id('c1'));
 reset role;
-insert into storage.objects (bucket_id, name, owner_id) values
-  ('space-files', pg_temp.sp() || '/' || pg_temp.id('c1') || '/proof.pdf', pg_temp.uid('b2')),
-  ('space-files', pg_temp.sp() || '/' || pg_temp.id('c1') || '/proof.txt', pg_temp.uid('b2'));
+-- D1: as a phone uploads them, each with its type.
+insert into storage.objects (bucket_id, name, owner_id, metadata) values
+  ('space-files', pg_temp.sp() || '/' || pg_temp.id('c1') || '/proof.pdf', pg_temp.uid('b2'),
+   '{"mimetype": "application/pdf"}'),
+  ('space-files', pg_temp.sp() || '/' || pg_temp.id('c1') || '/proof.txt', pg_temp.uid('b2'),
+   '{"mimetype": "text/plain"}');
 select pg_temp.as_user('b2');
 set local role authenticated;
 select throws_ok(format($$select public.sign_done(%L, null, %L::jsonb)$$, pg_temp.id('c1'),
@@ -117,6 +120,14 @@ select lives_ok(format($$select public.sign_done(%L, null, %L::jsonb)$$, pg_temp
 reset role;
 select is((select kind || ' ' || page_count from public.work_item_evidence where work_item_id = pg_temp.id('c1')),
   'scan 2', 'the proof is a scan of 2 pages');
+-- D1: the author checks it: CHECKED stamps the scanned proof.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok(format($$select public.check_item(%L)$$, pg_temp.id('c1')),
+  'D1: its author checks the scanned proof');
+reset role;
+select is((select status from public.work_items where id = pg_temp.id('c1')), 'checked',
+  'D1: CHECKED');
 select is(pg_temp.reads('e5', format($$select count(*)::int from public.work_item_evidence
                                        where work_item_id = %L$$, pg_temp.id('c1'))), 0,
   'someone outside the Space reads no proof');

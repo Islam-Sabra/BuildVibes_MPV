@@ -524,8 +524,20 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     if (refused) _toast(l10n.photoCannotOpen);
     if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
-      _toast(l10n.chatFileTooBig);
-      return;
+      // The lead's check of 103, D2: a PDF gets the too-large sheet, Make
+      // it smaller first.
+      if (!picked.isPdf) {
+        _toast(l10n.chatFileTooBig);
+        return;
+      }
+      picked = await fitTooLarge(
+        context,
+        ref,
+        file: picked,
+        maxBytes: maxFileBytes,
+        spaceId: null,
+      );
+      if (picked == null || !mounted) return;
     }
     final kept = await ref.read(keepFileProvider)(
       picked.local,

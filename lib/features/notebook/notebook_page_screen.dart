@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 
+import '../scan/pdf_smaller.dart';
 import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart' show BvChatSpec, BvStroke;
@@ -1283,18 +1284,25 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final picked = await _awayFor(
       () => ref.read(pickDocumentProvider)(pdfOnly: true),
     );
-    final file = picked.file;
+    var file = picked.file;
     if (!mounted || file == null || !file.isPdf) return _back();
+    // The lead's check of 103, D2: over the limit, the too-large sheet.
     if ((file.bytes ?? 0) > maxFileBytes) {
-      _toast(l10n.chatFileTooBig);
-      return _back();
+      file = await fitTooLarge(
+        context,
+        ref,
+        file: file,
+        maxBytes: maxFileBytes,
+      );
+      if (!mounted || file == null) return _back();
     }
-    final local = await ref.read(keepFileProvider)(file.local, 'pdf');
+    final chosen = file;
+    final local = await ref.read(keepFileProvider)(chosen.local, 'pdf');
     await _change(
       (d) => d.copyWith(
         files: [
           ...d.files,
-          NoteFile(local: local, name: file.name, bytes: file.bytes),
+          NoteFile(local: local, name: chosen.name, bytes: chosen.bytes),
         ].take(Note.filesMax).toList(),
       ),
     );
