@@ -36,4 +36,32 @@ void main() {
       expect(t, isNot(contains('Everyone')));
     }
   });
+
+  // Review 116, Arabic wording (founder, 4 Nov 12:16): «صوّت» reads like
+  // «صوت», the voice note. A poll is «استطلاع»; a vote is a choice.
+  test('Arabic: a poll is «استطلاع» and a vote a choice', () {
+    expect(ar.daybookKindPoll, 'استطلاع');
+    expect(ar.cpNewPoll, 'استطلاع جديد');
+    expect(ar.pollClose, 'أغلق الاستطلاع');
+    // The hold bar's one word, as تثبيت، تعديل، أرشفة، حذف (four fit).
+    expect(ar.pollCloseShort, 'إغلاق');
+    expect(en.pollCloseShort, 'Close poll');
+    expect(ar.pollVote, 'اعتمد اختياري');
+    expect(ar.pollChangeVote, 'غيّر اختياري');
+    expect(ar.pollTakeBack, 'ألغِ اختياري');
+    expect(ar.pollNotYet('لينا'), 'لم يختر بعد: لينا');
+    expect(ar.pollDecided, 'تقرّر');
+    expect(ar.pollTied, 'تعادل');
+    for (final t in [
+      ar.cpAddPoll,
+      ar.pollCloseTitle,
+      ar.pollCloseBody,
+      ar.activityPollNew('سارة', 'س'),
+      ar.activityPollTied('س'),
+      ar.activityPollClosed('س'),
+      ar.obTipHold,
+    ]) {
+      expect(t, isNot(matches(RegExp('صوّت|صوت|تصويت|يصوّت'))), reason: t);
+    }
+  });
 }

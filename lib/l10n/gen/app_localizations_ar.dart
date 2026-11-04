@@ -6429,13 +6429,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'بند العمل لشخص آخر. لنفسك استخدم دفترك.';
 
   @override
-  String get daybookKindPoll => 'تصويت';
+  String get daybookKindPoll => 'استطلاع';
 
   @override
-  String get cpNewPoll => 'تصويت جديد';
+  String get cpNewPoll => 'استطلاع جديد';
 
   @override
-  String get cpAddPoll => 'أضف إلى هذا التصويت';
+  String get cpAddPoll => 'أضف إلى هذا الاستطلاع';
 
   @override
   String get pollQuestionHint => 'اطرح سؤالًا';
@@ -6467,7 +6467,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pollNotYet(String names) {
-    return 'لم يصوّت بعد: $names';
+    return 'لم يختر بعد: $names';
   }
 
   @override
@@ -6514,37 +6514,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get pollVote => 'صوّت';
+  String get pollVote => 'اعتمد اختياري';
 
   @override
-  String get pollChangeVote => 'غيّر صوتي';
+  String get pollChangeVote => 'غيّر اختياري';
 
   @override
-  String get pollTakeBack => 'اسحب صوتي';
+  String get pollTakeBack => 'ألغِ اختياري';
 
   @override
-  String get pollClose => 'أغلق التصويت';
+  String get pollCloseShort => 'إغلاق';
 
   @override
-  String get pollCloseTitle => 'إغلاق هذا التصويت؟';
+  String get pollClose => 'أغلق الاستطلاع';
+
+  @override
+  String get pollCloseTitle => 'إغلاق هذا الاستطلاع؟';
 
   @override
   String get pollCloseBody =>
-      'لن يتمكن أحد من التصويت بعد ذلك. تُعتمد الإجابة الأكثر اختيارًا.';
+      'لن يتمكن أحد من الاختيار بعد ذلك. تُعتمد الإجابة الأكثر اختيارًا.';
 
   @override
   String activityPollNew(String name, String title) {
-    return 'طلب $name من الفريق التصويت: $title';
+    return 'طلب $name من الفريق المشاركة في استطلاع: $title';
   }
 
   @override
   String activityPollTied(String title) {
-    return 'تعادل في تصويتك. اختر الإجابة الفائزة: $title';
+    return 'تعادل في استطلاعك. اختر الإجابة الفائزة: $title';
   }
 
   @override
   String activityPollClosed(String title) {
-    return 'أُغلق تصويتك: $title';
+    return 'أُغلق استطلاعك: $title';
   }
 
   @override

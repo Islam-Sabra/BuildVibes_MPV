@@ -93,6 +93,7 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 | Team admin | مشرف الفريق |
 | Needs you | بانتظارك |
 | Project record | سجل المشروع |
+| Poll | استطلاع |
 
 ## Reviews from the lead
 - Claude (lead, in the founder's main chat) reviews each step against Figma and writes the findings to `docs/reviews/NN-*.md`.

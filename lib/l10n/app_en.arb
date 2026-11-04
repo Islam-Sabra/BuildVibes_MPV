@@ -9135,6 +9135,8 @@
   "@pollChangeVote": {"description": "Review 116b V2: sends a different pick than the vote already sent."},
   "pollTakeBack": "Take back my vote",
   "@pollTakeBack": {"description": "Review 116b V2: the reader untapped their own vote; sends no answer."},
+  "pollCloseShort": "Close poll",
+  "@pollCloseShort": {"description": "Review 116: Close poll in the hold bar, one short word beside Pin, Edit, Delete."},
   "pollClose": "Close poll",
   "@pollClose": {"description": "Review 116: the hold bar's action, for its creator or a Space admin."},
   "pollCloseTitle": "Close this poll?",

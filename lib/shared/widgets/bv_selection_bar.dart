@@ -74,8 +74,12 @@ class SelectionBar extends StatelessWidget {
                                   ? BvColors.textDestructive
                                   : BvColors.iconPrimary,
                             ),
+                            // One line: four labels share the bar.
                             Text(
                               a.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: type.metadata.copyWith(
                                 color: a.onTap == null
                                     ? BvColors.actionDisabledForeground

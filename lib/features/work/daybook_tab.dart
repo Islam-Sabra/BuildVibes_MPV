@@ -2568,7 +2568,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           SelectionAction(
             key: const Key('select-close-poll'),
             icon: BvIcons.lock,
-            label: l10n.pollClose,
+            label: l10n.pollCloseShort,
             onTap: () => unawaited(_closePoll(posts.single)),
           ),
         // Hidden, not greyed, when one held can't be archived or deleted
