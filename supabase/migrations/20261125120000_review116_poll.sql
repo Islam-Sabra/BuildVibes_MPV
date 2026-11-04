@@ -17,7 +17,13 @@
 -- 4. edit_poll: its creator, until the first vote.
 -- 5. The card (space_post_json): "poll", with each option's choices, who
 --    made them (faces, never a percentage), the reader's own, and "Not
---    yet": who could answer and hasn't.
+--    yet": who could answer and hasn't. Every name goes through
+--    space_person_name and no photo crosses a block or a hidden account
+--    (the lead's check, P1).
+-- 6. Races (P2): every call that reads a poll to change it takes its row
+--    lock first (select ... for update), and the winner is counted after.
+-- 7. A tie tells its creator to pick the winner (poll_tied, P7). My data
+--    has my poll votes (P10).
 
 -- ---------------------------------------------------------------------------
 -- 1. The kind and the tables
@@ -98,7 +104,8 @@ as $$
      and not exists (
        select 1 from jsonb_array_elements(p_options) o
        where jsonb_typeof(o -> 'id') <> 'string'
-          or (o ->> 'id') !~ '^[0-9a-fA-F-]{36}$'
+          -- P12: a real uuid's shape, so no cast fails later (22P02).
+          or (o ->> 'id') !~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
           or char_length(trim(coalesce(o ->> 'label', ''))) not between 1 and 60)
      and (select count(distinct o ->> 'id') from jsonb_array_elements(p_options) o)
          = jsonb_array_length(p_options);
@@ -130,17 +137,6 @@ as $$
   with c as (select * from public.poll_counts(p_post))
   select c.option_id from c
   where c.n > 0 and c.n = (select max(n) from c);
-$$;
-
-create or replace function public.poll_person_name(p_id uuid)
-returns text
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select nullif(trim(concat_ws(' ', p.first_name, p.last_name)), '')
-  from public.profiles p where p.id = p_id;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -248,7 +244,8 @@ begin
      or v_post.author_id <> v_me or not public.is_member(v_post.space_id) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  select * into v_poll from public.polls where post_id = p_post;
+  -- P2: a vote can't slip in between this check and the change.
+  select * into v_poll from public.polls where post_id = p_post for update;
   if not public.poll_is_open(v_poll) then
     raise exception 'the poll is closed' using errcode = '22023';
   end if;
@@ -301,7 +298,9 @@ begin
      or not public.can_see_space_post(p_post) or public.is_hidden_account(v_me) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  select * into v_poll from public.polls where post_id = p_post;
+  -- P2: one vote at a time on a poll (two quick taps never leave two
+  -- answers), and none while it closes or is edited.
+  select * into v_poll from public.polls where post_id = p_post for update;
   if not public.poll_is_open(v_poll) then
     raise exception 'the poll is closed' using errcode = '22023';
   end if;
@@ -339,20 +338,26 @@ set search_path = ''
 as $$
 declare
   v_post public.space_posts;
+  v_poll public.polls;
   v_leaders uuid[];
 begin
   select * into v_post from public.space_posts where id = p_post;
+  -- P2: the lock first, then the count: no vote lands in between.
+  select * into v_poll from public.polls where post_id = p_post for update;
+  if v_poll.post_id is null or v_poll.closed_at is not null then
+    return false;
+  end if;
   v_leaders := array(select public.poll_leaders(p_post));
   update public.polls
   set closed_at = now(), closed_by = p_by,
       decided_option = case when cardinality(v_leaders) = 1 then v_leaders[1] end
-  where post_id = p_post and closed_at is null;
-  if not found then
-    return false;
-  end if;
+  where post_id = p_post;
+  -- P7: a tie asks its creator to pick the winner.
   if p_by is distinct from v_post.author_id then
-    perform public.add_notification(v_post.author_id, 'poll_closed', p_by, v_post.space_id,
-                                    p_space_post => p_post);
+    perform public.add_notification(v_post.author_id,
+                                    case when cardinality(v_leaders) > 1 then 'poll_tied'
+                                         else 'poll_closed' end,
+                                    p_by, v_post.space_id, p_space_post => p_post);
   end if;
   return true;
 end;
@@ -398,13 +403,15 @@ begin
      or (v_post.author_id <> v_me and not public.is_space_admin(v_post.space_id)) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  select * into v_poll from public.polls where post_id = p_post;
+  -- P2: two picks at once: the second waits, then finds it decided.
+  select * into v_poll from public.polls where post_id = p_post for update;
   v_leaders := array(select public.poll_leaders(p_post));
   if v_poll.closed_at is null or v_poll.decided_option is not null
      or cardinality(v_leaders) < 2 or not (p_option = any (v_leaders)) then
     raise exception 'only one of the tied options of a closed poll' using errcode = '22023';
   end if;
-  update public.polls set decided_option = p_option where post_id = p_post;
+  update public.polls set decided_option = p_option
+  where post_id = p_post and decided_option is null;
 end;
 $$;
 
@@ -458,13 +465,15 @@ as $$
     join public.profiles pr on pr.id = m.profile_id
     where m.space_id = p_post.space_id and m.left_at is null
       and not public.is_hidden_account(m.profile_id)
+      -- P1: nobody across a block with the reader.
+      and not public.is_blocked_with(m.profile_id)
       and public.can_see_space_post_as(p_post.id, m.profile_id)
       and m.profile_id not in (select profile_id from voters))
   select jsonb_build_object(
     'multi', poll.multi,
     'closes_at', poll.closes_at,
     'closed_at', poll.closed_at,
-    'closed_by_name', public.poll_person_name(poll.closed_by),
+    'closed_by_name', public.space_person_name(poll.closed_by),
     'decided_option', poll.decided_option,
     'tied', poll.closed_at is not null and poll.decided_option is null
             and (select count(*) from leaders) > 1,
@@ -480,8 +489,10 @@ as $$
         'voters', coalesce((
           select jsonb_agg(jsonb_build_object(
             'id', v.profile_id,
-            'name', public.poll_person_name(v.profile_id),
-            'avatar', pr.photo_path) order by v.created_at desc, v.profile_id)
+            'name', public.space_person_name(v.profile_id),
+            -- P1: no face across a block or of an account going away.
+            'avatar', case when public.is_blocked_with(v.profile_id) then null
+                           else pr.photo_path end) order by v.created_at desc, v.profile_id)
           from public.poll_votes v
           join public.profiles pr on pr.id = v.profile_id
           where v.option_id = o.id), '[]'::jsonb)) order by o.sort, o.id)
@@ -533,7 +544,7 @@ alter table public.notifications add constraint notifications_kind_check check (
   'announcement_new', 'checklist_for_you', 'activity_invited', 'file_new_version',
   'join_request', 'join_confirmed', 'role_confirmed', 'follow',
   'post_reply', 'post_useful', 'content_removed', 'appeal_decided',
-  'poll_new', 'poll_closed'));
+  'poll_new', 'poll_closed', 'poll_tied'));
 
 alter table public.push_queue drop constraint push_queue_kind_check;
 alter table public.push_queue add constraint push_queue_kind_check check (kind in (
@@ -548,10 +559,10 @@ alter table public.push_queue add constraint push_queue_kind_check check (kind i
   'post_reaction', 'work_item_archived', 'check_in_nudge', 'need_you', 'need_you_answer',
   'scheduled_expiring',
   'need_you_test',
-  'poll_new', 'poll_closed'));
+  'poll_new', 'poll_closed', 'poll_tied'));
 
 -- A new poll pushes as an announcement does (the Space's level); its
--- creator always hears it closed.
+-- creator always hears it closed, or tied.
 select pg_temp.r116_patch(
   'public.handle_notification_push()',
   $old$'item_comment', 'item_edited', 'item_cancelled', 'announcement_new',$old$,
@@ -560,7 +571,25 @@ select pg_temp.r116_patch(
   'public.handle_notification_push()',
   $old$      when new.kind = 'join_confirmed' then true$old$,
   $new$      when new.kind = 'join_confirmed' then true
-      when new.kind = 'poll_closed' then true$new$);
+      when new.kind in ('poll_closed', 'poll_tied') then true$new$);
+
+-- ---------------------------------------------------------------------------
+-- 7. My data (P10): my poll votes, the poll, the option and when.
+-- ---------------------------------------------------------------------------
+
+select pg_temp.r116_patch(
+  'public.export_my_data(uuid)',
+  $old$                                 where f.created_by = r.profile_id), '[]'))$old$,
+  $new$                                 where f.created_by = r.profile_id), '[]'),
+    'poll_votes', coalesce((select jsonb_agg(jsonb_build_object(
+                              'space', s.name, 'poll', sp.title, 'option', o.label,
+                              'created_at', v.created_at)
+                              order by v.created_at)
+                            from public.poll_votes v
+                            join public.poll_options o on o.id = v.option_id
+                            join public.space_posts sp on sp.id = o.post_id
+                            join public.spaces s on s.id = sp.space_id
+                            where v.profile_id = r.profile_id), '[]'))$new$);
 
 -- ---------------------------------------------------------------------------
 -- Grants
@@ -571,7 +600,6 @@ revoke all on function
   public.poll_options_ok(jsonb),
   public.poll_counts(uuid),
   public.poll_leaders(uuid),
-  public.poll_person_name(uuid),
   public.poll_close(uuid, uuid),
   public.close_due_polls(),
   public.poll_card(public.space_posts),
