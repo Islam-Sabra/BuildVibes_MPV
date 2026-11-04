@@ -10,6 +10,7 @@ import '../../data/models/upload_rules.dart';
 import '../../data/models/check_in.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart';
+import '../../data/models/poll.dart' show PollOption;
 import '../../data/models/post_page.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../data/models/template.dart';
@@ -366,6 +367,13 @@ class DaybookPostDraft {
       placeId: post.placeId,
       dueDate: id == null ? post.dueDate : null,
       dueAt: id == null ? post.dueAt : null,
+      // The lead's check of 116, P5: a poll's options, answers and time.
+      pollOptions: [
+        for (final o in post.poll?.options ?? const <PollOption>[])
+          (id: o.id, text: o.label),
+      ],
+      pollMulti: post.poll?.multi ?? false,
+      pollClosesAt: post.poll?.closesAt,
     );
   }
 

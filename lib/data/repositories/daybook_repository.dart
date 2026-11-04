@@ -117,6 +117,10 @@ abstract class DaybookRepository {
   /// Review 116: picks the winner of a closed, tied poll (decide_poll).
   Future<void> decidePoll(String postId, String optionId);
 
+  /// The lead's check of 116, P5: its creator changes it before the first
+  /// vote (edit_poll).
+  Future<void> editPoll(EditPoll poll);
+
   /// space_work_tags (review 110 TG1): the tags a work item here may take,
   /// from its market's list, in order.
   Future<List<DaybookTag>> workTags(String spaceId);
@@ -554,6 +558,36 @@ class NewPoll {
   };
 }
 
+/// The lead's check of 116, P5: a poll as edit_poll takes it, before the
+/// first vote: the question, its options (kept ids keep their place, new
+/// ones are the phone's), one answer or more than one, and when it closes.
+@immutable
+class EditPoll {
+  const EditPoll({
+    required this.postId,
+    required this.question,
+    required this.options,
+    this.multi = false,
+    this.closesAt,
+  });
+
+  final String postId;
+  final String question;
+  final List<({String id, String label})> options;
+  final bool multi;
+  final DateTime? closesAt;
+
+  Map<String, Object?> toParams() => {
+    'p_post': postId,
+    'p_question': question.trim(),
+    'p_options': [
+      for (final o in options) {'id': o.id, 'label': o.label.trim()},
+    ],
+    'p_multi': multi,
+    'p_closes_at': closesAt == null ? null : _instant(closesAt!),
+  };
+}
+
 /// Review 113 (11): an uploaded voice note and its length.
 typedef PostVoiceFile = ({String path, int durationMs});
 
@@ -776,6 +810,10 @@ class SupabaseDaybookRepository implements DaybookRepository {
       params: {'p_post': postId, 'p_option': optionId},
     ),
   );
+
+  @override
+  Future<void> editPoll(EditPoll poll) =>
+      _guard(() => _client.rpc<void>('edit_poll', params: poll.toParams()));
 
   @override
   Future<List<DaybookTag>> workTags(String spaceId) => _guard(() async {

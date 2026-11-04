@@ -25,7 +25,9 @@ enum ActivityKind {
   fileNewVersion('file_new_version'),
   // Review 116: a new poll for you, and your poll closed.
   pollNew('poll_new'),
-  pollClosed('poll_closed');
+  pollClosed('poll_closed'),
+  // The lead's check, P7: a tie asks its creator to pick.
+  pollTied('poll_tied');
 
   const ActivityKind(this.json);
 

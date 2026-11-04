@@ -9869,7 +9869,7 @@ abstract class AppLocalizations {
   /// Review 107 OB7: tip 2, on a card.
   ///
   /// In en, this message translates to:
-  /// **'Hold a card to pin it, set a reminder, or archive or delete it.'**
+  /// **'Hold a card to pin it, set a reminder and more'**
   String get obTipHold;
 
   /// Review 107 OB7: tip 3, on Sign as done, the first time an item is given to me.
@@ -10697,7 +10697,7 @@ abstract class AppLocalizations {
   /// Review 116 PL2: two first names and how many more.
   ///
   /// In en, this message translates to:
-  /// **'{names} and {n} more'**
+  /// **'{n, plural, other{{names} and {n} more}}'**
   String pollNamesMore(String names, int n);
 
   /// Review 116 PL3: the red stamp over the winner (as DONE, CHECKED).
@@ -10771,6 +10771,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} asked the team to vote: {title}'**
   String activityPollNew(String name, String title);
+
+  /// Review 116 (the lead's check, P7): Activity row to the creator of a tied poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Your poll is tied. Pick the answer that wins: {title}'**
+  String activityPollTied(String title);
 
   /// Review 116: Activity row to the poll's creator.
   ///

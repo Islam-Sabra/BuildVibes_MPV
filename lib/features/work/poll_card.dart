@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,14 +56,14 @@ class DaybookPollBody extends ConsumerStatefulWidget {
   final DateTime now;
 
   /// The reader's choices, all of them at once (vote_poll); null while the
-  /// card is lifted or waiting.
-  final ValueChanged<Set<String>>? onVote;
+  /// card is lifted or waiting. Done when the server has them.
+  final Future<void> Function(Set<String>)? onVote;
 
   /// A tie's winner, by its creator or a Space admin (decide_poll).
   final ValueChanged<String>? onDecide;
 
-  /// Make it a work item, titled "question: answer"; its creator's or a
-  /// Space admin's.
+  /// Make it a work item, titled "question: answer"; its creator's, a
+  /// Lead's or a Space admin's.
   final ValueChanged<String>? onWorkItem;
 
   @override
@@ -73,10 +75,31 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
   /// comes back.
   Set<String>? _chosen;
 
+  /// The lead's check, P2: one vote on its way at a time; taps while it
+  /// goes keep only the latest choice, sent after it.
+  bool _sending = false;
+  Set<String>? _waiting;
+
   @override
   void didUpdateWidget(DaybookPollBody old) {
     super.didUpdateWidget(old);
-    if (!identical(old.post.poll, widget.post.poll)) _chosen = null;
+    if (!identical(old.post.poll, widget.post.poll) && !_sending) {
+      _chosen = null;
+    }
+  }
+
+  Future<void> _send(Set<String> choice) async {
+    final vote = widget.onVote;
+    if (vote == null) return;
+    _sending = true;
+    Set<String>? next = choice;
+    while (next != null) {
+      _waiting = null;
+      await vote(next);
+      if (!mounted) return;
+      next = _waiting;
+    }
+    _sending = false;
   }
 
   DaybookPoll? get _poll {
@@ -92,8 +115,7 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
   }
 
   void _tap(DaybookPoll poll, PollOption o) {
-    final vote = widget.onVote;
-    if (vote == null) return;
+    if (widget.onVote == null) return;
     final mine = poll.mine;
     final picked = poll.multi
         ? (mine.contains(o.id) ? ({...mine}..remove(o.id)) : {...mine, o.id})
@@ -104,7 +126,11 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
         if (picked.contains(p.id)) p.id,
     };
     setState(() => _chosen = next);
-    vote(next);
+    if (_sending) {
+      _waiting = next;
+    } else {
+      unawaited(_send(next));
+    }
   }
 
   @override
@@ -139,11 +165,8 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
             key: const Key('poll-decided'),
             spacing: BvSpace.s8,
             children: [
-              BvInkStamp(
-                label: l10n.pollDecided,
-                size: BvInkStampSize.sm,
-                tone: BvInkStampTone.positive,
-              ),
+              // P3: red, as every paperwork stamp (DONE, CHECKED).
+              BvInkStamp(label: l10n.pollDecided, size: BvInkStampSize.sm),
               Flexible(
                 child: Text(
                   decided.label,
@@ -158,11 +181,7 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
           Align(
             key: const Key('poll-tied'),
             alignment: AlignmentDirectional.centerStart,
-            child: BvInkStamp(
-              label: l10n.pollTied,
-              size: BvInkStampSize.sm,
-              tone: BvInkStampTone.muted,
-            ),
+            child: BvInkStamp(label: l10n.pollTied, size: BvInkStampSize.sm),
           ),
         if (closed && !poll.voted)
           Text(l10n.pollNoAnswers, style: quiet)
@@ -242,6 +261,10 @@ class _PollOptionRow extends StatelessWidget {
     final type = BvType.of(context);
     final o = option;
     final share = most == 0 ? 0.0 : o.count / most;
+    // The founder, 17:49 (P3): the reader's choice and the decided option
+    // white with an ink outline, an ink tick and an ink bar; the others a
+    // grey bar. Never the brand red, which on site means alerts.
+    final marked = o.mine || won;
     return Semantics(
       button: onTap != null,
       selected: o.mine,
@@ -250,10 +273,11 @@ class _PollOptionRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(BvRadius.control),
         child: Container(
+          key: Key('poll-row-${o.id}'),
           decoration: BoxDecoration(
-            color: BvColors.surfaceSubtle,
+            color: marked ? BvColors.surfaceElevated : BvColors.surfaceSubtle,
             borderRadius: BorderRadius.circular(BvRadius.control),
-            border: won
+            border: marked
                 ? Border.all(
                     color: BvColors.textPrimary,
                     width: BvSpace.borderWidth,
@@ -271,7 +295,7 @@ class _PollOptionRow extends StatelessWidget {
                   if (o.mine)
                     PollRing(key: Key('poll-mine-${o.id}'), on: true)
                   else
-                    const PollRing(),
+                    PollRing(on: won),
                   Expanded(
                     child: Text(
                       o.label,
@@ -297,7 +321,12 @@ class _PollOptionRow extends StatelessWidget {
                         alignment: AlignmentDirectional.centerStart,
                         widthFactor: share,
                         heightFactor: 1,
-                        child: const ColoredBox(color: BvColors.textPrimary),
+                        child: ColoredBox(
+                          key: Key('poll-fill-${o.id}'),
+                          color: marked
+                              ? BvColors.textPrimary
+                              : BvColors.iconSecondary,
+                        ),
                       ),
                     ],
                   ),

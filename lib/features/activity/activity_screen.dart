@@ -402,6 +402,11 @@ ActivityWords activityWords(AppLocalizations l10n, ActivityRow row) {
       name: null,
       where: space,
     ),
+    ActivityKind.pollTied => (
+      text: l10n.activityPollTied(title),
+      name: null,
+      where: space,
+    ),
   };
 }
 

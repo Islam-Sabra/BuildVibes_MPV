@@ -182,7 +182,7 @@ class DaybookCardActions {
 
   /// Review 116: a poll's vote (Viewers too), a tie's winner and Make it a
   /// work item (its creator or a Space admin).
-  final ValueChanged<Set<String>>? onPollVote;
+  final Future<void> Function(Set<String>)? onPollVote;
   final ValueChanged<String>? onPollDecide;
   final ValueChanged<String>? onPollWorkItem;
 }

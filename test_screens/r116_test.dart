@@ -218,6 +218,37 @@ void main() {
       await _snap(tester, 'PL3-tied', lang);
     });
 
+    // The lead's check, P5: Edit for its creator before the first vote.
+    testWidgets('PL1 Edit in the hold bar [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        posts: [
+          _card(
+            s,
+            DaybookPoll(
+              closesAt: DaybookSamples.thursday.add(const Duration(hours: 6)),
+              options: [
+                for (final o in _options(s))
+                  PollOption(id: o.id, label: o.label, sort: o.sort),
+              ],
+            ),
+          ),
+        ],
+      );
+      final entry = _key('daybook-card-$_poll');
+      await scrollToRow(tester, entry);
+      await tester.longPress(
+        find.descendant(of: entry, matching: find.byType(BvSlip)).first,
+      );
+      await tester.pumpAndSettle();
+      await _snap(tester, 'PL1-edit-hold', lang);
+      await _tap(tester, 'select-edit-poll');
+      steadyCursor();
+      await tester.pumpAndSettle();
+      await _snap(tester, 'PL1-edit', lang);
+    });
+
     testWidgets('PL3 Close poll in the hold bar [$lang]', (tester) async {
       await _open(
         tester,

@@ -6,6 +6,9 @@
 // one toggles. Closed (PL3): DECIDED · <option>, TIED with the creator's
 // pick, or "Closed with no answers"; Close poll from the hold bar for its
 // creator or a Space admin; Make it a work item. In English and Arabic.
+import 'dart:async';
+
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/poll.dart';
@@ -17,6 +20,7 @@ import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/features/work/poll_card.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
+import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -338,6 +342,189 @@ void main() {
       });
     });
 
+    group('the lead\'s check of 30009056 [$lang]', () {
+      testWidgets('P2: votes go one at a time, only the latest waiting', (
+        tester,
+      ) async {
+        final (app: _, :daybook) = await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s)],
+        );
+        daybook.holdVote = Completer<void>();
+        await scrollToRow(tester, _entry(_poll));
+        await _tap(tester, _key('poll-option-opt-sun'));
+        await _tap(tester, _key('poll-option-opt-sat'));
+        await _tap(tester, _key('poll-option-opt-thu'));
+        Iterable<String> votes() =>
+            daybook.calls.where((c) => c.startsWith('vote'));
+        expect(votes(), ['vote $_poll opt-sun'], reason: 'one at a time');
+        expect(
+          _key('poll-mine-opt-thu'),
+          findsOneWidget,
+          reason: 'shown at once',
+        );
+        daybook.holdVote!.complete();
+        daybook.holdVote = null;
+        await tester.pumpAndSettle();
+        expect(votes(), [
+          'vote $_poll opt-sun',
+          'vote $_poll opt-thu',
+        ], reason: 'then only the latest');
+      });
+
+      testWidgets('P3: the chosen and the decided in ink on white; DECIDED '
+          'and TIED red', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: _closed(decided: 'opt-thu'))],
+        );
+        await scrollToRow(tester, _entry(_poll));
+        BoxDecoration row(String id) =>
+            tester.widget<Container>(_key('poll-row-$id')).decoration!
+                as BoxDecoration;
+        Color fill(String id) =>
+            tester.widget<ColoredBox>(_key('poll-fill-$id')).color;
+        expect(row('opt-thu').color, BvColors.surfaceElevated);
+        expect(
+          (row('opt-thu').border! as Border).top.color,
+          BvColors.textPrimary,
+        );
+        expect(fill('opt-thu'), BvColors.textPrimary);
+        expect(row('opt-sat').color, BvColors.surfaceSubtle);
+        expect(fill('opt-sat'), BvColors.iconSecondary, reason: 'a grey bar');
+        expect(
+          tester
+              .widget<BvInkStamp>(
+                find.descendant(
+                  of: _key('poll-decided'),
+                  matching: find.byType(BvInkStamp),
+                ),
+              )
+              .tone,
+          BvInkStampTone.action,
+        );
+      });
+
+      testWidgets('P3: TIED is the same red stamp', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: _closed(tied: true))],
+        );
+        await scrollToRow(tester, _entry(_poll));
+        expect(
+          tester
+              .widget<BvInkStamp>(
+                find.descendant(
+                  of: _key('poll-tied'),
+                  matching: find.byType(BvInkStamp),
+                ),
+              )
+              .tone,
+          BvInkStampTone.action,
+        );
+      });
+
+      testWidgets('P3: my choice on an open poll in ink on white', (
+        tester,
+      ) async {
+        await _open(tester, lang, posts: [_pollCard(s)]);
+        await scrollToRow(tester, _entry(_poll));
+        await _tap(tester, _key('poll-option-opt-sat'));
+        final mine =
+            tester.widget<Container>(_key('poll-row-opt-sat')).decoration!
+                as BoxDecoration;
+        expect(mine.color, BvColors.surfaceElevated);
+        expect(
+          tester.widget<ColoredBox>(_key('poll-fill-opt-sat')).color,
+          BvColors.textPrimary,
+        );
+        expect(
+          tester.widget<ColoredBox>(_key('poll-fill-opt-thu')).color,
+          BvColors.iconSecondary,
+        );
+      });
+
+      testWidgets('P4: a Lead who didn\'t make it makes it a work item', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: _closed(decided: 'opt-thu'))],
+          me: DaybookSamples.sara,
+        );
+        await scrollToRow(tester, _entry(_poll));
+        expect(_key('poll-make-work-item'), findsOneWidget);
+      });
+
+      testWidgets('P5: its creator edits it before the first vote', (
+        tester,
+      ) async {
+        final base = _pollCard(s).post.poll!;
+        final fresh = DaybookPoll(
+          closesAt: base.closesAt,
+          options: [
+            for (final o in base.options)
+              PollOption(id: o.id, label: o.label, sort: o.sort),
+          ],
+        );
+        final (app: _, :daybook) = await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: fresh)],
+          composerKind: 'note',
+        );
+        await _hold(tester, _poll);
+        await _tap(tester, _key('select-edit-poll'));
+        expect(
+          tester
+              .widget<TextField>(_key('poll-option-field-0'))
+              .controller!
+              .text,
+          s.t('Thursday', 'الخميس'),
+        );
+        await tester.enterText(_key('writing-title'), 'Which day, then?');
+        await tester.enterText(_key('poll-option-field-2'), 'Monday');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-post'));
+        final edited = daybook.editedPolls.single;
+        expect(edited.postId, _poll);
+        expect(edited.question, 'Which day, then?');
+        expect(
+          [for (final o in edited.options) o.id],
+          ['opt-thu', 'opt-sat', 'opt-sun'],
+        );
+        expect(edited.options.last.label, 'Monday');
+        expect(edited.closesAt, base.closesAt);
+      });
+
+      testWidgets('P5: no Edit once someone voted', (tester) async {
+        await _open(tester, lang, posts: [_pollCard(s)]);
+        await _hold(tester, _poll);
+        expect(_key('select-edit-poll'), findsNothing);
+      });
+
+      testWidgets('P5: nor for someone who didn\'t make it', (tester) async {
+        final base = _pollCard(s).post.poll!;
+        await _open(
+          tester,
+          lang,
+          posts: [
+            _pollCard(
+              s,
+              author: DaybookSamples.sara,
+              poll: DaybookPoll(options: base.options),
+            ),
+          ],
+        );
+        await _hold(tester, _poll);
+        expect(_key('select-edit-poll'), findsNothing);
+      });
+    });
+
     group('PL3 closed [$lang]', () {
       testWidgets('decided: the stamp with the winner, who closed it, and '
           'Make it a work item for its creator', (tester) async {
@@ -452,7 +639,12 @@ void main() {
       expect(asked.text, contains('Sara Ali'));
       expect(asked.text, contains('Which day?'));
       expect(asked.where, contains('Tower B'));
+      // P7: a tie asks its creator to pick.
+      final tied = activityWords(l10n, row('poll_tied'));
+      expect(tied.text, contains('Which day?'));
+      expect(tied.where, contains('Tower B'));
       final closed = activityWords(l10n, row('poll_closed'));
+      expect(tied.text, isNot(closed.text));
       expect(closed.text, contains('Which day?'));
       expect(closed.text, isNot(contains('Sara Ali')), reason: 'their own');
       expect(closed.text, isNot(asked.text));

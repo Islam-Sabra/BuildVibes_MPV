@@ -417,15 +417,15 @@ class DaybookLoop {
         // Review 116: everyone who sees a poll votes, Viewers too; its
         // creator or a Space admin picks a tie's winner and makes it a
         // work item (a Viewer writes no work item).
-        onPollVote: post.isPoll
-            ? (ids) => unawaited(votePoll(context, post, ids))
-            : null,
+        onPollVote: post.isPoll ? (ids) => votePoll(context, post, ids) : null,
         onPollDecide: post.isPoll && mayRunPoll(post, me: me)
             ? (id) => unawaited(decidePoll(context, post, id))
             : null,
+        // P4: its creator and Leads (Space admins too).
         onPollWorkItem:
             post.isPoll &&
-                mayRunPoll(post, me: me) &&
+                !post.cancelled &&
+                (mayRunPoll(post, me: me) || space.myPass == SpacePass.lead) &&
                 space.myRights.createItems
             ? onWorkItemFrom
             : null,

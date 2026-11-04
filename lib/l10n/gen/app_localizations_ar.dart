@@ -5971,8 +5971,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get obTipCamera => 'اضغط الكاميرا لنشر صورة عملك.';
 
   @override
-  String get obTipHold =>
-      'اضغط مطوّلًا على البطاقة لتثبيتها أو ضبط تذكير أو أرشفتها أو حذفها.';
+  String get obTipHold => 'اضغط مطولًا على البطاقة للتثبيت والتذكير والمزيد';
 
   @override
   String get obTipSignDone => 'وقّع كمنجز عندما ينتهي عملك.';
@@ -6473,7 +6472,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pollNamesMore(String names, int n) {
-    return '$names و$n آخرون';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$names و$n آخر',
+      few: '$names و$n آخرين',
+      two: '$names وآخران',
+      one: '$names وآخر',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -6519,6 +6526,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String activityPollNew(String name, String title) {
     return 'طلب $name من الفريق التصويت: $title';
+  }
+
+  @override
+  String activityPollTied(String title) {
+    return 'تعادل في تصويتك. اختر الإجابة الفائزة: $title';
   }
 
   @override

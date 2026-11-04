@@ -2,6 +2,32 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, midday — the lead's check of 116 (P1–P12) done; waiting for the lead again
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **`claude/r116-server`** (server, test first; test `67_review116_check`, 34 checks, all red before the fix):
+  - P1: names through `space_person_name`; no voter photo across a block or of an account going away; "Not yet" leaves out anyone across a block. `poll_person_name` is gone.
+  - P2: `vote_poll`, `edit_poll`, `poll_close` and `decide_poll` take the poll's row lock (`for update`) first; the winner is counted after the lock; `decide_poll` changes only an undecided poll.
+  - P6: `supabase/ops/poll_cron.sql` (`poll-close`, every 5 minutes). Not run.
+  - P7: a tie sends `poll_tied` ("Your poll is tied. Pick the answer that wins." / «تعادل في تصويتك. اختر الإجابة الفائزة.»), kind lists and the push trigger updated; deno 36 pass.
+  - P10: `export_my_data` has `poll_votes` (Space, poll, option, when).
+  - P11: non-member reading votes, a removed member voting, outside a Team reading or voting, a hidden account voting, the job's notice to the creator.
+  - P12: an option id must be a real uuid shape: 22023, never 22P02.
+- **`claude/r116`** (server merged in; app, test first):
+  - P2: one vote on its way at a time; taps meanwhile keep only the latest, sent after it (emulator: three quick taps left one answer).
+  - P3: the reader's choice and the decided option white with an ink outline, ink tick and ink bar; others a grey bar; DECIDED and TIED in the red stamp.
+  - P4: Make it a work item for its creator, Leads and Space admins.
+  - P5: Edit in the hold bar for its creator while open and before the first vote; the poll composer opens filled; Save sends `edit_poll`.
+  - P7: Activity row "Your poll is tied. Pick the answer that wins: …".
+  - P8: Arabic "and N more" as an ICU plural (وآخر / وآخران / و{n} آخرين / و{n} آخر).
+  - P9: tip 2 "Hold a card to pin it, set a reminder and more" / «اضغط مطولًا على البطاقة للتثبيت والتذكير والمزيد».
+- **Checks:** `flutter analyze` clean; `flutter test` 3,793 pass; `test_screens` 724 pass (OB7 and the PL shots updated; new PL1 Edit shots); `supabase test db` 66 files, 4,493 checks, PASS.
+- **Emulator (local Supabase, not live):** create · Edit before a vote (added Sunday) · vote · change vote · three quick taps (one answer kept) · no Edit after a vote · close · DECIDED Saturday · Make it a work item ("Which day for the L3 pour: Saturday"); each checked in the local database. Shots `docs/reviews/shots-116/EMU-0…9`.
+- **Seen, not changed:** the first-run tips came back after posting and after saving an edit on this fresh install, and their scrim took the next taps. It happened before review 116 too; worth a look of its own.
+- **Not done (needs the founder's yes):** merge, `db push` (20261125120000), deploy `push`, run `ops/poll_cron.sql`, build, install.
+- **Who has which branch:** PC has `claude/r116` and `claude/r116-server`, both pushed, not merged. `slice2-app` unchanged.
+
 ## PC update: 4 Nov 2026, morning — review 116 (Poll) finished on two branches; waiting for the lead's check
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

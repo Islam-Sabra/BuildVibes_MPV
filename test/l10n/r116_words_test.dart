@@ -10,11 +10,21 @@ void main() {
   final en = lookupAppLocalizations(const Locale('en'));
   final ar = lookupAppLocalizations(const Locale('ar'));
 
+  // The lead's check of 116, P9: as the lead wrote it.
   test('the hold tip names what the hold bar holds', () {
-    expect(en.obTipHold, 'Hold a card to pin it, set a reminder, or archive '
-        'or delete it.');
-    expect(ar.obTipHold, 'اضغط مطوّلًا على البطاقة لتثبيتها أو ضبط تذكير أو '
-        'أرشفتها أو حذفها.');
+    expect(en.obTipHold, 'Hold a card to pin it, set a reminder and more');
+    expect(ar.obTipHold, 'اضغط مطولًا على البطاقة للتثبيت والتذكير والمزيد');
+  });
+
+  // P8: Arabic counts "and N more" as Arabic does.
+  test('"and N more" in Arabic takes its plural', () {
+    const names = 'لينا، طارق';
+    expect(ar.pollNamesMore(names, 1), 'لينا، طارق وآخر');
+    expect(ar.pollNamesMore(names, 2), 'لينا، طارق وآخران');
+    expect(ar.pollNamesMore(names, 3), 'لينا، طارق و3 آخرين');
+    expect(ar.pollNamesMore(names, 10), 'لينا، طارق و10 آخرين');
+    expect(ar.pollNamesMore(names, 11), 'لينا، طارق و11 آخر');
+    expect(en.pollNamesMore('Lina, Tariq', 2), 'Lina, Tariq and 2 more');
   });
 
   test('the post-audience sheet says Whole Space, never Everyone', () {

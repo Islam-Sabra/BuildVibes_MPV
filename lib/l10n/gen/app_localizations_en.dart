@@ -5922,8 +5922,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obTipCamera => 'Tap the camera to post a photo of your work.';
 
   @override
-  String get obTipHold =>
-      'Hold a card to pin it, set a reminder, or archive or delete it.';
+  String get obTipHold => 'Hold a card to pin it, set a reminder and more';
 
   @override
   String get obTipSignDone => 'Sign as done when your work is finished.';
@@ -6424,7 +6423,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollNamesMore(String names, int n) {
-    return '$names and $n more';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$names and $n more',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -6470,6 +6474,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String activityPollNew(String name, String title) {
     return '$name asked the team to vote: $title';
+  }
+
+  @override
+  String activityPollTied(String title) {
+    return 'Your poll is tied. Pick the answer that wins: $title';
   }
 
   @override

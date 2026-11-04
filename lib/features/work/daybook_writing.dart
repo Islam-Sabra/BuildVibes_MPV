@@ -1037,10 +1037,27 @@ class DaybookWriter {
     );
   }
 
-  /// Save an edit: edit_space_post with only what changed.
+  /// Save an edit: edit_space_post with only what changed; a poll, as
+  /// edit_poll takes it, whole (the lead's check of 116, P5).
   Future<void> save() async {
     final edit = changes();
     final d = draft;
+    if (d != null && d.kind == DaybookKind.poll) {
+      await ref
+          .read(daybookRepositoryProvider)
+          .editPoll(
+            EditPoll(
+              postId: d.id,
+              question: d.title,
+              options: [
+                for (final o in d.writtenOptions) (id: o.id, label: o.text),
+              ],
+              multi: d.pollMulti,
+              closesAt: d.pollClosesAt,
+            ),
+          );
+      return;
+    }
     final was = ref.read(daybookEditProvider(spaceId).notifier).original;
     final id = d?.id;
     if (id == null) return;

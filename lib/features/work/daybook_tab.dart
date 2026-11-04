@@ -1889,7 +1889,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // Post turns on with what the kind can't go without (review 46);
       // what it still needs opens first.
       onPost: _editing
-          ? (cardDraft?.titleFits ?? false ? _save : null)
+          ? ((cardDraft?.kind == DaybookKind.poll
+                        ? cardDraft?.readyToTry
+                        : cardDraft?.titleFits) ??
+                    false
+                ? _save
+                : null)
           : (!alone && (cardDraft?.readyToTry ?? false)
                 ? () => unawaited(_postOrAsk(myName))
                 : null),
@@ -2473,6 +2478,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         posts.length == 1 &&
         posts.single.isCheckIn &&
         (posts.single.checkIn?.canStop ?? false);
+    // The lead's check of 116, P5: Edit, for its creator, while open and
+    // before anyone voted.
+    final held = posts.length == 1 ? posts.single : null;
+    final editPoll =
+        held != null &&
+        held.isPoll &&
+        held.authorId != null &&
+        held.authorId == me &&
+        !(held.poll?.voted ?? true) &&
+        !(held.poll?.isClosed(ref.read(clockProvider)()) ?? true);
     // Review 116: Close poll, for its creator or a Space admin, while open.
     final closePoll =
         posts.length == 1 &&
@@ -2538,6 +2553,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             label: l10n.checkInStop,
             destructive: true,
             onTap: () => unawaited(_stop(posts.single)),
+          ),
+        if (editPoll)
+          SelectionAction(
+            key: const Key('select-edit-poll'),
+            icon: BvIcons.edit,
+            label: l10n.daybookEdit,
+            onTap: () {
+              _endSelection();
+              _startEdit(held);
+            },
           ),
         if (closePoll)
           SelectionAction(

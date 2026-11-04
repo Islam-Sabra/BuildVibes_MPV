@@ -239,10 +239,23 @@ class FakeDaybookRepository implements DaybookRepository {
     createdPolls.add(poll);
   }
 
+  /// While set, a vote waits for it (the lead's check of 116, P2).
+  Completer<void>? holdVote;
+
   @override
   Future<void> votePoll(String postId, List<String> optionIds) async {
     _check();
     calls.add('vote $postId ${optionIds.join(',')}');
+    await holdVote?.future;
+  }
+
+  /// P5: polls as edit_poll got them.
+  final editedPolls = <EditPoll>[];
+
+  @override
+  Future<void> editPoll(EditPoll poll) async {
+    _check();
+    editedPolls.add(poll);
   }
 
   @override
