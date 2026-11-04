@@ -385,6 +385,25 @@ class DaybookWords {
     );
   }
 
+  /// Review 118 F1: "Not chosen yet": each name isolated in its own
+  /// direction; «و» joined to an Arabic name, apart from a Latin one
+  /// («Islam و smsm», never «وsmsm»); then "and 2 more".
+  String pollNames(List<String> all, {int more = 0}) {
+    final shown = [for (final n in all) textRun(n)];
+    if (shown.isEmpty) return '';
+    if (more > 0) {
+      return l10n.pollNamesMore(shown.join(l10n.daybookNamesComma), more);
+    }
+    if (shown.length == 1) return shown.first;
+    final last = all.last;
+    final list = shown
+        .sublist(0, shown.length - 1)
+        .join(l10n.daybookNamesComma);
+    return Bidi.startsWithRtl(last) == Bidi.isRtlLanguage(locale)
+        ? l10n.daybookNamesAnd(list, shown.last)
+        : l10n.daybookNamesAndApart(list, shown.last);
+  }
+
   /// The first two names, then "and others" when there are more: never a
   /// number (rule 3).
   String someNames(List<String> all) {

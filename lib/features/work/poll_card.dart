@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/bidi.dart' show textRun;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../data/models/daybook.dart';
@@ -158,7 +159,8 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
     final post = widget.post;
     final poll = _poll;
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
-    final title = BvSlipTitle(post.title, cancelled: post.cancelled);
+    // Review 118 F1: the question in its own direction.
+    final title = BvSlipTitle(textRun(post.title), cancelled: post.cancelled);
     if (poll == null) return title;
     final words = widget.words;
     final closed = poll.isClosed(widget.now);
@@ -187,7 +189,7 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
               BvInkStamp(label: l10n.pollDecided, size: BvInkStampSize.sm),
               Flexible(
                 child: Text(
-                  decided.label,
+                  textRun(decided.label),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: type.emphasis.copyWith(color: BvColors.textPrimary),
@@ -231,12 +233,7 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
         if (!closed && poll.notYet.isNotEmpty)
           Text(
             l10n.pollNotYet(
-              poll.notYetMore > 0
-                  ? l10n.pollNamesMore(
-                      poll.notYet.join(l10n.daybookNamesComma),
-                      poll.notYetMore,
-                    )
-                  : words.names(poll.notYet),
+              words.pollNames(poll.notYet, more: poll.notYetMore),
             ),
             key: const Key('poll-not-yet'),
             style: quiet,
@@ -332,20 +329,29 @@ class _PollOptionRow extends StatelessWidget {
               Row(
                 spacing: BvSpace.s8,
                 children: [
+                  // Review 118 F4: the check is only ever my answer.
                   if (o.mine)
                     PollRing(key: Key('poll-mine-${o.id}'), on: true)
                   else if (picked)
                     PollRing(key: Key('poll-picked-${o.id}'), picked: true)
                   else
-                    PollRing(on: won),
+                    const PollRing(),
                   Expanded(
                     child: Text(
-                      o.label,
+                      // F1: the option in its own direction.
+                      textRun(o.label),
                       style: (o.mine ? type.emphasis : type.bodyMd).copyWith(
                         color: BvColors.textPrimary,
                       ),
                     ),
                   ),
+                  // F4: the decided answer's own small stamp.
+                  if (won)
+                    BvInkStamp(
+                      key: Key('poll-won-${o.id}'),
+                      label: l10n.pollDecided,
+                      size: BvInkStampSize.sm,
+                    ),
                   if (o.voters.isNotEmpty) BvFaces(facesOf(l10n, o.voters)),
                 ],
               ),

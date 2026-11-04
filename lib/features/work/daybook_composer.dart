@@ -1120,6 +1120,12 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         key: const Key('writing-title'),
                         controller: _title,
                         focusNode: _titleFocus,
+                        // Review 118 F1: in the direction of what is
+                        // written ("Pour time on level 4?" in Arabic too, and
+                        // a poll made a work item).
+                        textDirection: _title.text.trim().isEmpty
+                            ? null
+                            : directionOf(_title.text),
                         autofocus: widget.panel == null,
                         maxLength: draft.titleLimit,
                         buildCounter: _noCounter,

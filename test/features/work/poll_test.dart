@@ -8,6 +8,8 @@
 // creator or a Space admin; Make it a work item. In English and Arabic.
 import 'dart:async';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/features/work/composer_poll.dart' show PollRing;
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/daybook.dart';
@@ -254,8 +256,9 @@ void main() {
           find.text(
             l10n.pollNotYet(
               l10n.pollNamesMore(
-                '${s.t('Lina', 'لينا')}${lang == 'en' ? ', ' : '، '}'
-                '${s.t('Tariq', 'طارق')}',
+                // Review 118 F1: each name isolated.
+                '${textRun(s.t('Lina', 'لينا'))}${lang == 'en' ? ', ' : '، '}'
+                '${textRun(s.t('Tariq', 'طارق'))}',
                 2,
               ),
             ),
@@ -529,6 +532,50 @@ void main() {
         expect(_key('poll-make-work-item'), findsOneWidget);
       });
 
+      // Review 118 F1: a Latin question made a work item keeps its
+      // direction in the composer's title, also in Arabic.
+      testWidgets('F1: Make it a work item: the title in its own direction', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [
+            _pollCard(s, poll: _closed(decided: 'opt-thu')).copyWith(
+              post: _pollCard(
+                s,
+                poll: _closed(decided: 'opt-thu'),
+              ).post.shownAs(),
+            ),
+          ],
+          me: DaybookSamples.sara,
+        );
+        await scrollToRow(tester, _entry(_poll));
+        await _tap(tester, _key('poll-make-work-item'));
+        final field = tester.widget<TextField>(_key('writing-title'));
+        expect(
+          field.controller!.text,
+          startsWith(lang == 'en' ? 'Which' : 'أي'),
+        );
+        expect(
+          field.textDirection,
+          lang == 'en' ? TextDirection.ltr : TextDirection.rtl,
+        );
+      });
+
+      testWidgets('F1: a Latin title in Arabic is written left to right', (
+        tester,
+      ) async {
+        await _open(tester, lang, composerKind: 'note');
+        await _tap(tester, _key('post-bar-notepad'));
+        await tester.enterText(_key('writing-title'), 'Pour time on level 4?');
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<TextField>(_key('writing-title')).textDirection,
+          TextDirection.ltr,
+        );
+      });
+
       testWidgets('P5: its creator edits it before the first vote', (
         tester,
       ) async {
@@ -591,6 +638,172 @@ void main() {
         );
         await _hold(tester, _poll);
         expect(_key('select-edit-poll'), findsNothing);
+      });
+    });
+
+    group('review 118 [$lang]', () {
+      // F1: text in a poll keeps its own direction (shot 22 AR: «?Pour time
+      // on level 4», «am 7»).
+      DaybookCard latin({List<String> notYet = const ['Islam', 'smsm']}) =>
+          s.card(
+            DaybookPost(
+              id: _poll,
+              kind: DaybookPost.pollKind,
+              createdAt: DaybookSamples.thursday,
+              title: 'Pour time on level 4?',
+              authorId: DaybookSamples.sara,
+              authorName: s.saraName,
+              poll: DaybookPoll(
+                closesAt: DaybookSamples.thursday.add(const Duration(days: 1)),
+                voted: true,
+                options: [
+                  const PollOption(id: 'opt-7', label: '7 am', count: 1),
+                  const PollOption(id: 'opt-9', label: '9 am', sort: 1),
+                ],
+                notYet: notYet,
+              ),
+            ),
+          );
+
+      testWidgets('F1: a Latin question and options keep their direction', (
+        tester,
+      ) async {
+        await _open(tester, lang, posts: [latin()], me: DaybookSamples.omar);
+        await scrollToRow(tester, _entry(_poll));
+        expect(find.text(textRun('Pour time on level 4?')), findsOneWidget);
+        expect(find.text(textRun('7 am')), findsOneWidget);
+        expect(find.text(textRun('9 am')), findsOneWidget);
+      });
+
+      testWidgets('F1: "Not chosen yet": each name isolated, joined by '
+          'locale, no «و» glued to a Latin name', (tester) async {
+        await _open(tester, lang, posts: [latin()], me: DaybookSamples.omar);
+        await scrollToRow(tester, _entry(_poll));
+        final line = tester.widget<Text>(_key('poll-not-yet')).data!;
+        expect(line, contains(textRun('Islam')));
+        expect(line, contains(textRun('smsm')));
+        expect(
+          line,
+          contains(
+            lang == 'ar'
+                ? '${textRun('Islam')} و ${textRun('smsm')}'
+                : '${textRun('Islam')} and ${textRun('smsm')}',
+          ),
+        );
+        expect(line, isNot(contains('و${textRun('smsm')}')));
+      });
+
+      testWidgets('F1: an Arabic name last keeps «و» joined to it', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [
+            latin(notYet: ['Islam', 'سارة']),
+          ],
+          me: DaybookSamples.omar,
+        );
+        await scrollToRow(tester, _entry(_poll));
+        final line = tester.widget<Text>(_key('poll-not-yet')).data!;
+        expect(line, contains(textRun('سارة')));
+        if (lang == 'ar') expect(line, contains('و${textRun('سارة')}'));
+      });
+
+      // F4: after a decision, a check marks only my answer; the decided row
+      // keeps its ink outline and its own small DECIDED stamp.
+      DaybookPoll decided({String? mine}) => DaybookPoll(
+        closedAt: DaybookSamples.thursday.subtract(const Duration(minutes: 5)),
+        closedByName: 'Omar Haddad',
+        decidedOption: 'opt-thu',
+        voted: true,
+        options: [
+          PollOption(
+            id: 'opt-thu',
+            label: 'Thursday',
+            count: 2,
+            mine: mine == 'opt-thu',
+          ),
+          PollOption(
+            id: 'opt-sat',
+            label: 'Saturday',
+            sort: 1,
+            count: 1,
+            mine: mine == 'opt-sat',
+          ),
+        ],
+      );
+      Finder checkIn(String id) => find.descendant(
+        of: _key('poll-row-$id'),
+        matching: find.byWidgetPredicate((w) => w is PollRing && w.on),
+      );
+      Finder stampIn(String id) => find.descendant(
+        of: _key('poll-row-$id'),
+        matching: find.byType(BvInkStamp),
+      );
+
+      testWidgets('F4: my answer lost: the check on mine, the stamp on the '
+          'decided one, no check there', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: decided(mine: 'opt-sat'))],
+        );
+        await scrollToRow(tester, _entry(_poll));
+        expect(checkIn('opt-sat'), findsOneWidget);
+        expect(checkIn('opt-thu'), findsNothing);
+        expect(stampIn('opt-thu'), findsOneWidget);
+        expect(stampIn('opt-sat'), findsNothing);
+        expect(
+          find.descendant(
+            of: _key('poll-decided'),
+            matching: find.byType(BvInkStamp),
+          ),
+          findsOneWidget,
+          reason: 'the line above the options stays',
+        );
+      });
+
+      testWidgets('F4: my answer won: that row has the check and the stamp', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s, poll: decided(mine: 'opt-thu'))],
+        );
+        await scrollToRow(tester, _entry(_poll));
+        expect(checkIn('opt-thu'), findsOneWidget);
+        expect(stampIn('opt-thu'), findsOneWidget);
+        expect(checkIn('opt-sat'), findsNothing);
+      });
+
+      testWidgets("F4: I didn't vote: no check anywhere, the stamp on the "
+          'decided row', (tester) async {
+        await _open(tester, lang, posts: [_pollCard(s, poll: decided())]);
+        await scrollToRow(tester, _entry(_poll));
+        expect(checkIn('opt-thu'), findsNothing);
+        expect(checkIn('opt-sat'), findsNothing);
+        expect(stampIn('opt-thu'), findsOneWidget);
+      });
+
+      // F3: a vote is acting: once someone other than its creator voted,
+      // holding the poll offers Archive, never Delete.
+      testWidgets('F3: my poll others voted on: Archive, never Delete', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          posts: [
+            _pollCard(
+              s,
+            ).copyWith(post: _pollCard(s).post.shownAs(hold: PostHold.delete)),
+          ],
+        );
+        await _hold(tester, _poll);
+        expect(_key('select-archive'), findsOneWidget);
+        expect(_key('select-delete'), findsNothing);
       });
     });
 

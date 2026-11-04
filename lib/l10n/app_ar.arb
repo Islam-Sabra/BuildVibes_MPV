@@ -906,6 +906,7 @@
   "daybookChecklistByAt": "قبل الساعة {time} يوم {date}",
   "daybookNamesAnd": "{list} و{last}",
   "daybookNamesComma": "، ",
+  "daybookNamesAndApart": "{list} و {last}",
   "daybookNamesOthers": "{list} وآخرون",
   "daybookForYouAnd": "لك ولـ {names}",
   "daybookTomorrowStart": "غدًا",

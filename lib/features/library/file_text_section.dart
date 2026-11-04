@@ -19,6 +19,12 @@ import '../spaces/space_errors.dart' show showSpaceMessage;
 /// past 50 pages a day, so. Over 10 MB it says so, with Make it smaller
 /// when [onMakeSmaller] is given (the lead's check, D7). A file over 20
 /// pages says "First 20 pages" (D3).
+/// D25: whether a file shows a Text section: Extract text is on, or a text
+/// was already kept. Otherwise nothing, not even its space.
+bool showsFileText(WidgetRef ref, FileTextKind kind, String file) =>
+    ref.watch(ocrAvailableProvider).value == true ||
+    ref.watch(fileTextProvider((kind: kind, ref: file))).value != null;
+
 class FileTextSection extends ConsumerStatefulWidget {
   const FileTextSection({
     super.key,
@@ -78,6 +84,9 @@ class _FileTextSectionState extends ConsumerState<FileTextSection> {
     final type = BvType.of(context);
     final quiet = type.bodySm.copyWith(color: BvColors.textSecondary);
     final kept = ref.watch(fileTextProvider(_file)).value;
+    if (kept == null && ref.watch(ocrAvailableProvider).value != true) {
+      return const SizedBox.shrink();
+    }
     if (kept == null) {
       return Column(
         key: const Key('file-text'),

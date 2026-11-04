@@ -91,7 +91,8 @@ class FilePreviewScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               BvNameText(
-                f.name,
+                // Review 118 F2: no ".pdf".
+                fileTitle(f.name),
                 style: type.titleMd.copyWith(color: BvColors.textInverse),
               ),
               Text(

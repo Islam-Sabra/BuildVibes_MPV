@@ -1346,7 +1346,11 @@ class _DmFiles extends ConsumerWidget {
                           )
                         else
                           BvNameText(
-                            f.name ?? l10n.chatFile,
+                            // Review 118 F2: no ".pdf".
+                            switch (f.name) {
+                              final name? => fileTitle(name),
+                              null => l10n.chatFile,
+                            },
                             style: type.labelSm,
                           ),
                         if (f.bytes != null)

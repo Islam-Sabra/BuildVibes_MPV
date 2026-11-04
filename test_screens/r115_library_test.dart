@@ -117,7 +117,8 @@ void main() {
       }
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-could-not-upload', lang);
-      await tester.tap(find.textContaining('Level 3 plan.pdf').first);
+      // Review 118 F2: the row names it without ".pdf".
+      await tester.tap(find.textContaining('Level 3 plan').first);
       await tester.pumpAndSettle();
       await _snap(tester, 'L1-tap-to-fix', lang);
     });

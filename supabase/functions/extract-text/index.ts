@@ -12,8 +12,8 @@
 // check, D4). The log carries fixed codes only: never a message from
 // another service, a file's name or path, or its words.
 //
-// NOT DEPLOYED. A live change for the founder's yes, after migration
-// 20261128120000 is live. Secret, set in Supabase only:
+// Off until app_settings ocr_enabled is true (review 103, D25): 503
+// not_set_up, even with a key. Secret, set in Supabase only:
 // - GOOGLE_VISION_KEY: a Google Cloud project's API key restricted to the
 //   Vision API. Without it the function answers 503 and the app says
 //   "Couldn't read this file".
@@ -48,6 +48,12 @@ Deno.serve(async (req) => {
     return reply(400, { error: "bad_request" });
   }
   const deps: Deps = {
+    enabled: async () => {
+      const { data, error } = await service.from("app_settings")
+        .select("value").eq("key", "ocr_enabled").maybeSingle();
+      if (error) throw new Failed("flag");
+      return data?.value === true;
+    },
     caller: async () => {
       if (!auth.startsWith("Bearer ")) return null;
       const { data } = await asCaller.auth.getUser(auth.slice(7));

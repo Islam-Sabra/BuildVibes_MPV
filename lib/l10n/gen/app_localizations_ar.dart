@@ -3275,6 +3275,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookNamesComma => '، ';
 
   @override
+  String daybookNamesAndApart(String list, String last) {
+    return '$list و $last';
+  }
+
+  @override
   String daybookNamesOthers(String list) {
     return '$list وآخرون';
   }

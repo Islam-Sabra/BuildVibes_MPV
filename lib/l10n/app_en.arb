@@ -4590,6 +4590,8 @@
     }
   },
   "daybookNamesComma": ", ",
+  "daybookNamesAndApart": "{list} and {last}",
+  "@daybookNamesAndApart": {"description": "Review 118 F1: the last of a list of names when it is written in the other direction (a Latin name in Arabic): «و» stands apart from it.", "placeholders": {"list": {"type": "String"}, "last": {"type": "String"}}},
   "@daybookNamesComma": {
     "description": "Between names in a list."
   },

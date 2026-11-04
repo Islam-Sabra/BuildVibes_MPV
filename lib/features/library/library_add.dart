@@ -419,7 +419,8 @@ class LibraryPendingRow extends ConsumerWidget {
         : l10n.libraryWaitingForSignal;
     return BvListRow(
       key: Key('library-pending-${item.id}'),
-      title: inOwnDirection(file.name),
+      // Review 118 F2: the name without ".pdf" while it waits too.
+      title: fileTitle(file.name),
       subtitle: line,
       leading: const BvRowIcon(BvIcons.upload, ink: true),
       trailing: going != null

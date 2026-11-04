@@ -26,6 +26,7 @@ function fakes(opts: {
   left?: number;
   kept?: { text: string; lang: string | null; pages: number } | null;
   visionFails?: boolean;
+  enabled?: boolean;
 } = {}): { deps: Deps; calls: Calls } {
   const calls: Calls = {
     vision: [],
@@ -38,6 +39,7 @@ function fakes(opts: {
   const total = opts.pages ?? 3;
   let left = opts.left ?? 50;
   const deps: Deps = {
+    enabled: async () => opts.enabled ?? true,
     caller: async () => opts.caller === undefined ? "user-1" : opts.caller,
     fileFor: async () =>
       opts.file === undefined
@@ -95,6 +97,16 @@ function fakes(opts: {
   };
   return { deps, calls };
 }
+
+Deno.test("D25: Extract text off (ocr_enabled false): 503 not_set_up, nothing read", async () => {
+  const { deps, calls } = fakes({ enabled: false });
+  const a = await extract({ kind: "library", ref: "f" }, deps);
+  assertEquals(a.status, 503);
+  assertEquals(a.body.error, "not_set_up");
+  assertEquals(calls.downloaded, 0);
+  assertEquals(calls.reserved.length, 0);
+  assertEquals(calls.vision.length, 0);
+});
 
 Deno.test("signed out: 401, Vision never asked", async () => {
   const { deps, calls } = fakes({ caller: null });

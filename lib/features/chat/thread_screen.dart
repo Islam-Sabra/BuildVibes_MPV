@@ -1038,7 +1038,7 @@ class _EntryView extends ConsumerWidget {
           ],
           names: [
             for (final f in pending.files)
-              if (f.file.isPdf) f.file.name,
+              if (f.file.isPdf) fileTitle(f.file.name),
           ],
         );
       } else {

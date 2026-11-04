@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/file_cache.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/library_folder.dart';
@@ -145,6 +146,14 @@ void main() {
           find.descendant(
             of: _pending(tester),
             matching: find.text(l10n.libraryWaitingForSignal),
+          ),
+          findsOneWidget,
+        );
+        // Review 118 F2: the name without ".pdf" while it waits too.
+        expect(
+          find.descendant(
+            of: _pending(tester),
+            matching: find.text(fileTitle('Level 3 plan.pdf')),
           ),
           findsOneWidget,
         );

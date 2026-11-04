@@ -9,6 +9,7 @@ import 'package:pdfx/pdfx.dart' as pdfx;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart' show fileTitle;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart' show SpaceDetail;
 import '../../data/models/upload_rules.dart';
@@ -164,7 +165,8 @@ Future<PhoneFile> offerSmaller(
         spacing: BvSpace.s12,
         children: [
           Text(
-            '${file.name} · ${fileSize(l10n, file.bytes)}',
+            // Review 118 F2: the name without ".pdf".
+            '${fileTitle(file.name)} · ${fileSize(l10n, file.bytes)}',
             style: type.bodyMd.copyWith(color: BvColors.textPrimary),
           ),
           Row(
