@@ -277,7 +277,7 @@ void main() {
     await _tapKey(tester, 'preview-share');
     await _tapKey(tester, 'share-to-$_thread');
     // F77: the file waits in the message box.
-    expect(find.text(fileNameRun('Level 3 plan.pdf')), findsOneWidget);
+    expect(find.text(fileTitle('Level 3 plan.pdf')), findsOneWidget);
     await _backToSpaceChat(tester);
     await _back(tester);
     expect(find.byType(SpaceScreen), findsNothing);

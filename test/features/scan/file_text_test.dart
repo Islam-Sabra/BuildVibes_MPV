@@ -236,7 +236,7 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, _FakeTexts(), name: 'مسح 114.pdf');
-      expect(find.text(fileNameRun('مسح 114.pdf')), findsOneWidget);
+      expect(find.text(fileTitle('مسح 114.pdf')), findsOneWidget);
     });
   }
 }

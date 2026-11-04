@@ -813,7 +813,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
                       size: BvNotebookPagesSpec.chipIcon,
                       color: BvColors.iconSecondary,
                     ),
-                    Expanded(child: Text(fileNameRun(f.name), style: quiet)),
+                    Expanded(child: Text(fileTitle(f.name), style: quiet)),
                   ],
                 ),
               for (final v in voices)

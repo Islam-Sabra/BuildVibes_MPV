@@ -321,7 +321,7 @@ class LibraryFileRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvSpace.s2,
                     children: [
-                      BvNameText(fileNameRun(file.name), style: type.bodyMd),
+                      BvNameText(fileTitle(file.name), style: type.bodyMd),
                       Text(
                         line,
                         maxLines: 1,

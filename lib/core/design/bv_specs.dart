@@ -45,6 +45,10 @@ abstract final class BvChipSpec {
   static const gap = BvSpace.s6;
   static const iconSize = BvSize.iconSm; // 16
   static const rowGap = BvSpace.s8;
+
+  /// Review 103, D24: the room a name keeps beside its facts; with less,
+  /// the facts go under it.
+  static const nameMin = BvSpace.s64;
 }
 
 abstract final class BvTabsSpec {

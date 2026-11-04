@@ -178,7 +178,7 @@ class LibraryFileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: BvNameText(fileNameRun(f.name)),
+        title: BvNameText(fileTitle(f.name)),
         actions: [
           IconButton(
             key: const Key('file-more'),

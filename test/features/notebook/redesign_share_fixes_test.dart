@@ -253,7 +253,7 @@ void main() {
         expect(
           find.descendant(
             of: _key('share-preview'),
-            matching: find.text(fileNameRun('Plan.pdf')),
+            matching: find.text(fileTitle('Plan.pdf')),
           ),
           findsOneWidget,
         );

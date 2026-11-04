@@ -11,11 +11,13 @@ import 'dart:io';
 
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/features/library/library_parts.dart' show fileSize;
 import 'package:buildvibes/features/scan/scan.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -150,9 +152,42 @@ void main() {
         await _tap(tester, _key('writing-scan'));
         await tester.enterText(_key('scan-name'), 'إشعار 114');
         await _tap(tester, _key('scan-add'));
+        expect(find.textContaining(fileTitle('إشعار 114.pdf')), findsOneWidget);
+      });
+
+      // The lead's second check: D23 no ".pdf" on the chip; D24 a long
+      // name shortens with "…", the facts always show in full.
+      testWidgets('D23, D24: no extension; the facts never cut [$lang]', (
+        tester,
+      ) async {
+        await _compose(tester, lang);
+        await _tap(tester, _key('writing-scan'));
+        await tester.enterText(
+          _key('scan-name'),
+          'Delivery note 114 rebar level 3 slab tower B north side',
+        );
+        await _tap(tester, _key('scan-add'));
+        final chip = _key('writing-file-0');
         expect(
-          find.textContaining(fileNameRun('إشعار 114.pdf')),
-          findsOneWidget,
+          find.descendant(of: chip, matching: find.textContaining('.pdf')),
+          findsNothing,
+        );
+        final file = _draft(tester)!.files.single;
+        final said = joinMeta([
+          l10n.scannedPages(l10n.scanPages(3)),
+          fileSize(l10n, file.bytes),
+        ]);
+        // Beside the name ("· Scanned …") or, with no room, under it.
+        final facts = find.descendant(
+          of: chip,
+          matching: find.byWidgetPredicate(
+            (w) => w is Text && (w.data == said || w.data == '$metaDot $said'),
+          ),
+        );
+        expect(facts, findsOneWidget);
+        expect(
+          tester.renderObject<RenderParagraph>(facts).didExceedMaxLines,
+          isFalse,
         );
       });
 

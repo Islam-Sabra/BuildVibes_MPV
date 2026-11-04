@@ -1824,7 +1824,7 @@ class _FileChip extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BvNameText(
-                    fileNameRun(file.name),
+                    fileTitle(file.name),
                     maxLines: 2,
                     style: type.labelMd,
                   ),
@@ -1901,7 +1901,7 @@ class _PickedChip extends StatelessWidget {
                   // Review 103: a PDF shows its size.
                   ? BvNameText(
                       joinMeta([
-                        fileNameRun(file.name),
+                        fileTitle(file.name),
                         if (file.bytes != null) fileSize(l10n, file.bytes),
                       ]),
                       style: type.bodySm,
@@ -2008,7 +2008,7 @@ class _SharedFileChip extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
-              child: BvNameText(fileNameRun(file.name), style: type.bodySm),
+              child: BvNameText(fileTitle(file.name), style: type.bodySm),
             ),
           ),
           IconButton(

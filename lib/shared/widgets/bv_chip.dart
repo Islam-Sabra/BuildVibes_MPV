@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart' show metaDot;
 import 'bv_tap_target.dart';
 
 /// Spec §2 ("DS · Chip & Tab").
@@ -122,10 +123,15 @@ class BvFilterChip extends StatelessWidget {
     this.clearKey,
     this.onTap,
     this.danger = false,
+    this.detail,
   });
 
   final String label;
   final String clearLabel;
+
+  /// Facts after the label ("Scanned · 3 pages · 74 KB"): always in full;
+  /// only the label shortens with "…" (the lead's check of review 103, D24).
+  final String? detail;
 
   /// Review 110 TG1: a danger tag (Safety) shows red.
   final bool danger;
@@ -161,31 +167,61 @@ class BvFilterChip extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onTap,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: BvChipSpec.gap,
-                children: [
-                  if (icon != null)
-                    Icon(
-                      icon,
-                      size: BvChipSpec.iconSize,
-                      color: danger
-                          ? BvColors.textDestructive
-                          : BvColors.textPrimary,
-                    ),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BvType.of(context).labelMd.copyWith(
-                        color: danger
-                            ? BvColors.textDestructive
-                            : BvColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  final style = BvType.of(context).labelMd.copyWith(
+                    color: danger
+                        ? BvColors.textDestructive
+                        : BvColors.textPrimary,
+                  );
+                  final facts = detail == null ? null : '$metaDot $detail';
+                  final words = Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  );
+                  // D24: beside the name when they fit, under it when they
+                  // don't; never cut.
+                  final beside =
+                      facts == null ||
+                      _width(context, facts, style) +
+                              (icon == null
+                                  ? 0
+                                  : BvChipSpec.iconSize + BvChipSpec.gap) +
+                              BvChipSpec.gap +
+                              BvChipSpec.nameMin <=
+                          box.maxWidth;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: BvChipSpec.gap,
+                    children: [
+                      if (icon != null)
+                        Icon(
+                          icon,
+                          size: BvChipSpec.iconSize,
+                          color: danger
+                              ? BvColors.textDestructive
+                              : BvColors.textPrimary,
+                        ),
+                      if (beside) ...[
+                        Flexible(child: words),
+                        if (facts != null)
+                          Text(facts, maxLines: 1, style: style),
+                      ] else
+                        Flexible(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              words,
+                              Text(detail!, style: style),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -233,4 +269,17 @@ class BvChipRow extends StatelessWidget {
       child: Row(spacing: BvChipSpec.rowGap, children: chips),
     );
   }
+}
+
+/// How wide [text] is on one line, as the chip would draw it.
+double _width(BuildContext context, String text, TextStyle style) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    maxLines: 1,
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+  )..layout();
+  final width = painter.width;
+  painter.dispose();
+  return width;
 }

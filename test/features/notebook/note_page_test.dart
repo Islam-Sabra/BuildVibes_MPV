@@ -298,7 +298,7 @@ void main() {
       // File: a PDF, its name and size.
       await _add(tester, 'file');
       expect(_key('note-file-0'), findsOneWidget);
-      expect(find.text(fileNameRun('Level 3 plan.pdf')), findsOneWidget);
+      expect(find.text(fileTitle('Level 3 plan.pdf')), findsOneWidget);
 
       // Date and Remind me.
       await _add(tester, 'date');
