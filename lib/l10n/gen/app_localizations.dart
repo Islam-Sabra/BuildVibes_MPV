@@ -10748,6 +10748,24 @@ abstract class AppLocalizations {
   /// **'{question}: {answer}'**
   String pollWorkItemTitle(String question, String answer);
 
+  /// Review 116b V2: sends the options picked on a poll card.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote'**
+  String get pollVote;
+
+  /// Review 116b V2: sends a different pick than the vote already sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Change vote'**
+  String get pollChangeVote;
+
+  /// Review 116b V2: the reader untapped their own vote; sends no answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Take back my vote'**
+  String get pollTakeBack;
+
   /// Review 116: the hold bar's action, for its creator or a Space admin.
   ///
   /// In en, this message translates to:

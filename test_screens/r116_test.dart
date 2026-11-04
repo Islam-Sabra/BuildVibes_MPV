@@ -158,6 +158,31 @@ void main() {
       await _snap(tester, 'PL2-open', lang);
     });
 
+    // Review 116b V2: a tap picks (outlined, an empty tick); Change vote
+    // sends it.
+    testWidgets('PL2 picked, not sent [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        posts: [
+          _card(
+            s,
+            DaybookPoll(
+              closesAt: DaybookSamples.thursday.add(const Duration(hours: 6)),
+              voted: true,
+              options: _options(s, mine: true),
+              notYet: [s.t('Lina', 'لينا'), s.t('Tariq', 'طارق')],
+              notYetMore: 2,
+            ),
+          ),
+        ],
+      );
+      await scrollToRow(tester, _key('daybook-card-$_poll'));
+      await _tap(tester, 'poll-option-opt-sat');
+      await scrollToRow(tester, _key('poll-vote'));
+      await _snap(tester, 'PL2-picked', lang);
+    });
+
     testWidgets('PL3 decided [$lang]', (tester) async {
       await _open(
         tester,

@@ -195,40 +195,45 @@ void main() {
 
     // The lead, 4 Nov (tipsfix): a tip never blocks the tap under it. One
     // tap on a poll option, with a tip showing, votes; the tip goes as seen.
-    testWidgets('with a tip showing, one tap on a poll option votes [$lang]', (
-      tester,
-    ) async {
-      final daybook = FakeDaybookRepository();
-      final poll = s.card(
-        DaybookPost(
-          id: 'post-poll',
-          kind: DaybookPost.pollKind,
-          createdAt: DateTime(2026, 10, 15, 8),
-          title: s.t('Which day?', 'أي يوم؟'),
-          authorId: DaybookSamples.islam,
-          authorName: s.islamName,
-          poll: DaybookPoll(
-            options: [
-              PollOption(id: 'opt-thu', label: s.t('Thursday', 'الخميس')),
-              PollOption(
-                id: 'opt-sat',
-                label: s.t('Saturday', 'السبت'),
-                sort: 1,
-              ),
-            ],
+    testWidgets(
+      'with a tip showing, one tap on a poll option picks it [$lang]',
+      (tester) async {
+        final daybook = FakeDaybookRepository();
+        final poll = s.card(
+          DaybookPost(
+            id: 'post-poll',
+            kind: DaybookPost.pollKind,
+            createdAt: DateTime(2026, 10, 15, 8),
+            title: s.t('Which day?', 'أي يوم؟'),
+            authorId: DaybookSamples.islam,
+            authorName: s.islamName,
+            poll: DaybookPoll(
+              options: [
+                PollOption(id: 'opt-thu', label: s.t('Thursday', 'الخميس')),
+                PollOption(
+                  id: 'opt-sat',
+                  label: s.t('Saturday', 'السبت'),
+                  sort: 1,
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-      final app = await _open(tester, lang, posts: [poll], daybook: daybook);
-      expect(_key('tip-card'), findsOneWidget, reason: 'a tip is showing');
-      await tester.tap(_key('poll-option-opt-sat'), warnIfMissed: false);
-      await tester.pumpAndSettle();
-      expect(daybook.calls, contains('vote post-poll opt-sat'));
-      expect(
-        app.tips.marked,
-        contains(FirstRunTip.camera),
-        reason: 'the tip goes, as seen',
-      );
-    });
+        );
+        final app = await _open(tester, lang, posts: [poll], daybook: daybook);
+        expect(_key('tip-card'), findsOneWidget, reason: 'a tip is showing');
+        await tester.tap(_key('poll-option-opt-sat'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        // Review 116b: the tap picks it; Vote sends it.
+        expect(find.byKey(const Key('poll-picked-opt-sat')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('poll-vote')));
+        await tester.pumpAndSettle();
+        expect(daybook.calls, contains('vote post-poll opt-sat'));
+        expect(
+          app.tips.marked,
+          contains(FirstRunTip.camera),
+          reason: 'the tip goes, as seen',
+        );
+      },
+    );
   }
 }

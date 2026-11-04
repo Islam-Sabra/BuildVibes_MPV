@@ -6514,6 +6514,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get pollVote => 'صوّت';
+
+  @override
+  String get pollChangeVote => 'غيّر صوتي';
+
+  @override
+  String get pollTakeBack => 'اسحب صوتي';
+
+  @override
   String get pollClose => 'أغلق التصويت';
 
   @override
