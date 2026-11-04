@@ -190,3 +190,23 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
 - Scan more pages adds pages after the old ones.
 - PNG and WebP aren't resized, which keeps drawings sharp.
 - Blank thumbnails in the goldens, but an **emulator shot with real pages** of SC3, SC4 and TX2 is required before sign-off.
+
+## The lead's second check: `claude/r103` at `c7605c9d` (4 Nov)
+- **What was checked:**
+  - The SQL stand-in: **71 files, 4,576 checks, PASS**.
+  - Read in the code:
+    - the key goes in the `X-Goog-Api-Key` header, and logs carry codes only;
+    - `ocr_usage` takes a per-person advisory lock;
+    - `add_evidence` accepts `application/pdf` only for a `.pdf`, and images otherwise.
+  - The emulator shots with real scanned pages, viewed in EN/AR.
+- **Accepted:** the 1,000 px thumbnail, the extra D17 places, no new Android permission, and the Arabic privacy draft started.
+- **Two small fixes before merge:**
+  - **D23. Show file names without their extension** («مسح · الأربعاء 4 نوفمبر 3:29 عصرًا», not «….pdf») on rows, chips, titles and bubbles. The file icon and "PDF" already say the type. This also ends the Arabic «.pdf» direction problem. Downloads and shares keep the real file name with its extension.
+  - **D24. The composer chip never cuts the facts:** the name shortens with "…", but "· Scanned · 3 pages · 74 KB" always shows in full.
+- **Then, live, each with the founder's yes:**
+  1. merge;
+  2. `db push` of `20261127120000` and `20261128120000`;
+  3. deploy `extract-text`. Until the key exists it answers "Couldn't read this file".
+  4. The founder creates the Google Cloud key (the lead guides him), and it's set as the `GOOGLE_VISION_KEY` secret.
+  5. Build and install.
+  6. Phone check: scan a real delivery note → Extract text in Arabic and English.
