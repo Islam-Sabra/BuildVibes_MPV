@@ -33,7 +33,7 @@ test("every kind has its text in English and Arabic", () => {
     "dm_message", "dm_request", "dm_follow_up",
     "work_reminder", "scheduled_failed", "check_in_open", "check_in_summary",
     "post_reaction", "work_item_archived", "check_in_nudge", "need_you", "need_you_answer",
-    "scheduled_expiring", "need_you_test",
+    "scheduled_expiring", "need_you_test", "poll_new", "poll_closed",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -52,7 +52,8 @@ test("the text names the person, never the work item; ids go in data", () => {
 
 test("a daybook post opens its card (slice 10); its id travels in the data", () => {
   for (const kind of ["announcement_new", "checklist_for_you", "activity_invited",
-                      "activity_starting", "file_new_version", "item_edited", "item_cancelled"]) {
+                      "activity_starting", "file_new_version", "item_edited", "item_cancelled",
+                      "poll_new", "poll_closed"]) {
     const p = buildPush(row(kind, { data: { space_id: "s1", space_post_id: "sp1" } }),
                         "en", "Sara Ali", strings);
     assert.equal(p.data.route, "/spaces/s1/items/sp1", kind);
