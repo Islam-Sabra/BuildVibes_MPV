@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, late night — review 103 merged and live; build 1071 waits for the phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **D23, D24 (the lead's second check), test first on `claude/r103` (59fb3d02):** `fileTitle` shows file names without a short extension, in their own direction, on rows, chips, titles and bubbles (downloads and shares keep the real name). The composer chip's facts ("Scanned · 3 pages · 74 KB") always show in full: beside the name, or under it when the name would get less than 64 px (`BvChipSpec.nameMin`); only the name shortens with "…".
+- **Checks:** `flutter analyze` clean; `flutter test` 3,910 pass; `test_screens` 744 pass (goldens updated: no ".pdf" on rows and chips).
+- **Merged:** `claude/r103` into `slice2-app` at 8cb985c5 (same tree).
+- **Live:**
+  - `supabase db push` (dry run first: only `20261127120000_review103_scan` and `20261128120000_review103_ocr`). `20261128120000` is the last of 66 on live. Only the usual pg-delta cache warning.
+  - `extract-text` deployed: **v1**, JWT check on. No `GOOGLE_VISION_KEY` yet: a probe answers 503 `not_set_up`, so the app says "Couldn't read this file".
+- **Build 1071** (versionCode 1071, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1071`** (= 8cb985c5). `Desktop/BuildVibes-1071.apk`. No CAMERA permission. Not yet on the phone: waiting for its IP:port.
+- **Next, with the founder:** the Google Cloud key (the lead guides him) → set `GOOGLE_VISION_KEY` → phone check: scan a real delivery note, Extract text in Arabic and English.
+- **Emulators:** Pixel_8 has 1050 (Test Lead); Pixel_8_B has the r103 debug build on the local server (front camera on).
+- **Who has which branch:** PC has `slice2-app`; `claude/r103` is merged.
+
 ## PC update: 4 Nov 2026, night — the lead's check of `claude/r103` (D1–D22) fixed; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
