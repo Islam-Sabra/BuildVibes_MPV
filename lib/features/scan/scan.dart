@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
@@ -45,6 +46,10 @@ abstract interface class DocumentScanner {
 
   /// Page images on the phone, in order; null when the scan was cancelled.
   Future<List<String>?> scan({required int maxPages});
+
+  /// The lead's check, D19: [pages] are a PDF that was added, or were
+  /// discarded: they leave the phone.
+  Future<void> finish(List<String> pages);
 }
 
 class PhoneDocumentScanner implements DocumentScanner {
@@ -71,6 +76,63 @@ class PhoneDocumentScanner implements DocumentScanner {
       return await CunningDocumentScanner.getPictures(noOfPages: maxPages);
     } on CunningDocumentScannerException {
       return null;
+    }
+  }
+
+  @override
+  Future<void> finish(List<String> pages) async {
+    for (final page in pages) {
+      try {
+        File(page).deleteSync();
+      } on FileSystemException {
+        // Already gone.
+      }
+    }
+    await cleanUp();
+  }
+
+  /// The scanner's own pages (its DOCUMENT_SCAN_ files), at app start too.
+  static Future<void> cleanUp() async {
+    try {
+      await CunningDocumentScanner.cleanCache();
+    } on Object catch (e) {
+      debugPrint('scan clean-up: ${e.runtimeType}');
+    }
+  }
+}
+
+/// The lead's check, D19, at app start: a scan in [scans] that nothing
+/// waiting on the phone names ([pending]: drafts, outboxes) goes, with its
+/// thumbnail. A waiting one keeps its own.
+void cleanUpScans(Directory scans, {required Iterable<String> pending}) {
+  String plain(String s) => s.replaceAll(r'\\', '/').replaceAll(r'\', '/');
+  final held = plain(pending.join('\n'));
+  bool named(String path) => held.contains(plain(path));
+  if (!scans.existsSync()) return;
+  for (final f in scans.listSync().whereType<File>()) {
+    final path = f.path;
+    final lower = path.toLowerCase();
+    final pdf = lower.endsWith('.jpg')
+        ? '${path.substring(0, path.length - '.jpg'.length)}.pdf'
+        : path;
+    if (named(path) || named(pdf)) continue;
+    try {
+      f.deleteSync();
+    } on FileSystemException {
+      // In use; next start.
+    }
+  }
+}
+
+/// The lead's check, D19: a copy of a scan (or of its smaller copy) the
+/// place took its own copy of ([kept]) goes, with its thumbnail.
+void dropScanCopy(String scan, {required String kept}) {
+  if (scan == kept) return;
+  for (final p in [scan, ?scanThumbOf(scan)]) {
+    try {
+      File(p).deleteSync();
+    } on FileSystemException {
+      // Already gone.
     }
   }
 }
@@ -110,11 +172,23 @@ final scanPdfBuilderProvider = Provider<ScanPdfBuilder>(
       ),
 );
 
+/// The lead's check, D20: a page the phone can't read. The scan fails;
+/// the photo never goes as it came, with its EXIF.
+class ScanPageUnreadable implements Exception {
+  const ScanPageUnreadable();
+}
+
 /// One page as it goes in the PDF: upright, at most [scanPageSide] long,
 /// JPEG at [scanPageQuality], with no EXIF at all (no location, no phone).
+/// Throws [ScanPageUnreadable] for one it can't read.
 Uint8List scanPage(Uint8List photo) {
-  final decoded = img.decodeImage(photo);
-  if (decoded == null) return photo;
+  final img.Image? decoded;
+  try {
+    decoded = img.decodeImage(photo);
+  } on Object {
+    throw const ScanPageUnreadable();
+  }
+  if (decoded == null) throw const ScanPageUnreadable();
   var page = img.bakeOrientation(decoded);
   final long = math.max(page.width, page.height);
   if (long > scanPageSide) {

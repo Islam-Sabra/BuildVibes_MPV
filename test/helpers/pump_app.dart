@@ -332,6 +332,7 @@ Future<TestApp> pumpApp(
   DocumentScanner? scanner,
   ScanPdfBuilder? scanBuilder,
   FakePdfShrinker? shrinker,
+  Future<String> Function()? scanDir,
   FileTextRepository? fileTexts,
   bool Function(String path)? localFileThere,
   FileCache? fileCache,
@@ -505,7 +506,7 @@ Future<TestApp> pumpApp(
         documentScannerProvider.overrideWithValue(
           scanner ?? FakeDocumentScanner(pages: List.filled(3, testPhotoPath)),
         ),
-        scanDirProvider.overrideWithValue(testScanDir),
+        scanDirProvider.overrideWithValue(scanDir ?? testScanDir),
         // Review 103: no text read unless a test says so.
         fileTextRepositoryProvider.overrideWithValue(
           fileTexts ?? const NoFileTexts(),

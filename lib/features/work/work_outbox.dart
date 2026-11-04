@@ -1054,8 +1054,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   void _deleteFiles(PendingItem item) {
     for (final path in [
       ?item.voiceLocal,
-      for (final p in item.photos) p.local,
-      for (final f in item.files) ?f.local,
+      for (final p in item.photos) ...[p.local, ?scanThumbOf(p.local)],
+      for (final f in item.files)
+        if (f.local case final local?) ...[local, ?scanThumbOf(local)],
     ]) {
       unawaited(_deleteKept(path));
     }

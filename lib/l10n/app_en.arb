@@ -2106,6 +2106,8 @@
   "@scanTooLarge": {"description": "Review 103: the scan is over the place's file limit; Add is off."},
   "scanNoScanner": "This phone has no document scanner, so pages are plain photos.",
   "@scanNoScanner": {"description": "Review 103: a phone without Google Play services."},
+  "scanPageUnreadable": "A page couldn't be read. Scan it again.",
+  "@scanPageUnreadable": {"description": "Review 103 (D20): the phone couldn't read a page's image; nothing is added."},
   "scanMaking": "Making the PDF…",
   "@scanMaking": {"description": "Review 103: while the pages become one PDF on the phone."},
   "scannedPages": "Scanned · {pages}",

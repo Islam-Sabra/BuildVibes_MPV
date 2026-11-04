@@ -2,6 +2,9 @@
 // chat and direct-message attach sheets, and Sign as done (Photo | Scan).
 // In the Library a scan is a file marked "Scanned · 3 pages". In English
 // and Arabic.
+import 'dart:io';
+
+import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +13,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
+import '../../helpers/dm_fakes.dart';
 import '../../helpers/library_fakes.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
@@ -98,6 +102,33 @@ void main() {
           findsOneWidget,
         );
       });
+    });
+
+    // The lead's check, D19: a message keeps its own copy until it is
+    // sent; the scan's copy and thumbnail go at once.
+    testWidgets('D19: a scan in a message leaves only the message\'s copy '
+        '[$lang]', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('bv_scans');
+      await pumpApp(
+        tester,
+        language: lang,
+        dm: FakeDmRepository()
+          ..pages['t-omar'] = const DmThreadPage(
+            threadId: 't-omar',
+            person: DmPerson(id: 'p-omar', name: 'Omar Haddad'),
+            messages: [],
+          ),
+        scanDir: () async => dir.path,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Scaffold).first),
+      ).push('/messages/t-omar');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('chat-attach'));
+      await _tap(tester, _key('dm-attach-scan'));
+      await _tap(tester, _key('scan-add'));
+      expect(_key('chat-picked'), findsOneWidget);
+      expect(dir.listSync(), isEmpty, reason: 'the PDF and its thumbnail');
     });
   }
 }

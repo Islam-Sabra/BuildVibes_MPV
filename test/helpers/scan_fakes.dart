@@ -29,6 +29,12 @@ class FakeDocumentScanner implements DocumentScanner {
     opened.add(maxPages);
     return cancel ? null : List.of(pages);
   }
+
+  /// The lead's check, D19: the pages it was told to clean up, each time.
+  final finished = <List<String>>[];
+
+  @override
+  Future<void> finish(List<String> pages) async => finished.add(pages);
 }
 
 /// A folder of its own for each test's scans.

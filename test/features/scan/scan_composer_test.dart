@@ -165,7 +165,11 @@ void main() {
         final id = _draft(tester)!.files.single.libraryId;
         await tester.enterText(_key('writing-title'), 'Delivery note');
         await tester.pumpAndSettle();
+        final local = _draft(tester)!.files.single.local!;
         await _tap(tester, _key('writing-post'));
+        // The lead's check, D19: sent, the scan leaves the phone.
+        expect(File(local).existsSync(), isFalse);
+        expect(File(scanThumbFor(local)).existsSync(), isFalse);
         // The lead's check, D10: with page 1's thumbnail, in its folder.
         expect(
           app.library.scannedMarks.single,
@@ -193,6 +197,43 @@ void main() {
         await _tap(tester, _key('scan-more'));
         expect(scanner.opened, hasLength(2));
         expect(find.text(l10n.scanPages(3)), findsOneWidget);
+      });
+
+      // The lead's check, D19: the scanner's own pages go once they are a
+      // PDF that was added, or once the scan is discarded.
+      testWidgets('D19: added or discarded, the scanner\'s pages go [$lang]', (
+        tester,
+      ) async {
+        final scanner = FakeDocumentScanner(
+          pages: List.filled(2, testPhotoPath),
+        );
+        await _compose(tester, lang, scanner: scanner);
+        await _tap(tester, _key('writing-scan'));
+        await _tap(tester, _key('scan-add'));
+        expect(scanner.finished, [List.filled(2, testPhotoPath)]);
+        await _tap(tester, _key('writing-scan'));
+        await _tap(tester, _key('scan-cancel'));
+        await _tap(tester, _key('bv-dialog-confirm'));
+        expect(scanner.finished, hasLength(2));
+      });
+
+      // D20: a page the phone can't read fails the scan: never the photo as
+      // it came, with its EXIF.
+      testWidgets("D20: a page that can't be read says so; nothing is added "
+          '[$lang]', (tester) async {
+        final junk = File(
+          '${Directory.systemTemp.createTempSync('bv_junk').path}/p.jpg',
+        )..writeAsStringSync('not a photo');
+        await _compose(
+          tester,
+          lang,
+          scanner: FakeDocumentScanner(pages: [junk.path]),
+        );
+        await _tap(tester, _key('writing-scan'));
+        expect(find.text(l10n.scanPageUnreadable), findsOneWidget);
+        await _tap(tester, _key('scan-add'));
+        expect(_key('scan-review'), findsOneWidget);
+        expect(_draft(tester)?.files ?? const [], isEmpty);
       });
 
       testWidgets('Cancel asks once; Discard leaves nothing', (tester) async {

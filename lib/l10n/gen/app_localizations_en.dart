@@ -1569,6 +1569,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This phone has no document scanner, so pages are plain photos.';
 
   @override
+  String get scanPageUnreadable => 'A page couldn\'t be read. Scan it again.';
+
+  @override
   String get scanMaking => 'Making the PDF…';
 
   @override

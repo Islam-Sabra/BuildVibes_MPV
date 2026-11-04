@@ -50,6 +50,29 @@ void main() {
     expect(latin1.decode(page).contains('PhoneMaker'), isFalse);
   });
 
+  test("D20: a page that can't be read fails; never the photo as it came", () {
+    expect(
+      () => scanPage(Uint8List.fromList(utf8.encode('not a photo'))),
+      throwsA(isA<ScanPageUnreadable>()),
+    );
+  });
+
+  test('D19: at start, a scan nothing waits for goes, with its thumbnail; '
+      'one a draft names stays, with its own', () {
+    final dir = Directory.systemTemp.createTempSync('bv_scans');
+    File named(String name) =>
+        File('${dir.path}/$name')..writeAsStringSync('x');
+    final waiting = named('a.pdf');
+    final waitingThumb = named('a.jpg');
+    final left = named('b.pdf');
+    final leftThumb = named('b.jpg');
+    cleanUpScans(dir, pending: ['{"local": "${waiting.path}"}']);
+    expect(waiting.existsSync(), isTrue);
+    expect(waitingThumb.existsSync(), isTrue);
+    expect(left.existsSync(), isFalse);
+    expect(leftThumb.existsSync(), isFalse);
+  });
+
   test('a page already small stays its size', () {
     final small = img.encodeJpg(
       img.Image(width: 800, height: 600),

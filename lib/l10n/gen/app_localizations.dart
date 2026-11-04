@@ -2774,6 +2774,12 @@ abstract class AppLocalizations {
   /// **'This phone has no document scanner, so pages are plain photos.'**
   String get scanNoScanner;
 
+  /// Review 103 (D20): the phone couldn't read a page's image; nothing is added.
+  ///
+  /// In en, this message translates to:
+  /// **'A page couldn\'t be read. Scan it again.'**
+  String get scanPageUnreadable;
+
   /// Review 103: while the pages become one PDF on the phone.
   ///
   /// In en, this message translates to:

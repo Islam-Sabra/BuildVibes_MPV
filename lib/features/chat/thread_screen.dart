@@ -10,6 +10,7 @@ import 'package:intl/intl.dart' show DateFormat;
 
 import '../scan/pdf_smaller.dart';
 import '../scan/scan_review.dart';
+import '../scan/scan.dart' show dropScanCopy, scanDirProvider;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -276,6 +277,11 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
       picked.local,
       picked.extension,
     );
+    // The lead's check of review 103, D19: a scan's own copy (or its
+    // smaller copy) goes; the message keeps its own until it is sent.
+    if (picked.local.startsWith(await ref.read(scanDirProvider)())) {
+      dropScanCopy(picked.local, kept: kept);
+    }
     if (!mounted) return;
     setState(
       () => _files.add(

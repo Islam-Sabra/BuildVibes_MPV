@@ -446,6 +446,7 @@
   "scanKeep": "متابعة المسح",
   "scanTooLarge": "كبير جدًا: احذف بعض الصفحات",
   "scanNoScanner": "لا يوجد ماسح مستندات في هذا الهاتف، لذا الصفحات صور عادية.",
+  "scanPageUnreadable": "تعذّرت قراءة صفحة. امسحها مرة أخرى.",
   "scanMaking": "جارٍ إنشاء ملف PDF…",
   "scannedPages": "ممسوح · {pages}",
   "proofPhoto": "صورة",

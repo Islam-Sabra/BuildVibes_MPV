@@ -1578,6 +1578,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد ماسح مستندات في هذا الهاتف، لذا الصفحات صور عادية.';
 
   @override
+  String get scanPageUnreadable => 'تعذّرت قراءة صفحة. امسحها مرة أخرى.';
+
+  @override
   String get scanMaking => 'جارٍ إنشاء ملف PDF…';
 
   @override

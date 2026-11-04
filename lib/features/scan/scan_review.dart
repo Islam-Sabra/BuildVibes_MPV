@@ -106,6 +106,13 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
 
   /// "Scan · …", what an emptied name falls back to (the lead's check, D18).
   var _default = '';
+
+  /// A page the phone couldn't read (D20): nothing can be added.
+  var _unreadable = false;
+
+  /// Every page the scanner gave, removed ones too: they leave the phone
+  /// once the scan is added or discarded (D19).
+  late final _raw = [...widget.pages];
   String? _out;
   String? _thumb;
   MadeScan? _made;
@@ -142,11 +149,18 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
     final id = newUuid();
     final out = '$dir/$id.pdf';
     final thumb = scanThumbFor(out);
-    final made = await ref.read(scanPdfBuilderProvider)(
-      pages: _pages,
-      out: out,
-      thumbOut: thumb,
-    );
+    final MadeScan made;
+    try {
+      made = await ref.read(scanPdfBuilderProvider)(
+        pages: _pages,
+        out: out,
+        thumbOut: thumb,
+      );
+    } on ScanPageUnreadable {
+      _drop(out, thumb);
+      if (mounted && turn == _making) setState(() => _unreadable = true);
+      return;
+    }
     if (!mounted || turn != _making) {
       _drop(out, thumb);
       return;
@@ -156,6 +170,7 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
       _out = out;
       _thumb = thumb;
       _made = made;
+      _unreadable = false;
     });
   }
 
@@ -175,6 +190,7 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
       phone: widget.phoneScanner,
       room: scanPagesMax - _pages.length,
     );
+    _raw.addAll(more);
     if (more.isEmpty || !mounted) return;
     _pages.addAll(more);
     await _make();
@@ -204,13 +220,19 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
 
   void _cancelled() {
     if (_out case final out? when out.isNotEmpty) _drop(out, _thumb);
+    _finish();
     Navigator.of(context).pop();
   }
+
+  /// D19: the scanner's pages are done with.
+  void _finish() =>
+      unawaited(ref.read(documentScannerProvider).finish(List.of(_raw)));
 
   void _add() {
     final made = _made;
     final out = _out;
     if (made == null || out == null || out.isEmpty) return;
+    _finish();
     final words = _name.text.trim();
     Navigator.of(context).pop(
       ScannedDocument(
@@ -321,7 +343,15 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
                   style: type.bodyMd.copyWith(color: BvColors.textPrimary),
                   decoration: InputDecoration(labelText: l10n.scanName),
                 ),
-                if (made == null)
+                if (_unreadable)
+                  Text(
+                    l10n.scanPageUnreadable,
+                    key: const Key('scan-unreadable'),
+                    style: type.metadata.copyWith(
+                      color: BvColors.textDestructive,
+                    ),
+                  )
+                else if (made == null)
                   Text(l10n.scanMaking, style: quiet)
                 else if (tooLarge)
                   Text(
