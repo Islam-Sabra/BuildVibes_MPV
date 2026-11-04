@@ -8458,7 +8458,7 @@
   "@obTipCamera": {
     "description": "Review 107 OB7: tip 1, on the camera."
   },
-  "obTipHold": "Hold a card to share or delete it.",
+  "obTipHold": "Hold a card to pin it, set a reminder, or archive or delete it.",
   "@obTipHold": {
     "description": "Review 107 OB7: tip 2, on a card."
   },
@@ -10069,7 +10069,7 @@
   "@whoSeesTitle": {
     "description": "The composer's Team sheet (TM5)."
   },
-  "whoSeesEveryone": "Everyone in the Space",
+  "whoSeesEveryone": "Whole Space",
   "@whoSeesEveryone": {
     "description": "First choice on the sheet (TM5)."
   },
@@ -10085,7 +10085,7 @@
   "@whoSeesAsSpaceAdmin": {
     "description": "Under another Team, for a Space admin who is no Team's admin."
   },
-  "whoSeesFoot": "Members see Everyone and their own Teams only.",
+  "whoSeesFoot": "Members see Whole Space and their own Teams only.",
   "@whoSeesFoot": {
     "description": "Foot of the sheet (TM5)."
   },

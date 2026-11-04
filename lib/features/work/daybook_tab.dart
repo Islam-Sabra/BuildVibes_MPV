@@ -2419,9 +2419,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // pinned. Not an announcement pinned for the Space: it shows at the top
     // already.
     final mineIds = _mineIds();
+    // The lead, 4 Nov: Pin and Reminder are for one held card; with
+    // several, only what every one of them allows (Archive or Delete).
     final pinOn =
         later.pin != null &&
-        posts.isNotEmpty &&
+        posts.length == 1 &&
         posts.every((p) => !spacePinned.contains(p.id));
     final toPin = pinOn && posts.every((p) => !mineIds.contains(p.id));
     final toUnpin = pinOn && posts.every((p) => mineIds.contains(p.id));

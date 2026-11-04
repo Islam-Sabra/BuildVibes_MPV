@@ -9869,7 +9869,7 @@ abstract class AppLocalizations {
   /// Review 107 OB7: tip 2, on a card.
   ///
   /// In en, this message translates to:
-  /// **'Hold a card to share or delete it.'**
+  /// **'Hold a card to pin it, set a reminder, or archive or delete it.'**
   String get obTipHold;
 
   /// Review 107 OB7: tip 3, on Sign as done, the first time an item is given to me.
@@ -11765,7 +11765,7 @@ abstract class AppLocalizations {
   /// First choice on the sheet (TM5).
   ///
   /// In en, this message translates to:
-  /// **'Everyone in the Space'**
+  /// **'Whole Space'**
   String get whoSeesEveryone;
 
   /// Under a Team the person is in (TM5).
@@ -11789,7 +11789,7 @@ abstract class AppLocalizations {
   /// Foot of the sheet (TM5).
   ///
   /// In en, this message translates to:
-  /// **'Members see Everyone and their own Teams only.'**
+  /// **'Members see Whole Space and their own Teams only.'**
   String get whoSeesFoot;
 
   /// A Team admin tried to take themselves out of their Team (BV002, review 111).

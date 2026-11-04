@@ -5922,7 +5922,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obTipCamera => 'Tap the camera to post a photo of your work.';
 
   @override
-  String get obTipHold => 'Hold a card to share or delete it.';
+  String get obTipHold =>
+      'Hold a card to pin it, set a reminder, or archive or delete it.';
 
   @override
   String get obTipSignDone => 'Sign as done when your work is finished.';
@@ -7088,7 +7089,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whoSeesTitle => 'Who sees it';
 
   @override
-  String get whoSeesEveryone => 'Everyone in the Space';
+  String get whoSeesEveryone => 'Whole Space';
 
   @override
   String get whoSeesYourTeam => 'Your Team';
@@ -7100,7 +7101,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whoSeesAsSpaceAdmin => 'You post here as a Space admin';
 
   @override
-  String get whoSeesFoot => 'Members see Everyone and their own Teams only.';
+  String get whoSeesFoot => 'Members see Whole Space and their own Teams only.';
 
   @override
   String get spacesTeamAdminStays =>

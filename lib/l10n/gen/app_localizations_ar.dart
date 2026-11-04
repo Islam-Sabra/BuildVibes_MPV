@@ -5971,7 +5971,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get obTipCamera => 'اضغط الكاميرا لنشر صورة عملك.';
 
   @override
-  String get obTipHold => 'اضغط مطوّلًا على البطاقة لمشاركتها أو حذفها.';
+  String get obTipHold =>
+      'اضغط مطوّلًا على البطاقة لتثبيتها أو ضبط تذكير أو أرشفتها أو حذفها.';
 
   @override
   String get obTipSignDone => 'وقّع كمنجز عندما ينتهي عملك.';
@@ -7140,7 +7141,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whoSeesTitle => 'من يراه';
 
   @override
-  String get whoSeesEveryone => 'الجميع في المساحة';
+  String get whoSeesEveryone => 'المساحة كلها';
 
   @override
   String get whoSeesYourTeam => 'فريقك';
@@ -7152,7 +7153,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whoSeesAsSpaceAdmin => 'تنشر هنا بصفتك مدير المساحة';
 
   @override
-  String get whoSeesFoot => 'الأعضاء يرون «الجميع» وفرقهم فقط.';
+  String get whoSeesFoot => 'الأعضاء يرون «المساحة كلها» وفرقهم فقط.';
 
   @override
   String get spacesTeamAdminStays =>
