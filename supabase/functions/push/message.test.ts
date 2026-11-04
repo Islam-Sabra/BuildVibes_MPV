@@ -646,5 +646,13 @@ test("the lead's check of 116, P7: a tied poll asks its creator to pick", () => 
   assert.equal(buildPush(row("poll_tied"), "en", null, strings).body,
                "Your poll is tied. Pick the answer that wins.");
   assert.equal(buildPush(row("poll_tied"), "ar", null, strings).body,
-               "تعادل في تصويتك. اختر الإجابة الفائزة.");
+               "تعادل في استطلاعك. اختر الإجابة الفائزة.");
+});
+
+test("Arabic wording (founder, 4 Nov): a poll is «استطلاع», never the voice word", () => {
+  for (const kind of ["poll_new", "poll_closed", "poll_tied"]) {
+    const body = buildPush(row(kind), "ar", "Sara Ali", strings).body;
+    assert.ok(!/صوّت|صوت|تصويت/.test(body), `${kind}: ${body}`);
+    assert.ok(body.includes("استطلاع"), `${kind}: ${body}`);
+  }
 });

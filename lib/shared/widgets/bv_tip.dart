@@ -177,9 +177,7 @@ class BvTipLayer extends StatelessWidget {
           child: Listener(
             behavior: HitTestBehavior.translucent,
             onPointerDown: (_) => onTouchOutside?.call(),
-            child: IgnorePointer(
-              child: CustomPaint(painter: _Spotlight(hole)),
-            ),
+            child: IgnorePointer(child: CustomPaint(painter: _Spotlight(hole))),
           ),
         ),
         Positioned.fromRect(

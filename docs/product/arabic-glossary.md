@@ -32,7 +32,11 @@
 | Chat | المحادثة |
 | People | الأشخاص |
 | Work (tab) | العمل |
+| Poll | استطلاع |
+| Vote / Change vote / Take back my vote | اعتمد اختياري / غيّر اختياري / ألغِ اختياري |
 
 "Owner" of a work item is المكلّف, not مسؤول, so that it doesn't clash with the Lead pass.
+
+**4 Nov (founder, review 116):** a poll is **استطلاع**, and voting is choosing (اختيار): «صوّت» reads like «صوت», the voice note. No poll string uses the root صوّت; DECIDED «تقرّر» and TIED «تعادل» stay.
 
 **18 Oct (founder, review 50 F14):** "Checked" is **تم التحقق**, not تم الفحص: it fits office work (drawings, submittals) as well as site work. Avoid مُراجَع (too close to مُرجَع, Sent back) and مُعتمد (a formal approval; approval codes are out of the MVP).

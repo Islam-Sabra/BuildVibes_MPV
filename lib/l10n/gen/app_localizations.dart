@@ -10766,6 +10766,12 @@ abstract class AppLocalizations {
   /// **'Take back my vote'**
   String get pollTakeBack;
 
+  /// Review 116: Close poll in the hold bar, one short word beside Pin, Edit, Delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Close poll'**
+  String get pollCloseShort;
+
   /// Review 116: the hold bar's action, for its creator or a Space admin.
   ///
   /// In en, this message translates to:
