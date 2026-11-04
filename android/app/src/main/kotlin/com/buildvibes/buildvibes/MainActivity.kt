@@ -12,6 +12,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -130,6 +132,19 @@ class MainActivity : FlutterActivity() {
                     "ringerNormal" -> result.success(
                         getSystemService(AudioManager::class.java).ringerMode ==
                             AudioManager.RINGER_MODE_NORMAL,
+                    )
+                    else -> result.notImplemented()
+                }
+            }
+        // Review 103: the phone's document scanner is Google's, part of
+        // Google Play services; without them (Huawei and others) the app's
+        // camera takes the pages.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "buildvibes/scan")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "hasDocumentScanner" -> result.success(
+                        GoogleApiAvailability.getInstance()
+                            .isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS,
                     )
                     else -> result.notImplemented()
                 }

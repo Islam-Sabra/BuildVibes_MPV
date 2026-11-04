@@ -148,6 +148,8 @@ class NoteFile {
     required this.name,
     this.mime = 'application/pdf',
     this.bytes,
+    this.scanned = false,
+    this.pages,
   });
 
   factory NoteFile.fromJson(Map<String, dynamic> json) => NoteFile(
@@ -156,6 +158,8 @@ class NoteFile {
     name: json['name'] as String? ?? '',
     mime: json['mime'] as String? ?? 'application/pdf',
     bytes: (json['bytes'] as num?)?.toInt(),
+    scanned: json['scanned'] as bool? ?? false,
+    pages: (json['page_count'] as num? ?? json['pages'] as num?)?.toInt(),
   );
 
   final String? path;
@@ -164,8 +168,19 @@ class NoteFile {
   final String mime;
   final int? bytes;
 
-  NoteFile uploaded(String path) =>
-      NoteFile(path: path, local: local, name: name, mime: mime, bytes: bytes);
+  /// Review 103: made by Scan, [pages] pages long.
+  final bool scanned;
+  final int? pages;
+
+  NoteFile uploaded(String path) => NoteFile(
+    path: path,
+    local: local,
+    name: name,
+    mime: mime,
+    bytes: bytes,
+    scanned: scanned,
+    pages: pages,
+  );
 
   /// As set_note_files takes it.
   Map<String, dynamic> toServer() => {
@@ -173,6 +188,8 @@ class NoteFile {
     'mime': mime,
     'name': name,
     'bytes': ?bytes,
+    if (scanned) 'scanned': true,
+    'page_count': ?pages,
   };
 
   Map<String, dynamic> toJson() => {
@@ -181,6 +198,8 @@ class NoteFile {
     'name': name,
     'mime': mime,
     'bytes': bytes,
+    'scanned': scanned,
+    'pages': pages,
   };
 }
 

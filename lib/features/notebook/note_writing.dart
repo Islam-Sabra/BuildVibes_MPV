@@ -555,6 +555,11 @@ class NoteFileRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final size = fileSize(l10n, file.bytes);
+    final meta = [
+      if (file.scanned && file.pages != null)
+        l10n.scannedPages(l10n.scanPages(file.pages!)),
+      if (size.isNotEmpty) size,
+    ].join(' · ');
     return Row(
       spacing: BvNoteBlocksSpec.fileGap,
       children: [
@@ -565,8 +570,8 @@ class NoteFileRow extends StatelessWidget {
             color: BvColors.surfaceBrandSoft,
             borderRadius: BvNoteBlocksSpec.photoRadius,
           ),
-          child: const Icon(
-            BvIcons.document,
+          child: Icon(
+            file.scanned ? BvIcons.scan : BvIcons.document,
             size: BvNoteBlocksSpec.fileIcon,
             color: BvColors.iconAction,
           ),
@@ -580,10 +585,16 @@ class NoteFileRow extends StatelessWidget {
             style: type.labelSm.copyWith(color: BvColors.textPrimary),
           ),
         ),
-        if (size.isNotEmpty)
-          Text(
-            '· $size',
-            style: type.metadata.copyWith(color: BvColors.textSecondary),
+        // Review 103 SC4: "· Scanned · 3 pages · 2.3 MB", shortened with
+        // "…" before the name is.
+        if (meta.isNotEmpty)
+          Flexible(
+            child: Text(
+              '· $meta',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: type.metadata.copyWith(color: BvColors.textSecondary),
+            ),
           ),
         const Spacer(),
         if (onRemove != null)
