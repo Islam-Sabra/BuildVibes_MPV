@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 4 Nov 2026, late night — review 103 merged and live; build 1071 waits for the phone
+## PC update: 4 Nov 2026, late night — review 103 merged and live; build 1071 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -12,7 +12,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Live:**
   - `supabase db push` (dry run first: only `20261127120000_review103_scan` and `20261128120000_review103_ocr`). `20261128120000` is the last of 66 on live. Only the usual pg-delta cache warning.
   - `extract-text` deployed: **v1**, JWT check on. No `GOOGLE_VISION_KEY` yet: a probe answers 503 `not_set_up`, so the app says "Couldn't read this file".
-- **Build 1071** (versionCode 1071, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1071`** (= 8cb985c5). `Desktop/BuildVibes-1071.apk`. No CAMERA permission. Not yet on the phone: waiting for its IP:port.
+- **Build 1071** (versionCode 1071, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1071`** (= 8cb985c5). `Desktop/BuildVibes-1071.apk`. No CAMERA permission. On the founder's phone (22120RN86G, 192.168.8.33:34163) over 1050; disconnected, no entry left.
 - **Next, with the founder:** the Google Cloud key (the lead guides him) → set `GOOGLE_VISION_KEY` → phone check: scan a real delivery note, Extract text in Arabic and English.
 - **Emulators:** Pixel_8 has 1050 (Test Lead); Pixel_8_B has the r103 debug build on the local server (front camera on).
 - **Who has which branch:** PC has `slice2-app`; `claude/r103` is merged.
