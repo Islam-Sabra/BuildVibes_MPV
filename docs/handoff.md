@@ -2,6 +2,18 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, last — review 103 D25 (Extract text hidden until the Google trial) on `claude/r103-d25`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r103-d25` from `slice2-app` (8627f813). Not merged, nothing live, not built. Test first: pgTAP 73, the deno test and the widget tests failed before the code.
+- **Server:** migration `20261129120000_review103_ocr_flag`: `app_settings` row `ocr_enabled` = `false`; `ocr_available()` (security definer, `search_path=''`, stable; `authenticated` only; off when the row is missing). `extract-text` answers 503 `not_set_up` while the flag is off, even with a key (`Deps.enabled`, read from `app_settings` with the service role).
+- **App:** `ocrAvailableProvider` asks `ocr_available()` once a start; an error counts as off. Off: no Extract text and no space for it on the Library file page or under a notebook PDF; a text already kept still shows, with Copy.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,920 pass; `test_screens` 744 pass (LV2 updated: the file page without the button, as people see it now); `supabase test db` 72 files, 4,582 checks, PASS on a fresh reset; deno extract-text 14 pass.
+- **After the lead's check, each with the founder's yes:** merge → `db push` (20261129120000 only) → deploy `extract-text` → build → install. Live meanwhile: build 1071 still shows the button (it says "Couldn't read this file").
+- **January (about 15 Jan 2027):** the founder starts the Google trial, creates the Vision key and sets `GOOGLE_VISION_KEY`; then `update public.app_settings set value = 'true' where key = 'ocr_enabled';`; phone check.
+- **Who has which branch:** PC has `claude/r103-d25`; `slice2-app` unchanged since 8627f813.
+
 ## PC update: 4 Nov 2026, late night — review 103 merged and live; build 1071 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

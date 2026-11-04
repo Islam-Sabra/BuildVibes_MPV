@@ -34,9 +34,28 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 
 /// The fake extract-text: [text] after a tap, or [fails].
 class _FakeTexts implements FileTextRepository {
-  _FakeTexts({this.kept, this.text = 'Rebar 16 mm, 4 tonnes', this.fails});
+  _FakeTexts({
+    this.kept,
+    this.text = 'Rebar 16 mm, 4 tonnes',
+    this.fails,
+    this.on = true,
+    this.flagFails = false,
+  });
 
   FileText? kept;
+
+  /// D25: ocr_available(), or it fails ([flagFails]).
+  final bool on;
+  final bool flagFails;
+  var flagAsked = 0;
+
+  @override
+  Future<bool> available() async {
+    flagAsked++;
+    if (flagFails) throw Exception('no signal');
+    return on;
+  }
+
   final String text;
   final FileTextFailure? fails;
   final asked = <String>[];
@@ -237,6 +256,71 @@ void main() {
     ) async {
       await _open(tester, lang, _FakeTexts(), name: 'مسح 114.pdf');
       expect(find.text(fileTitle('مسح 114.pdf')), findsOneWidget);
+    });
+
+    // D25 (founder): Extract text hidden until the Google trial starts,
+    // from the server, with no build needed to turn it on.
+    testWidgets('D25: off: no button, no space [$lang]', (tester) async {
+      final texts = _FakeTexts(on: false);
+      await _open(tester, lang, texts);
+      expect(_key('file-extract-text'), findsNothing);
+      expect(_key('file-text'), findsNothing);
+      expect(texts.flagAsked, 1);
+    });
+
+    testWidgets("D25: the flag can't be read: hidden [$lang]", (tester) async {
+      await _open(tester, lang, _FakeTexts(flagFails: true));
+      expect(_key('file-extract-text'), findsNothing);
+      expect(_key('file-text'), findsNothing);
+    });
+
+    testWidgets('D25: on: the button [$lang]', (tester) async {
+      await _open(tester, lang, _FakeTexts());
+      expect(_key('file-extract-text'), findsOneWidget);
+    });
+
+    testWidgets('D25: off, a text already kept still shows, with Copy '
+        '[$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        _FakeTexts(
+          on: false,
+          kept: const FileText(text: 'Permit 22, valid to Friday', pages: 1),
+        ),
+      );
+      expect(find.text('Permit 22, valid to Friday'), findsOneWidget);
+      expect(_key('file-text-copy'), findsOneWidget);
+    });
+
+    testWidgets('D25: off, a notebook PDF has no button either [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        now: NotebookSamples.now,
+        notebook: FakeNotebookRepository(
+          notes: [
+            Note(
+              id: 'note-pdf',
+              kind: NoteKind.text,
+              body: 'Rebar delivery',
+              files: const [
+                NoteFile(path: 'user-1/note-pdf/a.pdf', name: 'Note.pdf'),
+              ],
+              createdAt: DateTime(2026, 10, 15, 9),
+            ),
+          ],
+        ),
+        fileTexts: _FakeTexts(on: false),
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/notebook/pages/page-my-notes');
+      await tester.pumpAndSettle();
+      await _tap(tester, find.text('Rebar delivery'));
+      expect(_key('file-extract-text'), findsNothing);
     });
   }
 }

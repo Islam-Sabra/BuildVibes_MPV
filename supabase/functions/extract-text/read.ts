@@ -33,6 +33,8 @@ export type FileFor = {
 };
 
 export type Deps = {
+  /** D25: Extract text is on (app_settings ocr_enabled). */
+  enabled(): Promise<boolean>;
   /** The caller's id, from their sign-in; null when there is none. */
   caller(): Promise<string | null>;
   /** As the caller: the file, or null when they may not read it. */
@@ -80,6 +82,8 @@ export async function extract(
   input: { kind?: unknown; ref?: unknown },
   deps: Deps,
 ): Promise<Answer> {
+  // D25: off until the Google trial starts, even with a key.
+  if (!await deps.enabled()) return json(503, { error: "not_set_up" });
   const caller = await deps.caller();
   if (!caller) return json(401, { error: "sign_in" });
   const kind = input.kind;

@@ -66,6 +66,10 @@ final String _page = () {
 class _Texts implements FileTextRepository {
   FileText? kept;
 
+  /// TX1 and TX2 show Extract text on (D25).
+  @override
+  Future<bool> available() async => true;
+
   @override
   Future<FileText?> read(FileTextKind kind, String ref) async => kept;
 

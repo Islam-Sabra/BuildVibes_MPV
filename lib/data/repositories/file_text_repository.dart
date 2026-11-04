@@ -50,6 +50,9 @@ class FileTextException implements Exception {
 }
 
 abstract class FileTextRepository {
+  /// D25: Extract text is on (ocr_available()); off until the Google trial.
+  Future<bool> available();
+
   /// The text already read, or null (read as the file is: file_texts).
   Future<FileText?> read(FileTextKind kind, String ref);
 
@@ -61,6 +64,10 @@ class SupabaseFileTextRepository implements FileTextRepository {
   SupabaseFileTextRepository(this._client);
 
   final SupabaseClient _client;
+
+  @override
+  Future<bool> available() async =>
+      await _client.rpc<bool>('ocr_available') == true;
 
   @override
   Future<FileText?> read(FileTextKind kind, String ref) async {
@@ -96,6 +103,16 @@ class SupabaseFileTextRepository implements FileTextRepository {
 final fileTextRepositoryProvider = Provider<FileTextRepository>(
   (ref) => SupabaseFileTextRepository(ref.watch(supabaseClientProvider)),
 );
+
+/// Review 103, D25: whether Extract text is offered, asked once a start;
+/// off when it can't be read. Turned on from the server, with no build.
+final ocrAvailableProvider = FutureProvider<bool>((ref) async {
+  try {
+    return await ref.watch(fileTextRepositoryProvider).available();
+  } on Object {
+    return false;
+  }
+});
 
 /// A file's text, null while none was read. Read again after Extract text.
 final fileTextProvider = FutureProvider.autoDispose
