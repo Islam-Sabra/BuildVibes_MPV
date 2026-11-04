@@ -2038,6 +2038,8 @@
   "@scanBar": {"description": "Review 103 SC7: the Scan button on the writing bar, after the camera."},
   "scanADocument": "Scan a document",
   "@scanADocument": {"description": "Review 103: the row that opens the phone's document scanner."},
+  "scanADocumentNote": "Straight and clean, in one PDF",
+  "@scanADocumentNote": {"description": "Review 103: under Scan a document on an attach sheet."},
   "scanDefaultName": "Scan · {day} {time}",
   "@scanDefaultName": {"description": "Review 103: a scan's name until it is changed.", "placeholders": {"day": {"type": "String", "example": "Thu 15 Oct"}, "time": {"type": "String", "example": "9:30 am"}}},
   "scanReviewTitle": "Scanned document",

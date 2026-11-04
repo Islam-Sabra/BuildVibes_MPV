@@ -72,6 +72,9 @@ String libraryLine(
   required DateTime now,
 }) => joinMeta([
   ?f.revLabel,
+  // Review 103: "Scanned · 3 pages".
+  if (f.scanned && f.pageCount != null)
+    l10n.scannedPages(l10n.scanPages(f.pageCount!)),
   if (older > 0) l10n.libraryOlderVersions(older),
   libraryDay(l10n, locale, f.createdAt.toLocal(), now),
 ]);

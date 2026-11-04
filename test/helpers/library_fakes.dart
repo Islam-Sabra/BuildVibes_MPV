@@ -113,6 +113,13 @@ class FakeLibraryRepository implements LibraryRepository {
     return path;
   }
 
+  /// Review 103: files marked scanned, "id pages".
+  final scannedMarks = <String>[];
+
+  @override
+  Future<void> markScanned(String fileId, int pages) async =>
+      scannedMarks.add('$fileId $pages');
+
   @override
   Future<void> add({
     required String id,

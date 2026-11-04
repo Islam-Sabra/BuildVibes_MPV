@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/around_specs.dart' show BvSpaceEmblemSpec;
 import '../../core/design/bv_specs.dart';
@@ -479,6 +480,13 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
             label: l10n.chatAttachGallery,
             onTap: () => Navigator.of(sheet).pop(1),
           ),
+          // Review 103: Scan a document, one PDF.
+          ChatActionRow(
+            key: const Key('dm-attach-scan'),
+            icon: BvIcons.scan,
+            label: l10n.scanADocument,
+            onTap: () => Navigator.of(sheet).pop(3),
+          ),
           ChatActionRow(
             icon: BvIcons.document,
             label: l10n.chatAttachPdf,
@@ -490,7 +498,17 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     if (choice == null || !mounted) return;
     PhoneFile? picked;
     var refused = false;
-    if (choice == 2) {
+    if (choice == 3) {
+      final doc = await scanDocument(context, ref, maxBytes: maxFileBytes);
+      if (doc != null) {
+        picked = PhoneFile(
+          local: doc.local,
+          name: doc.fileName,
+          mime: 'application/pdf',
+          bytes: doc.bytes,
+        );
+      }
+    } else if (choice == 2) {
       (file: picked, :refused) = await ref.read(pickDocumentProvider)(
         pdfOnly: true,
       );

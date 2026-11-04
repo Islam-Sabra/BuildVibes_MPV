@@ -129,6 +129,19 @@ void main() {
         );
       });
 
+      testWidgets('posted, the file reaches the Library marked scanned', (
+        tester,
+      ) async {
+        final app = await _compose(tester, lang);
+        await _tap(tester, _key('writing-scan'));
+        await _tap(tester, _key('scan-add'));
+        final id = _draft(tester)!.files.single.libraryId;
+        await tester.enterText(_key('writing-title'), 'Delivery note');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-post'));
+        expect(app.library.scannedMarks, ['$id 3']);
+      });
+
       testWidgets('✕ on a page takes it off; Scan more pages adds', (
         tester,
       ) async {

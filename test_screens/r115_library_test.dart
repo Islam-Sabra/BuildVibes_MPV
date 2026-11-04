@@ -72,6 +72,8 @@ void main() {
       final app = await _library(tester, lang);
       app.library.holdUpload = Completer<void>();
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-uploading', lang);
       app.library.holdUpload!.complete();
@@ -82,6 +84,8 @@ void main() {
       final app = await _library(tester, lang);
       app.library.uploadsOffline = true;
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-waiting', lang);
     });
@@ -94,6 +98,8 @@ void main() {
         statusCode: '413',
       );
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
       await _tap(tester, 'library-who-add');
       await _snap(tester, 'L1-could-not-upload', lang);
       await tester.tap(find.textContaining('Level 3 plan.pdf').first);
@@ -104,6 +110,8 @@ void main() {
     testWidgets('L2 who sees it [$lang]', (tester) async {
       await _library(tester, lang);
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
       await _snap(tester, 'L2-who-sees', lang);
       await _tap(tester, 'library-who-change');
       await _snap(tester, 'L2-who-change', lang);

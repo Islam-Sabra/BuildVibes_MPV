@@ -205,6 +205,8 @@ void main() {
       final app = await _open(tester, lang, '/spaces/$_space');
       await _tap(tester, 'space-library');
       await _tap(tester, 'library-add-file');
+      // Review 103: File from the phone, or Scan.
+      await _tap(tester, 'file-from-phone');
       // The phone's file at once; no composer, no post.
       expect(find.byKey(const Key('composer')), findsNothing);
       // A Library file is in use: is it a new version of one?

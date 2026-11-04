@@ -131,6 +131,9 @@ String fileMeta(AppLocalizations l10n, LibraryFile f, String? me) => joinMeta([
     l10n.chatYou
   else
     personFirstName(l10n, f.uploadedByName),
+  // Review 103: "Scanned · 3 pages".
+  if (f.scanned && f.pageCount != null)
+    l10n.scannedPages(l10n.scanPages(f.pageCount!)),
   fileSize(l10n, f.bytes),
 ]);
 

@@ -34,6 +34,8 @@ class LibraryFile {
     this.versionNo,
     this.chainId,
     this.folderId,
+    this.scanned = false,
+    this.pageCount,
   });
 
   /// A row of library_files with `team:teams(name)` and
@@ -65,8 +67,14 @@ class LibraryFile {
       versionNo: (json['version_no'] as num?)?.toInt(),
       chainId: json['chain_id'] as String?,
       folderId: json['folder_id'] as String?,
+      scanned: json['scanned'] as bool? ?? false,
+      pageCount: (json['page_count'] as num?)?.toInt(),
     );
   }
+
+  /// Review 103: a scanned document, [pageCount] pages.
+  final bool scanned;
+  final int? pageCount;
 
   final String id;
   final String spaceId;

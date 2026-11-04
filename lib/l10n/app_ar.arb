@@ -412,6 +412,7 @@
   "chatAttachPdf": "ملف PDF من هاتفك",
   "scanBar": "مسح",
   "scanADocument": "مسح مستند",
+  "scanADocumentNote": "مستقيم وواضح، في ملف PDF واحد",
   "scanDefaultName": "مسح · {day} {time}",
   "scanReviewTitle": "مستند ممسوح",
   "scanPages": "{n, plural, =1{صفحة واحدة} =2{صفحتان} few{{n} صفحات} other{{n} صفحة}}",

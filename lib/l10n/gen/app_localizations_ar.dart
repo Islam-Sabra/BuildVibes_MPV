@@ -1456,6 +1456,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scanADocument => 'مسح مستند';
 
   @override
+  String get scanADocumentNote => 'مستقيم وواضح، في ملف PDF واحد';
+
+  @override
   String scanDefaultName(String day, String time) {
     return 'مسح · $day $time';
   }

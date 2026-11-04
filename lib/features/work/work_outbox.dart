@@ -1073,6 +1073,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         rethrow;
       }
     }
+    // Review 103: "Scanned · 3 pages" in the Library too (again on a
+    // retry: the same mark).
+    if (f.scanned && f.pages != null) {
+      await library.markScanned(f.libraryId, f.pages!);
+    }
   }
 
   static const _idTaken = 'this id is taken';

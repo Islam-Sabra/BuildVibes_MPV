@@ -1448,6 +1448,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanADocument => 'Scan a document';
 
   @override
+  String get scanADocumentNote => 'Straight and clean, in one PDF';
+
+  @override
   String scanDefaultName(String day, String time) {
     return 'Scan · $day $time';
   }

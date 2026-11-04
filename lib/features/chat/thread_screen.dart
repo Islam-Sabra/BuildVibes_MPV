@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../scan/scan_review.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -201,6 +202,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
             label: l10n.chatAttachGallery,
             onTap: () => Navigator.of(context).pop(_Attach.gallery),
           ),
+          // Review 103: Scan a document, one PDF.
+          ChatActionRow(
+            key: const Key('chat-attach-scan'),
+            icon: BvIcons.scan,
+            label: l10n.scanADocument,
+            onTap: () => Navigator.of(context).pop(_Attach.scan),
+          ),
           ChatActionRow(
             key: const Key('chat-attach-pdf'),
             icon: BvIcons.document,
@@ -214,11 +222,22 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     if (choice == null || !mounted) return;
     PhoneFile? picked;
     var refused = false;
-    if (choice == _Attach.pdf) {
-      if (_files.any((f) => f.isPdf)) {
-        _toast(l10n.chatOneDocument);
-        return;
+    if ((choice == _Attach.pdf || choice == _Attach.scan) &&
+        _files.any((f) => f.isPdf)) {
+      _toast(l10n.chatOneDocument);
+      return;
+    }
+    if (choice == _Attach.scan) {
+      final doc = await scanDocument(context, ref, maxBytes: maxFileBytes);
+      if (doc != null) {
+        picked = PhoneFile(
+          local: doc.local,
+          name: doc.fileName,
+          mime: 'application/pdf',
+          bytes: doc.bytes,
+        );
       }
+    } else if (choice == _Attach.pdf) {
       (file: picked, :refused) = await ref.read(pickDocumentProvider)(
         pdfOnly: true,
       );
@@ -843,7 +862,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
 enum _Action { reply, workItem, meeting, copy, delete, report, notebook }
 
-enum _Attach { camera, gallery, pdf }
+enum _Attach { camera, gallery, scan, pdf }
 
 /// A message from the server, or one still on this phone.
 class _Entry {

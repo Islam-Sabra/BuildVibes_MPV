@@ -2570,6 +2570,12 @@ abstract class AppLocalizations {
   /// **'Scan a document'**
   String get scanADocument;
 
+  /// Review 103: under Scan a document on an attach sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight and clean, in one PDF'**
+  String get scanADocumentNote;
+
   /// Review 103: a scan's name until it is changed.
   ///
   /// In en, this message translates to:

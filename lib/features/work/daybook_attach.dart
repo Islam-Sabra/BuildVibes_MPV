@@ -20,6 +20,7 @@ import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../library/library_parts.dart';
+import '../scan/scan_review.dart';
 import 'could_not_send.dart' show showFileRefused;
 import '../spaces/space_errors.dart';
 import 'daybook_draft.dart';
@@ -106,6 +107,7 @@ Future<DraftFile?> chooseDaybookFile(
   DaybookFileSource? source,
   String? folderId,
   bool sameFolder = false,
+  bool scan = false,
 }) async {
   final l10n = AppLocalizations.of(context);
   final all = replaces != null
@@ -123,9 +125,37 @@ Future<DraftFile?> chooseDaybookFile(
           : f.folderId == null || shared.contains(f.folderId))
         f,
   ];
-  // F72: the paper clip already said where from.
-  final picked = replaces != null || source == DaybookFileSource.phone
+  // F72: the paper clip already said where from. Review 103: the Library's
+  // own add ([scan]) asks first: the phone's files, or Scan a document.
+  final picked = replaces != null
       ? _fromPhone
+      : source == DaybookFileSource.phone
+      ? (scan
+            ? await showBvSheet<Object>(
+                context: context,
+                title: l10n.daybookFileChooseTitle,
+                builder: (sheet) => Column(
+                  key: const Key('file-chooser'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    BvAttachRow(
+                      key: const Key('file-from-phone'),
+                      icon: BvIcons.upload,
+                      title: l10n.daybookFileFromPhone,
+                      subtitle: l10n.daybookFileFromPhoneNote,
+                      onTap: () => Navigator.of(sheet).pop(_fromPhone),
+                    ),
+                    BvAttachRow(
+                      key: const Key('file-scan'),
+                      icon: BvIcons.scan,
+                      title: l10n.scanADocument,
+                      subtitle: l10n.scanADocumentNote,
+                      onTap: () => Navigator.of(sheet).pop(_scan),
+                    ),
+                  ],
+                ),
+              )
+            : _fromPhone)
       : await showBvSheet<Object>(
           context: context,
           title: l10n.daybookFileChooseTitle,
@@ -171,6 +201,20 @@ Future<DraftFile?> chooseDaybookFile(
       bytes: picked.bytes,
       revLabel: picked.revLabel,
       folderId: picked.folderId,
+    );
+  }
+  if (picked == _scan && context.mounted) {
+    final doc = await scanDocument(context, ref, maxBytes: spaceFilesMaxBytes);
+    if (doc == null) return null;
+    return DraftFile(
+      libraryId: newUuid(),
+      name: doc.fileName,
+      mime: 'application/pdf',
+      bytes: doc.bytes,
+      local: doc.local,
+      folderId: folderId,
+      scanned: true,
+      pages: doc.pages,
     );
   }
   if (picked != _fromPhone || !context.mounted) return null;
@@ -221,6 +265,9 @@ Future<DraftFile?> chooseDaybookFile(
 }
 
 const _fromPhone = 'phone';
+
+/// Review 103: Scan a document, from the Library's own add.
+const _scan = 'scan';
 
 Future<List<LibraryFile>?> _libraryFiles(
   BuildContext context,

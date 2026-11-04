@@ -72,6 +72,8 @@ Future<void> addLibraryFileHere(
     source: DaybookFileSource.phone,
     folderId: folderId,
     sameFolder: true,
+    // Review 103: Add a file offers Scan a document.
+    scan: replaces == null,
   );
   final local = file?.local;
   if (file == null || local == null || !context.mounted) return;
@@ -116,6 +118,8 @@ Future<void> addLibraryFileHere(
         revLabel: file.revLabel,
         supersedesId: file.supersedesId,
         folderId: target,
+        scanned: file.scanned,
+        pages: file.pages,
       ),
     ],
     postId: to == null ? null : newUuid(),
