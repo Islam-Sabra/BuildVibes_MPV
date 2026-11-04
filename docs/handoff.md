@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, late — review 103 (Scan documents) on `claude/r103`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r103` from `slice2-app`. Not merged, nothing live, not built.
+- **(1) Scan** (`lib/features/scan/`): the phone's own scanner (`cunning_document_scanner`, Google's ML Kit scanner); without Google Play services (Huawei), the app's camera page by page, with the line "This phone has no document scanner…" (`MainActivity.kt` channel `buildvibes/scan`, `play-services-base` added). One PDF of 1–20 pages made on the phone (pages ≤1600 px, JPEG 60, no EXIF), "Scan · day time", the review sheet (pages with ✕, Scan more pages, name, Cancel asked once, Add; over the limit Add is off).
+  - Entries: SC7 Scan on the composer bar after the camera and on the notebook bar after the photo button; the Library's Add a file (File from the phone · Scan a document); chat and DM attach sheets; Sign as done Photo | Scan (SC6). The notebook bar's tools now scroll sideways when they don't fit (⇥ ⇤ + Scan).
+  - Server (migration `20261127120000_review103_scan`, test 69): `scanned`, `page_count` on `library_files` and `note_files` (`mark_library_file_scanned`, `set_note_files`); proof evidence kind `scan` for a `.pdf` (photo or PDF only). Lists say "Scanned · 3 pages"; a scanned proof shows its page 1 on the card.
+  - Not done: no stored thumbnail path (the app draws page 1 of any PDF already).
+- **(2) One photo compressor** (`photo_privacy.dart`): 1600 px, JPEG 80 everywhere a photo enters (it already passed through `cleanPhoto` in every place); an upright photo already ≤1600 px and ≤500 KB keeps its picture, its metadata goes but for the time taken. Tested in `photo_privacy_test`; no separate test per place (each place's picker calls the same function).
+- **(3) Make it smaller** (`pdf_smaller.dart`): on any PDF ≥1 MB still on the phone (composer chip, chat/DM picked file with its size, notebook row, the Library asks once); pdfx at 150 dpi, JPEG 75, rebuilt with `pdf`; before → after with the warning, Use smaller · Keep original. Over 25 MB: Make it smaller first, Link folder beside; still too large: only Link folder.
+- **(4) OCR** (migration `20261128120000_review103_ocr`, test 70; function `extract-text`, deno 9 with a faked Vision): `file_texts` read exactly as the file; `file_for_text` as the caller; `save_file_text` (20 pages a file, 50 a day); Space search and notebook search find the text. App: Extract text on a Library file's page, the Text section folds, Copy, "Couldn't read this file", the daily limit. No real key anywhere.
+  - Not done: an Extract text button for notebook PDFs (the server and search take them).
+- **Checks:** `flutter analyze` clean; `flutter test` 3,866 pass; `test_screens` 744 pass (Scan on the bars, Make it smaller, Extract text in the goldens); `supabase test db` 69 files, 4,537 checks, PASS on a fresh reset; deno: push 37, extract-text 9. Shots `docs/reviews/shots-103/` (18, EN/AR; the scanned page thumbnails show blank there: the test runner can't decode file images).
+- **Then, each with the founder's yes:** merge → `db push` (20261127120000, 20261128120000) → deploy `extract-text` → a Google Cloud project with the Vision API, a key restricted to Vision, `GOOGLE_VISION_KEY` secret → the privacy-policy line and the lawyer's look → build.
+- **Who has which branch:** PC has `claude/r103`; `slice2-app` unchanged since a08dd02e.
+
 ## PC update: 4 Nov 2026, evening — review 116b and the Arabic poll wording live; build 1050 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
