@@ -2,6 +2,17 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, night — review 118 and review 103 D25 on `claude/r118`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r118` from `slice2-app` (8627f813), with `claude/r103-d25` merged in. Not merged into `slice2-app`, nothing live, no release build. Report for the lead: `docs/reviews/2026-11-04-118-report.md`.
+- **Done, test first:** D25 (Extract text hidden until the Google trial); F1 poll text in its own direction (`textRun`, the names line, the composer's title); F2 `fileTitle` everywhere a file name is shown (list in the report); F3 a vote is acting (migration `20261130120000`, pgTAP 74); F4 one check = my answer, the decided row has its own stamp.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,938 pass; `test_screens` 750 pass; `supabase test db` 73 files, 4,589 checks, PASS; deno extract-text 14, push 37.
+- **Emulator shots** in `docs/reviews/shots-118/` (EN/AR): Pixel_8_B has this branch's debug build on the local server (Hana); Pixel_8 still has 1071 (Test Lead).
+- **After the lead's check, each with the founder's yes:** merge → `db push` (20261129120000, 20261130120000) → deploy `extract-text` → build → install.
+- **Who has which branch:** PC has `claude/r118`; `claude/r103-d25` is inside it; `claude/check-1071` is docs only.
+
 ## PC update: 4 Nov 2026, last — review 103 D25 (Extract text hidden until the Google trial) on `claude/r103-d25`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
