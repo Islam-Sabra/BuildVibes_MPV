@@ -131,3 +131,62 @@ On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row
   - a lawyer looks at it with the location wording;
   - Google's data terms (no use for training) to be confirmed when the project is set up.
 - **Order:** Scan, then compression, then OCR. OCR merges only after the key exists.
+
+## The lead's check of `claude/r103` at `17c71ed1` (4 Nov)
+- **What was run:**
+  - The SQL stand-in: **69 files, 4,537 checks, PASS**.
+  - Two independent reviews, spec and security.
+  - All 28 shots viewed.
+  - The lead confirmed D1 in the code.
+- **Read access holds:** no caller can get another Space's file, or an Only me notebook file, read or returned. Storage is read only after `file_for_text` passes as the caller, with the bucket and path taken from the database.
+- **Verdict: not ready to merge.** Fix D1–D22 test-first on `claude/r103`.
+
+### Blockers
+- **D1. A scanned proof is refused on a real phone.** `add_evidence` still has `upload_mime … not like 'image/%'` → "evidence must be a photo" (chat_library.sql:896), and a real upload carries `application/pdf`. Test 69 inserted the object with no metadata, so it passed. **Fix:** allow `application/pdf`; the test row gets `{"mimetype":"application/pdf"}`; a test that CHECKED stamps a scanned proof.
+- **D2. Over 25 MB in chat, DMs and the notebook** only shows a toast. **Fix:** the same too-large sheet as the composer and Library (Make it smaller first, then Link folder; still too large → Link folder only). Tests in each place.
+- **D3. Extract text never saves a part as if it were the whole file.**
+  - When the file needs more pages than are left today, refuse with the daily-limit message and read nothing.
+  - A file over 20 pages reads the first 20, is saved marked `partial`, and the Text section says "First 20 pages" («أول 20 صفحة»).
+
+### Server, fix before merge
+- **D4. The Google key goes in the `X-Goog-Api-Key` header,** never in the URL. Logs carry fixed error codes only, never `e.message`, never paths.
+- **D5. The daily limit holds under parallel taps.**
+  - A `ocr_usage` table (person, day, pages), server-only;
+  - a per-person `pg_advisory_xact_lock`;
+  - the pages are reserved **before** calling Vision and released if Vision fails;
+  - the count no longer depends on `file_texts.created_by`.
+  - pgTAP.
+- **D6. Text goes with its file:** delete `file_texts` rows when a note, a note file, a Library file or an account is deleted or purged. pgTAP for each.
+- **D7. Size before download:**
+  - `file_for_text` returns the size, and the function answers 413 above **10 MB** without downloading;
+  - the app says "Too large to read. Make it smaller first." with the Make it smaller button;
+  - send Vision only the page ranges needed, not the whole PDF four times, if the API allows it, and check Vision's inline request limit while doing so.
+- **D8. Missing pgTAP:** a member gets no `file_texts` row, and no `search_space` hit, for a file in someone's Only me folder or in another Team's folder.
+
+### App, fix before merge
+- **D9. Extract text on notebook PDFs too.** The notebook is the first place in the table, and the server already supports it.
+- **D10. Page 1's thumbnail is uploaded** with the scan, and stored where the file row points. Cards and proofs use it instead of downloading the whole PDF.
+- **D11. The size on the composer chip** («9.1 MB»), as the spec says.
+- **D12. "Make it smaller" in words everywhere,** not a bare download icon (chat, composer chip, `pdf_smaller.dart`).
+- **D13. When the copy isn't smaller:** "This PDF couldn't be made smaller." («لم يمكن تصغير هذا الملف.»), and only Keep original.
+- **D14. Progress while compressing:** "Making it smaller… page 3 of 12" (`pdfSmallerMaking`).
+- **D15. Sizes round up** in "Still too large": 25.4 MB shows as 26 MB.
+- **D16. One Arabic spelling:** «ميجابايت» and «كيلوبايت» everywhere (some screens say «ميغابايت»).
+- **D17. File names keep their direction in Arabic:** isolate the name (`bidi` helper) on chips and rows. The SC4 shot shows «pdf.114».
+- **D18. An empty name** falls back to the default "Scan · …".
+- **D19. Clean-up:**
+  - the scanner's raw pages and the `scans/` copies are deleted once added (or cancelled);
+  - the chat copy too, once sent;
+  - thumbnails are kept only as D10.
+  - Add them to B2's start-up clean-up.
+- **D20. `scanPage`:** if a page can't be decoded, fail. Never fall back to the original photo with its EXIF.
+- **D21. Pin `cunning_document_scanner` exactly,** as every other package is. Check the merged Android manifest for any new permission (CAMERA), and report it.
+- **D22. The privacy-policy line** goes in `docs/legal/privacy-draft-en.md` and its Arabic draft: "When you tap Extract text, the document is sent to Google Cloud to read its text, and the text is stored with the file."
+
+### Accepted
+- No per-place photo tests: every picker calls the same tested function.
+- The Extract text test written after the code: recorded as a process miss.
+- The Library's Add a file asking "File from the phone or Scan a document" first.
+- Scan more pages adds pages after the old ones.
+- PNG and WebP aren't resized, which keeps drawings sharp.
+- Blank thumbnails in the goldens, but an **emulator shot with real pages** of SC3, SC4 and TX2 is required before sign-off.
