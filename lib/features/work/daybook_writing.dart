@@ -1448,9 +1448,10 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         BvWritingProperty.icon(
           icon: BvIcons.document,
           label: [
+            // Review 118 F2: no ".pdf", in its own direction.
             f.revLabel == null
-                ? f.name
-                : l10n.daybookFileChip(f.name, f.revLabel!),
+                ? fileTitle(f.name)
+                : l10n.daybookFileChip(fileTitle(f.name), f.revLabel!),
             if (f.scanned && f.pages != null)
               l10n.scannedPages(l10n.scanPages(f.pages!)),
             if (f.bytes != null) fileSize(l10n, f.bytes),

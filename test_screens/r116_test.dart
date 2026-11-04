@@ -206,6 +206,86 @@ void main() {
       await _snap(tester, 'PL3-decided', lang);
     });
 
+    // Review 118 F1: a poll written in English, in Arabic too: the
+    // question, the options and the names keep their own direction.
+    testWidgets('R118 Latin poll [$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        posts: [
+          s.card(
+            DaybookPost(
+              id: _poll,
+              kind: DaybookPost.pollKind,
+              createdAt: DaybookSamples.thursday.subtract(
+                const Duration(hours: 1),
+              ),
+              title: 'Pour time on level 4?',
+              authorId: DaybookSamples.sara,
+              authorName: s.saraName,
+              poll: DaybookPoll(
+                closesAt: DaybookSamples.thursday.add(const Duration(days: 1)),
+                voted: true,
+                options: [
+                  PollOption(
+                    id: 'opt-7',
+                    label: '7 am',
+                    count: 1,
+                    voters: [
+                      DaybookPerson(id: DaybookSamples.omar, name: s.omarName),
+                    ],
+                  ),
+                  const PollOption(id: 'opt-9', label: '9 am', sort: 1),
+                ],
+                notYet: ['Islam', 'smsm'],
+              ),
+            ),
+          ),
+        ],
+      );
+      await scrollToRow(tester, _key('daybook-card-$_poll'));
+      await _snap(tester, 'R118-latin-poll', lang);
+    });
+
+    // Review 118 F4: one check, my answer; the decided row has its stamp.
+    for (final (name, mine) in [
+      ('R118-decided-mine-lost', 'opt-sat'),
+      ('R118-decided-mine-won', 'opt-thu'),
+    ]) {
+      testWidgets('$name [$lang]', (tester) async {
+        await _open(
+          tester,
+          lang,
+          posts: [
+            _card(
+              s,
+              DaybookPoll(
+                closedAt: DaybookSamples.thursday.subtract(
+                  const Duration(minutes: 5),
+                ),
+                closedByName: s.islamName,
+                decidedOption: 'opt-thu',
+                voted: true,
+                options: [
+                  for (final o in _options(s))
+                    PollOption(
+                      id: o.id,
+                      label: o.label,
+                      sort: o.sort,
+                      count: o.count,
+                      mine: o.id == mine,
+                      voters: o.voters,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        );
+        await scrollToRow(tester, _key('daybook-card-$_poll'));
+        await _snap(tester, name, lang);
+      });
+    }
+
     testWidgets('PL3 tied [$lang]', (tester) async {
       final o = _options(s);
       await _open(

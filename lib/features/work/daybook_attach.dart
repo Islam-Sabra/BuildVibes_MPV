@@ -408,7 +408,8 @@ class _ReplacesChoiceState extends State<_ReplacesChoice> {
                   l10n.daybookReplacesOption(
                     inOwnDirection(
                       [
-                        picked.name,
+                        // Review 118 F2: no ".pdf".
+                        fileTitle(picked.name),
                         versionLabel(l10n, picked),
                       ].where((t) => t.isNotEmpty).join(' · '),
                     ),

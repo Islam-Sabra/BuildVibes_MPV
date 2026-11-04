@@ -81,12 +81,10 @@ void main() {
         spaces: FakeSpaceRepository()
           ..details[DaybookSamples.space] = s.detail(pass: SpacePass.lead)
           ..spacePeople[DaybookSamples.space] = s.people(),
-        daybook: FakeDaybookRepository()
-          ..posts[DaybookSamples.space] = s.d1(),
-        chat: FakeChatRepository(now: testNow)
-          ..threadsBySpace[DaybookSamples.space] = [
-            const ChatThread(id: 'all'),
-          ],
+        daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = s.d1(),
+        chat: FakeChatRepository(
+          now: testNow,
+        )..threadsBySpace[DaybookSamples.space] = [const ChatThread(id: 'all')],
         now: DaybookSamples.thursday,
       );
       unawaited(_router(tester).push('/spaces/${DaybookSamples.space}'));
