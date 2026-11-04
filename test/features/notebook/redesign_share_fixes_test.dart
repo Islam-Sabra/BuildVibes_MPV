@@ -4,6 +4,7 @@
 // Space's Team, and who a checklist is for; H13 files and voice go to a
 // person as the message's attachments; H14 "To" searches inside the same
 // card; H20 a feed post is in the entry's language. In English and Arabic.
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -252,7 +253,7 @@ void main() {
         expect(
           find.descendant(
             of: _key('share-preview'),
-            matching: find.text('Plan.pdf'),
+            matching: find.text(fileNameRun('Plan.pdf')),
           ),
           findsOneWidget,
         );

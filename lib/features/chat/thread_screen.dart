@@ -1823,7 +1823,11 @@ class _FileChip extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BvNameText(file.name, maxLines: 2, style: type.labelMd),
+                  BvNameText(
+                    fileNameRun(file.name),
+                    maxLines: 2,
+                    style: type.labelMd,
+                  ),
                   Text(
                     joinMeta([?file.revLabel, fileSize(l10n, file.bytes)]),
                     style: type.metadata.copyWith(
@@ -2004,7 +2008,7 @@ class _SharedFileChip extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
-              child: BvNameText(file.name, style: type.bodySm),
+              child: BvNameText(fileNameRun(file.name), style: type.bodySm),
             ),
           ),
           IconButton(

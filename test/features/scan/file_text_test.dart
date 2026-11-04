@@ -3,6 +3,7 @@
 // text shows under the file in a Text section that folds, with Copy; a
 // failure says "Couldn't read this file"; 50 pages a day. The extract-text
 // function is faked here. In English and Arabic.
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/repositories/file_text_repository.dart';
@@ -56,6 +57,7 @@ Future<TestApp> _open(
   String lang,
   _FakeTexts texts, {
   int bytes = 600000,
+  String name = 'Delivery note.pdf',
 }) async {
   final s = DaybookSamples(lang);
   final app = await pumpApp(
@@ -70,7 +72,7 @@ Future<TestApp> _open(
         LibraryFile(
           id: 'f-scan',
           spaceId: _space,
-          name: 'Delivery note.pdf',
+          name: name,
           path: '$_space/library/f-scan/a.pdf',
           mime: 'application/pdf',
           bytes: bytes,
@@ -226,6 +228,15 @@ void main() {
       await _tap(tester, _key('file-extract-text'));
       expect(texts.asked, ['note user-1/note-pdf/a.pdf']);
       expect(find.text('Rebar 16 mm, 4 tonnes'), findsOneWidget);
+    });
+
+    // D17, seen on the emulator: the file's page title keeps an Arabic
+    // name whole, «… عصرًا.pdf», never «pdf.».
+    testWidgets("D17: the file page's title keeps the name whole [$lang]", (
+      tester,
+    ) async {
+      await _open(tester, lang, _FakeTexts(), name: 'مسح 114.pdf');
+      expect(find.text(fileNameRun('مسح 114.pdf')), findsOneWidget);
     });
   }
 }
