@@ -22,7 +22,10 @@ enum ActivityKind {
   announcementNew('announcement_new'),
   checklistForYou('checklist_for_you'),
   activityInvited('activity_invited'),
-  fileNewVersion('file_new_version');
+  fileNewVersion('file_new_version'),
+  // Review 116: a new poll for you, and your poll closed.
+  pollNew('poll_new'),
+  pollClosed('poll_closed');
 
   const ActivityKind(this.json);
 

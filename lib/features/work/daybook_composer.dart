@@ -36,6 +36,7 @@ import '../spaces/former_member.dart' show personName;
 import 'composer_check_in.dart';
 import 'composer_kinds.dart';
 import 'composer_thanks.dart' show thanksRefusalText;
+import 'composer_poll.dart';
 import 'could_not_send.dart';
 import 'daybook_draft.dart';
 import 'daybook_photos.dart';
@@ -462,6 +463,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
           DaybookKind.activity => l10n.cpNewActivity,
           DaybookKind.thanks => l10n.cpNewThanks,
           DaybookKind.checkIn => l10n.cpNewCheckIn,
+          DaybookKind.poll => l10n.cpNewPoll,
           DaybookKind.file || DaybookKind.report => kindName(l10n, kind),
         };
 
@@ -473,6 +475,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     DaybookKind.activity => l10n.cpAddActivity,
     DaybookKind.thanks => l10n.cpAddThanks,
     DaybookKind.checkIn => l10n.cpAddCheckIn,
+    DaybookKind.poll => l10n.cpAddPoll,
     DaybookKind.file || DaybookKind.report => l10n.daybookAttachTitle,
   };
 
@@ -501,6 +504,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         ComposerExtra.pin => l10n.cpPin,
         ComposerExtra.checkOut => l10n.checkInExtraOut,
         ComposerExtra.everyDay => l10n.checkInEveryDay,
+        ComposerExtra.closes => l10n.pollClosesExtra,
       };
 
   static IconData extraIcon(ComposerExtra e) => switch (e) {
@@ -517,6 +521,7 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
     ComposerExtra.pin => BvIcons.pin,
     ComposerExtra.checkOut => BvIcons.checkOut,
     ComposerExtra.everyDay => BvIcons.repeat,
+    ComposerExtra.closes => BvIcons.clock,
   };
 
   /// # (CP2): the kind's icon on the bar.
@@ -611,7 +616,9 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         ),
         team,
       ],
-      DaybookKind.note || DaybookKind.announcement => [team],
+      DaybookKind.note ||
+      DaybookKind.announcement ||
+      DaybookKind.poll => [team],
       // Answered above (_thanksLines, checkInLines).
       DaybookKind.thanks || DaybookKind.checkIn => const [],
       DaybookKind.file || DaybookKind.report => [
@@ -709,6 +716,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                   : _writer.setDaily(false),
             ),
           ),
+      // Review 116 PL1: a poll's closing time, from + → Closes.
+      if (draft.kind == DaybookKind.poll && draft.pollClosesAt != null)
+        BvFilterChip(
+          key: const Key('writing-poll-closes'),
+          clearKey: const Key('writing-poll-closes-clear'),
+          icon: BvIcons.clock,
+          label: l10n.pollCloses(words.pollWhen(draft.pollClosesAt!, now)),
+          clearLabel: l10n.cpRemoveThe(l10n.pollClosesExtra),
+          onTap: () => widget.onExtra(ComposerExtra.closes),
+          onClear: () => unawaited(_writer.setPollClosesAt(null)),
+        ),
       // Review 113 (11): the voice note; a tap plays it.
       if (draft.voiceLocal case final voice?)
         BvFilterChip(
@@ -1082,6 +1100,9 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                         decoration: field.copyWith(
                           hintText: kind == DaybookKind.thanks
                               ? l10n.thanksWordsHint
+                              // Review 116 PL1: the poll's question.
+                              : kind == DaybookKind.poll
+                              ? l10n.pollQuestionHint
                               : l10n.daybookWritingTitle,
                           hintStyle: type.titleLg.copyWith(
                             color: BvColors.textSecondary,
@@ -1098,28 +1119,33 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
                       // W6: a Thanks too (TH1): Details (optional) under
                       // its words; both go as its one body.
                       const SizedBox(height: BvSpace.s8),
-                      TextField(
-                        key: const Key('writing-body'),
-                        controller: _body,
-                        focusNode: _bodyFocus,
-                        maxLength: DaybookPostDraft.bodyMax,
-                        buildCounter: _noCounter,
-                        minLines: 1,
-                        maxLines: null,
-                        style: type.bodyMd.copyWith(
-                          color: BvColors.textPrimary,
+                      // Review 116 PL1: a poll's options in place of its
+                      // details.
+                      if (kind == DaybookKind.poll)
+                        ComposerPollEditor(draft: draft, writer: _writer)
+                      else
+                        TextField(
+                          key: const Key('writing-body'),
+                          controller: _body,
+                          focusNode: _bodyFocus,
+                          maxLength: DaybookPostDraft.bodyMax,
+                          buildCounter: _noCounter,
+                          minLines: 1,
+                          maxLines: null,
+                          style: type.bodyMd.copyWith(
+                            color: BvColors.textPrimary,
+                          ),
+                          decoration: field.copyWith(
+                            hintText: _bodyHint(l10n, kind),
+                          ),
+                          contextMenuBuilder: (_, state) =>
+                              _textMenu(l10n, kind, _body, state),
+                          onTapOutside: _closeMenu,
+                          onChanged: (text) {
+                            unawaited(_writer.setBody(text));
+                            _slash(_body, kind);
+                          },
                         ),
-                        decoration: field.copyWith(
-                          hintText: _bodyHint(l10n, kind),
-                        ),
-                        contextMenuBuilder: (_, state) =>
-                            _textMenu(l10n, kind, _body, state),
-                        onTapOutside: _closeMenu,
-                        onChanged: (text) {
-                          unawaited(_writer.setBody(text));
-                          _slash(_body, kind);
-                        },
-                      ),
                     ],
                     if (draft.quote case final q?) ...[
                       const SizedBox(height: BvSpace.s12),

@@ -1187,6 +1187,23 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           return _schedule(item, ScheduledCall.thanks, made.toParams(), at);
         }
         await daybook.createThanks(made);
+      // Review 116: a poll, its options in order; it goes now only.
+      case PendingKind.post when item.draft?.kind == DaybookKind.poll:
+        final d = item.draft!;
+        await daybook.createPoll(
+          NewPoll(
+            id: item.id,
+            spaceId: item.spaceId,
+            question: d.title.trim(),
+            options: [
+              for (final o in d.writtenOptions)
+                (id: o.id, label: o.text.trim()),
+            ],
+            multi: d.pollMulti,
+            closesAt: d.pollClosesAt,
+            teamId: d.teamId,
+          ),
+        );
       // Review 109: a Check-in, with its site, times and Teams.
       case PendingKind.post when item.draft?.kind == DaybookKind.checkIn:
         final d = item.draft!;

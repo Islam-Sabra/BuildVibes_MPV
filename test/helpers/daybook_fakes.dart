@@ -228,6 +228,35 @@ class FakeDaybookRepository implements DaybookRepository {
     createdThanks.add(thanks);
   }
 
+  /// Review 116: polls as create_poll got them; votes, closes and
+  /// decisions in [calls] ("vote p a,b", "close p", "decide p a").
+  final createdPolls = <NewPoll>[];
+
+  @override
+  Future<void> createPoll(NewPoll poll) async {
+    _check();
+    if (createdPolls.any((p) => p.id == poll.id)) return;
+    createdPolls.add(poll);
+  }
+
+  @override
+  Future<void> votePoll(String postId, List<String> optionIds) async {
+    _check();
+    calls.add('vote $postId ${optionIds.join(',')}');
+  }
+
+  @override
+  Future<void> closePoll(String postId) async {
+    _check();
+    calls.add('close $postId');
+  }
+
+  @override
+  Future<void> decidePoll(String postId, String optionId) async {
+    _check();
+    calls.add('decide $postId $optionId');
+  }
+
   /// Each Space's tags (space_work_tags).
   final tagsBySpace = <String, List<DaybookTag>>{};
 

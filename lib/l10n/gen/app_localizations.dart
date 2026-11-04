@@ -10622,6 +10622,168 @@ abstract class AppLocalizations {
   /// **'A work item is for someone else. For yourself, use My notebook.'**
   String get workItemForSomeoneElse;
 
+  /// Review 116: the poll kind's name on #, the card's tag and the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll'**
+  String get daybookKindPoll;
+
+  /// Review 116 PL1: the composer's top line for a poll.
+  ///
+  /// In en, this message translates to:
+  /// **'New poll'**
+  String get cpNewPoll;
+
+  /// Review 116: + on a poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this poll'**
+  String get cpAddPoll;
+
+  /// Review 116 PL1: the poll's question field.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a question'**
+  String get pollQuestionHint;
+
+  /// Review 116 PL1: an empty option's hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Option {n}'**
+  String pollOptionHint(int n);
+
+  /// Review 116 PL1: adds an option (up to 6).
+  ///
+  /// In en, this message translates to:
+  /// **'Add an option'**
+  String get pollAddOption;
+
+  /// Review 116 PL1: ✕ on an option.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove option'**
+  String get pollRemoveOption;
+
+  /// Review 116 PL1: single choice (rule 6), the default.
+  ///
+  /// In en, this message translates to:
+  /// **'One answer'**
+  String get pollOneAnswer;
+
+  /// Review 116 PL1: each option toggles.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one'**
+  String get pollMoreThanOne;
+
+  /// Review 116: + → Closes, the poll's optional closing time.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes'**
+  String get pollClosesExtra;
+
+  /// Review 116: the closing time, on the chip and the card.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes {when}'**
+  String pollCloses(String when);
+
+  /// Review 116 PL2: who could answer and hasn't.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet: {names}'**
+  String pollNotYet(String names);
+
+  /// Review 116 PL2: two first names and how many more.
+  ///
+  /// In en, this message translates to:
+  /// **'{names} and {n} more'**
+  String pollNamesMore(String names, int n);
+
+  /// Review 116 PL3: the red stamp over the winner (as DONE, CHECKED).
+  ///
+  /// In en, this message translates to:
+  /// **'DECIDED'**
+  String get pollDecided;
+
+  /// Review 116: the stamp when two or more answers share the most choices.
+  ///
+  /// In en, this message translates to:
+  /// **'TIED'**
+  String get pollTied;
+
+  /// Review 116: a tied poll, for its creator.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the answer that wins.'**
+  String get pollPickWinner;
+
+  /// Review 116 PL3.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed by {name} · {when}'**
+  String pollClosedBy(String name, String when);
+
+  /// Review 116: closed by its time (no person).
+  ///
+  /// In en, this message translates to:
+  /// **'Closed · {when}'**
+  String pollClosedAt(String when);
+
+  /// Review 116: nobody voted.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed with no answers'**
+  String get pollNoAnswers;
+
+  /// Review 116 PL3: opens the composer as a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a work item'**
+  String get pollMakeWorkItem;
+
+  /// Review 116: the work item's title from a decided poll.
+  ///
+  /// In en, this message translates to:
+  /// **'{question}: {answer}'**
+  String pollWorkItemTitle(String question, String answer);
+
+  /// Review 116: the hold bar's action, for its creator or a Space admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Close poll'**
+  String get pollClose;
+
+  /// Review 116: asked once; closing is final.
+  ///
+  /// In en, this message translates to:
+  /// **'Close this poll?'**
+  String get pollCloseTitle;
+
+  /// Review 116.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody can vote after this. The answer with the most choices is decided.'**
+  String get pollCloseBody;
+
+  /// Review 116: Activity row for a new poll.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} asked the team to vote: {title}'**
+  String activityPollNew(String name, String title);
+
+  /// Review 116: Activity row to the poll's creator.
+  ///
+  /// In en, this message translates to:
+  /// **'Your poll closed: {title}'**
+  String activityPollClosed(String title);
+
+  /// Review 116: a poll's closing time already passed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a closing time that hasn\'t passed.'**
+  String get pollClosesLater;
+
   /// Review 109: the Check-in kind (glossary).
   ///
   /// In en, this message translates to:

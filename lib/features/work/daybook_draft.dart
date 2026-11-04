@@ -35,7 +35,10 @@ enum DaybookKind {
   report(DaybookPost.reportKind),
 
   /// Review 109: a Check-in, for Leads (and the Space admin) to post.
-  checkIn(DaybookPost.checkInKind);
+  checkIn(DaybookPost.checkInKind),
+
+  /// Review 116: a Poll, for Lead and Crew to post.
+  poll(DaybookPost.pollKind);
 
   const DaybookKind(this.json);
   final String json;
@@ -204,6 +207,9 @@ class DaybookPostDraft {
     this.siteLat,
     this.siteLng,
     this.samePlaceAs,
+    this.pollOptions = const [],
+    this.pollMulti = false,
+    this.pollClosesAt,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -292,6 +298,17 @@ class DaybookPostDraft {
         siteLat: (json['site_lat'] as num?)?.toDouble(),
         siteLng: (json['site_lng'] as num?)?.toDouble(),
         samePlaceAs: json['same_place_as'] as String?,
+        pollOptions: [
+          for (final o in json['poll_options'] as List? ?? const [])
+            (
+              id: (o as Map<String, dynamic>)['id'] as String,
+              text: o['text'] as String? ?? '',
+            ),
+        ],
+        pollMulti: json['poll_multi'] as bool? ?? false,
+        pollClosesAt: json['poll_closes_at'] == null
+            ? null
+            : DateTime.parse(json['poll_closes_at'] as String).toLocal(),
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -499,6 +516,33 @@ class DaybookPostDraft {
   final DayTime? outTime;
   final int? outAllow;
   final bool daily;
+
+  /// Review 116: a poll's options as written (blank lines are left out
+  /// when it goes), one answer or more than one, and when it closes.
+  final List<DraftPoint> pollOptions;
+  final bool pollMulti;
+  final DateTime? pollClosesAt;
+
+  /// The options it would post: written ones, in order.
+  List<DraftPoint> get writtenOptions => [
+    for (final o in pollOptions)
+      if (o.text.trim().isNotEmpty) o,
+  ];
+
+  /// Review 116: 2 to 6 options, each 1 to 60 characters.
+  bool get pollOptionsFit {
+    final written = writtenOptions;
+    return written.length >= pollOptionsMin &&
+        written.length <= pollOptionsMax &&
+        written.every((o) => o.text.trim().length <= pollOptionMax);
+  }
+
+  static const pollOptionsMin = 2;
+  static const pollOptionsMax = 6;
+  static const pollOptionMax = 60;
+  static const pollQuestionMin = 2;
+  static const pollQuestionMax = 140;
+
   final double? siteLat;
   final double? siteLng;
 
@@ -542,7 +586,7 @@ class DaybookPostDraft {
   };
 
   /// What the title box takes.
-  int get titleLimit => _titleMax;
+  int get titleLimit => kind == DaybookKind.poll ? pollQuestionMax : _titleMax;
 
   /// The points that have words.
   List<DraftPoint> get writtenPoints => [
@@ -583,7 +627,9 @@ class DaybookPostDraft {
             outTime == null &&
             !daily &&
             !placeReady &&
-            checkInTeams.isEmpty;
+            checkInTeams.isEmpty &&
+            writtenOptions.isEmpty &&
+            pollClosesAt == null;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
   /// message, not a Draft left from before.
@@ -596,6 +642,9 @@ class DaybookPostDraft {
   bool get titleFits {
     final length = title.trim().length;
     if (kind == DaybookKind.file) return length <= _titleMax;
+    if (kind == DaybookKind.poll) {
+      return length >= pollQuestionMin && length <= pollQuestionMax;
+    }
     final min = kind == DaybookKind.workItem ? titleMin : 1;
     return length >= min && length <= _titleMax;
   }
@@ -610,6 +659,7 @@ class DaybookPostDraft {
     DaybookKind.checklist => titleFits && writtenPoints.isNotEmpty,
     // Review 109: Send stays off until the place is set.
     DaybookKind.checkIn => titleFits && placeReady && checkInTimesFit,
+    DaybookKind.poll => titleFits && pollOptionsFit,
     _ => titleFits,
   };
 
@@ -674,6 +724,9 @@ class DaybookPostDraft {
     DayTime? Function()? outTime,
     int? Function()? outAllow,
     bool? daily,
+    List<DraftPoint>? pollOptions,
+    bool? pollMulti,
+    DateTime? Function()? pollClosesAt,
     ({double lat, double lng})? Function()? site,
     String? Function()? samePlaceAs,
     bool refused = false,
@@ -685,6 +738,9 @@ class DaybookPostDraft {
     outTime: outTime == null ? this.outTime : outTime(),
     outAllow: outAllow == null ? this.outAllow : outAllow(),
     daily: daily ?? this.daily,
+    pollOptions: pollOptions ?? this.pollOptions,
+    pollMulti: pollMulti ?? this.pollMulti,
+    pollClosesAt: pollClosesAt == null ? this.pollClosesAt : pollClosesAt(),
     siteLat: site == null ? siteLat : site()?.lat,
     siteLng: site == null ? siteLng : site()?.lng,
     samePlaceAs: samePlaceAs == null ? this.samePlaceAs : samePlaceAs(),
@@ -792,6 +848,12 @@ class DaybookPostDraft {
     'site_lat': siteLat,
     'site_lng': siteLng,
     'same_place_as': samePlaceAs,
+    if (pollOptions.isNotEmpty)
+      'poll_options': [
+        for (final o in pollOptions) {'id': o.id, 'text': o.text},
+      ],
+    if (pollMulti) 'poll_multi': true,
+    'poll_closes_at': ?pollClosesAt?.toUtc().toIso8601String(),
   };
 }
 
@@ -880,7 +942,17 @@ class DaybookDraft extends DaybookWritingNotifier {
   /// Opens a new card with [id], or keeps the one being written.
   /// A new card is [kind] (review 110 G1: the last one posted here).
   void open(String id, {DaybookKind kind = DaybookKind.workItem}) =>
-      state ??= DaybookPostDraft(id: id, kind: kind);
+      state ??= DaybookPostDraft(
+        id: id,
+        kind: kind,
+        // Review 116 PL1: a poll starts with two empty options.
+        pollOptions: kind == DaybookKind.poll
+            ? [
+                for (var i = 0; i < DaybookPostDraft.pollOptionsMin; i++)
+                  (id: newUuid(), text: ''),
+              ]
+            : const [],
+      );
 
   /// A message to make a work item from (review 64: DM4–DM5, S8m): the card
   /// being written, or a new one with [id], now quoting it. A Space chat

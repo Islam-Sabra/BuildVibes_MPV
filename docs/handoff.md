@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, morning — review 116 (Poll) finished on two branches; waiting for the lead's check
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Where the two agents stopped:** both review 116 agents (`claude/r116-server`, `claude/r116`) sat for about 14 hours with nothing written. They were stopped and the PC session did both parts itself.
+- **`claude/r116-server`** (464a341c, pushed): migration `20261125120000_review116_poll` (kind `poll`; `polls`, `poll_options`, `poll_votes` with RLS through `can_see_space_post`; `create_poll`, `edit_poll`, `vote_poll`, `close_poll`, `decide_poll`; `close_due_polls()` for the service role; the card's `poll` JSON; notifications `poll_new` and `poll_closed`). Push texts in `strings.json`. Test `66_review116_poll` (48 checks); deno 35 pass.
+- **`claude/r116`** (server branch merged in):
+  - PL1 composer: question (2–140), 2 to 6 options with ✕, Add an option, One answer · More than one, + → Closes. No camera, voice or Post later for a poll (create_poll takes none). A note's photos are dropped, with the usual notice, when it becomes a poll.
+  - PL2 card: ring, thin bar and faces per option (never a number); one tap chooses, another changes, the same again takes it back; More than one toggles; "Not yet: …"; Closes. Viewers vote.
+  - PL3: DECIDED stamp + winner, TIED with "Tap the answer that wins." for the creator or a Space admin, "Closed with no answers"; "Closed by … · time"; Close poll in the hold bar (creator or Space admin, asked once); Make it a work item opens a new work item card titled "question: answer" (question mark dropped).
+  - Activity rows for `poll_new` and `poll_closed`.
+  - The lead's small items: tip 2 "Hold a card to pin it, set a reminder, or archive or delete it."; "Whole Space" in the post-audience sheet and its foot; with several cards held only Archive/Delete (when all allow), Pin and Reminder with one card only.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,776 pass; `test_screens` 712 pass (10 goldens updated for the new words and the Poll kind: OB7, CP2, CV3, TM5, F56); `supabase test db` 65 files, 4,459 checks, PASS.
+- **Emulator check (local Supabase, not live; live has no poll migration):** signed in as Islam on the local seed; create · vote · change vote · close · decided · Make it a work item, each checked in the local database. Shots in `docs/reviews/shots-116/` (PL1–PL3 goldens EN/AR, `EMU-*` from the emulator). The emulator now has a debug build pointing at the local server.
+- **Not done (needs the founder's yes):** `supabase db push` of the poll migration, push function deploy, a cron job for `close_due_polls()`, merge into `slice2-app`, a build.
+- **Who has which branch:** PC has `claude/r116` and `claude/r116-server`, both pushed, not merged. `slice2-app` unchanged.
+
 ## PC update: 3 Nov 2026, night — review 115 merged; build 1032 on the founder's phone; next: review 116 (Poll)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
