@@ -1,6 +1,6 @@
 # Review 117: Explore as people search (proposal, 3 Nov evening, cloud session)
 
-**Status:** waiting for the founder's ok on the scope (a business call).
+**Status:** on hold (founder, 4 Nov 11:56). Explore is very important and **will be in the pilot**, but it gets a detailed discussion first, and it comes **after** the founder is satisfied with Space, Profile and Notebook. Nothing here is approved yet.
 
 **Today:** the Explore tab shows "This part of the app is being built." (`lib/features/explore/explore_screen.dart` is a placeholder). People search already exists as F78 (`people_search_screen.dart`, reached from Messages' + and "Search people"), with the server's rule that blocked and hidden accounts never show.
 
