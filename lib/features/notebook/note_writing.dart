@@ -603,7 +603,7 @@ class NoteFileRow extends StatelessWidget {
         ),
         Flexible(
           child: Text(
-            file.name,
+            fileNameRun(file.name),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textDirection: directionOf(file.name),

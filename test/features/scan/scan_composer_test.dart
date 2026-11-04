@@ -9,6 +9,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/scan/scan.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
@@ -125,6 +126,32 @@ void main() {
         // SC4: the composer's chip says it was scanned.
         expect(
           find.textContaining(l10n.scannedPages(l10n.scanPages(3))),
+          findsOneWidget,
+        );
+      });
+
+      // The lead's check, D18: an emptied name is the default again.
+      testWidgets('D18: an empty name: "Scan · …" [$lang]', (tester) async {
+        await _compose(tester, lang);
+        await _tap(tester, _key('writing-scan'));
+        await tester.enterText(_key('scan-name'), '   ');
+        await _tap(tester, _key('scan-add'));
+        final words = DaybookWords(l10n, lang, use24: false);
+        expect(
+          _draft(tester)!.files.single.name,
+          '${scanName(words, DaybookSamples.thursday)}.pdf',
+        );
+      });
+
+      // D17: the name keeps its direction: «إشعار 114.pdf», never
+      // «pdf.114».
+      testWidgets('D17: the chip keeps the name whole [$lang]', (tester) async {
+        await _compose(tester, lang);
+        await _tap(tester, _key('writing-scan'));
+        await tester.enterText(_key('scan-name'), 'إشعار 114');
+        await _tap(tester, _key('scan-add'));
+        expect(
+          find.textContaining(fileNameRun('إشعار 114.pdf')),
           findsOneWidget,
         );
       });

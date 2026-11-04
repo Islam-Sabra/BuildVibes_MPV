@@ -5,7 +5,10 @@
 // original. Over 25 MB the "too large" sheet offers Make it smaller first,
 // with Link folder beside it; still too large after it, only Link folder.
 // In English and Arabic.
+import 'dart:async';
 import 'dart:convert';
+
+import 'package:buildvibes/core/design/bv_icons.dart';
 
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/library.dart';
@@ -362,6 +365,115 @@ void main() {
           tester.element(find.byType(Scaffold).first),
         ).read(noteDraftProvider)!;
         expect(draft.files.single.bytes, 12 * _mb);
+      });
+    });
+
+    group("the lead's check D11-D15 [$lang]", () {
+      testWidgets('D11: the composer chip says the size', (tester) async {
+        await _open(tester, lang, bytes: 9 * _mb + 100 * 1024);
+        await _attach(tester);
+        expect(
+          find.textContaining(fileSize(l10n, 9 * _mb + 100 * 1024)),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('D12: Make it smaller in words, never a bare download '
+          'icon', (tester) async {
+        await _open(tester, lang, bytes: 38 * _mb);
+        await _attach(tester);
+        expect(
+          find.descendant(
+            of: _key('file-refused-smaller'),
+            matching: find.byIcon(BvIcons.download),
+          ),
+          findsNothing,
+        );
+        await _tap(tester, _key('file-refused-smaller'));
+        await _tap(tester, _key('pdf-use-smaller'));
+        expect(
+          find.descendant(
+            of: _key('writing-file-smaller-0'),
+            matching: find.byIcon(BvIcons.download),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('D12: in a message too, the words', (tester) async {
+        await pumpApp(
+          tester,
+          language: lang,
+          dm: FakeDmRepository()
+            ..pages['t-omar'] = const DmThreadPage(
+              threadId: 't-omar',
+              person: DmPerson(id: 'p-omar', name: 'Omar Haddad'),
+              messages: [],
+            ),
+          pickDocument: () => _pdf(6 * _mb),
+        );
+        GoRouter.of(
+          tester.element(find.byType(Scaffold).first),
+        ).push('/messages/t-omar');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('chat-attach'));
+        await _tap(tester, find.text(l10n.chatAttachPdf));
+        expect(
+          find.descendant(
+            of: _key('chat-picked-smaller-0'),
+            matching: find.text(l10n.pdfSmaller),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets("D13: a copy that isn't smaller: said so, only Keep "
+          'original', (tester) async {
+        await _open(
+          tester,
+          lang,
+          bytes: 4 * _mb,
+          shrinker: FakePdfShrinker(bytes: 5 * _mb),
+        );
+        await _attach(tester);
+        await _tap(tester, _key('writing-file-smaller-0'));
+        expect(find.text(l10n.pdfSmallerFailed), findsOneWidget);
+        expect(_key('pdf-use-smaller'), findsNothing);
+        await _tap(tester, _key('pdf-keep-original'));
+        expect(_draft(tester)!.files.single.bytes, 4 * _mb);
+      });
+
+      testWidgets('D14: "page 3 of 12" while it works', (tester) async {
+        final hold = Completer<void>();
+        await _open(
+          tester,
+          lang,
+          bytes: 4 * _mb,
+          shrinker: FakePdfShrinker(progress: (3, 12), hold: hold.future),
+        );
+        await _attach(tester);
+        await tester.tap(_key('writing-file-smaller-0'));
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(l10n.pdfSmallerMaking(3, 12)), findsOneWidget);
+        hold.complete();
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.pdfSmallerMaking(3, 12)), findsNothing);
+        expect(_key('pdf-use-smaller'), findsOneWidget);
+      });
+
+      testWidgets('D15: "Still too large" rounds up: 25.4 MB is 26', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          bytes: 60 * _mb,
+          shrinker: FakePdfShrinker(bytes: 25 * _mb + 400 * 1024),
+        );
+        await _attach(tester);
+        await _tap(tester, _key('file-refused-smaller'));
+        expect(find.text(l10n.pdfStillTooLarge('26', '25')), findsOneWidget);
       });
     });
   }

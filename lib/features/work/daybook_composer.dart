@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../library/library_parts.dart' show fileSize;
 import '../scan/pdf_smaller.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
@@ -829,14 +830,17 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         BvFilterChip(
           key: Key('writing-file-$i'),
           icon: f.scanned ? BvIcons.scan : BvIcons.document,
-          label: [
+          // The lead's check: the name in its own direction (D17) and the
+          // size (D11).
+          label: joinMeta([
             f.revLabel == null
-                ? f.name
-                : l10n.daybookFileChip(f.name, f.revLabel!),
+                ? fileNameRun(f.name)
+                : l10n.daybookFileChip(fileNameRun(f.name), f.revLabel!),
             // Review 103 SC4: "Scanned · 3 pages".
             if (f.scanned && f.pages != null)
               l10n.scannedPages(l10n.scanPages(f.pages!)),
-          ].join(' · '),
+            if (f.bytes != null) fileSize(l10n, f.bytes),
+          ]),
           clearLabel: l10n.daybookRemoveFile,
           onClear: () => unawaited(_writer.removeFile(f)),
         ),
@@ -846,7 +850,6 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
         if (offersSmaller(f.local, f.mime, f.bytes))
           BvChip(
             key: Key('writing-file-smaller-$i'),
-            icon: BvIcons.download,
             label: l10n.pdfSmaller,
             tight: true,
             onTap: () => unawaited(_smaller(f)),

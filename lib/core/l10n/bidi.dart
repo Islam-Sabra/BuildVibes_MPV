@@ -31,6 +31,15 @@ String inOwnDirection(String text) {
   return '${String.fromCharCode(open)}$text${String.fromCharCode(_pdi)}';
 }
 
+/// A file's name in a line (the lead's check of review 103, D17): in its
+/// own direction, whole. A right-to-left name keeps its extension left to
+/// right after it, so «إشعار 114.pdf» never reads «pdf.114».
+String fileNameRun(String name) {
+  final dot = name.lastIndexOf('.');
+  if (dot <= 0 || !Bidi.startsWithRtl(name)) return inOwnDirection(name);
+  return rtlRun(name.substring(0, dot)) + ltrRun(name.substring(dot));
+}
+
 /// The dot between the parts of a meta line.
 const metaDot = '·';
 

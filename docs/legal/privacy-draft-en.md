@@ -14,6 +14,7 @@
 | When a proof photo was taken, and the place you type | The work item's record. The app doesn't ask for your location. |
 | Your phone's push code, its type and the app's language | To send notifications. |
 | Your private notebook | Only you can see it. |
+| The text read from a document, when you tap Extract text | To show it under the file and find it in search. It is seen by the people who can open the file. |
 | Reports and blocks | To keep people safe. |
 | Basic logs (sign-ins, errors) | To keep the app working and secure. |
 | Photos: the position the camera stored in them | **Not kept.** The app removes it on your phone before a photo is sent. |
@@ -31,6 +32,7 @@ We don't use your phone's contacts. We don't track you across other apps.
   - Supabase: the database, files and sign-in. Servers in India, Mumbai region.
   - Resend: sends the sign-in code email.
   - Google Firebase and Apple: deliver the notifications.
+  - Google Cloud (Vision): when you tap Extract text, the document is sent to Google Cloud to read its text, and the text is stored with the file. Nothing is sent unless you tap it.
   - Google Firebase Crashlytics: crash reports from the app. Crash reports carry a random install id, the phone model and system version, and where in the app the error happened. Never your name, email or what you typed.
 - **The law:** when a Kuwaiti court or authority lawfully orders it.
 

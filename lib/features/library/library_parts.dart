@@ -156,7 +156,7 @@ class FileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BvListRow(
       key: Key('file-${file.id}'),
-      title: inOwnDirection(file.name),
+      title: fileNameRun(file.name),
       subtitle: subtitle,
       leading: BvRowIcon(
         file.isImage ? BvIcons.image : BvIcons.document,

@@ -34,13 +34,17 @@ const pdfSmallerQuality = 75;
 /// A smaller copy: [bytes] long, [pages] pages.
 typedef ShrunkPdf = ({int bytes, int pages});
 
+/// The lead's check, D14: [page] of [total] is done.
+typedef PdfPageDone = void Function(int page, int total);
+
 /// Makes [input] ([inBytes] long) smaller at [out]; null when the phone
-/// can't read it. The original is never touched.
+/// can't read it. The original is never touched. [onPage] after each page.
 typedef PdfShrinker =
     Future<ShrunkPdf?> Function({
       required String input,
       required String out,
       required int inBytes,
+      PdfPageDone? onPage,
     });
 
 /// Tests stand in for the phone's PDF renderer.
@@ -53,6 +57,7 @@ Future<ShrunkPdf?> shrinkPdf({
   required String input,
   required String out,
   required int inBytes,
+  PdfPageDone? onPage,
 }) async {
   final pdfx.PdfDocument source;
   try {
@@ -84,6 +89,7 @@ Future<ShrunkPdf?> shrinkPdf({
       } finally {
         await page.close();
       }
+      onPage?.call(i, source.pagesCount);
     }
   } on Object {
     return null;
@@ -110,11 +116,13 @@ Future<PhoneFile?> makeSmaller(
   WidgetRef ref,
   PhoneFile file,
 ) async {
-  final made = await _shrink(ref, file);
+  final made = await _shrink(context, ref, file);
   if (!context.mounted) return null;
   final l10n = AppLocalizations.of(context);
-  if (made == null) {
-    await _say(context, l10n.pdfSmallerFailed);
+  // The lead's check, D13: a copy that isn't smaller is no use.
+  if (made == null || (made.bytes ?? 0) >= (file.bytes ?? 0)) {
+    if (made != null) _drop(made.local);
+    await _notSmaller(context);
     return null;
   }
   final use = await showBvSheet<bool>(
@@ -225,7 +233,6 @@ Future<PhoneFile?> fitTooLarge(
           BvButton(
             key: const Key('file-refused-smaller'),
             label: l10n.pdfSmaller,
-            icon: BvIcons.download,
             expand: true,
             onPressed: () => Navigator.of(sheet).pop(_TooLarge.smaller),
           ),
@@ -247,10 +254,10 @@ Future<PhoneFile?> fitTooLarge(
     await _link(context, ref, space);
     return null;
   }
-  final made = await _shrink(ref, file);
+  final made = await _shrink(context, ref, file);
   if (!context.mounted) return null;
   if (made == null) {
-    await _say(context, l10n.pdfSmallerFailed);
+    await _notSmaller(context);
     return null;
   }
   if ((made.bytes ?? 0) > maxBytes) {
@@ -305,7 +312,9 @@ Future<PhoneFile?> fitTooLarge(
 
 enum _TooLarge { smaller, link }
 
-String _wholeMb(int bytes) => (bytes / (1024 * 1024)).round().toString();
+/// The lead's check, D15: rounded up, so 25.4 MB is never "25 MB" beside
+/// a limit of 25.
+String _wholeMb(int bytes) => (bytes / (1024 * 1024)).ceil().toString();
 
 /// Link folder, as the "too large" sheet always offered it.
 Future<void> _link(
@@ -317,14 +326,39 @@ Future<void> _link(
   await showFolderSheet(context, ref, space: space, link: true);
 }
 
-Future<PhoneFile?> _shrink(WidgetRef ref, PhoneFile file) async {
+/// The smaller copy, made on the phone while a sheet says how far it is
+/// (the lead's check, D14: "Making it smaller… page 3 of 12").
+Future<PhoneFile?> _shrink(
+  BuildContext context,
+  WidgetRef ref,
+  PhoneFile file,
+) async {
+  final shrinker = ref.read(pdfShrinkerProvider);
   final dir = await ref.read(scanDirProvider)();
   final out = '$dir/${newUuid()}.pdf';
-  final made = await ref.read(pdfShrinkerProvider)(
-    input: file.local,
-    out: out,
-    inBytes: file.bytes ?? await File(file.local).length(),
+  final inBytes = file.bytes ?? await File(file.local).length();
+  if (!context.mounted) return null;
+  final done = ValueNotifier<(int, int)?>(null);
+  final sheet = Navigator.of(context, rootNavigator: true);
+  unawaited(
+    showBvSheet<void>(
+      context: context,
+      title: AppLocalizations.of(context).pdfSmallerTitle,
+      builder: (sheet) => PopScope(canPop: false, child: _Making(done: done)),
+    ),
   );
+  final ShrunkPdf? made;
+  try {
+    made = await shrinker(
+      input: file.local,
+      out: out,
+      inBytes: inBytes,
+      onPage: (page, total) => done.value = (page, total),
+    );
+  } finally {
+    sheet.pop();
+    done.dispose();
+  }
   if (made == null) return null;
   return PhoneFile(
     local: out,
@@ -342,13 +376,67 @@ void _drop(String path) {
   }
 }
 
-Future<void> _say(BuildContext context, String text) => showBvSheet<void>(
+/// The lead's check, D13: "This PDF couldn't be made smaller.", and only
+/// Keep original.
+Future<void> _notSmaller(BuildContext context) => showBvSheet<void>(
   context: context,
-  builder: (sheet) => Text(
-    text,
-    style: BvType.of(sheet).bodyMd.copyWith(color: BvColors.textPrimary),
-  ),
+  builder: (sheet) {
+    final l10n = AppLocalizations.of(sheet);
+    return Column(
+      key: const Key('pdf-not-smaller'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s12,
+      children: [
+        Text(
+          l10n.pdfSmallerFailed,
+          style: BvType.of(sheet).bodyMd.copyWith(color: BvColors.textPrimary),
+        ),
+        BvButton(
+          key: const Key('pdf-keep-original'),
+          label: l10n.pdfKeepOriginal,
+          style: BvButtonStyle.secondary,
+          expand: true,
+          onPressed: () => Navigator.of(sheet).pop(),
+        ),
+      ],
+    );
+  },
 );
+
+/// "Making it smaller… page 3 of 12", with a bar, while the phone works.
+class _Making extends StatelessWidget {
+  const _Making({required this.done});
+
+  final ValueNotifier<(int, int)?> done;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return ValueListenableBuilder(
+      valueListenable: done,
+      builder: (context, done, _) => Column(
+        key: const Key('pdf-making'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s12,
+        children: [
+          if (done case (final page, final total))
+            Text(
+              l10n.pdfSmallerMaking(page, total),
+              style: type.bodyMd.copyWith(color: BvColors.textPrimary),
+            ),
+          LinearProgressIndicator(
+            value: done == null ? null : done.$1 / done.$2,
+            color: BvColors.iconAction,
+            backgroundColor: BvColors.surfaceBrandSoft,
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// "9.1 MB → 2.3 MB", the warning line, then Use smaller (and Keep
 /// original when there is one to keep).

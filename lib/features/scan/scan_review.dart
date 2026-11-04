@@ -103,6 +103,9 @@ class ScanReviewScreen extends ConsumerStatefulWidget {
 class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
   late final List<String> _pages = List.of(widget.pages);
   final _name = TextEditingController();
+
+  /// "Scan · …", what an emptied name falls back to (the lead's check, D18).
+  var _default = '';
   String? _out;
   String? _thumb;
   MadeScan? _made;
@@ -120,7 +123,7 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
         Localizations.localeOf(context).toLanguageTag(),
         use24: MediaQuery.alwaysUse24HourFormatOf(context),
       );
-      _name.text = scanName(words, ref.read(clockProvider)());
+      _name.text = _default = scanName(words, ref.read(clockProvider)());
       _out = '';
       unawaited(_make());
     }
@@ -212,7 +215,7 @@ class _ScanReviewScreenState extends ConsumerState<ScanReviewScreen> {
     Navigator.of(context).pop(
       ScannedDocument(
         local: out,
-        name: words.isEmpty ? _name.text : words,
+        name: words.isEmpty ? _default : words,
         pages: made.pages,
         bytes: made.bytes,
         thumb: _thumb!,

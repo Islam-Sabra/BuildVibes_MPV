@@ -38,18 +38,25 @@ Future<String> testScanDir() async =>
 /// Make it smaller in tests (review 103): writes a copy and says it came
 /// to [bytes] (by default a quarter of [inBytes]); [calls] counts them.
 class FakePdfShrinker {
-  FakePdfShrinker({this.bytes});
+  FakePdfShrinker({this.bytes, this.progress, this.hold});
 
   /// The size the smaller PDF comes to; null: a quarter.
   int? bytes;
+
+  /// Said as it works (page, of how many), then it waits for [hold].
+  final (int, int)? progress;
+  final Future<void>? hold;
   final calls = <String>[];
 
   Future<ShrunkPdf?> call({
     required String input,
     required String out,
     required int inBytes,
+    PdfPageDone? onPage,
   }) async {
     calls.add(input);
+    if (progress case (final page, final total)) onPage?.call(page, total);
+    if (hold case final hold?) await hold;
     File(out).writeAsBytesSync(File(input).readAsBytesSync());
     return (bytes: bytes ?? inBytes ~/ 4, pages: 1);
   }

@@ -26,6 +26,7 @@ import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
@@ -1889,10 +1890,10 @@ class _PickedChip extends StatelessWidget {
               child: file.isPdf
                   // Review 103: a PDF shows its size.
                   ? BvNameText(
-                      [
-                        file.name,
+                      joinMeta([
+                        fileNameRun(file.name),
                         if (file.bytes != null) fileSize(l10n, file.bytes),
-                      ].join(' · '),
+                      ]),
                       style: type.bodySm,
                     )
                   : Text(
@@ -1905,14 +1906,12 @@ class _PickedChip extends StatelessWidget {
           ),
           if (onSmaller != null &&
               offersSmaller(file.local, file.mime, file.bytes))
-            IconButton(
+            // The lead's check, D12: in words.
+            BvButton(
               key: Key('chat-picked-smaller-$index'),
-              tooltip: l10n.pdfSmaller,
-              icon: const Icon(
-                BvIcons.download,
-                size: BvSize.iconSm,
-                color: BvColors.iconAction,
-              ),
+              label: l10n.pdfSmaller,
+              style: BvButtonStyle.tertiary,
+              size: BvButtonSize.medium,
               onPressed: onSmaller,
             ),
           IconButton(
