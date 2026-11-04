@@ -86,17 +86,16 @@ select lives_ok($$select public.save_file_text('library', pg_temp.id('f1')::text
                   'ar', 'إشعار تسليم حديد 16 مم Rebar delivery', 2)$$, 'the text is kept');
 select throws_ok($$select public.save_file_text('library', pg_temp.id('f1')::text, pg_temp.uid('b2'), 'en', 'x', 21)$$,
   '22023', null, 'at most 20 pages a file');
-select is(public.text_pages_left(pg_temp.uid('b2')), 48, '50 pages a person a day, 2 used');
+-- The day's pages are ocr_usage's (D5, test 71): saving doesn't count.
+select is(public.text_pages_left(pg_temp.uid('b2')), 50, 'saving a text reserves nothing');
 select lives_ok($$select public.save_file_text('note', pg_temp.uid('a1') || '/' || pg_temp.id('a2') || '/c.pdf',
                   pg_temp.uid('a1'), 'en', 'Cube test 7 days 32.5 MPa', 1)$$, 'a note file''s text too');
 reset role;
--- A day's limit.
-insert into public.file_texts (file_kind, file_ref, text, pages, created_by)
-values ('library', 'used-today', 'x', 20, pg_temp.uid('b2')),
-       ('library', 'used-today-2', 'x', 20, pg_temp.uid('b2'));
+-- A day's limit: reserved before Vision is asked.
 set local role service_role;
-select throws_ok($$select public.save_file_text('library', 'another', pg_temp.uid('b2'), 'en', 'x', 9)$$,
-  '22023', null, 'not past 50 pages a day');
+select public.reserve_text_pages(pg_temp.uid('b2'), 20);
+select public.reserve_text_pages(pg_temp.uid('b2'), 20);
+select is(public.reserve_text_pages(pg_temp.uid('b2'), 11), false, 'not past 50 pages a day');
 reset role;
 
 -- Who reads it: exactly as the file.

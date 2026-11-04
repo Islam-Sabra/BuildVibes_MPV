@@ -4,8 +4,13 @@
 // the file (file_texts), searchable in Space and notebook search.
 //
 // Signed-in callers only: their own sign-in asks file_for_text, so a file
-// they can't open is never read. The service role downloads the file and
-// keeps the text (save_file_text: 20 pages a file, 50 a person a day).
+// they can't open is never read. The service role downloads the file,
+// reserves the caller's pages for the day before Vision is asked (and gives
+// them back if it fails), and keeps the text (save_file_text). See read.ts.
+//
+// The key goes in the X-Goog-Api-Key header, never in a URL (the lead's
+// check, D4). The log carries fixed codes only: never a message from
+// another service, a file's name or path, or its words.
 //
 // NOT DEPLOYED. A live change for the founder's yes, after migration
 // 20261128120000 is live. Secret, set in Supabase only:
@@ -14,10 +19,18 @@
 //   "Couldn't read this file".
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { pageCount, splitPdf } from "./pdf.ts";
 import { type Deps, extract, type FileKind } from "./read.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const service = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+/** A failure with a fixed code, the only thing the log says. */
+class Failed extends Error {
+  constructor(readonly code: string) {
+    super(code);
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(null, { status: 405 });
@@ -50,33 +63,57 @@ Deno.serve(async (req) => {
     },
     kept: async (kind: FileKind, ref: string) => {
       const { data } = await service.from("file_texts")
-        .select("text, lang, pages")
+        .select("text, lang, pages, partial")
         .eq("file_kind", kind).eq("file_ref", ref).maybeSingle();
       return data ?? null;
     },
-    pagesLeft: async (caller: string) => {
-      const { data, error } = await service.rpc("text_pages_left", { p_who: caller });
-      if (error) throw error;
-      return data as number;
+    reserve: async (caller: string, pages: number) => {
+      const { data, error } = await service.rpc("reserve_text_pages", {
+        p_who: caller,
+        p_pages: pages,
+      });
+      if (error) throw new Failed("reserve");
+      return data === true;
+    },
+    release: async (caller: string, pages: number) => {
+      const { error } = await service.rpc("release_text_pages", {
+        p_who: caller,
+        p_pages: pages,
+      });
+      if (error) throw new Failed("release");
     },
     download: async (bucket: string, path: string) => {
       const { data, error } = await service.storage.from(bucket).download(path);
-      if (error || !data) throw error ?? new Error("no file");
+      if (error || !data) throw new Failed("download");
       return new Uint8Array(await data.arrayBuffer());
     },
+    pageCount: async (pdf: Uint8Array) => {
+      try {
+        return await pageCount(pdf);
+      } catch {
+        throw new Failed("pdf_unreadable");
+      }
+    },
+    split: async (pdf: Uint8Array, from: number, to: number) => {
+      try {
+        return await splitPdf(pdf, from, to);
+      } catch {
+        throw new Failed("pdf_split");
+      }
+    },
     vision: async (endpoint: string, body: unknown) => {
-      const res = await fetch(
-        `https://vision.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(key)}`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
+      const res = await fetch(`https://vision.googleapis.com/v1/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "X-Goog-Api-Key": key,
         },
-      );
-      if (!res.ok) throw new Error(`vision ${res.status}`);
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Failed(`vision_${res.status}`);
       return await res.json();
     },
-    save: async (kind, ref, caller, lang, text, pages) => {
+    save: async (kind, ref, caller, lang, text, pages, partial) => {
       const { error } = await service.rpc("save_file_text", {
         p_kind: kind,
         p_ref: ref,
@@ -84,16 +121,16 @@ Deno.serve(async (req) => {
         p_lang: lang,
         p_text: text,
         p_pages: pages,
+        p_partial: partial,
       });
-      if (error) throw error;
+      if (error) throw new Failed("save");
     },
   };
   try {
     const answer = await extract(input, deps);
     return reply(answer.status, answer.body);
   } catch (e) {
-    // Counts only, never the file's words or names.
-    console.error(`extract-text failed: ${(e as Error).message}`);
+    console.error(`extract-text failed: ${e instanceof Failed ? e.code : "unknown"}`);
     return reply(502, { error: "could_not_read" });
   }
 });

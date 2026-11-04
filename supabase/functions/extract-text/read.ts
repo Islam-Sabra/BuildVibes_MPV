@@ -1,20 +1,26 @@
 // "Extract text" (review 103, OCR): what the edge function does, with
-// everything outside it (the caller's sign-in, storage, Google Cloud
-// Vision, the database) handed in, so it is tested with fakes and no key.
-// Tested with: deno test supabase/functions/extract-text/read.test.ts
+// everything outside it (the caller's sign-in, storage, the PDF splitter,
+// Google Cloud Vision, the database) handed in, so it is tested with fakes
+// and no key. Tested with: deno test supabase/functions/extract-text/
 //
 // - Only for a signed-in caller who can open the file (file_for_text, asked
-//   as the caller), and only a PDF or a photo.
-// - At most MAX_PAGES pages a file, and never past what the caller has left
-//   of 50 pages a day (text_pages_left).
-// - Vision's document text detection: a PDF in batches of 5 pages
-//   (files:annotate), a photo in one go (images:annotate). The text of
-//   each page, in order, with the first language Vision names.
+//   as the caller), and only a PDF or a photo of at most MAX_BYTES, said
+//   before anything is downloaded (the lead's check, D7).
+// - The pages counted first: at most MAX_PAGES, and a longer file is read
+//   in part and kept marked partial (D3). They are reserved from the
+//   caller's 50 a day before Vision is asked; if they don't fit, nothing is
+//   read (D3, D5); if Vision fails, they are given back (D5).
+// - Vision's document text detection gets only the pages needed, BATCH at
+//   a time, each batch its own small PDF (files:annotate takes at most 5
+//   pages a request); a photo goes in one images:annotate call.
 // - Kept with save_file_text; a file already read gives its text back
 //   without asking Vision again.
 
 export const MAX_PAGES = 20;
 export const BATCH = 5;
+
+/** The lead's check, D7: larger files are made smaller on the phone first. */
+export const MAX_BYTES = 10 * 1024 * 1024;
 
 export type FileKind = "library" | "note";
 
@@ -22,6 +28,7 @@ export type FileFor = {
   bucket: string;
   path: string;
   mime: string;
+  bytes: number | null;
   done: boolean;
 };
 
@@ -32,8 +39,15 @@ export type Deps = {
   fileFor(kind: FileKind, ref: string): Promise<FileFor | null>;
   /** The text already kept, or null. */
   kept(kind: FileKind, ref: string): Promise<Kept | null>;
-  pagesLeft(caller: string): Promise<number>;
+  /** Holds [pages] of the caller's day; false when they don't fit. */
+  reserve(caller: string, pages: number): Promise<boolean>;
+  /** Gives them back (Vision failed). */
+  release(caller: string, pages: number): Promise<void>;
   download(bucket: string, path: string): Promise<Uint8Array>;
+  /** How many pages the PDF has. */
+  pageCount(pdf: Uint8Array): Promise<number>;
+  /** A PDF of pages [from]..[to] (1-based) of [pdf]. */
+  split(pdf: Uint8Array, from: number, to: number): Promise<Uint8Array>;
   /** One Vision call: its endpoint ("files:annotate" or "images:annotate")
    *  and request body; the parsed JSON answer. */
   vision(endpoint: string, body: unknown): Promise<unknown>;
@@ -44,10 +58,16 @@ export type Deps = {
     lang: string | null,
     text: string,
     pages: number,
+    partial: boolean,
   ): Promise<void>;
 };
 
-export type Kept = { text: string; lang: string | null; pages: number };
+export type Kept = {
+  text: string;
+  lang: string | null;
+  pages: number;
+  partial?: boolean;
+};
 
 export type Answer = { status: number; body: Record<string, unknown> };
 
@@ -77,49 +97,53 @@ export async function extract(
   if (!pdf && !file.mime.startsWith("image/")) {
     return json(415, { error: "not_a_document" });
   }
-  const left = await deps.pagesLeft(caller);
-  if (left <= 0) return json(429, { error: "daily_limit" });
-  const most = Math.min(MAX_PAGES, left);
+  if ((file.bytes ?? 0) > MAX_BYTES) return json(413, { error: "too_large" });
 
   const bytes = await deps.download(file.bucket, file.path);
-  const content = base64(bytes);
+  const total = pdf ? await deps.pageCount(bytes) : 1;
+  const pages = Math.max(1, Math.min(total, MAX_PAGES));
+  const partial = total > MAX_PAGES;
+  if (!await deps.reserve(caller, pages)) {
+    return json(429, { error: "daily_limit" });
+  }
+
   const texts: string[] = [];
   let lang: string | null = null;
-  if (pdf) {
-    for (let from = 1; from <= most; from += BATCH) {
-      const pages = [];
-      for (let p = from; p < from + BATCH && p <= most; p++) pages.push(p);
-      const answer = await deps.vision("files:annotate", {
+  try {
+    if (pdf) {
+      for (let from = 1; from <= pages; from += BATCH) {
+        const to = Math.min(from + BATCH - 1, pages);
+        const chunk = await deps.split(bytes, from, to);
+        const answer = await deps.vision("files:annotate", {
+          requests: [{
+            inputConfig: { mimeType: "application/pdf", content: base64(chunk) },
+            features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
+            pages: Array.from({ length: to - from + 1 }, (_, i) => i + 1),
+          }],
+        });
+        for (const r of (answer as VisionFiles)?.responses?.[0]?.responses ?? []) {
+          texts.push(r.fullTextAnnotation?.text ?? "");
+          lang ??= languageOf(r);
+        }
+      }
+    } else {
+      const answer = await deps.vision("images:annotate", {
         requests: [{
-          inputConfig: { mimeType: "application/pdf", content },
+          image: { content: base64(bytes) },
           features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
-          pages,
         }],
       });
-      const batch = (answer as VisionFiles)?.responses?.[0];
-      const each = batch?.responses ?? [];
-      for (const r of each) {
-        texts.push(r.fullTextAnnotation?.text ?? "");
-        lang ??= languageOf(r);
-      }
-      const total = batch?.totalPages ?? 0;
-      if (each.length < pages.length || from + BATCH > total) break;
+      const r = (answer as VisionImages)?.responses?.[0];
+      texts.push(r?.fullTextAnnotation?.text ?? "");
+      lang = r ? languageOf(r) : null;
     }
-  } else {
-    const answer = await deps.vision("images:annotate", {
-      requests: [{
-        image: { content },
-        features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
-      }],
-    });
-    const r = (answer as VisionImages)?.responses?.[0];
-    texts.push(r?.fullTextAnnotation?.text ?? "");
-    lang = r ? languageOf(r) : null;
+  } catch (e) {
+    await deps.release(caller, pages);
+    throw e;
   }
   const text = texts.map((t) => t.trim()).filter((t) => t).join("\n\n");
-  const pages = Math.max(texts.length, 1);
-  await deps.save(kind, ref, caller, lang, text, pages);
-  return json(200, { text, lang, pages });
+  await deps.save(kind, ref, caller, lang, text, pages, partial);
+  return json(200, { text, lang, pages, partial });
 }
 
 type VisionPage = {
