@@ -23,8 +23,9 @@ const scanPageSide = 1600;
 /// A page's JPEG quality.
 const scanPageQuality = 60;
 
-/// Page 1's thumbnail for cards and lists: its long side.
-const scanThumbSide = 400;
+/// Page 1's thumbnail for cards, proofs and lists: its long side, sharp
+/// across a phone's screen (a card shows it full width).
+const scanThumbSide = 1000;
 
 /// The lead's check, D10: where a scan's page 1 thumbnail is on the phone,
 /// beside its PDF ([pdf] with .jpg for .pdf).

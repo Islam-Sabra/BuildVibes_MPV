@@ -103,7 +103,10 @@ void main() {
       final thumb = img.decodeJpg(
         File('${dir.path}/thumb.jpg').readAsBytesSync(),
       )!;
-      expect(thumb.height, lessThanOrEqualTo(scanThumbSide));
+      // Sharp across a card or a proof on a phone (the lead's check, D10,
+      // on the emulator: 400 px was soft there), and still small.
+      expect(thumb.height, 1000);
+      expect(File('${dir.path}/thumb.jpg').lengthSync(), lessThan(200 * 1024));
       expect(latin1.decode(pdf).contains('PhoneMaker'), isFalse);
     },
   );
