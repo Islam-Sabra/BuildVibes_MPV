@@ -74,11 +74,16 @@ enum SendBackReason {
 /// A photo on a sign-off, in the private bucket.
 @immutable
 class WorkPhoto {
-  const WorkPhoto({required this.path, this.takenAt, this.place});
+  const WorkPhoto({required this.path, this.takenAt, this.place, this.pages});
 
   final String path;
   final DateTime? takenAt;
   final String? place;
+
+  /// Review 103: a scanned PDF (its [path] ends in .pdf), [pages] long.
+  final int? pages;
+
+  bool get isScan => path.toLowerCase().endsWith('.pdf');
 }
 
 /// A Checked item the owner may show on their profile (RE2), or one shown

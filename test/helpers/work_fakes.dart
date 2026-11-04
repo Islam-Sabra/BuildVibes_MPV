@@ -63,7 +63,9 @@ class FakeWorkRepository implements WorkRepository {
   @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) async {
     _maybeFail();
-    final path = '$spaceId/$itemId/photo-${uploads.length + 1}.jpg';
+    // Review 103: a scan goes as a PDF.
+    final ext = file.path.endsWith('.pdf') ? 'pdf' : 'jpg';
+    final path = '$spaceId/$itemId/photo-${uploads.length + 1}.$ext';
     uploads.add(path);
     return path;
   }
@@ -84,6 +86,9 @@ class FakeWorkRepository implements WorkRepository {
   final delivered = <DeliveredWork>[];
   final shownBy = <String, List<DeliveredWork>>{};
 
+  /// The proof photos (or scans) each sign-off carried.
+  final signedPhotos = <WorkPhoto>[];
+
   @override
   Future<void> signDone(
     String itemId, {
@@ -92,6 +97,7 @@ class FakeWorkRepository implements WorkRepository {
   }) async {
     _maybeFailSend(photos.map((p) => p.path));
     _maybeRefuse();
+    signedPhotos.addAll(photos);
     calls.add('done $itemId ${note ?? ''} ${photos.length}');
   }
 

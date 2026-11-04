@@ -925,6 +925,7 @@ List<WorkPhoto> _photos(Object? value) => [
         path: p['path'] as String,
         takenAt: _time(p['taken_at']),
         place: p['place'] as String?,
+        pages: (p['page_count'] as num?)?.toInt(),
       ),
 ];
 

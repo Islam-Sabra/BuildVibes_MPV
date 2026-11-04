@@ -663,6 +663,39 @@ void main() {
       expect(app.cameraAsks, isEmpty);
     });
 
+    // Review 103 SC6: Photo | Scan, one choice above the shutter. A scan
+    // (a signed inspection request) is the proof, as one PDF.
+    testWidgets('SC6: Sign as done takes a scan; it goes as the proof PDF '
+        '[$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('proof-mode')), findsOneWidget);
+      expect(find.text(l10n.proofPhoto), findsOneWidget);
+      await tester.tap(find.byKey(const Key('proof-mode-scan')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('proof-take-photo')), findsNothing);
+      await tester.tap(find.byKey(const Key('proof-scan')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('scan-add')));
+      await tester.pumpAndSettle();
+      expect(app.cameraAsks, isEmpty, reason: 'no photo was taken');
+      expect(find.text(l10n.proofScanned(l10n.scanPages(3))), findsOneWidget);
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.uploads.single, endsWith('.pdf'));
+      expect(app.work.signedPhotos.single.path, endsWith('.pdf'));
+      expect(app.work.signedPhotos.single.pages, 3);
+    });
+
     testWidgets('F6: a proof with no photo shows the note and DONE with no '
         'empty frame; the checker can send it back with "Photo missing" '
         '[$lang]', (tester) async {

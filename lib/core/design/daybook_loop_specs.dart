@@ -76,6 +76,9 @@ abstract final class BvProofCameraSpec {
   static const shutter = 72.0;
   static const shutterStroke = BvStroke.thick;
   static const shutterIcon = BvSize.iconLg; // 24
+
+  /// Review 103 SC6: Photo | Scan above the shutter.
+  static const modeWidth = 220.0;
   static const shutterGap = BvSpace.s8;
 
   /// Without a photo the note says what was done: more room for it.

@@ -112,13 +112,17 @@ class SupabaseWorkRepository implements WorkRepository {
   @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) =>
       _guard(() async {
-        final path = '$spaceId/$itemId/${newUuid()}.jpg';
+        // Review 103: a scanned proof goes as its PDF.
+        final pdf = file.path.toLowerCase().endsWith('.pdf');
+        final path = '$spaceId/$itemId/${newUuid()}.${pdf ? 'pdf' : 'jpg'}';
         await _client.storage
             .from(spaceFilesBucket)
             .upload(
               path,
               file,
-              fileOptions: const FileOptions(contentType: 'image/jpeg'),
+              fileOptions: FileOptions(
+                contentType: pdf ? 'application/pdf' : 'image/jpeg',
+              ),
             );
         return path;
       });
@@ -145,6 +149,7 @@ class SupabaseWorkRepository implements WorkRepository {
         'path': p.path,
         'taken_at': p.takenAt?.toUtc().toIso8601String(),
         'place': p.place,
+        'page_count': ?p.pages,
       },
   ];
 

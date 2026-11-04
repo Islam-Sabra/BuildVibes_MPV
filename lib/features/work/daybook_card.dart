@@ -1248,7 +1248,12 @@ class _Photo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => BvSlipPhoto(
     height: BvSlipSpec.photoHeightCard,
     stamp: stamp,
-    image: ref.watch(daybookPhotoProvider(path)),
+    // Review 103: a scanned proof shows its page 1, stamped the same way.
+    image: path.toLowerCase().endsWith('.pdf')
+        ? ref
+              .watch(filePreviewProvider((path: path, mime: 'application/pdf')))
+              .value
+        : ref.watch(daybookPhotoProvider(path)),
   );
 }
 

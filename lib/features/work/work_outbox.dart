@@ -42,6 +42,7 @@ class PendingPhoto {
     required this.takenAt,
     this.remote,
     this.place,
+    this.pages,
   });
 
   factory PendingPhoto.fromJson(Map<String, dynamic> json) => PendingPhoto(
@@ -49,6 +50,7 @@ class PendingPhoto {
     takenAt: DateTime.parse(json['taken_at'] as String),
     remote: json['remote'] as String?,
     place: json['place'] as String?,
+    pages: (json['pages'] as num?)?.toInt(),
   );
 
   final String local;
@@ -56,18 +58,29 @@ class PendingPhoto {
   final String? remote;
   final String? place;
 
-  PendingPhoto uploaded(String path) =>
-      PendingPhoto(local: local, takenAt: takenAt, remote: path, place: place);
+  /// Review 103: a scan (a PDF on the phone), [pages] long.
+  final int? pages;
+
+  bool get isScan => local.toLowerCase().endsWith('.pdf');
+
+  PendingPhoto uploaded(String path) => PendingPhoto(
+    local: local,
+    takenAt: takenAt,
+    remote: path,
+    place: place,
+    pages: pages,
+  );
 
   /// Back to the phone copy only, to upload again.
   PendingPhoto get notUploaded =>
-      PendingPhoto(local: local, takenAt: takenAt, place: place);
+      PendingPhoto(local: local, takenAt: takenAt, place: place, pages: pages);
 
   Map<String, dynamic> toJson() => {
     'local': local,
     'taken_at': takenAt.toIso8601String(),
     'remote': remote,
     'place': place,
+    'pages': pages,
   };
 }
 
@@ -1283,6 +1296,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                     path: p.remote!,
                     takenAt: p.takenAt,
                     place: p.place,
+                    pages: p.pages,
                   ),
               ],
             );
