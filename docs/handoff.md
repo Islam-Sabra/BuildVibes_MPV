@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, late night — review 118 and D25 live; build 1079 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r118` (accepted by the lead at b1b8a15b) into `slice2-app` at f48324d9 (same tree). It carries review 118 (F1–F4) and review 103 D25.
+- **Live:**
+  - `supabase db push` (dry run first: only `20261129120000_review103_ocr_flag` and `20261130120000_review118_poll_hold`). `20261130120000` is the last of 68 on live. Only the usual pg-delta cache warning.
+  - `extract-text` deployed: **v2**, JWT check on. `app_settings.ocr_enabled` is false: the app shows no Extract text button, and the function answers 503 `not_set_up` (probe checked).
+- **Build 1079** (versionCode 1079, 0.9.0, `BV_STORAGE_LOG=true`): exact source on **`release-1079`** (= f48324d9). `Desktop/BuildVibes-1079.apk`. On the founder's phone (22120RN86G, 172.20.10.10:37567) over 1071; disconnected, no entry left.
+- **Phone check (the lead):** an Arabic poll with an English question; the hold bar on a voted poll; no Extract text button on a Library PDF.
+- **Around 15 January 2027:** the Google trial, `GOOGLE_VISION_KEY`, then `update public.app_settings set value = 'true' where key = 'ocr_enabled';` (PC, with the founder's yes).
+- **Emulators:** Pixel_8 has 1071 (Test Lead); Pixel_8_B has the r118 debug build on the local server.
+- **Who has which branch:** PC has `slice2-app`; `claude/r118` is merged.
+
 ## PC update: 4 Nov 2026, night — review 118 and review 103 D25 on `claude/r118`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
