@@ -2,6 +2,18 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 4 Nov 2026, afternoon — review 116b (the founder's poll test) on `claude/r116b`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r116b` from `slice2-app` (tipsfix already in). Not merged, nothing live, not built.
+- **V1 (server):** migration `20261126120000_review116b_poll_live`: `vote_poll`, `edit_poll`, `poll_close` (so `close_poll` and the five-minute job) and `decide_poll` end with `daybook_send`, so a vote shows on other phones at once. Test `68_review116b_live`: one `realtime.messages` row on `daybook:<space>` with the post id for a vote, close, the job's close and a pick; none for a refused vote (red first for vote, close, job, pick; an edit already broadcast through its title).
+- **V2 (app):** a tap picks (outlined, an empty tick) and sends nothing; the card's button sends: Vote («صوّت»), Change vote («غيّر صوتي») or Take back my vote («اسحب صوتي»); back to what was sent, the button goes; more than one: pick several, then Vote. A pick not sent goes with the card. Shot `PL2-picked`.
+- **Checks:** `flutter analyze` clean; `flutter test` 3,799 pass; `test_screens` 726 pass; `supabase test db` 67 files, 4,501 checks, PASS.
+- **Emulator (local server, two accounts):** Islam on the emulator, Sara through the API. A tap sent nothing; Vote sent once; Sara's vote appeared on the emulator within seconds without reopening; Change vote and Take back my vote worked. The first-run tip let the tap on "Write in this Space" through. Shots `EMU-10…14`.
+- **The emulator** has the local debug build again; release 1042 goes back on it, signed in as Test Lead, when the founder sends a code.
+- **Then, each with the founder's yes:** merge → `db push` (20261126120000) → build → install.
+
 ## PC update: 4 Nov 2026, noon — review 116 (Poll) live; build 1042 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

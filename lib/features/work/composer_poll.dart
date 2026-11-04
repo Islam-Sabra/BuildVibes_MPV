@@ -172,9 +172,12 @@ class _ComposerPollEditorState extends State<ComposerPollEditor> {
 /// circle with a tick when chosen (ink, never the brand red; the founder,
 /// 17:49).
 class PollRing extends StatelessWidget {
-  const PollRing({super.key, this.on = false});
+  const PollRing({super.key, this.on = false, this.picked = false});
 
   final bool on;
+
+  /// Review 116b V2: picked, not sent: an ink ring with an empty tick.
+  final bool picked;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -184,15 +187,15 @@ class PollRing extends StatelessWidget {
       shape: BoxShape.circle,
       color: on ? BvColors.textPrimary : null,
       border: Border.all(
-        color: on ? BvColors.textPrimary : BvColors.borderInput,
+        color: on || picked ? BvColors.textPrimary : BvColors.borderInput,
         width: BvSpace.borderWidth,
       ),
     ),
-    child: on
-        ? const Icon(
+    child: on || picked
+        ? Icon(
             BvIcons.check,
             size: BvSize.iconSm,
-            color: BvColors.iconInverse,
+            color: on ? BvColors.iconInverse : BvColors.iconPrimary,
           )
         : null,
   );

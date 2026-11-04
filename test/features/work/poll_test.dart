@@ -146,6 +146,9 @@ DaybookPostDraft? _draft(WidgetTester tester) => ProviderScope.containerOf(
   tester.element(find.byType(Navigator).first),
 ).read(daybookDraftProvider(DaybookSamples.space));
 
+/// Review 116b V2: the card's Vote / Change vote / Take back my vote.
+Future<void> _send(WidgetTester tester) => _tap(tester, _key('poll-vote'));
+
 Future<void> _hold(WidgetTester tester, String id) async {
   await scrollToRow(tester, _entry(id));
   await tester.longPress(
@@ -262,23 +265,81 @@ void main() {
         expect(_key('poll-closes'), findsOneWidget);
       });
 
-      testWidgets('one answer: a tap chooses, another changes, the same '
-          'again takes it back', (tester) async {
+      // Review 116b V2: a tap picks, the button sends.
+      testWidgets('V2: a tap picks and sends nothing; Vote sends once', (
+        tester,
+      ) async {
         final (app: _, :daybook) = await _open(
           tester,
           lang,
           posts: [_pollCard(s)],
         );
+        Iterable<String> votes() =>
+            daybook.calls.where((c) => c.startsWith('vote'));
+        await scrollToRow(tester, _entry(_poll));
+        expect(_key('poll-vote'), findsNothing, reason: 'nothing picked yet');
+        await _tap(tester, _key('poll-option-opt-sun'));
+        expect(votes(), isEmpty, reason: 'a tap sends nothing');
+        expect(_key('poll-picked-opt-sun'), findsOneWidget);
+        expect(_key('poll-mine-opt-sun'), findsNothing);
+        expect(
+          find.descendant(
+            of: _key('poll-vote'),
+            matching: find.text(l10n.pollVote),
+          ),
+          findsOneWidget,
+        );
+        await _send(tester);
+        expect(votes(), ['vote $_poll opt-sun'], reason: 'Vote sends once');
+        expect(_key('poll-mine-opt-sun'), findsOneWidget);
+        expect(_key('poll-vote'), findsNothing);
+      });
+
+      testWidgets('V2: Change vote, then Take back my vote', (tester) async {
+        final (app: _, :daybook) = await _open(
+          tester,
+          lang,
+          posts: [_pollCard(s)],
+        );
+        Iterable<String> votes() =>
+            daybook.calls.where((c) => c.startsWith('vote'));
         await scrollToRow(tester, _entry(_poll));
         await _tap(tester, _key('poll-option-opt-sun'));
-        expect(daybook.calls.last, 'vote $_poll opt-sun');
-        expect(_key('poll-mine-opt-sun'), findsOneWidget);
+        await _send(tester);
         await _tap(tester, _key('poll-option-opt-thu'));
-        expect(daybook.calls.last, 'vote $_poll opt-thu');
-        expect(_key('poll-mine-opt-sun'), findsNothing);
+        expect(
+          find.descendant(
+            of: _key('poll-vote'),
+            matching: find.text(l10n.pollChangeVote),
+          ),
+          findsOneWidget,
+        );
+        expect(votes(), hasLength(1), reason: 'still nothing sent');
+        await _send(tester);
+        expect(votes().last, 'vote $_poll opt-thu');
         await _tap(tester, _key('poll-option-opt-thu'));
-        expect(daybook.calls.last, 'vote $_poll ');
+        expect(
+          find.descendant(
+            of: _key('poll-vote'),
+            matching: find.text(l10n.pollTakeBack),
+          ),
+          findsOneWidget,
+        );
+        await _send(tester);
+        expect(votes().last, 'vote $_poll ');
         expect(_key('poll-mine-opt-thu'), findsNothing);
+      });
+
+      testWidgets('V2: picking my own vote again needs no button', (
+        tester,
+      ) async {
+        await _open(tester, lang, posts: [_pollCard(s)]);
+        await scrollToRow(tester, _entry(_poll));
+        await _tap(tester, _key('poll-option-opt-sun'));
+        await _send(tester);
+        await _tap(tester, _key('poll-option-opt-thu'));
+        await _tap(tester, _key('poll-option-opt-sun'));
+        expect(_key('poll-vote'), findsNothing, reason: 'back to what I sent');
       });
 
       testWidgets('more than one: each option toggles', (tester) async {
@@ -293,12 +354,17 @@ void main() {
           lang,
           posts: [_pollCard(s, poll: multi)],
         );
+        Iterable<String> votes() =>
+            daybook.calls.where((c) => c.startsWith('vote'));
         await scrollToRow(tester, _entry(_poll));
         await _tap(tester, _key('poll-option-opt-thu'));
         await _tap(tester, _key('poll-option-opt-sun'));
-        expect(daybook.calls.last, 'vote $_poll opt-thu,opt-sun');
+        expect(votes(), isEmpty, reason: 'V2: picks, nothing sent');
+        await _send(tester);
+        expect(votes(), ['vote $_poll opt-thu,opt-sun'], reason: 'one Vote');
         await _tap(tester, _key('poll-option-opt-thu'));
-        expect(daybook.calls.last, 'vote $_poll opt-sun');
+        await _send(tester);
+        expect(votes().last, 'vote $_poll opt-sun');
       });
 
       testWidgets('a Viewer votes', (tester) async {
@@ -311,6 +377,7 @@ void main() {
         );
         await scrollToRow(tester, _entry(_poll));
         await _tap(tester, _key('poll-option-opt-sat'));
+        await _send(tester);
         expect(daybook.calls.last, 'vote $_poll opt-sat');
       });
 
@@ -353,9 +420,10 @@ void main() {
         );
         daybook.holdVote = Completer<void>();
         await scrollToRow(tester, _entry(_poll));
-        await _tap(tester, _key('poll-option-opt-sun'));
-        await _tap(tester, _key('poll-option-opt-sat'));
-        await _tap(tester, _key('poll-option-opt-thu'));
+        for (final o in ['opt-sun', 'opt-sat', 'opt-thu']) {
+          await _tap(tester, _key('poll-option-$o'));
+          await _send(tester);
+        }
         Iterable<String> votes() =>
             daybook.calls.where((c) => c.startsWith('vote'));
         expect(votes(), ['vote $_poll opt-sun'], reason: 'one at a time');
@@ -433,6 +501,7 @@ void main() {
         await _open(tester, lang, posts: [_pollCard(s)]);
         await scrollToRow(tester, _entry(_poll));
         await _tap(tester, _key('poll-option-opt-sat'));
+        await _send(tester);
         final mine =
             tester.widget<Container>(_key('poll-row-opt-sat')).decoration!
                 as BoxDecoration;

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -80,6 +81,10 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
   bool _sending = false;
   Set<String>? _waiting;
 
+  /// Review 116b V2: what the reader tapped and hasn't sent. Null: nothing
+  /// picked. Gone with the card when it's left; nothing is sent.
+  Set<String>? _picked;
+
   @override
   void didUpdateWidget(DaybookPollBody old) {
     super.didUpdateWidget(old);
@@ -114,18 +119,31 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
     return poll.chosen(chosen, me: me, myName: person?.fullName);
   }
 
+  /// Review 116b V2: a tap picks (or unpicks) and sends nothing; the
+  /// card's button sends it. Back to what was sent, there is no button.
   void _tap(DaybookPoll poll, PollOption o) {
     if (widget.onVote == null) return;
     final mine = poll.mine;
+    final now = _picked ?? mine;
     final picked = poll.multi
-        ? (mine.contains(o.id) ? ({...mine}..remove(o.id)) : {...mine, o.id})
-        : (mine.contains(o.id) ? <String>{} : {o.id});
+        ? (now.contains(o.id) ? ({...now}..remove(o.id)) : {...now, o.id})
+        : (now.contains(o.id) ? <String>{} : {o.id});
     // In the options' order, whatever order they were tapped in.
     final next = {
       for (final p in poll.options)
         if (picked.contains(p.id)) p.id,
     };
-    setState(() => _chosen = next);
+    setState(() => _picked = setEquals(next, mine) ? null : next);
+  }
+
+  /// Vote, Change vote or Take back my vote: what is picked goes.
+  void _vote() {
+    final next = _picked;
+    if (next == null) return;
+    setState(() {
+      _picked = null;
+      _chosen = next;
+    });
     if (_sending) {
       _waiting = next;
     } else {
@@ -191,8 +209,24 @@ class _DaybookPollBodyState extends ConsumerState<DaybookPollBody> {
               option: o,
               most: most,
               won: closed && o.id == poll.decidedOption,
+              picked: !closed && (_picked?.contains(o.id) ?? false) && !o.mine,
               onTap: onTap(o),
             ),
+        // Review 116b V2: what a tap picked goes only from here.
+        if (_picked case final picked? when !closed && widget.onVote != null)
+          BvButton(
+            key: const Key('poll-vote'),
+            label: poll.mine.isEmpty
+                ? l10n.pollVote
+                : picked.isEmpty
+                ? l10n.pollTakeBack
+                : l10n.pollChangeVote,
+            style: picked.isEmpty
+                ? BvButtonStyle.secondary
+                : BvButtonStyle.primary,
+            expand: true,
+            onPressed: _vote,
+          ),
         if (pick != null) Text(l10n.pollPickWinner, style: quiet),
         if (!closed && poll.notYet.isNotEmpty)
           Text(
@@ -247,12 +281,16 @@ class _PollOptionRow extends StatelessWidget {
     required this.option,
     required this.most,
     required this.won,
+    this.picked = false,
     this.onTap,
   });
 
   final PollOption option;
   final int most;
   final bool won;
+
+  /// Review 116b V2: tapped, not sent yet: outlined, an empty tick.
+  final bool picked;
   final VoidCallback? onTap;
 
   @override
@@ -275,9 +313,11 @@ class _PollOptionRow extends StatelessWidget {
         child: Container(
           key: Key('poll-row-${o.id}'),
           decoration: BoxDecoration(
-            color: marked ? BvColors.surfaceElevated : BvColors.surfaceSubtle,
+            color: marked || picked
+                ? BvColors.surfaceElevated
+                : BvColors.surfaceSubtle,
             borderRadius: BorderRadius.circular(BvRadius.control),
-            border: marked
+            border: marked || picked
                 ? Border.all(
                     color: BvColors.textPrimary,
                     width: BvSpace.borderWidth,
@@ -294,6 +334,8 @@ class _PollOptionRow extends StatelessWidget {
                 children: [
                   if (o.mine)
                     PollRing(key: Key('poll-mine-${o.id}'), on: true)
+                  else if (picked)
+                    PollRing(key: Key('poll-picked-${o.id}'), picked: true)
                   else
                     PollRing(on: won),
                   Expanded(

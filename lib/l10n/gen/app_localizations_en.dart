@@ -6462,6 +6462,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get pollVote => 'Vote';
+
+  @override
+  String get pollChangeVote => 'Change vote';
+
+  @override
+  String get pollTakeBack => 'Take back my vote';
+
+  @override
   String get pollClose => 'Close poll';
 
   @override
