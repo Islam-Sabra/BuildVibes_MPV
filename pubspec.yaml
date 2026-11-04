@@ -69,6 +69,7 @@ dependencies:
   # Review 109 Y1: the phone's IANA time zone, for a check-in in a Space
   # with none (plain platform channels, no native-asset hooks).
   flutter_timezone: 5.1.1
+  cunning_document_scanner: ^3.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

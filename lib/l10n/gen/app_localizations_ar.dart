@@ -1450,6 +1450,86 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatAttachPdf => 'ملف PDF من هاتفك';
 
   @override
+  String get scanBar => 'مسح';
+
+  @override
+  String get scanADocument => 'مسح مستند';
+
+  @override
+  String scanDefaultName(String day, String time) {
+    return 'مسح · $day $time';
+  }
+
+  @override
+  String get scanReviewTitle => 'مستند ممسوح';
+
+  @override
+  String scanPages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n صفحة',
+      few: '$n صفحات',
+      two: 'صفحتان',
+      one: 'صفحة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanMorePages => 'امسح صفحات أخرى';
+
+  @override
+  String get scanAddPage => 'أضف صفحة';
+
+  @override
+  String get scanName => 'الاسم';
+
+  @override
+  String get scanAdd => 'إضافة';
+
+  @override
+  String get scanRemovePage => 'احذف هذه الصفحة';
+
+  @override
+  String get scanDiscardTitle => 'تجاهل هذا المسح؟';
+
+  @override
+  String get scanDiscardBody => 'ستُحذف الصفحات من الهاتف.';
+
+  @override
+  String get scanDiscard => 'تجاهل';
+
+  @override
+  String get scanKeep => 'متابعة المسح';
+
+  @override
+  String get scanTooLarge => 'كبير جدًا: احذف بعض الصفحات';
+
+  @override
+  String get scanNoScanner =>
+      'لا يوجد ماسح مستندات في هذا الهاتف، لذا الصفحات صور عادية.';
+
+  @override
+  String get scanMaking => 'جارٍ إنشاء ملف PDF…';
+
+  @override
+  String scannedPages(String pages) {
+    return 'ممسوح · $pages';
+  }
+
+  @override
+  String get proofPhoto => 'صورة';
+
+  @override
+  String get proofScan => 'مسح';
+
+  @override
+  String proofScanned(String pages) {
+    return 'مستند ممسوح · $pages';
+  }
+
+  @override
   String get chatAttachPdfHelp => 'يُضاف إلى مكتبة المساحة أيضًا.';
 
   @override

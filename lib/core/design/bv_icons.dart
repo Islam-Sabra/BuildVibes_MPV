@@ -50,6 +50,9 @@ abstract final class BvIcons {
   static const place = IconData(0xe316, fontFamily: _family);
   // Phosphor: camera
   static const camera = IconData(0xe10e, fontFamily: _family);
+
+  /// Review 103: Scan a document (Phosphor scan).
+  static const scan = IconData(0xebb6, fontFamily: _family);
   // Phosphor: image
   static const image = IconData(0xe2ca, fontFamily: _family);
   // Phosphor: eye-slash

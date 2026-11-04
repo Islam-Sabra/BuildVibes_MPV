@@ -72,6 +72,8 @@ class DraftFile {
     this.supersedesRev,
     this.added = false,
     this.folderId,
+    this.scanned = false,
+    this.pages,
   });
 
   factory DraftFile.fromJson(Map<String, dynamic> json) => DraftFile(
@@ -85,6 +87,8 @@ class DraftFile {
     supersedesRev: json['supersedes_rev'] as String?,
     added: json['added'] as bool? ?? false,
     folderId: json['folder_id'] as String?,
+    scanned: json['scanned'] as bool? ?? false,
+    pages: (json['pages'] as num?)?.toInt(),
   );
 
   final String libraryId;
@@ -108,6 +112,10 @@ class DraftFile {
   /// p_folder); null, the Space's Library.
   final String? folderId;
 
+  /// Review 103: made by Scan on this phone, [pages] pages long.
+  final bool scanned;
+  final int? pages;
+
   bool get isNew => local != null;
 
   /// The same file as a new one, not a new version (F71's ✕).
@@ -120,6 +128,8 @@ class DraftFile {
     revLabel: revLabel,
     added: added,
     folderId: folderId,
+    scanned: scanned,
+    pages: pages,
   );
 
   DraftFile get inLibrary => DraftFile(
@@ -133,6 +143,8 @@ class DraftFile {
     supersedesRev: supersedesRev,
     added: true,
     folderId: folderId,
+    scanned: scanned,
+    pages: pages,
   );
 
   Map<String, dynamic> toJson() => {
@@ -146,6 +158,8 @@ class DraftFile {
     'supersedes_rev': supersedesRev,
     'added': added,
     'folder_id': folderId,
+    'scanned': scanned,
+    'pages': pages,
   };
 }
 

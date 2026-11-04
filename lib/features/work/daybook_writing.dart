@@ -1429,6 +1429,8 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             f.revLabel == null
                 ? f.name
                 : l10n.daybookFileChip(f.name, f.revLabel!),
+            if (f.scanned && f.pages != null)
+              l10n.scannedPages(l10n.scanPages(f.pages!)),
             if (f.bytes != null) fileSize(l10n, f.bytes),
           ].join(' · '),
           // A file post's file is changed by choosing another; a work

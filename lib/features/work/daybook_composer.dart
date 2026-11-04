@@ -815,10 +815,15 @@ class DaybookComposerState extends ConsumerState<DaybookComposer> {
       for (final (i, f) in draft.files.indexed)
         BvFilterChip(
           key: Key('writing-file-$i'),
-          icon: BvIcons.document,
-          label: f.revLabel == null
-              ? f.name
-              : l10n.daybookFileChip(f.name, f.revLabel!),
+          icon: f.scanned ? BvIcons.scan : BvIcons.document,
+          label: [
+            f.revLabel == null
+                ? f.name
+                : l10n.daybookFileChip(f.name, f.revLabel!),
+            // Review 103 SC4: "Scanned · 3 pages".
+            if (f.scanned && f.pages != null)
+              l10n.scannedPages(l10n.scanPages(f.pages!)),
+          ].join(' · '),
           clearLabel: l10n.daybookRemoveFile,
           onClear: () => unawaited(_writer.removeFile(f)),
         ),

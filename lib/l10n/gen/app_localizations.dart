@@ -2558,6 +2558,132 @@ abstract class AppLocalizations {
   /// **'PDF from your phone'**
   String get chatAttachPdf;
 
+  /// Review 103 SC7: the Scan button on the writing bar, after the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get scanBar;
+
+  /// Review 103: the row that opens the phone's document scanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a document'**
+  String get scanADocument;
+
+  /// Review 103: a scan's name until it is changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan · {day} {time}'**
+  String scanDefaultName(String day, String time);
+
+  /// Review 103 SC3: the sheet after scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned document'**
+  String get scanReviewTitle;
+
+  /// Review 103: how many pages a scan has.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 page} other{{n} pages}}'**
+  String scanPages(int n);
+
+  /// Review 103 SC3: reopens the scanner to add pages.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan more pages'**
+  String get scanMorePages;
+
+  /// Review 103: on a phone without a document scanner, one more photo as a page.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a page'**
+  String get scanAddPage;
+
+  /// Review 103 SC3: the scan's name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get scanName;
+
+  /// Review 103 SC3: adds the scan where it was started.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get scanAdd;
+
+  /// Review 103: ✕ on a page in the strip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this page'**
+  String get scanRemovePage;
+
+  /// Review 103: Cancel on the review sheet asks once.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this scan?'**
+  String get scanDiscardTitle;
+
+  /// Review 103: what Discard does.
+  ///
+  /// In en, this message translates to:
+  /// **'The pages will be removed from the phone.'**
+  String get scanDiscardBody;
+
+  /// Review 103: confirms throwing the scan away.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get scanDiscard;
+
+  /// Review 103: goes back to the review sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep scanning'**
+  String get scanKeep;
+
+  /// Review 103: the scan is over the place's file limit; Add is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large: remove some pages'**
+  String get scanTooLarge;
+
+  /// Review 103: a phone without Google Play services.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has no document scanner, so pages are plain photos.'**
+  String get scanNoScanner;
+
+  /// Review 103: while the pages become one PDF on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the PDF…'**
+  String get scanMaking;
+
+  /// Review 103 SC4: a scanned file's line.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned · {pages}'**
+  String scannedPages(String pages);
+
+  /// Review 103 SC6: Sign as done takes a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get proofPhoto;
+
+  /// Review 103 SC6: Sign as done takes a scan (a signed inspection request).
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get proofScan;
+
+  /// Review 103: the scan waiting to be sent as proof.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned document · {pages}'**
+  String proofScanned(String pages);
+
   /// Attach sheet helper.
   ///
   /// In en, this message translates to:

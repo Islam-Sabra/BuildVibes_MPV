@@ -1442,6 +1442,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAttachPdf => 'PDF from your phone';
 
   @override
+  String get scanBar => 'Scan';
+
+  @override
+  String get scanADocument => 'Scan a document';
+
+  @override
+  String scanDefaultName(String day, String time) {
+    return 'Scan · $day $time';
+  }
+
+  @override
+  String get scanReviewTitle => 'Scanned document';
+
+  @override
+  String scanPages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n pages',
+      one: '1 page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanMorePages => 'Scan more pages';
+
+  @override
+  String get scanAddPage => 'Add a page';
+
+  @override
+  String get scanName => 'Name';
+
+  @override
+  String get scanAdd => 'Add';
+
+  @override
+  String get scanRemovePage => 'Remove this page';
+
+  @override
+  String get scanDiscardTitle => 'Discard this scan?';
+
+  @override
+  String get scanDiscardBody => 'The pages will be removed from the phone.';
+
+  @override
+  String get scanDiscard => 'Discard';
+
+  @override
+  String get scanKeep => 'Keep scanning';
+
+  @override
+  String get scanTooLarge => 'Too large: remove some pages';
+
+  @override
+  String get scanNoScanner =>
+      'This phone has no document scanner, so pages are plain photos.';
+
+  @override
+  String get scanMaking => 'Making the PDF…';
+
+  @override
+  String scannedPages(String pages) {
+    return 'Scanned · $pages';
+  }
+
+  @override
+  String get proofPhoto => 'Photo';
+
+  @override
+  String get proofScan => 'Scan';
+
+  @override
+  String proofScanned(String pages) {
+    return 'Scanned document · $pages';
+  }
+
+  @override
   String get chatAttachPdfHelp => 'It goes to the Space Library too.';
 
   @override
