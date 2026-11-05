@@ -91,3 +91,17 @@ Calls inside the app are paused (review 120). Here **Call** opens the phone's ow
 - Calls through the app (review 120, paused).
 - A "reports to" line per person.
 - Key people across several Spaces, or on the profile.
+
+## One person in several Teams (founder, 5 Nov)
+Teams can follow a company, a shift or a trade at the same time. For example, Ali is in **Gulf MEP** (his company) and in **Night shift**. **The database already allows this**: `team_members` has the primary key (team_id, profile_id) and no one-Team limit. The app and the flows must allow it everywhere too.
+
+- **OC1:** a person shows in every Team they belong to. In the frame, Ali (AS) and Hassan (HK) are in Gulf MEP and in Night shift.
+- **KP1 / P1:** a member's row lists **all** their Teams, as review 105 says. If they don't fit, show "Gulf MEP, Night shift +1".
+- **TM3 Add people:** lists every Space member who isn't in **this** Team, including people already in other Teams.
+- **TM4 confirm on join:** the Team choice becomes **several ticks**, not one choice. The company's Team is ticked already, and a shift Team can be ticked too. These choices don't exclude each other, so ticks are right (rule 6 covers only choices that do).
+- **TM1 Make Teams from companies:** being in a shift Team must not hide a company from the offer. "No Team yet" means no Team made from **that company**, not "people with no Team".
+- **Who sees it (TM5) and Team files:** a post or file for a Team reaches everyone in it, even when a person is in several. **A person in two Teams that are both chosen gets the post once**, with one push.
+- **Team admin:** one person may be the admin of several Teams.
+- **Tests:**
+  - pgTAP: one person in 2 Teams sees both Teams' posts and files and gets one push for a post to both; removing them from one Team keeps the other.
+  - widget: P1's row with 3 Teams; TM4 with 2 ticks.
