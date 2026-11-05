@@ -647,8 +647,11 @@ class _MemberRow extends StatelessWidget {
                             if (teams.length > _teamsShown)
                               _TeamTag(
                                 key: Key('member-teams-more-${p.id}'),
-                                label: l10n.peopleTeamsMore(
-                                  '${teams.length - _teamsShown}',
+                                // "+1", not "1+", in Arabic too.
+                                label: ltrRun(
+                                  l10n.peopleTeamsMore(
+                                    '${teams.length - _teamsShown}',
+                                  ),
                                 ),
                               ),
                           ],

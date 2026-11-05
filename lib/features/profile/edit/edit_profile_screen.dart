@@ -97,7 +97,7 @@ class EditProfileScreen extends ConsumerWidget {
                 title: l10n.phoneTitle,
                 subtitle: phone == null
                     ? l10n.phoneNotAdded
-                    : inOwnDirection(PhoneRules.formatE164(phone, markets)),
+                    : ltrRun(PhoneRules.formatE164(phone, markets)),
                 onTap: () => context.push(AppRoutes.profileEditPhone),
               ),
             ],

@@ -295,7 +295,7 @@ void main() {
         expect(
           find.descendant(
             of: row,
-            matching: find.text(l10n.peopleTeamsMore('1')),
+            matching: find.text(ltrRun(l10n.peopleTeamsMore('1'))),
           ),
           findsOneWidget,
         );
@@ -303,7 +303,7 @@ void main() {
         expect(
           find.descendant(
             of: _key('member-p-hassan'),
-            matching: find.text(l10n.peopleTeamsMore('1')),
+            matching: find.text(ltrRun(l10n.peopleTeamsMore('1'))),
           ),
           findsNothing,
         );
