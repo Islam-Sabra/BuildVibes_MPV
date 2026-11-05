@@ -17,6 +17,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_badge.dart';
+import '../../shared/widgets/bv_card.dart';
 import 'key_people.dart';
 import 'make_teams_sheet.dart';
 import 'who_sees_sheet.dart';
@@ -113,12 +114,16 @@ class TeamsView extends ConsumerWidget {
           ),
         if (admins.isNotEmpty) ...[
           label(l10n.orgRunsThisSpace),
-          _Gutter(child: _Admins(admins: admins)),
+          Padding(
+            padding: _gutter,
+            child: _Admins(admins: admins),
+          ),
           const _BlockLine(),
         ],
         if (toCall.isNotEmpty) ...[
           label(l10n.keyPeopleWhoToCall),
-          _Gutter(
+          Padding(
+            padding: _gutter,
             child: Wrap(
               spacing: BvKeyPeopleSpec.chipGap,
               runSpacing: BvKeyPeopleSpec.chipGap,
@@ -301,19 +306,9 @@ class _NewLine extends StatelessWidget {
   );
 }
 
-class _Gutter extends StatelessWidget {
-  const _Gutter({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsetsDirectional.symmetric(horizontal: BvSpace.gutter),
-    child: child,
-  );
-}
-
 /// OC1: between its blocks, a short 2 px line at the start.
+const _gutter = EdgeInsetsDirectional.symmetric(horizontal: BvSpace.gutter);
+
 class _BlockLine extends StatelessWidget {
   const _BlockLine();
 
@@ -336,35 +331,6 @@ class _BlockLine extends StatelessWidget {
   );
 }
 
-/// A block's card: white, bordered, rounded.
-class _Card extends StatelessWidget {
-  const _Card({required this.child, this.onTap});
-
-  final Widget child;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: BvColors.surfaceElevated,
-    shape: RoundedRectangleBorder(
-      borderRadius: BvRadius.cardAll,
-      side: const BorderSide(
-        color: BvColors.borderDefault,
-        width: BvStroke.thin,
-      ),
-    ),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BvRadius.cardAll,
-      splashFactory: NoSplash.splashFactory,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(BvKeyPeopleSpec.cardPadding),
-        child: child,
-      ),
-    ),
-  );
-}
-
 /// Runs this Space: every Space admin, with the Space admin tag.
 class _Admins extends StatelessWidget {
   const _Admins({required this.admins});
@@ -375,7 +341,7 @@ class _Admins extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    return _Card(
+    return BvCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvKeyPeopleSpec.cardGap,
@@ -497,7 +463,7 @@ class _TeamCard extends StatelessWidget {
         if (team.memberIds.contains(m.person.id) && m.person.id != adminId)
           m.person,
     ].take(BvKeyPeopleSpec.faces);
-    return _Card(
+    return BvCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

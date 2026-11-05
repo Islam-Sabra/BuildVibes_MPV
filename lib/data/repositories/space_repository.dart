@@ -176,23 +176,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
 
   final SupabaseClient _client;
 
-  Future<T> _guard<T>(Future<T> Function() run) async {
-    try {
-      return await run();
-    } on PostgrestException catch (e) {
-      throw SpaceException(spaceFailureFor(e.code), e.message);
-    } on SpaceException {
-      rethrow;
-    } on Exception catch (e) {
-      // No connection arrives as a SocketException, or wrapped in the http
-      // package's ClientException.
-      final network = e is SocketException || '$e'.contains('SocketException');
-      throw SpaceException(
-        network ? SpaceFailure.network : SpaceFailure.unknown,
-        '$e',
-      );
-    }
-  }
+  Future<T> _guard<T>(Future<T> Function() run) => guardSpace(run);
 
   List<Map<String, dynamic>> _rows(Object? result) =>
       (result as List? ?? const []).cast<Map<String, dynamic>>();
@@ -702,6 +686,25 @@ class SupabaseSpaceRepository implements SpaceRepository {
 }
 
 /// Postgres error code → what the app says.
+/// [run], with the server's and the network's errors as [SpaceException]s.
+Future<T> guardSpace<T>(Future<T> Function() run) async {
+  try {
+    return await run();
+  } on PostgrestException catch (e) {
+    throw SpaceException(spaceFailureFor(e.code), e.message);
+  } on SpaceException {
+    rethrow;
+  } on Exception catch (e) {
+    // No connection arrives as a SocketException, or wrapped in the http
+    // package's ClientException.
+    final network = e is SocketException || '$e'.contains('SocketException');
+    throw SpaceException(
+      network ? SpaceFailure.network : SpaceFailure.unknown,
+      '$e',
+    );
+  }
+}
+
 SpaceFailure spaceFailureFor(String? code) => switch (code) {
   '42501' => SpaceFailure.notAllowed,
   'P0001' => SpaceFailure.rule,

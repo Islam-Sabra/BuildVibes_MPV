@@ -7308,9 +7308,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamsNewByHand => 'New Team by hand';
 
   @override
-  String get teamRowAdmin => 'admin';
-
-  @override
   String get teamAdminBadge => 'Team admin';
 
   @override

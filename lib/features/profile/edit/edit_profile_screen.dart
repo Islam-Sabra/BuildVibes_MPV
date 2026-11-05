@@ -12,6 +12,7 @@ import '../../../data/repositories/profile_page_repository.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared/widgets/bv_list_row.dart';
 import '../../entry/entry_state.dart';
+import '../../entry/phone_rules.dart';
 import '../widgets/profile_parts.dart';
 
 /// R8 · Edit profile: one row per part of the profile. CV import,
@@ -36,11 +37,7 @@ class EditProfileScreen extends ConsumerWidget {
 
     final openTo = p?.openTo;
     final phone = ref.watch(myPhoneProvider).value?.phone;
-    final market = phone == null
-        ? null
-        : (ref.watch(marketsProvider).value ?? const [])
-              .where((m) => phone.startsWith(m.dialCode))
-              .firstOrNull;
+    final markets = ref.watch(marketsProvider).value ?? const [];
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profileEdit)),
       body: ListView(
@@ -100,7 +97,7 @@ class EditProfileScreen extends ConsumerWidget {
                 title: l10n.phoneTitle,
                 subtitle: phone == null
                     ? l10n.phoneNotAdded
-                    : inOwnDirection(market?.grouped(phone) ?? phone),
+                    : inOwnDirection(PhoneRules.formatE164(phone, markets)),
                 onTap: () => context.push(AppRoutes.profileEditPhone),
               ),
             ],

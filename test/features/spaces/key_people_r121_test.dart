@@ -10,6 +10,7 @@ import 'package:buildvibes/features/messages/dm_thread_screen.dart';
 import 'package:buildvibes/features/spaces/pass_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_controls.dart';
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -496,6 +497,34 @@ void main() {
         );
         await _tap(tester, _key('key-people-add'));
         expect(find.text(l10n.keyRoleNew), findsOneWidget);
+      });
+
+      testWidgets('hold and drag a role: the new order is sent', (
+        tester,
+      ) async {
+        final keys = _keys();
+        await _go(
+          tester,
+          lang,
+          '/spaces/$_space/key-people',
+          spaces: _spaces(admin: true, pass: SpacePass.lead),
+          keys: keys,
+        );
+        final drag = await tester.startGesture(
+          tester.getCenter(_key('key-role-r-engineer')),
+        );
+        await tester.pump(
+          kLongPressTimeout + const Duration(milliseconds: 100),
+        );
+        for (var i = 0; i < 10; i++) {
+          await drag.moveBy(const Offset(0, -20));
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+        await drag.up();
+        await tester.pumpAndSettle();
+        expect(keys.reordered, [
+          ['r-engineer', 'r-safety'],
+        ]);
       });
 
       testWidgets('six roles: Add a role is gone', (tester) async {

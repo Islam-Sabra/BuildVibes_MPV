@@ -2006,7 +2006,6 @@
   "teamsMakeIntro": "كل شركة تصبح فريقًا ومعها أشخاصها. ألغِ تحديد ما لا تريده.",
   "teamsNewLine": "{count, plural, two{شخصان جديدان من {company}: إنشاء فريق؟} few{{count} أشخاص جدد من {company}: إنشاء فريق؟} other{{count} شخصًا جديدًا من {company}: إنشاء فريق؟}}",
   "teamsNewByHand": "فريق جديد يدويًا",
-  "teamRowAdmin": "المشرف",
   "teamAdminBadge": "مشرف الفريق",
   "teamsAdminLine": "مشرف الفريق: {name}",
   "teamsAdminNone": "مشرف الفريق: —",

@@ -48,6 +48,9 @@ class KeyRole {
   final List<KeyHolder> holders;
 }
 
+/// One card of Who to call: a person in a role.
+typedef KeyToCall = ({KeyRole role, KeyHolder holder});
+
 /// Who to call in a Space (KP1, OC1, KP2): the roles in order, and whether
 /// I have seen them once (KP2).
 @immutable
@@ -67,12 +70,12 @@ class KeyPeople {
 
   /// One card per person per role, in order; a role with no one shows no
   /// card.
-  List<({KeyRole role, KeyHolder holder})> get toCall => [
+  List<KeyToCall> get toCall => [
     for (final r in roles)
       for (final h in r.holders) (role: r, holder: h),
   ];
 
-  bool get hasAnyone => toCall.isNotEmpty;
+  bool get hasAnyone => roles.any((r) => r.holders.isNotEmpty);
 }
 
 /// Who sees my number (NUM1): one choice (rule 6), Nobody by default.

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
@@ -17,6 +16,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_card.dart';
 import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
 import '../../shared/widgets/bv_sheet.dart';
 import 'pass_words.dart';
@@ -56,10 +56,6 @@ Future<void> callKeyPerson(
     }
   }
 }
-
-/// Message opens (or starts) the direct message.
-Future<void> messageKeyPerson(GoRouter router, SpacePerson person) =>
-    openDmThread(router, AppRoutes.messagesWith(person.id));
 
 /// "Who to call", with the shield (KP1, OC1).
 class KeyPeopleHead extends StatelessWidget {
@@ -132,14 +128,8 @@ class KeyPersonCard extends StatelessWidget {
       expand: true,
       onPressed: onMessage,
     );
-    return Container(
+    return BvCard(
       key: Key('key-person-$id'),
-      padding: const EdgeInsetsDirectional.all(BvKeyPeopleSpec.cardPadding),
-      decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvRadius.cardAll,
-        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvKeyPeopleSpec.actionsTop,
@@ -165,7 +155,7 @@ class KeyPersonCard extends StatelessWidget {
                       style: type.emphasis,
                     ),
                     KeyRoleTag(name: role.name),
-                    if (callFor != null && callFor.isNotEmpty)
+                    if (callFor != null)
                       Text(
                         l10n.keyPeopleCallFor(inOwnDirection(callFor)),
                         style: type.metadata.copyWith(
@@ -202,18 +192,18 @@ class KeyPersonCard extends StatelessWidget {
   }
 }
 
-/// Who to call's cards, one per person per role, Call and Message wired.
-/// [before] runs first (a sheet closes before Message opens).
+/// Who to call's cards, Call and Message wired. [beforeMessage] runs first
+/// (a sheet closes before Message opens the direct message).
 class KeyPeopleCards extends ConsumerWidget {
   const KeyPeopleCards({
     super.key,
     required this.spaceId,
-    required this.people,
+    required this.toCall,
     this.beforeMessage,
   });
 
   final String spaceId;
-  final KeyPeople people;
+  final List<KeyToCall> toCall;
   final VoidCallback? beforeMessage;
 
   @override
@@ -221,7 +211,7 @@ class KeyPeopleCards extends ConsumerWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     spacing: BvKeyPeopleSpec.cardGap,
     children: [
-      for (final c in people.toCall)
+      for (final c in toCall)
         KeyPersonCard(
           role: c.role,
           holder: c.holder,
@@ -234,7 +224,7 @@ class KeyPeopleCards extends ConsumerWidget {
           onMessage: () {
             final router = GoRouter.of(context);
             beforeMessage?.call();
-            messageKeyPerson(router, c.holder.person);
+            openDmThread(router, AppRoutes.messagesWith(c.holder.person.id));
           },
         ),
     ],
@@ -256,16 +246,7 @@ Future<void> showKeyPersonSheet(
     children: [
       KeyPeopleCards(
         spaceId: spaceId,
-        people: KeyPeople(
-          roles: [
-            KeyRole(
-              id: role.id,
-              name: role.name,
-              callFor: role.callFor,
-              holders: [holder],
-            ),
-          ],
-        ),
+        toCall: [(role: role, holder: holder)],
         beforeMessage: () => Navigator.of(sheet).pop(),
       ),
     ],
@@ -320,7 +301,7 @@ Future<void> showKeyPeopleWelcome(
             child: SingleChildScrollView(
               child: KeyPeopleCards(
                 spaceId: space.id,
-                people: people,
+                toCall: people.toCall,
                 beforeMessage: () => Navigator.of(sheet).pop(),
               ),
             ),
@@ -345,5 +326,4 @@ Future<void> showKeyPeopleWelcome(
   } on SpaceException {
     // Not marked: it shows once more next time, no harm.
   }
-  ref.invalidate(spaceKeyPeopleProvider(space.id));
 }

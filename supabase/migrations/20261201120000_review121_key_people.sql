@@ -199,6 +199,9 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
   perform pg_advisory_xact_lock(hashtext('phone_reads'), hashtext(v_me::text));
+  -- Only the last day counts: older reads go.
+  delete from public.phone_reads r
+  where r.caller_id = v_me and r.created_at <= now() - interval '1 day';
   if (select count(*) from public.phone_reads r
       where r.caller_id = v_me and r.created_at > now() - interval '1 day') >= 30 then
     raise exception 'too many numbers today' using errcode = '54000';

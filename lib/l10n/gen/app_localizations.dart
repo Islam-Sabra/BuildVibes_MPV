@@ -12134,12 +12134,6 @@ abstract class AppLocalizations {
   /// **'New Team by hand'**
   String get teamsNewByHand;
 
-  /// Before the Team admin's name on a Team's row (TM1).
-  ///
-  /// In en, this message translates to:
-  /// **'admin'**
-  String get teamRowAdmin;
-
   /// The green badge on a Team page (TM3), and the title of the sheet that picks one.
   ///
   /// In en, this message translates to:

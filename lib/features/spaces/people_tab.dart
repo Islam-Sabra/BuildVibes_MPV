@@ -354,10 +354,10 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final admin = widget.space.iAmAdmin;
     final hasTeams = teams.isNotEmpty || admin;
     final showTeams = _teams && hasTeams && query.isEmpty;
-    final whoToCall = !showTeams && query.isEmpty && keyPeople != null
-        ? keyPeople
+    final whoToCall =
+        !showTeams && query.isEmpty && (keyPeople?.hasAnyone ?? false)
+        ? keyPeople!.toCall
         : null;
-    final showWho = whoToCall?.hasAnyone ?? false;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -418,7 +418,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                   onOpen: () => unawaited(_confirm(r, teams)),
                 ),
               ),
-          if (showWho)
+          if (whoToCall != null)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
@@ -431,12 +431,16 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 spacing: BvKeyPeopleSpec.cardGap,
                 children: [
                   const KeyPeopleHead(),
-                  KeyPeopleCards(spaceId: _spaceId, people: whoToCall!),
+                  KeyPeopleCards(spaceId: _spaceId, toCall: whoToCall),
                 ],
               ),
             ),
           if (!showTeams && members.isNotEmpty)
-            section(showWho ? l10n.keyPeopleEveryone : l10n.peopleInThisSpace),
+            section(
+              whoToCall != null
+                  ? l10n.keyPeopleEveryone
+                  : l10n.peopleInThisSpace,
+            ),
           if (!showTeams)
             for (final m in members)
               _MemberRow(

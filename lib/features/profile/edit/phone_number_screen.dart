@@ -18,6 +18,7 @@ import '../../../shared/widgets/bv_controls.dart';
 import '../../../shared/widgets/bv_section_scaffold.dart';
 import '../../../shared/widgets/bv_text_field.dart';
 import '../../entry/entry_state.dart';
+import '../../entry/phone_rules.dart';
 import '../../spaces/space_errors.dart';
 
 /// Review 121 NUM1: Profile → Phone number. Optional; the dial code and
@@ -40,6 +41,9 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   String? _saved;
   String? _error;
 
+  /// The saved number's market, else mine (set in [build]).
+  Market? _market;
+
   @override
   void initState() {
     super.initState();
@@ -55,24 +59,13 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     super.dispose();
   }
 
-  /// The Space's market is not known here: the number's own, else mine.
-  Market? _market() {
-    final markets = ref.watch(marketsProvider).value ?? const <Market>[];
-    final saved = _saved;
-    final mine = ref.watch(myProfileProvider).value?.homeMarketId;
-    return (saved == null
-            ? null
-            : markets.where((m) => saved.startsWith(m.dialCode)).firstOrNull) ??
-        markets.where((m) => m.id == mine).firstOrNull;
-  }
-
   /// The typed number in E.164; null for none. False when it doesn't fit
   /// the market pack.
   ({bool ok, String? phone}) _typed(Market? market) {
     final text = _number.text.trim();
     if (text.isEmpty) return (ok: true, phone: null);
     if (market == null) return (ok: false, phone: null);
-    final national = market.nationalOf(text);
+    final national = PhoneRules.nationalIn(text, market);
     return market.isMobileNumber(national)
         ? (ok: true, phone: market.toE164(national))
         : (ok: false, phone: null);
@@ -80,7 +73,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
 
   Future<void> _save({PhoneVisibility? visibility}) async {
     final l10n = AppLocalizations.of(context);
-    final market = _market();
+    final market = _market;
     final typed = _typed(market);
     if (!typed.ok) {
       setState(() => _error = l10n.phoneCheck(market?.phoneExample ?? ''));
@@ -104,15 +97,13 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
       ref.invalidate(myPhoneProvider);
     } on SpaceException catch (e) {
       if (!mounted) return;
+      final refused = e.failure == SpaceFailure.badInput;
       setState(() {
         _saved = before.$1;
         _visibility = before.$2;
+        if (refused) _error = l10n.phoneCheck(market?.phoneExample ?? '');
       });
-      if (e.failure == SpaceFailure.badInput) {
-        setState(() => _error = l10n.phoneCheck(market?.phoneExample ?? ''));
-      } else {
-        showSpaceError(context, e);
-      }
+      if (!refused) showSpaceError(context, e);
     }
   }
 
@@ -120,22 +111,30 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
+    final markets = ref.watch(marketsProvider).value ?? const <Market>[];
+    final home = ref.watch(myProfileProvider).value?.homeMarketId;
     final mine = ref.watch(myPhoneProvider).value;
-    final market = _market();
     if (mine != null && !_filled) {
       _filled = true;
       _saved = mine.phone;
       _visibility = mine.visibility;
       final phone = mine.phone;
+      final m = phone == null
+          ? null
+          : PhoneRules.marketForNumber(markets, phone);
       if (phone != null) {
-        final m = (ref.read(marketsProvider).value ?? const <Market>[])
-            .where((m) => phone.startsWith(m.dialCode))
-            .firstOrNull;
         _number.text = m == null
             ? phone
-            : m.grouped(phone).substring(m.dialCode.length).trim();
+            : PhoneRules.format(
+                phone.substring(m.dialCode.length),
+                example: m.phoneExample,
+              );
       }
     }
+    final saved = _saved;
+    final market = _market =
+        (saved == null ? null : PhoneRules.marketForNumber(markets, saved)) ??
+        markets.where((m) => m.id == home).firstOrNull;
     final label = type.bodySm.copyWith(color: BvColors.textSecondary);
 
     Widget choice(PhoneVisibility v, String title, String line) {

@@ -45,8 +45,7 @@ abstract final class BvTeamsSpec {
   static const rowGap = BvSpace.s12;
   static const lineGap = BvSpace.s2;
 
-  /// A Team's mark on its row (TM1), on the card and in Who sees it (TM5).
-  static const rowDisc = 36.0;
+  /// A Team's mark on the make card (TM1) and in Who sees it (TM5).
   static const cardDisc = 40.0;
   static const whoDisc = 32.0;
   static const cardPadding = BvSpace.s12;

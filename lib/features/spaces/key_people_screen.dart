@@ -207,7 +207,7 @@ class _RoleRow extends StatelessWidget {
                         ? type.bodyMd.copyWith(color: BvColors.textSecondary)
                         : type.bodyMd,
                   ),
-                  if (callFor != null && callFor.isNotEmpty)
+                  if (callFor != null)
                     Text(
                       inOwnDirection(callFor),
                       style: type.metadata.copyWith(
@@ -353,7 +353,8 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
             widget.spaceId,
             roleId: widget.role?.id,
             name: _name.text.trim(),
-            callFor: _callFor.text.trim().isEmpty ? null : _callFor.text.trim(),
+            // The server keeps an empty line as none.
+            callFor: _callFor.text,
             holders: [
               for (final h in _holders) (profileId: h.person.id, note: h.note),
             ],

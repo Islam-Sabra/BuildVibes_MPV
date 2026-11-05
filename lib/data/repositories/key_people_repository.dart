@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/key_people.dart';
-import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
-import 'space_repository.dart' show spaceFailureFor;
+import 'space_repository.dart' show guardSpace;
 
 /// Review 121: Who to call, set by the Space admin, and the phone number
 /// behind Call. The number is read one person at a time, on the tap.
@@ -47,19 +44,7 @@ class SupabaseKeyPeopleRepository implements KeyPeopleRepository {
 
   final SupabaseClient _client;
 
-  Future<T> _guard<T>(Future<T> Function() run) async {
-    try {
-      return await run();
-    } on PostgrestException catch (e) {
-      throw SpaceException(spaceFailureFor(e.code), e.message);
-    } on Exception catch (e) {
-      final network = e is SocketException || '$e'.contains('SocketException');
-      throw SpaceException(
-        network ? SpaceFailure.network : SpaceFailure.unknown,
-        '$e',
-      );
-    }
-  }
+  Future<T> _guard<T>(Future<T> Function() run) => guardSpace(run);
 
   @override
   Future<KeyPeople> keyPeople(String spaceId) => _guard(

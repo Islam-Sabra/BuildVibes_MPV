@@ -3,6 +3,7 @@
 // and the market pack's role names.
 import 'package:buildvibes/data/models/key_people.dart';
 import 'package:buildvibes/data/models/market.dart';
+import 'package:buildvibes/features/entry/phone_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fakes.dart';
@@ -109,11 +110,19 @@ void main() {
   });
 
   test('a typed number becomes E.164 with the market\'s dial code', () {
-    expect(kuwait.nationalOf('+965 5512 3456'), '55123456');
-    expect(kuwait.nationalOf('5512 3456'), '55123456');
-    expect(egypt.nationalOf('010 1234 5678'), '1012345678');
-    expect(kuwait.isMobileNumber(kuwait.nationalOf('5512 3456')), isTrue);
+    expect(PhoneRules.nationalIn('+965 5512 3456', kuwait), '55123456');
+    expect(PhoneRules.nationalIn('5512 3456', kuwait), '55123456');
+    expect(PhoneRules.nationalIn('٥٥١٢ ٣٤٥٦', kuwait), '55123456');
+    expect(PhoneRules.nationalIn('010 1234 5678', egypt), '1012345678');
+    expect(
+      kuwait.isMobileNumber(PhoneRules.nationalIn('5512 3456', kuwait)),
+      isTrue,
+    );
     expect(kuwait.toE164('55123456'), '+96555123456');
-    expect(kuwait.grouped('+96555123456'), '+965 5512 3456');
+    expect(PhoneRules.marketForNumber(testMarkets, '+96555123456'), kuwait);
+    expect(
+      PhoneRules.format('55123456', example: kuwait.phoneExample),
+      '5512 3456',
+    );
   });
 }

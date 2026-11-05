@@ -10136,10 +10136,6 @@
   "@teamsNewByHand": {
     "description": "End of the Teams tab (TM1)."
   },
-  "teamRowAdmin": "admin",
-  "@teamRowAdmin": {
-    "description": "Before the Team admin's name on a Team's row (TM1)."
-  },
   "teamAdminBadge": "Team admin",
   "@teamAdminBadge": {
     "description": "The green badge on a Team page (TM3), and the title of the sheet that picks one."

@@ -7362,9 +7362,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamsNewByHand => 'فريق جديد يدويًا';
 
   @override
-  String get teamRowAdmin => 'المشرف';
-
-  @override
   String get teamAdminBadge => 'مشرف الفريق';
 
   @override
