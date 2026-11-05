@@ -15,6 +15,7 @@ import '../../data/repositories/key_people_repository.dart';
 import '../../data/repositories/market_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_dialog.dart';
@@ -81,7 +82,7 @@ class _KeyPeopleScreenState extends ConsumerState<KeyPeopleScreen> {
     final space = ref.watch(spaceDetailProvider(_spaceId)).value;
     final people = ref.watch(spaceKeyPeopleProvider(_spaceId));
     final roles = _moved ?? people.value?.roles;
-    final quiet = type.bodySm.copyWith(color: BvColors.textSecondary);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
 
     return BvSectionScaffold(
       title: l10n.keyPeopleTitle,
@@ -442,18 +443,18 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
           textCapitalization: TextCapitalization.sentences,
         ),
         Text(l10n.keyRoleHolders, style: label),
-        ClipRRect(
-          borderRadius: BvRadius.cardAll,
+        Material(
+          color: BvColors.surfaceApp,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               for (final (i, h) in _holders.indexed)
-                SpacePersonRow(
+                _HolderRow(
                   key: Key('key-holder-${h.person.id}'),
                   person: h.person,
                   line: _holderLine(h, lang),
                   onTap: () => _editNote(i),
-                  trailing: IconButton(
+                  remove: IconButton(
                     key: Key('key-holder-remove-${h.person.id}'),
                     tooltip: l10n.keyRoleRemovePerson,
                     onPressed: () => setState(() => _holders.removeAt(i)),
@@ -500,6 +501,81 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
     ?h.person.roleLabel(lang),
     ?h.person.companyLabel,
   ]);
+}
+
+/// KP4: a holder, on the page: face, name, and "Day shift · Safety ·
+/// NBKCH"; a tap changes the note.
+class _HolderRow extends StatelessWidget {
+  const _HolderRow({
+    super.key,
+    required this.person,
+    required this.line,
+    required this.onTap,
+    required this.remove,
+  });
+
+  final SpacePerson person;
+  final String line;
+  final VoidCallback onTap;
+  final Widget remove;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return InkWell(
+      onTap: onTap,
+      splashFactory: NoSplash.splashFactory,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: BvColors.borderDefault,
+              width: BvStroke.thin,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            vertical: BvKeyPeopleSpec.rowPaddingVertical,
+          ),
+          child: Row(
+            spacing: BvKeyPeopleSpec.faceGap,
+            children: [
+              BvAvatar(
+                name: person.fullName,
+                size: BvAvatarSize.xsm,
+                tint: BvAvatarTints.forId(person.id),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: BvSpace.s2,
+                  children: [
+                    Text(
+                      inOwnDirection(person.fullName),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodyMd,
+                    ),
+                    if (line.isNotEmpty)
+                      Text(
+                        line,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              remove,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// A holder's short note ("Night shift"), 24 characters at most.

@@ -165,7 +165,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       final KeyPeople people;
       try {
         people = await ref.read(spaceKeyPeopleProvider(space.id).future);
-      } on SpaceException {
+      } on Exception {
+        // Not read: the Space opens as it is; the sheet comes next time.
         return;
       }
       if (!mounted || people.seen || !people.hasAnyone) return;

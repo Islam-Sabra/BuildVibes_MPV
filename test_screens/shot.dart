@@ -16,6 +16,10 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:buildvibes/data/repositories/key_people_repository.dart';
+
+import '../test/helpers/key_people_fakes.dart';
+
 const shotSize = Size(390, 844);
 
 /// The one site photo the shots use (the Components gallery's).
@@ -126,6 +130,10 @@ Future<void> shoot(
                   feedEnabledProvider.overrideWithValue(true),
                   // The samples' files are named, not on this disk (Z13).
                   localFileThereProvider.overrideWithValue((_) => true),
+                  // Review 121: no key people unless a frame sets them.
+                  keyPeopleRepositoryProvider.overrideWithValue(
+                    FakeKeyPeopleRepository(),
+                  ),
                   ...overrides,
                 ],
                 child: app,

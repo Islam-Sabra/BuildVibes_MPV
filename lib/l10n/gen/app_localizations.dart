@@ -12721,6 +12721,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+{count}'**
   String peopleTeamsMore(String count);
+
+  /// Review 121 NUM1: under the title, where the page is.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get phoneWhere;
 }
 
 class _AppLocalizationsDelegate

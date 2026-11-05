@@ -179,7 +179,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
 
     return BvSectionScaffold(
       title: l10n.phoneTitle,
-      subtitle: l10n.navProfile,
+      subtitle: l10n.phoneWhere,
       body: ListView(
         key: const Key('phone-screen'),
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),

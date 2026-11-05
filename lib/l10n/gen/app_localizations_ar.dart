@@ -7745,4 +7745,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String peopleTeamsMore(String count) {
     return '+$count';
   }
+
+  @override
+  String get phoneWhere => 'الملف الشخصي';
 }

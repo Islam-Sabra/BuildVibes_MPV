@@ -10501,5 +10501,7 @@
   "activityKeyRoleEmpty": "{role} has no one now",
   "@activityKeyRoleEmpty": {"description": "Review 121 Review 121: Activity row to the Space admin when a key role's last person left.", "placeholders": {"role": {"type": "String", "example": "Safety officer"}}},
   "peopleTeamsMore": "+{count}",
-  "@peopleTeamsMore": {"description": "Review 121 P1: more Teams than fit on a member's row.", "placeholders": {"count": {"type": "String", "example": "1"}}}
+  "@peopleTeamsMore": {"description": "Review 121 P1: more Teams than fit on a member's row.", "placeholders": {"count": {"type": "String", "example": "1"}}},
+  "phoneWhere": "Profile",
+  "@phoneWhere": {"description": "Review 121 NUM1: under the title, where the page is."}
 }

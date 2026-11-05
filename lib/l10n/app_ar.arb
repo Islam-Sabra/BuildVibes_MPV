@@ -2104,5 +2104,6 @@
   "phoneCheck": "تحقّق من الرقم، مثلًا {example}",
   "phoneNotAdded": "لم يُضَف",
   "activityKeyRoleEmpty": "{role} بلا أحد الآن",
-  "peopleTeamsMore": "+{count}"
+  "peopleTeamsMore": "+{count}",
+  "phoneWhere": "الملف الشخصي"
 }
