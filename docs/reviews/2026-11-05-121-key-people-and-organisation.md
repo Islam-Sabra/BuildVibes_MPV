@@ -149,3 +149,17 @@ Teams can follow a company, a shift or a trade at the same time. For example, Al
 - **Tests:**
   - pgTAP: true only for `spaces_and_dms` with an open thread; false for spaces-only, a block, or a hidden account.
   - Widget tests in EN and AR.
+
+## The lead's check of 121b: `claude/r121b` at `be926250` (5 Nov), accepted
+- **SQL stand-in:** **75 files, 4,702 checks, PASS**. This matches Cursor's count.
+- **`dm_can_call`:**
+  - definer, `search_path=''`, `authenticated` only;
+  - returns a yes/no and never the number;
+  - doesn't count against the 30.
+- **`phone_shown_to` now needs a saved number:** accepted. It's the right fix, because a Call that can't ring must never show.
+- **Shot viewed:** DM2 in Arabic. The phone icon sits before ···, the bar reads right to left, and the phone icon is correctly not mirrored.
+- **Go live, with the founder's yes:**
+  1. merge into `slice2-app`;
+  2. `db push`, dry run first: only `20261202120000`;
+  3. **one** release build carrying 121 and 121b. 1090 is skipped, since it was never installed.
+- **Rule 9 for that build:** the report gives the **arm64** download and installed size, next to WhatsApp's current Play Store size.
