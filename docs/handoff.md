@@ -2,6 +2,28 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 5 Nov 2026, evening — 121 and 121b live; build 1092 waiting for the founder's pairing code
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **121b live:**
+  - The lead accepted it; `claude/r121b` is merged into `slice2-app` (9656522c).
+  - `db push` of `20261202120000` only, after a dry run. Checked live:
+    - it is the last migration;
+    - `dm_can_call` can be run by `authenticated` and not by anon;
+    - `phone_shown_to` needs a number.
+- **Build 1092** (versionCode 1092, 0.9.0, `BV_STORAGE_LOG=true`), carrying 121 and 121b. 1090 is skipped, never installed.
+  - Its exact source is on **`release-1092`** (= 9656522c).
+  - The APK is at `Desktop/BuildVibes-1092.apk` (84.3 MB, every CPU), signed with the upload key.
+- **Rule 9, arm64** (the `--split-per-abi` APK):
+  - 30.1 MB as an APK, which is about the installed size, since native libraries stay inside the APK;
+  - about 14.4 MB to download (deflate estimate).
+  - WhatsApp's size: read from the founder's phone (its Play install) when it is connected.
+- **Not installed yet:** the founder's message had no pairing code, and the phone wasn't on mDNS. Next: pair, confirm 22120RN86G, install 1092 only, read WhatsApp's size, then disconnect.
+- **Who has which branch:**
+  - PC has `slice2-app`.
+  - `claude/r121` and `claude/r121b` are merged.
+
 ## PC update: 5 Nov 2026, late afternoon — review 121 live; 121b (Call from a DM) on `claude/r121b`, waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
