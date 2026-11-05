@@ -47,6 +47,8 @@ android {
 
     defaultConfig {
         applicationId = "com.buildvibes.buildvibes"
+        // Review 120: the call test installs next to BuildVibes.
+        applicationIdSuffix = ".spike"
         // The version name comes from pubspec.yaml (0.9.0); the build number
         // from git (above).
         minSdk = flutter.minSdkVersion

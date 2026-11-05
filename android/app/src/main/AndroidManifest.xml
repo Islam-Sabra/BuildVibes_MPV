@@ -22,7 +22,7 @@
          while swiping back). -->
     <application
         android:enableOnBackInvokedCallback="true"
-        android:label="BuildVibes"
+        android:label="BV call test"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

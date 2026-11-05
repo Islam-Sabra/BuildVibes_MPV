@@ -1,3 +1,7 @@
+// Review 120: agora_rtc_engine 6.6.4 compiles against SDK 31 unless the root
+// project names one; today's AndroidX needs 34 or later.
+extra["compileSdkVersion"] = 36
+
 allprojects {
     repositories {
         google()
