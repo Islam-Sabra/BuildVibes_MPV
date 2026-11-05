@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 5 Nov 2026, evening (last) — build 1092 on the founder's phone
+
+- **Installed:**
+  - Phone: 22120RN86G at 192.168.8.33:45467. It was still paired, so it connected without a code.
+  - 1079 → 1092, BuildVibes only.
+  - Disconnected; no entry left.
+  - "BV call test" is still there, by his choice.
+- **Rule 9 (release report for 1092):** the arm64 numbers are what Play would send an arm64 phone. Sideloaded, the phone holds the all-CPU APK (84.3 MB).
+
+  | | BuildVibes 1092 (arm64) | WhatsApp 2.26.42.74 (Play, on the founder's phone) |
+  |---|---|---|
+  | Installed (APK on the phone) | 30.1 MB | 104.6 MB |
+  | Download (deflate estimate) | ~14.4 MB | ~88.8 MB |
+
+  - WhatsApp's APK was read from the phone once to measure it, then deleted from the PC. The Play web page doesn't show a size.
+  - **Phone check (the lead):** KP1/OC1/KP2 in a real Space; NUM1; Call from a DM with "My Spaces and people I message".
+
 ## PC update: 5 Nov 2026, evening — 121 and 121b live; build 1092 waiting for the founder's pairing code
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
