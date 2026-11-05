@@ -74,6 +74,16 @@ android {
             signingConfig = signingConfigs.findByName("upload")
         }
     }
+
+    // Review 120 (the lead's note): trimmed Agora, voice and video only:
+    // every optional extension is left out. ffmpeg, fdkaac and soundtouch
+    // stay: libagora-rtc-sdk.so links them (DT_NEEDED), so the app can't
+    // start without them.
+    packaging {
+        jniLibs {
+            excludes += "**/libagora_*_extension.so"
+        }
+    }
 }
 
 // Without the upload key a release build stops, instead of making an app
