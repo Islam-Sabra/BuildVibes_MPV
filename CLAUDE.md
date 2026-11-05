@@ -48,6 +48,10 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 6. **Choices that exclude each other** are one single-choice control, never separate switches.
 7. **No unnecessary settings.** Language has only two things: the app language, and the language each post is written in (with Translate).
 8. **Work stays in Spaces.** Work items never leave the Space. Public posts live in the Home feed and can be tagged to a project. A project has no owner and no admin.
+9. **Lighter than WhatsApp (founder, 5 Nov).** Workers already run WhatsApp, so their phones can cope. Our edge is being lighter: a smaller download, less storage, less data and less battery than WhatsApp.
+   - Every release report gives the arm64 download and installed size, next to WhatsApp's current Play Store size.
+   - A new package that adds more than 5 MB needs the lead's yes, with the size measured first.
+   - No extra SDK parts that we don't use.
 
 ## How Claude works with the founder
 - When he asks a question, answer it. Don't change code in the same turn.
