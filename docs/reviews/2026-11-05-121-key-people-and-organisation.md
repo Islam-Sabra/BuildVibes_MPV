@@ -105,3 +105,47 @@ Teams can follow a company, a shift or a trade at the same time. For example, Al
 - **Tests:**
   - pgTAP: one person in 2 Teams sees both Teams' posts and files and gets one push for a post to both; removing them from one Team keeps the other.
   - widget: P1's row with 3 Teams; TM4 with 2 ticks.
+
+## The lead's check: `claude/r121` at `39cc3202` (5 Nov), accepted with two small fixes
+- **SQL stand-in:** fresh database, all migrations, **74 files, 4,688 checks, PASS**. This matches Cursor's count.
+- **Read in the code:**
+  - **`profiles.phone`:**
+    - `authenticated` gets select on every column except `phone`;
+    - every app select on `profiles` names its columns, so nothing selects `*`;
+    - updates don't return rows.
+  - **`phone_shown_to`:**
+    - nobody, the owner themselves, hidden accounts and blocks all return false;
+    - for a Space, both people must be active members;
+    - for a DM, the visibility must be `spaces_and_dms` and the owner's thread must be open.
+  - **`person_phone`:**
+    - a per-caller lock and 30 reads a day;
+    - it counts the read before answering, so probing costs reads too.
+  - **`space_key_people`:**
+    - gives `can_call` but never the number.
+  - **Key-role writes:**
+    - Space admin only, checked in SQL, with the limits checked in SQL;
+    - a leaving holder is removed by trigger.
+- **Shots viewed:** KP1, OC1, KP2, P1 with two Teams, NUM1, KP4 (AR). Directions, the faces and «مشرف الفريق» are right; there are no counts.
+- **Rule for the data model:** from now on, `profiles` has column grants. **Any new `profiles` column needs its own `grant select (col)` in its migration, or the app can't read it.** Write this into `docs/product/data-model.md`.
+- **Answers to Cursor's questions:**
+  1. **KP2 wording:** a Space isn't always a site. Change it to "Before anything else: who to call in this Space." / «قبل أي شيء: بمن تتصل في هذه المساحة.»
+  2. **The tags on member rows:** keep the pass and Team tags. The code is right, and the KP1 frame was only simplified.
+  3. **"+965" in the phone field:** accepted, because it comes from the market pack. Keep the phone icon out.
+  4. **A Call button in direct messages:** yes, as **121b** after this goes live (below).
+- **Fixes before merge, small, test first:**
+  - **F1:** the KP2 wording as in answer 1.
+  - **F2:** KP4's "Call them for" field shows a hint when it's empty: "e.g. hazards, accidents, work permits" / «مثلاً: المخاطر والحوادث وأذونات العمل».
+- **Then go live, with the founder's yes:**
+  1. merge;
+  2. `db push`, dry run first: only `20261201120000`;
+  3. build and install on the phone.
+
+## 121b. Call from a direct message (after 121 is live)
+- **What the founder decided:** outside a Space the call is a phone call only (review 120). Option 3 of Who sees my number, "My Spaces and people I message", needs a place to call from.
+- **Server:** `dm_can_call(p_other uuid) returns boolean`. It answers `phone_shown_to(p_other, auth.uid(), null)` and doesn't count against the 30. Grant it to `authenticated` only.
+- **App:**
+  - The DM's top bar gets a **phone icon** (Phosphor `phone`, regular, the same size as the bar's other icons), placed before the ··· button, and only when `dm_can_call` is true. No dead button.
+  - Tapping it calls `person_phone(other, null)`, then opens the phone's dialler. If the answer is now null, show "This number isn't shared any more" / «لم يعد هذا الرقم متاحاً».
+- **Tests:**
+  - pgTAP: true only for `spaces_and_dms` with an open thread; false for spaces-only, a block, or a hidden account.
+  - Widget tests in EN and AR.
