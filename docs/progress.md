@@ -927,6 +927,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - `test_screens` 764 pass;
     - `supabase test db` 74 files, 4,688 checks.
   - **Report:** `docs/reviews/2026-11-05-121-report.md`; emulator shots in `docs/reviews/shots-121/`.
+- **5 Nov (review 121 live):**
+  - The lead accepted it with F1–F2: KP2 says "in this Space"; KP4's Call them for has a hint. The column-grant rule is in `data-model.md`.
+  - Merged into `slice2-app` (248ee609).
+  - `20261201120000` is live (dry run first).
+  - Release build 1090 on `release-1090`, signed with the upload key.
+- **5 Nov (review 121b, `claude/r121b`, waiting for the lead):**
+  - Call from a direct message: `dm_can_call`, plus the phone icon before ···.
+  - `phone_shown_to` needs a number.
+  - Migration `20261202120000` (not live).
+  - Checks: 4,017 Flutter tests, 768 screen tests, 75 files with 4,702 SQL checks.
+  - Report: `docs/reviews/2026-11-05-121b-report.md`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

@@ -3,12 +3,17 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/key_people_repository.dart';
 
 /// Who to call with no network (review 121). [spaces] holds each Space's
-/// key people; [phones] the numbers person_phone would give.
+/// key people; [phones] the numbers person_phone would give; [callable]
+/// the people dm_can_call says yes for (121b).
 class FakeKeyPeopleRepository implements KeyPeopleRepository {
   final spaces = <String, KeyPeople>{};
   final phones = <String, String>{};
+  final callable = <String>{};
   final seen = <String>[];
   final asked = <String>[];
+
+  /// The Space each person_phone was asked from; null from a DM.
+  final askedFrom = <String?>[];
   final saved =
       <
         ({String? roleId, String name, String? callFor, List<String> holders})
@@ -73,8 +78,13 @@ class FakeKeyPeopleRepository implements KeyPeopleRepository {
   Future<String?> personPhone(String profileId, {String? spaceId}) async {
     _fail();
     asked.add(profileId);
+    askedFrom.add(spaceId);
     return phones[profileId];
   }
+
+  @override
+  Future<bool> dmCanCall(String profileId) async =>
+      callable.contains(profileId);
 
   @override
   Future<MyPhone> myPhone() async => mine;

@@ -2062,6 +2062,7 @@
   "keyPeopleCallFor": "اتصل به من أجل: {what}",
   "keyPeopleCall": "اتصال",
   "keyPeopleMessage": "رسالة",
+  "dmNoNumber": "لم يعد هذا الرقم متاحاً",
   "keyPeopleNoNumber": "{name} لا يُظهر رقمه الآن.",
   "keyPeopleTooMany": "فتحت 30 رقمًا اليوم. حاول مرة أخرى غدًا.",
   "keyPeopleNoDialler": "هذا الهاتف لا يجري مكالمات.",

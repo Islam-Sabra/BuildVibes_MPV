@@ -24,6 +24,8 @@ import '../../data/models/dm.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/dm_repository.dart';
+import '../../data/repositories/key_people_repository.dart'
+    show dmCanCallProvider;
 import '../../data/repositories/safety_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
@@ -40,6 +42,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../safety/report_flow.dart';
 import '../spaces/former_member.dart';
+import '../spaces/key_people.dart' show callPerson;
 import '../spaces/space_errors.dart';
 import '../work/could_not_send.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
@@ -926,6 +929,23 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           ],
         ),
         actions: [
+          // 121b: only when their choice lets me call; no dead button.
+          if (page != null &&
+              person != null &&
+              !person.former &&
+              (ref.watch(dmCanCallProvider(person.id)).value ?? false))
+            IconButton(
+              key: const Key('dm-call'),
+              tooltip: l10n.keyPeopleCall,
+              icon: const Icon(BvIcons.call, color: BvColors.iconPrimary),
+              onPressed: () => callPerson(
+                context,
+                ref,
+                profileId: person.id,
+                noNumber: l10n.dmNoNumber,
+                onNoNumber: () => ref.invalidate(dmCanCallProvider(person.id)),
+              ),
+            ),
           if (page != null && !(person?.former ?? true))
             IconButton(
               key: const Key('dm-more'),

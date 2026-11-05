@@ -32,6 +32,10 @@ abstract interface class KeyPeopleRepository {
   /// [spaceId] null asks from a direct message.
   Future<String?> personPhone(String profileId, {String? spaceId});
 
+  /// 121b: whether Call shows in my direct message with [profileId]. Never
+  /// the number, and it doesn't count against person_phone's 30 a day.
+  Future<bool> dmCanCall(String profileId);
+
   Future<MyPhone> myPhone();
 
   /// [phone] in E.164, or null to take it away; a null [visibility] keeps
@@ -106,6 +110,11 @@ class SupabaseKeyPeopleRepository implements KeyPeopleRepository {
   );
 
   @override
+  Future<bool> dmCanCall(String profileId) => _guard(
+    () => _client.rpc<bool>('dm_can_call', params: {'p_other': profileId}),
+  );
+
+  @override
   Future<MyPhone> myPhone() => _guard(
     () async => MyPhone.fromJson(
       await _client.rpc<Map<String, dynamic>?>('my_phone') ?? const {},
@@ -130,6 +139,11 @@ final spaceKeyPeopleProvider = FutureProvider.autoDispose
     .family<KeyPeople, String>(
       (ref, id) => ref.watch(keyPeopleRepositoryProvider).keyPeople(id),
     );
+
+final dmCanCallProvider = FutureProvider.autoDispose.family<bool, String>(
+  (ref, profileId) =>
+      ref.watch(keyPeopleRepositoryProvider).dmCanCall(profileId),
+);
 
 final myPhoneProvider = FutureProvider.autoDispose<MyPhone>(
   (ref) => ref.watch(keyPeopleRepositoryProvider).myPhone(),

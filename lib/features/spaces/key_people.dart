@@ -29,6 +29,27 @@ Future<void> callKeyPerson(
   WidgetRef ref, {
   required String spaceId,
   required SpacePerson person,
+}) => callPerson(
+  context,
+  ref,
+  profileId: person.id,
+  spaceId: spaceId,
+  noNumber: AppLocalizations.of(
+    context,
+  ).keyPeopleNoNumber(inOwnDirection(person.firstName)),
+  onNoNumber: () => ref.invalidate(spaceKeyPeopleProvider(spaceId)),
+);
+
+/// Call [profileId], asked from [spaceId] (null: from a direct message,
+/// 121b). When the number isn't shared any more, says [noNumber] and runs
+/// [onNoNumber] so the button goes.
+Future<void> callPerson(
+  BuildContext context,
+  WidgetRef ref, {
+  required String profileId,
+  String? spaceId,
+  required String noNumber,
+  required VoidCallback onNoNumber,
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -39,10 +60,10 @@ Future<void> callKeyPerson(
   try {
     final phone = await ref
         .read(keyPeopleRepositoryProvider)
-        .personPhone(person.id, spaceId: spaceId);
+        .personPhone(profileId, spaceId: spaceId);
     if (phone == null) {
-      say(l10n.keyPeopleNoNumber(inOwnDirection(person.firstName)));
-      ref.invalidate(spaceKeyPeopleProvider(spaceId));
+      say(noNumber);
+      onNoNumber();
       return;
     }
     if (!await openLink(Uri(scheme: 'tel', path: phone))) {
