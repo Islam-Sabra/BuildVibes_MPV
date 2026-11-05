@@ -109,6 +109,10 @@ The founder's PC, cloud sessions and the lead's chat in the Claude project all w
 ## Skills (founder, 26 Oct)
 - **Building (cloud or PC sessions):** use `superpowers:test-driven-development` and `superpowers:verification-before-completion`. Every "done" carries the commands run and their results.
 - **Bugs:** `superpowers:systematic-debugging` before proposing a fix.
+- **Clean-up before every report (founder, 5 Nov):** run Cursor's own `deslop` on the branch's diff against `slice2-app` only, then run every check again. Never install a third-party deslop skill.
+  - Keep comments that name a review or decision (e.g. `review 118 F3`).
+  - Don't touch tests, live migrations, or security code (RLS, permission checks, secrets handling).
+  - No behaviour change: the same tests pass before and after, and the report says what deslop removed.
 - **The lead's branch checks:** `mattpocock-skills:code-review`, which checks the branch against the repo's rules and against the review that asked for it.
 - **Arabic/RTL and UX checks:** `ux-ui-audit` on prototypes and web builds before a review is signed off.
 - **Big decisions:** `mattpocock-skills:grilling` before a review is written. Specs: `product-management:write-spec`.
