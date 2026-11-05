@@ -31,6 +31,7 @@ class BvTextField extends StatefulWidget {
     this.readOnly = false,
     this.onTap,
     this.onChanged,
+    this.onSubmitted,
     this.prefixText,
     this.suffixIcon,
     this.textDirection,
@@ -59,6 +60,9 @@ class BvTextField extends StatefulWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final ValueChanged<String>? onChanged;
+
+  /// The keyboard's done key (NUM1 saves the number).
+  final ValueChanged<String>? onSubmitted;
 
   /// Fixed text before the value, such as a dial code.
   final String? prefixText;
@@ -157,6 +161,7 @@ class _BvTextFieldState extends State<BvTextField> {
       readOnly: widget.readOnly,
       onTap: widget.onTap,
       onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
       keyboardType:
           widget.keyboardType ??
           (widget.maxLines > 1 ? TextInputType.multiline : null),

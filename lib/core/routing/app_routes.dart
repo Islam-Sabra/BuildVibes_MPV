@@ -25,6 +25,7 @@ abstract final class AppRoutes {
   static const profileEditExperience = '/profile/edit/experience';
   static const profileEditExperienceForm = '/profile/edit/experience/form';
   static const profileEditOpenTo = '/profile/edit/open-to';
+  static const profileEditPhone = '/profile/edit/phone';
   static const profileEditProjects = '/profile/edit/projects';
   static const profileDelivered = '/profile/delivered';
 
@@ -186,6 +187,9 @@ abstract final class AppRoutes {
 
   /// Space info › Templates (slice 7): a Lead's or a Space admin's.
   static String spaceTemplates(String id) => '/spaces/$id/templates';
+
+  /// Review 121 KP3: Key people, for the Space admin.
+  static String spaceKeyPeople(String id) => '/spaces/$id/key-people';
 
   /// F1: the file full screen, on the drawing table.
   static String libraryFile(String id, String fileId) =>

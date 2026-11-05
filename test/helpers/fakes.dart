@@ -31,6 +31,13 @@ final kuwaitJson = <String, dynamic>{
   'weekend': [5, 6],
   'needs_review': ['phone_rules'],
   'support_email': 'help@example.com',
+  'key_role_suggestions': [
+    {'en': 'Safety officer', 'ar': 'ضابط السلامة'},
+    {'en': 'Project engineer', 'ar': 'مهندس المشروع'},
+    {'en': 'Site nurse', 'ar': 'ممرض الموقع'},
+    {'en': 'Storekeeper', 'ar': 'أمين المخزن'},
+    {'en': 'Site manager', 'ar': 'مدير الموقع'},
+  ],
   'legal': {
     'terms': {
       'en': 'https://example.com/terms',
@@ -62,6 +69,13 @@ final egypt = Market.fromJson({
   'week_start': 6,
   'weekend': [5, 6],
   'needs_review': ['phone_rules', 'status'],
+  'key_role_suggestions': [
+    {'en': 'Safety officer', 'ar': 'ضابط السلامة'},
+    {'en': 'Project engineer', 'ar': 'مهندس المشروع'},
+    {'en': 'Site nurse', 'ar': 'ممرض الموقع'},
+    {'en': 'Storekeeper', 'ar': 'أمين المخزن'},
+    {'en': 'Site manager', 'ar': 'مدير الموقع'},
+  ],
 });
 
 final testMarkets = [kuwait, egypt];

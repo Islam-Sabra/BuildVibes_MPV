@@ -484,6 +484,12 @@ class SpaceInfoScreen extends ConsumerWidget {
                   onTap: () => context.push(AppRoutes.spaceTemplates(spaceId)),
                 ),
               if (space.iAmAdmin) ...[
+                // Review 121 KP3: the Space admin sets Who to call.
+                BvInfoRow(
+                  key: const Key('info-key-people'),
+                  title: l10n.keyPeopleTitle,
+                  onTap: () => context.push(AppRoutes.spaceKeyPeople(spaceId)),
+                ),
                 BvInfoRow(
                   key: const Key('space-edit'),
                   title: l10n.spacesEditNameAbout,

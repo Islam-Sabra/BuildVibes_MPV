@@ -11,20 +11,35 @@ import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/company_teams.dart';
+import '../../data/models/key_people.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_badge.dart';
+import 'key_people.dart';
 import 'make_teams_sheet.dart';
 import 'who_sees_sheet.dart';
 
-/// Review 111 TM1: People's Teams side. For a Space admin, what can be made
-/// from companies: the card while 2 or more companies wait, the one line
-/// while one does. Then each Team and its admin, and New Team by hand.
+/// Review 111 TM1, review 121 OC1: People's Teams side, the Space as an
+/// organisation. For a Space admin first, what can be made from companies:
+/// the card while 2 or more companies wait, the one line while one does.
+/// Then who runs the Space, Who to call as chips, and each Team as a card
+/// with its Team admin and up to 5 faces, never a count (rule 3). New Team
+/// by hand for the Space admin.
 class TeamsView extends ConsumerWidget {
-  const TeamsView({super.key, required this.space, required this.teams});
+  const TeamsView({
+    super.key,
+    required this.space,
+    required this.teams,
+    this.members = const [],
+    this.keyPeople,
+  });
 
   final SpaceDetail space;
   final List<SpaceTeam> teams;
+  final List<SpaceMember> members;
+  final KeyPeople? keyPeople;
 
   Future<void> _make(
     BuildContext context,
@@ -55,6 +70,24 @@ class TeamsView extends ConsumerWidget {
         ? ref.watch(companyTeamPreviewProvider(space.id)).value
         : null;
     final waiting = preview?.waiting ?? const <CompanyGroup>[];
+    final admins = [
+      for (final m in members)
+        if (m.isAdmin) m,
+    ];
+    final toCall = keyPeople?.toCall ?? const [];
+
+    Widget label(String text) => Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        BvSpace.gutter,
+        BvPeopleSpec.sectionTop,
+        BvSpace.gutter,
+        BvPeopleSpec.sectionBottom,
+      ),
+      child: Text(
+        text,
+        style: type.bodySm.copyWith(color: BvColors.textSecondary),
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,23 +111,50 @@ class TeamsView extends ConsumerWidget {
             onTap: () =>
                 unawaited(_make(context, preview!, only: waiting.single.key)),
           ),
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            BvSpace.gutter,
-            BvPeopleSpec.sectionTop,
-            BvSpace.gutter,
-            BvPeopleSpec.sectionBottom,
+        if (admins.isNotEmpty) ...[
+          label(l10n.orgRunsThisSpace),
+          _Gutter(child: _Admins(admins: admins)),
+          const _BlockLine(),
+        ],
+        if (toCall.isNotEmpty) ...[
+          label(l10n.keyPeopleWhoToCall),
+          _Gutter(
+            child: Wrap(
+              spacing: BvKeyPeopleSpec.chipGap,
+              runSpacing: BvKeyPeopleSpec.chipGap,
+              children: [
+                for (final c in toCall)
+                  _CallChip(
+                    key: Key('org-call-${c.role.id}-${c.holder.person.id}'),
+                    role: c.role,
+                    person: c.holder.person,
+                    onTap: () => showKeyPersonSheet(
+                      context,
+                      spaceId: space.id,
+                      role: c.role,
+                      holder: c.holder,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          child: Text(
-            l10n.spacesTeams,
-            style: type.bodySm.copyWith(color: BvColors.textSecondary),
-          ),
-        ),
+          const _BlockLine(),
+        ],
+        label(l10n.spacesTeams),
         for (final t in teams)
-          _TeamRow(
-            key: Key('team-row-${t.id}'),
-            team: t,
-            onTap: () => context.push(AppRoutes.spaceTeam(space.id, t.id)),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              BvSpace.gutter,
+              0,
+              BvSpace.gutter,
+              BvKeyPeopleSpec.cardGap,
+            ),
+            child: _TeamCard(
+              key: Key('team-row-${t.id}'),
+              team: t,
+              members: members,
+              onTap: () => context.push(AppRoutes.spaceTeam(space.id, t.id)),
+            ),
           ),
         // The server lets only the Space admin make a Team.
         if (admin)
@@ -241,84 +301,265 @@ class _NewLine extends StatelessWidget {
   );
 }
 
-/// A Team: its mark, its name and its admin, in bold (TM1).
-class _TeamRow extends StatelessWidget {
-  const _TeamRow({super.key, required this.team, required this.onTap});
+class _Gutter extends StatelessWidget {
+  const _Gutter({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.symmetric(horizontal: BvSpace.gutter),
+    child: child,
+  );
+}
+
+/// OC1: between its blocks, a short 2 px line at the start.
+class _BlockLine extends StatelessWidget {
+  const _BlockLine();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsetsDirectional.fromSTEB(
+      BvSpace.gutter,
+      BvKeyPeopleSpec.blockLineTop,
+      BvSpace.gutter,
+      0,
+    ),
+    child: Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: SizedBox(
+        width: BvStroke.thick,
+        height: BvKeyPeopleSpec.blockLineHeight,
+        child: ColoredBox(color: BvColors.borderDefault),
+      ),
+    ),
+  );
+}
+
+/// A block's card: white, bordered, rounded.
+class _Card extends StatelessWidget {
+  const _Card({required this.child, this.onTap});
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: BvColors.surfaceElevated,
+    shape: RoundedRectangleBorder(
+      borderRadius: BvRadius.cardAll,
+      side: const BorderSide(
+        color: BvColors.borderDefault,
+        width: BvStroke.thin,
+      ),
+    ),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BvRadius.cardAll,
+      splashFactory: NoSplash.splashFactory,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(BvKeyPeopleSpec.cardPadding),
+        child: child,
+      ),
+    ),
+  );
+}
+
+/// Runs this Space: every Space admin, with the Space admin tag.
+class _Admins extends StatelessWidget {
+  const _Admins({required this.admins});
+
+  final List<SpaceMember> admins;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvKeyPeopleSpec.cardGap,
+        children: [
+          for (final m in admins)
+            Row(
+              key: Key('org-admin-${m.person.id}'),
+              spacing: BvKeyPeopleSpec.faceGap,
+              children: [
+                BvAvatar(
+                  name: m.person.fullName,
+                  size: BvAvatarSize.post,
+                  tint: BvAvatarTints.forId(m.person.id),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: BvKeyPeopleSpec.lineGap,
+                    children: [
+                      Text(
+                        inOwnDirection(m.person.fullName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.emphasis,
+                      ),
+                      BvBadge(
+                        label: l10n.spacesAdminRow,
+                        tone: BvBadgeTone.brand,
+                        icon: BvIcons.checkCircle,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Who to call, compact: the face, the first name and the role.
+class _CallChip extends StatelessWidget {
+  const _CallChip({
+    super.key,
+    required this.role,
+    required this.person,
+    required this.onTap,
+  });
+
+  final KeyRole role;
+  final SpacePerson person;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Material(
+      color: BvColors.surfaceBrandSoft,
+      shape: const StadiumBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        splashFactory: NoSplash.splashFactory,
+        child: Padding(
+          padding: BvKeyPeopleSpec.chipPadding,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvSpace.s8,
+            children: [
+              BvAvatar(
+                name: person.fullName,
+                size: BvAvatarSize.xsm,
+                tint: BvAvatarTints.forId(person.id),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    inOwnDirection(person.firstName),
+                    style: type.emphasisSm,
+                  ),
+                  Text(
+                    inOwnDirection(role.name),
+                    style: type.metadata.copyWith(color: BvColors.textAction),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A Team (OC1): its mark and name, its Team admin, and up to 5 faces of
+/// its other people. A person in several Teams shows in each.
+class _TeamCard extends StatelessWidget {
+  const _TeamCard({
+    super.key,
+    required this.team,
+    required this.members,
+    required this.onTap,
+  });
 
   final SpaceTeam team;
+  final List<SpaceMember> members;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final admin = team.adminName;
-    return InkWell(
+    final adminName = team.adminName;
+    final adminId = team.adminId;
+    final faces = [
+      for (final m in members)
+        if (team.memberIds.contains(m.person.id) && m.person.id != adminId)
+          m.person,
+    ].take(BvKeyPeopleSpec.faces);
+    return _Card(
       onTap: onTap,
-      splashFactory: NoSplash.splashFactory,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: BvSpace.gutter,
-        ),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: BvColors.borderDefault,
-                width: BvStroke.thin,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvKeyPeopleSpec.cardGap,
+        children: [
+          Row(
+            spacing: BvTeamsSpec.rowGap,
+            children: [
+              const BvTeamDisc(size: BvTeamsSpec.whoDisc, icon: BvIcons.team),
+              Expanded(
+                child: Text(
+                  inOwnDirection(team.name),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.emphasis,
+                ),
               ),
-            ),
+              const Icon(
+                BvIcons.caretForward,
+                size: BvSize.iconMd,
+                color: BvColors.iconSecondary,
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.symmetric(
-              vertical: BvTeamsSpec.rowPaddingVertical,
-            ),
-            child: Row(
-              spacing: BvTeamsSpec.rowGap,
+          if (adminName != null && adminId != null)
+            Row(
+              spacing: BvSpace.s8,
               children: [
-                const BvTeamDisc(size: BvTeamsSpec.rowDisc, icon: BvIcons.team),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: BvTeamsSpec.lineGap,
-                    children: [
-                      Text(
-                        inOwnDirection(team.name),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: type.emphasis,
-                      ),
-                      if (admin != null)
-                        Text.rich(
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          TextSpan(
-                            style: type.metadata.copyWith(
-                              color: BvColors.textSecondary,
-                            ),
-                            children: [
-                              TextSpan(text: '${l10n.teamRowAdmin} '),
-                              TextSpan(
-                                text: inOwnDirection(admin),
-                                style: type.emphasisSm.copyWith(
-                                  color: BvColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
+                BvAvatar(
+                  name: adminName,
+                  size: BvAvatarSize.xs,
+                  tint: BvAvatarTints.forId(adminId),
+                ),
+                Flexible(
+                  child: Text(
+                    inOwnDirection(adminName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.labelSm.copyWith(color: BvColors.textPrimary),
                   ),
                 ),
-                const Icon(
-                  BvIcons.caretForward,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconSecondary,
+                BvBadge(
+                  label: l10n.teamAdminBadge,
+                  tone: BvBadgeTone.positiveSoft,
+                  icon: BvIcons.teamAdmin,
                 ),
               ],
             ),
-          ),
-        ),
+          if (faces.isNotEmpty)
+            Row(
+              spacing: BvKeyPeopleSpec.faceSpacing,
+              children: [
+                for (final p in faces)
+                  BvAvatar(
+                    key: Key('org-face-${team.id}-${p.id}'),
+                    name: p.fullName,
+                    size: BvAvatarSize.xs,
+                    tint: BvAvatarTints.forId(p.id),
+                  ),
+              ],
+            ),
+        ],
       ),
     );
   }

@@ -77,7 +77,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entrySignIn => 'تسجيل الدخول';
 
   @override
-  String get phoneTitle => 'رقم هاتفك';
+  String get phoneTitle => 'رقم الهاتف';
 
   @override
   String get phoneLabel => 'رقم الجوال';
@@ -7588,4 +7588,161 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alertsNotNow => 'ليس الآن';
+
+  @override
+  String get keyPeopleWhoToCall => 'بمن تتصل';
+
+  @override
+  String get keyPeopleEveryone => 'الجميع';
+
+  @override
+  String keyPeopleCallFor(String what) {
+    return 'اتصل به من أجل: $what';
+  }
+
+  @override
+  String get keyPeopleCall => 'اتصال';
+
+  @override
+  String get keyPeopleMessage => 'رسالة';
+
+  @override
+  String keyPeopleNoNumber(String name) {
+    return '$name لا يُظهر رقمه الآن.';
+  }
+
+  @override
+  String get keyPeopleTooMany => 'فتحت 30 رقمًا اليوم. حاول مرة أخرى غدًا.';
+
+  @override
+  String get keyPeopleNoDialler => 'هذا الهاتف لا يجري مكالمات.';
+
+  @override
+  String get orgRunsThisSpace => 'يدير هذه المساحة';
+
+  @override
+  String keyPeopleJoined(String pass) {
+    return 'انضممت · تصريح $pass';
+  }
+
+  @override
+  String keyPeopleWelcome(String space) {
+    return 'أهلًا بك في $space';
+  }
+
+  @override
+  String get keyPeopleFirst => 'قبل أي شيء: بمن تتصل في هذا الموقع.';
+
+  @override
+  String get keyPeopleGotIt => 'تمام';
+
+  @override
+  String get keyPeopleStayOnTop => 'يبقون دائمًا في أعلى الأشخاص.';
+
+  @override
+  String get keyPeopleTitle => 'الأشخاص الأساسيون';
+
+  @override
+  String get keyPeopleIntro =>
+      'أشخاص يجب أن يعرفهم الجميع هنا. يظهرون في أعلى الأشخاص، وأولًا لكل عضو جديد.';
+
+  @override
+  String get keyPeopleAddRole => 'أضف دورًا';
+
+  @override
+  String get keyPeopleFootnote =>
+      'مدير المساحة وحده يغيّر الأشخاص الأساسيين. يظهر زر الاتصال فقط لمن اختار إظهار رقمه لهذه المساحة.';
+
+  @override
+  String get keyPeopleNoOne => 'لا أحد بعد';
+
+  @override
+  String get keyPeopleReorder => 'اضغط مطولًا على دور واسحبه لتغيير ترتيبه.';
+
+  @override
+  String get keyRoleNew => 'دور أساسي جديد';
+
+  @override
+  String get keyRoleEdit => 'دور أساسي';
+
+  @override
+  String get keyRoleName => 'اسم الدور';
+
+  @override
+  String get keyRoleCallFor => 'اتصل بهم من أجل';
+
+  @override
+  String get keyRoleHolders => 'من يشغله (حتى 2)';
+
+  @override
+  String get keyRoleAddPerson => 'أضف شخصًا';
+
+  @override
+  String get keyRoleNoteHint => 'ملاحظة، مثل الوردية الليلية';
+
+  @override
+  String get keyRoleRemovePerson => 'إزالة';
+
+  @override
+  String get keyRoleDelete => 'احذف الدور';
+
+  @override
+  String keyRoleDeleteAsk(String role) {
+    return 'حذف $role؟';
+  }
+
+  @override
+  String get keyRoleDeleteBody => 'يختفي من «بمن تتصل» عند الجميع هنا.';
+
+  @override
+  String get keyRoleTooMany => 'للمساحة 6 أدوار أساسية كحدّ أقصى.';
+
+  @override
+  String get keyRoleGone => 'هذا الشخص لم يعد في هذه المساحة.';
+
+  @override
+  String get phoneMine => 'رقمي';
+
+  @override
+  String get phoneWhoSees => 'من يرى رقمي';
+
+  @override
+  String get phoneNobody => 'لا أحد';
+
+  @override
+  String get phoneNobodyLine => 'أنت فقط. هذا هو الافتراضي.';
+
+  @override
+  String get phoneSpaces => 'أعضاء مساحاتي';
+
+  @override
+  String get phoneSpacesLine => 'ليعمل زر الاتصال للأشخاص الأساسيين.';
+
+  @override
+  String get phoneDms => 'مساحاتي ومن أراسلهم';
+
+  @override
+  String get phoneDmsLine => 'وفي الرسائل المباشرة أيضًا.';
+
+  @override
+  String get phoneNever =>
+      'لا يظهر رقمك في البحث ولا في ملفك العام ولا لأي أحد خارج اختيارك.';
+
+  @override
+  String phoneCheck(String example) {
+    return 'تحقّق من الرقم، مثلًا $example';
+  }
+
+  @override
+  String get phoneNotAdded => 'لم يُضَف';
+
+  @override
+  String activityKeyRoleEmpty(String role) {
+    return '$role بلا أحد الآن';
+  }
+
+  @override
+  String peopleTeamsMore(String count) {
+    return '+$count';
+  }
 }

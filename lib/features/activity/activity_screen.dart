@@ -407,6 +407,11 @@ ActivityWords activityWords(AppLocalizations l10n, ActivityRow row) {
       name: null,
       where: space,
     ),
+    ActivityKind.keyRoleEmpty => (
+      text: l10n.activityKeyRoleEmpty(inOwnDirection(row.roleName ?? '')),
+      name: null,
+      where: space,
+    ),
   };
 }
 
@@ -439,6 +444,9 @@ class ActivityRowView extends StatelessWidget {
         extra: SpaceOpen.people,
       ),
       ActivityKind.roleConfirmed => () => context.go(AppRoutes.profile),
+      ActivityKind.keyRoleEmpty when space != null => () => context.push(
+        AppRoutes.spaceKeyPeople(space),
+      ),
       ActivityKind.contentRemoved || ActivityKind.appealDecided
           when removal != null =>
         () => context.push(AppRoutes.removal(removal)),

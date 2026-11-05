@@ -13,6 +13,7 @@ import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/alert_settings_phone.dart';
 import 'package:buildvibes/data/repositories/alert_test_repository.dart';
+import 'package:buildvibes/data/repositories/key_people_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/core/push/push_state.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
@@ -95,6 +96,7 @@ import 'week_report_fakes.dart';
 import 'template_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
+import 'key_people_fakes.dart';
 import 'space_fakes.dart';
 import 'work_fakes.dart';
 
@@ -166,6 +168,7 @@ class TestApp {
     required this.needYouNotices,
     required this.alertPhone,
     required this.alertTests,
+    required this.keyPeople,
     required this.opened,
     required this.cameraAsks,
     required this.chimes,
@@ -241,6 +244,9 @@ class TestApp {
   final FakeAlertSettingsPhone alertPhone;
   final FakeAlertTestRepository alertTests;
 
+  /// Who to call and the phone number (review 121).
+  final FakeKeyPeopleRepository keyPeople;
+
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
 
@@ -304,6 +310,7 @@ Future<TestApp> pumpApp(
   FakeNeedYouRepository? needYou,
   FakeAlertSettingsPhone? alertPhone,
   FakeAlertTestRepository? alertTests,
+  FakeKeyPeopleRepository? keyPeople,
 
   /// The market pack; [testMarkets] by default.
   List<Market>? markets,
@@ -421,6 +428,7 @@ Future<TestApp> pumpApp(
   final fakeNeedYouNotices = FakeCheckInNotifier();
   final fakeAlertPhone = alertPhone ?? FakeAlertSettingsPhone();
   final fakeAlertTests = alertTests ?? FakeAlertTestRepository();
+  final fakeKeyPeople = keyPeople ?? FakeKeyPeopleRepository();
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
@@ -486,6 +494,7 @@ Future<TestApp> pumpApp(
         needYouRepositoryProvider.overrideWithValue(fakeNeedYou),
         alertSettingsPhoneProvider.overrideWithValue(fakeAlertPhone),
         alertTestRepositoryProvider.overrideWithValue(fakeAlertTests),
+        keyPeopleRepositoryProvider.overrideWithValue(fakeKeyPeople),
         // Y1: the phone's time zone.
         phoneTimeZoneProvider.overrideWithValue(() async => 'Asia/Kuwait'),
         openLinkProvider.overrideWithValue((uri) async {
@@ -648,6 +657,7 @@ Future<TestApp> pumpApp(
     needYouNotices: fakeNeedYouNotices,
     alertPhone: fakeAlertPhone,
     alertTests: fakeAlertTests,
+    keyPeople: fakeKeyPeople,
     opened: opened,
     cameraAsks: cameraAsks,
     chimes: chimes,

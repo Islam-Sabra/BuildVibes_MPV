@@ -163,9 +163,9 @@ void main() {
       await pumpApp(tester, feed: true, language: lang, spaces: spaces);
       await _openInfo(tester);
 
-      await _tap(tester, 'inviters-everyone');
-      expect(spaces.calls.last, 'update $_spaceName everyone');
-      // F102: Needs you only and Off ask for how long first.
+      // F102: Needs you only and Off ask for how long first. Notifications
+      // first: it sits above Who can invite, and the list builds what is
+      // near the screen (review 121 added Key people below).
       await _tap(tester, 'notify-needs-you');
       expect(find.byKey(const Key('mute-sheet')), findsOneWidget);
       await _tap(tester, 'mute-for-always');
@@ -177,6 +177,8 @@ void main() {
         ),
       );
       expect(notify.value, SpaceNotify.needsYou);
+      await _tap(tester, 'inviters-everyone');
+      expect(spaces.calls.last, 'update $_spaceName everyone');
     });
 
     testWidgets('F102: Off asks for how long; dismissed, nothing changes; '

@@ -48,6 +48,7 @@ class Market {
     required this.weekend,
     required this.needsReview,
     this.supportEmail,
+    this.keyRoleSuggestions = const [],
     this.legal = const {},
   });
 
@@ -75,6 +76,10 @@ class Market {
           f as String,
       ],
       supportEmail: json['support_email'] as String?,
+      keyRoleSuggestions: [
+        for (final s in (json['key_role_suggestions'] as List? ?? const []))
+          LocalizedText.fromJson(s as Map<String, dynamic>),
+      ],
       legal: {
         for (final e
             in ((json['legal'] as Map<String, dynamic>?) ?? const {}).entries)
@@ -106,6 +111,9 @@ class Market {
   /// Where Help and feedback writes to; null until the founder sets it.
   final String? supportEmail;
 
+  /// Key role names offered when a Space admin adds one (review 121).
+  final List<LocalizedText> keyRoleSuggestions;
+
   /// Page links per language: "terms", "privacy", "delete_account".
   final Map<String, LocalizedText> legal;
 
@@ -127,4 +135,41 @@ class Market {
 
   /// The number in E.164, for example +96550000000.
   String toE164(String national) => '$dialCode$national';
+
+  /// The national digits of a number typed with or without the dial code,
+  /// or with the trunk 0 some markets write first.
+  String nationalOf(String typed) {
+    var digits = typed.replaceAll(RegExp('[^0-9]'), '');
+    final dial = dialCode.substring(1);
+    final length = nationalLength;
+    final withDial =
+        typed.trim().startsWith('+') ||
+        (length != null && digits.length == dial.length + length);
+    if (withDial && digits.startsWith(dial)) {
+      digits = digits.substring(dial.length);
+    }
+    if (length != null && digits.length == length + 1 && digits[0] == '0') {
+      digits = digits.substring(1);
+    }
+    return digits;
+  }
+
+  /// An E.164 number of this market spaced as its example ("+965 5512
+  /// 3456"); as it is otherwise.
+  String grouped(String e164) {
+    if (!e164.startsWith(dialCode)) return e164;
+    final national = e164.substring(dialCode.length);
+    final groups = [
+      for (final g in (phoneExample ?? '').split(' '))
+        if (g.isNotEmpty) g.length,
+    ];
+    if (groups.fold(0, (a, b) => a + b) != national.length) return e164;
+    final out = StringBuffer(dialCode);
+    var at = 0;
+    for (final g in groups) {
+      out.write(' ${national.substring(at, at + g)}');
+      at += g;
+    }
+    return out.toString();
+  }
 }

@@ -230,10 +230,10 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get entrySignIn;
 
-  /// E2p title.
+  /// Review 121 NUM1: title, and the row on Edit profile.
   ///
   /// In en, this message translates to:
-  /// **'Your phone number'**
+  /// **'Phone number'**
   String get phoneTitle;
 
   /// E2p field label.
@@ -12445,6 +12445,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not now'**
   String get alertsNotNow;
+
+  /// Review 121 KP1/OC1/KP2: the Who to call block.
+  ///
+  /// In en, this message translates to:
+  /// **'Who to call'**
+  String get keyPeopleWhoToCall;
+
+  /// Review 121 KP1: the members under Who to call.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get keyPeopleEveryone;
+
+  /// Review 121 KP1/KP2: what to call the key person for.
+  ///
+  /// In en, this message translates to:
+  /// **'Call for: {what}'**
+  String keyPeopleCallFor(String what);
+
+  /// Review 121 KP1/KP2: opens the phone's dialler.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get keyPeopleCall;
+
+  /// Review 121 KP1/KP2: opens the direct message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get keyPeopleMessage;
+
+  /// Review 121 Call tapped, but the person stopped showing their number.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} doesn\'t show their number now.'**
+  String keyPeopleNoNumber(String name);
+
+  /// Review 121 Call: the daily limit on numbers.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve opened 30 numbers today. Try again tomorrow.'**
+  String get keyPeopleTooMany;
+
+  /// Review 121 Call: no dialler on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone can\'t make calls.'**
+  String get keyPeopleNoDialler;
+
+  /// Review 121 OC1: the Space admins block.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs this Space'**
+  String get orgRunsThisSpace;
+
+  /// Review 121 KP2: the tag on the welcome sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'JOINED · {pass} PASS'**
+  String keyPeopleJoined(String pass);
+
+  /// Review 121 KP2: the sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {space}'**
+  String keyPeopleWelcome(String space);
+
+  /// Review 121 KP2: under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Before anything else: who to call on this site.'**
+  String get keyPeopleFirst;
+
+  /// Review 121 KP2: closes the sheet; it doesn't show again.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get keyPeopleGotIt;
+
+  /// Review 121 KP2: under Got it.
+  ///
+  /// In en, this message translates to:
+  /// **'They stay at the top of People.'**
+  String get keyPeopleStayOnTop;
+
+  /// Review 121 KP3: Space settings row and screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Key people'**
+  String get keyPeopleTitle;
+
+  /// Review 121 KP3: the line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'People everyone here should know. They show at the top of People, and first to every new member.'**
+  String get keyPeopleIntro;
+
+  /// Review 121 KP3: adds a key role.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a role'**
+  String get keyPeopleAddRole;
+
+  /// Review 121 KP3: the note at the bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Space admin changes key people. Call shows only for a key person who chose to show their number to this Space.'**
+  String get keyPeopleFootnote;
+
+  /// Review 121 KP3: a role nobody holds.
+  ///
+  /// In en, this message translates to:
+  /// **'No one yet'**
+  String get keyPeopleNoOne;
+
+  /// Review 121 KP3: how to change the order (more than one role).
+  ///
+  /// In en, this message translates to:
+  /// **'Hold and drag a role to move it.'**
+  String get keyPeopleReorder;
+
+  /// Review 121 KP4: the sheet's title for a new role.
+  ///
+  /// In en, this message translates to:
+  /// **'New key role'**
+  String get keyRoleNew;
+
+  /// Review 121 KP4: the sheet's title for a role being changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Key role'**
+  String get keyRoleEdit;
+
+  /// Review 121 KP4: the name field's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Role name'**
+  String get keyRoleName;
+
+  /// Review 121 KP4: what to call them for.
+  ///
+  /// In en, this message translates to:
+  /// **'Call them for'**
+  String get keyRoleCallFor;
+
+  /// Review 121 KP4: the people holding the role.
+  ///
+  /// In en, this message translates to:
+  /// **'Who holds it (up to 2)'**
+  String get keyRoleHolders;
+
+  /// Review 121 KP4: opens the member picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a person'**
+  String get keyRoleAddPerson;
+
+  /// Review 121 KP4: a holder's short note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note, such as Night shift'**
+  String get keyRoleNoteHint;
+
+  /// Review 121 KP4: takes a person off the role.
+  ///
+  /// In en, this message translates to:
+  /// **'Take off'**
+  String get keyRoleRemovePerson;
+
+  /// Review 121 KP4: deletes the role.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete role'**
+  String get keyRoleDelete;
+
+  /// Review 121 KP4: asks before deleting.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {role}?'**
+  String keyRoleDeleteAsk(String role);
+
+  /// Review 121 KP4: what deleting does.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes from Who to call for everyone here.'**
+  String get keyRoleDeleteBody;
+
+  /// Review 121 KP3: the seventh role is refused.
+  ///
+  /// In en, this message translates to:
+  /// **'A Space has up to 6 key roles.'**
+  String get keyRoleTooMany;
+
+  /// Review 121 KP4: a holder left meanwhile.
+  ///
+  /// In en, this message translates to:
+  /// **'That person isn\'t in this Space now.'**
+  String get keyRoleGone;
+
+  /// Review 121 NUM1: the number field's label.
+  ///
+  /// In en, this message translates to:
+  /// **'My number'**
+  String get phoneMine;
+
+  /// Review 121 NUM1: the choice's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees my number'**
+  String get phoneWhoSees;
+
+  /// Review 121 NUM1: the default choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get phoneNobody;
+
+  /// Review 121 NUM1: under Nobody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you. The default.'**
+  String get phoneNobodyLine;
+
+  /// Review 121 NUM1: the second choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Members of my Spaces'**
+  String get phoneSpaces;
+
+  /// Review 121 NUM1: under Members of my Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'So the Call button works for key people.'**
+  String get phoneSpacesLine;
+
+  /// Review 121 NUM1: the third choice.
+  ///
+  /// In en, this message translates to:
+  /// **'My Spaces and people I message'**
+  String get phoneDms;
+
+  /// Review 121 NUM1: under the third choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Also in direct messages.'**
+  String get phoneDmsLine;
+
+  /// Review 121 NUM1: the note at the bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your number never shows in search, on your public profile, or to anyone outside your choice.'**
+  String get phoneNever;
+
+  /// Review 121 NUM1: the number doesn't fit the market pack.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the number, for example {example}'**
+  String phoneCheck(String example);
+
+  /// Review 121 Edit profile: no number yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not added'**
+  String get phoneNotAdded;
+
+  /// Review 121 Review 121: Activity row to the Space admin when a key role's last person left.
+  ///
+  /// In en, this message translates to:
+  /// **'{role} has no one now'**
+  String activityKeyRoleEmpty(String role);
+
+  /// Review 121 P1: more Teams than fit on a member's row.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String peopleTeamsMore(String count);
 }
 
 class _AppLocalizationsDelegate
