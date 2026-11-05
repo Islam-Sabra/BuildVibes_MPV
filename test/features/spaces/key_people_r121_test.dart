@@ -408,6 +408,26 @@ void main() {
         expect(keys.seen, [_space]);
       });
 
+      // Review 121 F1: a Space isn't always a site.
+      testWidgets('the line under the title says "in this Space"', (
+        tester,
+      ) async {
+        await _go(
+          tester,
+          lang,
+          '/spaces/$_space',
+          keys: _keys(who: _who(seen: false)),
+        );
+        expect(
+          find.text(
+            lang == 'ar'
+                ? 'قبل أي شيء: بمن تتصل في هذه المساحة.'
+                : 'Before anything else: who to call in this Space.',
+          ),
+          findsOneWidget,
+        );
+      });
+
       testWidgets('closing the sheet counts as seen', (tester) async {
         final keys = _keys(who: _who(seen: false));
         await _go(tester, lang, '/spaces/$_space', keys: keys);
@@ -589,6 +609,22 @@ void main() {
         expect(keys.saved.single.name, safety);
         expect(keys.saved.single.callFor, 'Hazards');
         expect(keys.saved.single.holders, ['p-khalid']);
+      });
+
+      // Review 121 F2.
+      testWidgets('Call them for shows a hint while empty', (tester) async {
+        await open(tester);
+        await _tap(tester, _key('key-people-add'));
+        final hint = lang == 'ar'
+            ? 'مثلاً: المخاطر والحوادث وأذونات العمل'
+            : 'e.g. hazards, accidents, work permits';
+        expect(
+          find.descendant(
+            of: _key('key-role-call-for'),
+            matching: find.text(hint),
+          ),
+          findsOneWidget,
+        );
       });
 
       testWidgets('up to 2 people, members of the Space only', (tester) async {

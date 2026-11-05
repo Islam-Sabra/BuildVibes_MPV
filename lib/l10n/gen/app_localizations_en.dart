@@ -7565,7 +7565,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keyPeopleFirst =>
-      'Before anything else: who to call on this site.';
+      'Before anything else: who to call in this Space.';
 
   @override
   String get keyPeopleGotIt => 'Got it';
@@ -7604,6 +7604,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keyRoleCallFor => 'Call them for';
+
+  @override
+  String get keyRoleCallForHint => 'e.g. hazards, accidents, work permits';
 
   @override
   String get keyRoleHolders => 'Who holds it (up to 2)';

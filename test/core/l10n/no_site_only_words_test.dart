@@ -73,9 +73,6 @@ void main() {
       'checkInWarnTitle',
       'checkInWithout',
       'checkOutWithout',
-      // Review 121 KP2, as the founder approved the frame: "who to call on
-      // this site" (the lead to confirm).
-      'keyPeopleFirst',
     };
     final en = strings('en');
     final ar = strings('ar');

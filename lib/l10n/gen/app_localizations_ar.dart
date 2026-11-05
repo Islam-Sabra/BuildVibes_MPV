@@ -7628,7 +7628,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get keyPeopleFirst => 'قبل أي شيء: بمن تتصل في هذا الموقع.';
+  String get keyPeopleFirst => 'قبل أي شيء: بمن تتصل في هذه المساحة.';
 
   @override
   String get keyPeopleGotIt => 'تمام';
@@ -7667,6 +7667,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get keyRoleCallFor => 'اتصل بهم من أجل';
+
+  @override
+  String get keyRoleCallForHint => 'مثلاً: المخاطر والحوادث وأذونات العمل';
 
   @override
   String get keyRoleHolders => 'من يشغله (حتى 2)';

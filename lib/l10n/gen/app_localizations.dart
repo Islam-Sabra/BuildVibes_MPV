@@ -12509,7 +12509,7 @@ abstract class AppLocalizations {
   /// Review 121 KP2: under the title.
   ///
   /// In en, this message translates to:
-  /// **'Before anything else: who to call on this site.'**
+  /// **'Before anything else: who to call in this Space.'**
   String get keyPeopleFirst;
 
   /// Review 121 KP2: closes the sheet; it doesn't show again.
@@ -12583,6 +12583,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Call them for'**
   String get keyRoleCallFor;
+
+  /// Review 121 F2: KP4's Call them for field while empty.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. hazards, accidents, work permits'**
+  String get keyRoleCallForHint;
 
   /// Review 121 KP4: the people holding the role.
   ///
