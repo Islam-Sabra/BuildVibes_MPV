@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 5 Nov 2026, morning — review 120 call test half done (paused by the founder)
+- **Branch:** `claude/call-spike` (b4f4ba1f), a throwaway that is never merged. The report so far is `docs/reviews/2026-11-04-120-report.md` on that branch.
+- **Done:**
+  - Rows 1–3 (voice and video HD), all over the iPhone hotspot. The Xiaomi has no SIM.
+  - The app size: +79 MB on the phone, +43 MB to download with Agora's full SDK.
+  - Agora 6.6.4 builds on 3.44 with the root `compileSdkVersion` set.
+- **Pending:**
+  - A voice call over the company Wi-Fi, together with the 10-minute battery check.
+  - Ringing, with Autostart on and off.
+  - Then: uninstall, disconnect, report to the lead.
+- **Still on the founder's phone, by his choice:** "BV call test" (`com.buildvibes.buildvibes.spike`), next to 1079. The phone is disconnected.
+- **Secrets on the PC, not in git:**
+  - `BuildVibes keys/fcm-spike.json` (the Firebase key for the test ring). The founder deletes it, and the key in the Firebase console, after the test.
+  - `AGORA_APP_ID` and `AGORA_TEMP_TOKEN` in `env/dev.json`. The token lasts 24 h, so a new one means a rebuild of the test app.
+- `slice2-app` is unchanged apart from this note.
+
 ## PC update: 4 Nov 2026, late night — review 118 and D25 live; build 1079 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
