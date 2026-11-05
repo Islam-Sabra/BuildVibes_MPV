@@ -7539,6 +7539,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyPeopleMessage => 'Message';
 
   @override
+  String get dmNoNumber => 'This number isn\'t shared any more';
+
+  @override
   String keyPeopleNoNumber(String name) {
     return '$name doesn\'t show their number now.';
   }

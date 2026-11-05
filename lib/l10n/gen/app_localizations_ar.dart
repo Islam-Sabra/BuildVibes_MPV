@@ -7604,6 +7604,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyPeopleMessage => 'رسالة';
 
   @override
+  String get dmNoNumber => 'لم يعد هذا الرقم متاحاً';
+
+  @override
   String keyPeopleNoNumber(String name) {
     return '$name لا يُظهر رقمه الآن.';
   }

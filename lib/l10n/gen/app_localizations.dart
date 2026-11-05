@@ -12470,6 +12470,12 @@ abstract class AppLocalizations {
   /// **'Message'**
   String get keyPeopleMessage;
 
+  /// Review 121b: Call in a direct message, when the number was taken back meanwhile.
+  ///
+  /// In en, this message translates to:
+  /// **'This number isn\'t shared any more'**
+  String get dmNoNumber;
+
   /// Review 121 Call tapped, but the person stopped showing their number.
   ///
   /// In en, this message translates to:

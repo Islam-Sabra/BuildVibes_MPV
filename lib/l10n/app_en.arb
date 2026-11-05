@@ -10414,6 +10414,8 @@
   "@keyPeopleCall": {"description": "Review 121 KP1/KP2: opens the phone's dialler."},
   "keyPeopleMessage": "Message",
   "@keyPeopleMessage": {"description": "Review 121 KP1/KP2: opens the direct message."},
+  "dmNoNumber": "This number isn't shared any more",
+  "@dmNoNumber": {"description": "Review 121b: Call in a direct message, when the number was taken back meanwhile."},
   "keyPeopleNoNumber": "{name} doesn't show their number now.",
   "@keyPeopleNoNumber": {"description": "Review 121 Call tapped, but the person stopped showing their number.", "placeholders": {"name": {"type": "String", "example": "Khalid"}}},
   "keyPeopleTooMany": "You've opened 30 numbers today. Try again tomorrow.",

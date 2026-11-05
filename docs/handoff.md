@@ -2,6 +2,33 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 5 Nov 2026, late afternoon — review 121 live; 121b (Call from a DM) on `claude/r121b`, waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Review 121 live:**
+  - F1–F2 done, test first, on `claude/r121` (1093a8ff).
+  - Merged into `slice2-app` (248ee609).
+  - `db push` of `20261201120000` only, after a dry run. Checked live:
+    - it is the last migration;
+    - `phone` can't be selected and `first_name` can;
+    - Kuwait and Egypt each have 5 role names;
+    - no current member is unseen.
+- **Build 1090** (versionCode 1090, 0.9.0, `BV_STORAGE_LOG=true`):
+  - Its exact source is on **`release-1090`** (= 248ee609).
+  - The APK is at `Desktop/BuildVibes-1090.apk`, signed with the upload key.
+  - **Not installed yet:** the founder's phone (22120RN86G) wasn't on Wi-Fi debugging. Install it when he gives a pairing code, then disconnect.
+- **121b:**
+  - It is on `claude/r121b` (off 248ee609).
+  - Migration `20261202120000_review121b_dm_can_call` (not live), pgTAP 76.
+  - Report: `docs/reviews/2026-11-05-121b-report.md`.
+  - After the lead's check: merge → `db push 20261202120000` (dry run first) → build → install.
+- **Local stack:** reset on `claude/r121b` (both migrations), with no dev seed loaded.
+- **Who has which branch:**
+  - PC has `claude/r121b`.
+  - `slice2-app` is at 248ee609.
+  - `claude/r121` is merged.
+
 ## PC update: 5 Nov 2026, afternoon — review 121 (key people and the organisation) on `claude/r121`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
