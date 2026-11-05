@@ -1,6 +1,6 @@
 # Review 121: key people ("Who to call") and the Space as an organisation
 
-**From:** the lead, 5 Nov 2026. **Status:** PROPOSAL. Cursor builds it after the founder approves the frames.
+**From:** the lead, 5 Nov 2026. **Status:** APPROVED by the founder (5 Nov, 10:26), including the section on one person in several Teams.
 
 **The founder's decisions (4 Nov, "ok" to all four recommendations):**
 1. Key people are set by the **Space admin only**.
