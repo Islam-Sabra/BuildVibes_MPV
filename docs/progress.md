@@ -909,6 +909,24 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **2 Nov (PC): review 113 Z1–Z13 fixed, merged into `slice2-app`**; nothing live, deployed or built. Goldens updated. `flutter analyze` clean; 3,446 app tests; 662 shots pass; 59 files, 4,199 checks, PASS (one earlier run failed and was not reproduced in 12 reruns; see the report).
 - **2 Nov (PC): review 113 Z14:** whoever sees a post opens its files; merged into `slice2-app`, not live.
 - **2 Nov (PC): review 113 live:** migration 20261121120000 (59 on live), `notebook-purge` deployed (0 orphans, one run 3.1 s, all counts 0, `NIGHTLY_CAP` 1000), build 961 on the founder's phone. `push` v15 deployed; `check-in-nudge` and `expire-failed-posts` scheduled (12 cron jobs, all active). Phone checks open, in `docs/handoff.md`.
+- **5 Nov (review 121, `claude/r121`, waiting for the lead):**
+  - Key people ("Who to call") and the Space as an organisation:
+    - KP1: on top of People;
+    - OC1: the Teams side;
+    - KP2: shown once on joining;
+    - KP3/KP4: for the Space admin, with the market pack's role names;
+    - NUM1: the phone number and who sees it (Nobody by default).
+  - **Call** opens the phone's dialler. The number is read only through `person_phone`, 30 a day; `profiles.phone` is behind column grants.
+  - **Several Teams:**
+    - a member's row shows two Teams, then "+N";
+    - TM3, TM4, TM1 and one push per person are proven by tests.
+  - **Migration:** `20261201120000_review121_key_people` (not live).
+  - **Checks:**
+    - `flutter analyze` clean;
+    - `flutter test` 4,005 pass;
+    - `test_screens` 764 pass;
+    - `supabase test db` 74 files, 4,688 checks.
+  - **Report:** `docs/reviews/2026-11-05-121-report.md`; emulator shots in `docs/reviews/shots-121/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

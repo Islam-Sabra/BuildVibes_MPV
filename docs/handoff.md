@@ -2,6 +2,33 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 5 Nov 2026, afternoon — review 121 (key people and the organisation) on `claude/r121`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r121` from `slice2-app` (a0462fd2).
+  - Not merged, nothing live, no release build.
+  - Report for the lead: `docs/reviews/2026-11-05-121-report.md`; four questions in it for the lead.
+- **Done, test first:**
+  - KP1–KP4, OC1, NUM1 and several Teams.
+  - Migration `20261201120000_review121_key_people`, pgTAP 75.
+  - The deslop pass is done (`PhoneRules`, `BvCard`, `guardSpace`).
+- **Checks:**
+  - `flutter analyze` clean;
+  - `flutter test` 4,005;
+  - `test_screens` 764;
+  - `supabase test db` 74 files, 4,688 checks, on a fresh reset.
+- **Local stack:** reset for this branch, then loaded with `supabase/dev/seed_key_people.sql`. The earlier local test users (Hana and the busy seed) are gone.
+  - Two seeded users have test phones: Nabil 96550000001, Islam 96550000002; the code is 123456.
+  - Builds that sign in this way need `--dart-define=PHONE_SIGN_IN=true`, since this project has no mail catcher.
+- **Emulators:**
+  - Pixel_8_B has this branch's debug build (signed in as Islam, Arabic), next to the review 120 "BV call test".
+  - Pixel_8 is unchanged (1071).
+- **Lost, review 120:** the session scratchpad was wiped. `ring.py` (FCM sender), `battery.sh` and the size APKs are gone. Ringing needs the sender written again.
+  - The key `BuildVibes keys/fcm-spike.json` is still there.
+- **After the lead's check, each with the founder's yes:** merge → `db push` (20261201120000 only, dry run first) → build → install.
+- **Who has which branch:** PC has `claude/r121`; `slice2-app` is unchanged since a0462fd2.
+
 ## PC update: 5 Nov 2026, late morning — review 120 call test paused again (calls only when the founder says)
 - **Branch:** `claude/call-spike` (ccc958fd), a throwaway that is never merged. The report is `docs/reviews/2026-11-04-120-report.md` on that branch.
 - **Done:**
