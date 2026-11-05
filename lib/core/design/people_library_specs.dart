@@ -45,8 +45,7 @@ abstract final class BvTeamsSpec {
   static const rowGap = BvSpace.s12;
   static const lineGap = BvSpace.s2;
 
-  /// A Team's mark on its row (TM1), on the card and in Who sees it (TM5).
-  static const rowDisc = 36.0;
+  /// A Team's mark on the make card (TM1) and in Who sees it (TM5).
   static const cardDisc = 40.0;
   static const whoDisc = 32.0;
   static const cardPadding = BvSpace.s12;
@@ -59,6 +58,48 @@ abstract final class BvTeamsSpec {
 
   /// Between the confirm sheet's parts (TM4).
   static const confirmGap = BvSpace.s12;
+}
+
+/// Review 121: Who to call (KP1, KP2), the Space as an organisation (OC1),
+/// Key people (KP3, KP4) and the phone number (NUM1).
+abstract final class BvKeyPeopleSpec {
+  /// A key person's card: face, name, role tag and Call for, then Call and
+  /// Message side by side.
+  static const cardPadding = BvSpace.s12;
+  static const cardGap = BvSpace.s12;
+  static const faceGap = BvSpace.s12;
+  static const lineGap = BvSpace.s4;
+  static const actionsTop = BvSpace.s12;
+  static const actionsGap = BvSpace.s8;
+  static const headIcon = BvSize.iconSm;
+  static const headGap = BvSpace.s6;
+
+  /// OC1: between its blocks, a short line at the start.
+  static const blockLineHeight = BvSpace.s12;
+  static const blockLineTop = BvSpace.s16;
+
+  /// OC1's Who to call chips and a Team card's faces (up to 5, never a
+  /// count).
+  static const chipPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s6,
+    BvSpace.s6,
+    BvSpace.s16,
+    BvSpace.s6,
+  );
+  static const chipGap = BvSpace.s8;
+  static const faces = 5;
+  static const faceSpacing = BvSpace.s4;
+
+  /// KP3's rows and KP4's holders.
+  static const rowPaddingVertical = BvSpace.s12;
+  static const tagBottom = BvSpace.s6;
+
+  /// NUM1's choice rows and the lock line.
+  static const choicePadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: BvSpace.s12,
+  );
+  static const noteGap = BvSpace.s8;
 }
 
 /// Slice 4's Library (LV1 2543:34980) and a file's page (LV2 2543:35101).

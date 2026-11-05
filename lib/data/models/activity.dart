@@ -27,7 +27,9 @@ enum ActivityKind {
   pollNew('poll_new'),
   pollClosed('poll_closed'),
   // The lead's check, P7: a tie asks its creator to pick.
-  pollTied('poll_tied');
+  pollTied('poll_tied'),
+  // Review 121: a key role's last person left; to the Space admin.
+  keyRoleEmpty('key_role_empty');
 
   const ActivityKind(this.json);
 
@@ -64,6 +66,7 @@ class ActivityRow {
     this.eventId,
     this.spacePostId,
     this.postKind,
+    this.roleName,
   });
 
   factory ActivityRow.fromJson(Map<String, dynamic> j) => ActivityRow(
@@ -92,11 +95,15 @@ class ActivityRow {
     result: (j['payload'] as Map?)?['result'] as String?,
     spacePostId: j['space_post_id'] as String?,
     postKind: j['post_kind'] as String?,
+    roleName: (j['payload'] as Map?)?['role'] as String?,
   );
 
   final String id;
   final ActivityKind kind;
   final DateTime createdAt;
+
+  /// key_role_empty: the role nobody holds now.
+  final String? roleName;
 
   final String? spaceId;
   final String? spaceName;

@@ -108,6 +108,10 @@ abstract final class BvIcons {
   static const email = IconData(0xe218, fontFamily: _family);
   // Phosphor: device-mobile
   static const phone = IconData(0xe1e0, fontFamily: _family);
+  // Phosphor: phone (review 121: Call opens the phone's dialler)
+  static const call = IconData(0xe3b8, fontFamily: _family);
+  // Phosphor: shield (review 121: a key role, Who to call)
+  static const keyRole = IconData(0xe40a, fontFamily: _family);
   // Phosphor: briefcase
   static const briefcase = IconData(0xe0ee, fontFamily: _family);
   // Phosphor: crane

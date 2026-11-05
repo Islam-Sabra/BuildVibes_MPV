@@ -48,6 +48,7 @@ class Market {
     required this.weekend,
     required this.needsReview,
     this.supportEmail,
+    this.keyRoleSuggestions = const [],
     this.legal = const {},
   });
 
@@ -75,6 +76,10 @@ class Market {
           f as String,
       ],
       supportEmail: json['support_email'] as String?,
+      keyRoleSuggestions: [
+        for (final s in (json['key_role_suggestions'] as List? ?? const []))
+          LocalizedText.fromJson(s as Map<String, dynamic>),
+      ],
       legal: {
         for (final e
             in ((json['legal'] as Map<String, dynamic>?) ?? const {}).entries)
@@ -105,6 +110,9 @@ class Market {
 
   /// Where Help and feedback writes to; null until the founder sets it.
   final String? supportEmail;
+
+  /// Key role names offered when a Space admin adds one (review 121).
+  final List<LocalizedText> keyRoleSuggestions;
 
   /// Page links per language: "terms", "privacy", "delete_account".
   final Map<String, LocalizedText> legal;

@@ -13,6 +13,7 @@ import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/company_teams.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/key_people_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
@@ -25,6 +26,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'confirm_join_sheet.dart';
+import 'key_people.dart';
 import 'need_you_notice.dart';
 import 'need_you_sheet.dart';
 import 'pass_words.dart';
@@ -38,7 +40,8 @@ import '../../core/routing/open_thread.dart';
 /// Space in one list, Leads first: name, title · company, the pass and
 /// their Teams, and Invite with the code for people who may invite. Who is
 /// here, never how many (rule 3). Review 111 TM1: People · Teams, one
-/// switch; a search is always over people.
+/// switch; a search is always over people. Review 121 KP1: Who to call on
+/// top for everyone (under the requests for admins), then Everyone.
 class PeopleTab extends ConsumerStatefulWidget {
   const PeopleTab({super.key, required this.space, this.query = ''});
 
@@ -67,6 +70,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
   void _refresh() {
     ref
       ..invalidate(spacePeopleProvider(_spaceId))
+      ..invalidate(spaceKeyPeopleProvider(_spaceId))
       ..invalidate(mySpacesProvider);
     if (widget.space.iAmAdmin) {
       ref.invalidate(companyTeamPreviewProvider(_spaceId));
@@ -292,6 +296,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final me = ref.watch(authUserIdProvider).value;
     final people = ref.watch(spacePeopleProvider(_spaceId));
     final data = people.value;
+    // Who to call: nothing shows while it loads or if it can't be read.
+    final keyPeople = ref.watch(spaceKeyPeopleProvider(_spaceId)).value;
     // Removed here, its undo bar still showing: gone at once (review 94).
     final removing = beingRemoved(ref, _spaceId);
     // Who may invite follows Space info; the rest see no code (review 67).
@@ -348,6 +354,10 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final admin = widget.space.iAmAdmin;
     final hasTeams = teams.isNotEmpty || admin;
     final showTeams = _teams && hasTeams && query.isEmpty;
+    final whoToCall =
+        !showTeams && query.isEmpty && (keyPeople?.hasAnyone ?? false)
+        ? keyPeople!.toCall
+        : null;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -383,7 +393,13 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 ],
               ),
             ),
-          if (showTeams) TeamsView(space: widget.space, teams: teams),
+          if (showTeams)
+            TeamsView(
+              space: widget.space,
+              teams: teams,
+              members: data.members,
+              keyPeople: keyPeople,
+            ),
           if (!showTeams && requests.isNotEmpty)
             section(l10n.peopleNeedsYouRequests),
           if (!showTeams)
@@ -402,7 +418,29 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                   onOpen: () => unawaited(_confirm(r, teams)),
                 ),
               ),
-          if (!showTeams && members.isNotEmpty) section(l10n.peopleInThisSpace),
+          if (whoToCall != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                BvSpace.gutter,
+                BvPeopleSpec.sectionTop,
+                BvSpace.gutter,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvKeyPeopleSpec.cardGap,
+                children: [
+                  const KeyPeopleHead(),
+                  KeyPeopleCards(spaceId: _spaceId, toCall: whoToCall),
+                ],
+              ),
+            ),
+          if (!showTeams && members.isNotEmpty)
+            section(
+              whoToCall != null
+                  ? l10n.keyPeopleEveryone
+                  : l10n.peopleInThisSpace,
+            ),
           if (!showTeams)
             for (final m in members)
               _MemberRow(
@@ -527,6 +565,8 @@ class _MemberRow extends StatelessWidget {
 
   /// The Teams they are in, as chips beside the pass (SP8).
   final List<SpaceTeam> teams;
+
+  static const _teamsShown = 2;
   final bool isMe;
   final Object? flash;
   final VoidCallback onTap;
@@ -596,11 +636,23 @@ class _MemberRow extends StatelessWidget {
                                 key: Key('member-admin-${p.id}'),
                                 label: l10n.peopleAdmin,
                               ),
-                            for (final t in teams)
+                            // Review 121: every Team they're in; past two,
+                            // "+1".
+                            for (final t in teams.take(_teamsShown))
                               _TeamTag(
                                 key: Key('member-team-${p.id}-${t.id}'),
                                 icon: BvIcons.team,
                                 label: t.name,
+                              ),
+                            if (teams.length > _teamsShown)
+                              _TeamTag(
+                                key: Key('member-teams-more-${p.id}'),
+                                // "+1", not "1+", in Arabic too.
+                                label: ltrRun(
+                                  l10n.peopleTeamsMore(
+                                    '${teams.length - _teamsShown}',
+                                  ),
+                                ),
                               ),
                           ],
                         ),

@@ -14,6 +14,7 @@ import '../../core/l10n/bidi.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
+import '../../shared/widgets/bv_section_scaffold.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../library/library_folders.dart';
 import '../library/library_tab.dart';
@@ -70,6 +71,8 @@ class _SpacePeopleState extends ConsumerState<SpacePeopleScreen> {
     final detail = ref.watch(spaceDetailProvider(spaceId)).value;
     return _SectionScaffold(
       title: l10n.spacesTabPeople,
+      // KP1: the Space's name under the title.
+      subtitle: detail?.name,
       titleField: _searching
           ? TextField(
               key: const Key('people-search-field'),
@@ -242,39 +245,11 @@ class _SectionScaffold extends StatelessWidget {
   final Widget? titleField;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: BvColors.surfaceApp,
-    appBar: AppBar(
-      backgroundColor: BvColors.surfaceApp,
-      centerTitle: false,
-      titleSpacing: 0,
-      title:
-          titleField ??
-          (subtitle == null
-              ? Text(title, style: BvType.of(context).titleLg)
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BvType.of(context).titleLg,
-                    ),
-                    Text(
-                      subtitle!,
-                      key: const Key('section-subtitle'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BvType.of(
-                        context,
-                      ).metadata.copyWith(color: BvColors.textSecondary),
-                    ),
-                  ],
-                )),
-      actions: actions,
-    ),
+  Widget build(BuildContext context) => BvSectionScaffold(
+    title: title,
+    subtitle: subtitle,
+    titleField: titleField,
+    actions: actions,
     body:
         body ??
         Padding(

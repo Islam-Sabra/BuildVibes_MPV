@@ -42,6 +42,7 @@ import '../../features/profile/edit/cv_projects_screen.dart';
 import '../../features/profile/edit/edit_profile_screen.dart';
 import '../../features/profile/edit/experience_screens.dart';
 import '../../features/profile/edit/open_to_screen.dart';
+import '../../features/profile/edit/phone_number_screen.dart';
 import '../../features/profile/person_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/account/account_screens.dart';
@@ -68,6 +69,7 @@ import '../../features/feed/post_screen.dart';
 import '../../features/library/library_file_screen.dart';
 import '../../features/spaces/space_search_screen.dart';
 import '../../features/spaces/space_templates_screen.dart';
+import '../../features/spaces/key_people_screen.dart';
 import '../../features/work/check_in_list_screen.dart';
 import '../../features/work/walk_screen.dart';
 import '../../features/library/file_preview_screen.dart';
@@ -511,6 +513,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) =>
                 SpaceTemplatesScreen(spaceId: state.pathParameters['id']!),
           ),
+          _Screen(
+            path: 'key-people',
+            builder: (context, state) =>
+                KeyPeopleScreen(spaceId: state.pathParameters['id']!),
+          ),
           // "new" before ":teamId".
           _Screen(
             path: 'teams/new',
@@ -664,6 +671,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       _Screen(
                         path: 'open-to',
                         builder: (context, state) => const OpenToScreen(),
+                      ),
+                      _Screen(
+                        path: 'phone',
+                        builder: (context, state) => const PhoneNumberScreen(),
                       ),
                       _Screen(
                         path: 'projects',

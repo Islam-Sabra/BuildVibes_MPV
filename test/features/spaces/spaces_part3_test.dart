@@ -17,6 +17,15 @@ import '../../helpers/space_fakes.dart';
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
 Future<void> _tap(WidgetTester tester, String key) async {
+  // Space info builds only what is near the screen: a row above it is
+  // brought back first.
+  if (find.byKey(Key(key)).evaluate().isEmpty) {
+    await tester.dragUntilVisible(
+      find.byKey(Key(key)),
+      find.byKey(const Key('space-info')),
+      const Offset(0, 200),
+    );
+  }
   await tester.ensureVisible(find.byKey(Key(key)).first);
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(Key(key)).first);

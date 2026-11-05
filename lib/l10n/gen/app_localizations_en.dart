@@ -77,7 +77,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entrySignIn => 'Sign in';
 
   @override
-  String get phoneTitle => 'Your phone number';
+  String get phoneTitle => 'Phone number';
 
   @override
   String get phoneLabel => 'Mobile number';
@@ -7308,9 +7308,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamsNewByHand => 'New Team by hand';
 
   @override
-  String get teamRowAdmin => 'admin';
-
-  @override
   String get teamAdminBadge => 'Team admin';
 
   @override
@@ -7523,4 +7520,169 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertsNotNow => 'Not now';
+
+  @override
+  String get keyPeopleWhoToCall => 'Who to call';
+
+  @override
+  String get keyPeopleEveryone => 'Everyone';
+
+  @override
+  String keyPeopleCallFor(String what) {
+    return 'Call for: $what';
+  }
+
+  @override
+  String get keyPeopleCall => 'Call';
+
+  @override
+  String get keyPeopleMessage => 'Message';
+
+  @override
+  String keyPeopleNoNumber(String name) {
+    return '$name doesn\'t show their number now.';
+  }
+
+  @override
+  String get keyPeopleTooMany =>
+      'You\'ve opened 30 numbers today. Try again tomorrow.';
+
+  @override
+  String get keyPeopleNoDialler => 'This phone can\'t make calls.';
+
+  @override
+  String get orgRunsThisSpace => 'Runs this Space';
+
+  @override
+  String keyPeopleJoined(String pass) {
+    return 'JOINED · $pass PASS';
+  }
+
+  @override
+  String keyPeopleWelcome(String space) {
+    return 'Welcome to $space';
+  }
+
+  @override
+  String get keyPeopleFirst =>
+      'Before anything else: who to call in this Space.';
+
+  @override
+  String get keyPeopleGotIt => 'Got it';
+
+  @override
+  String get keyPeopleStayOnTop => 'They stay at the top of People.';
+
+  @override
+  String get keyPeopleTitle => 'Key people';
+
+  @override
+  String get keyPeopleIntro =>
+      'People everyone here should know. They show at the top of People, and first to every new member.';
+
+  @override
+  String get keyPeopleAddRole => 'Add a role';
+
+  @override
+  String get keyPeopleFootnote =>
+      'Only the Space admin changes key people. Call shows only for a key person who chose to show their number to this Space.';
+
+  @override
+  String get keyPeopleNoOne => 'No one yet';
+
+  @override
+  String get keyPeopleReorder => 'Hold and drag a role to move it.';
+
+  @override
+  String get keyRoleNew => 'New key role';
+
+  @override
+  String get keyRoleEdit => 'Key role';
+
+  @override
+  String get keyRoleName => 'Role name';
+
+  @override
+  String get keyRoleCallFor => 'Call them for';
+
+  @override
+  String get keyRoleCallForHint => 'e.g. hazards, accidents, work permits';
+
+  @override
+  String get keyRoleHolders => 'Who holds it (up to 2)';
+
+  @override
+  String get keyRoleAddPerson => 'Add a person';
+
+  @override
+  String get keyRoleNoteHint => 'Note, such as Night shift';
+
+  @override
+  String get keyRoleRemovePerson => 'Take off';
+
+  @override
+  String get keyRoleDelete => 'Delete role';
+
+  @override
+  String keyRoleDeleteAsk(String role) {
+    return 'Delete $role?';
+  }
+
+  @override
+  String get keyRoleDeleteBody => 'It goes from Who to call for everyone here.';
+
+  @override
+  String get keyRoleTooMany => 'A Space has up to 6 key roles.';
+
+  @override
+  String get keyRoleGone => 'That person isn\'t in this Space now.';
+
+  @override
+  String get phoneMine => 'My number';
+
+  @override
+  String get phoneWhoSees => 'Who sees my number';
+
+  @override
+  String get phoneNobody => 'Nobody';
+
+  @override
+  String get phoneNobodyLine => 'Only you. The default.';
+
+  @override
+  String get phoneSpaces => 'Members of my Spaces';
+
+  @override
+  String get phoneSpacesLine => 'So the Call button works for key people.';
+
+  @override
+  String get phoneDms => 'My Spaces and people I message';
+
+  @override
+  String get phoneDmsLine => 'Also in direct messages.';
+
+  @override
+  String get phoneNever =>
+      'Your number never shows in search, on your public profile, or to anyone outside your choice.';
+
+  @override
+  String phoneCheck(String example) {
+    return 'Check the number, for example $example';
+  }
+
+  @override
+  String get phoneNotAdded => 'Not added';
+
+  @override
+  String activityKeyRoleEmpty(String role) {
+    return '$role has no one now';
+  }
+
+  @override
+  String peopleTeamsMore(String count) {
+    return '+$count';
+  }
+
+  @override
+  String get phoneWhere => 'Profile';
 }

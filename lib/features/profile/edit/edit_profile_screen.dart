@@ -6,10 +6,13 @@ import '../../../core/design/bv_icons.dart';
 import '../../../core/design/bv_tokens.dart';
 import '../../../core/l10n/bidi.dart';
 import '../../../core/routing/app_routes.dart';
+import '../../../data/repositories/key_people_repository.dart';
+import '../../../data/repositories/market_repository.dart';
 import '../../../data/repositories/profile_page_repository.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared/widgets/bv_list_row.dart';
 import '../../entry/entry_state.dart';
+import '../../entry/phone_rules.dart';
 import '../widgets/profile_parts.dart';
 
 /// R8 · Edit profile: one row per part of the profile. CV import,
@@ -33,6 +36,8 @@ class EditProfileScreen extends ConsumerWidget {
     }
 
     final openTo = p?.openTo;
+    final phone = ref.watch(myPhoneProvider).value?.phone;
+    final markets = ref.watch(marketsProvider).value ?? const [];
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profileEdit)),
       body: ListView(
@@ -84,6 +89,16 @@ class EditProfileScreen extends ConsumerWidget {
                           .map((o) => openToLabel(l10n, o))
                           .join(l10n.daybookNamesComma),
                 onTap: () => context.push(AppRoutes.profileEditOpenTo),
+              ),
+              // Review 121 NUM1: optional, and who sees it.
+              BvListRow(
+                key: const Key('edit-phone'),
+                leading: const BvRowIcon(BvIcons.call),
+                title: l10n.phoneTitle,
+                subtitle: phone == null
+                    ? l10n.phoneNotAdded
+                    : ltrRun(PhoneRules.formatE164(phone, markets)),
+                onTap: () => context.push(AppRoutes.profileEditPhone),
               ),
             ],
           ),

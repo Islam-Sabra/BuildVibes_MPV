@@ -9,10 +9,12 @@ import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/key_people.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/chat_repository.dart';
+import '../../data/repositories/key_people_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_space_header.dart';
@@ -30,6 +32,7 @@ import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
 import '../work/work_outbox.dart';
+import 'key_people.dart';
 import 'need_you_sheet.dart' show NeedYouStrip;
 import 'space_sections.dart';
 import 'spaces_state.dart';
@@ -148,6 +151,26 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       if (widget.open == SpaceOpen.invite) {
         unawaited(router.push(AppRoutes.spaceInvite(widget.spaceId)));
       }
+    });
+  }
+
+  /// Review 121 KP2: the first time after being let in, Who to call, once,
+  /// when the Space has key people. Not over a thread opened on top.
+  bool _welcomeAsked = false;
+
+  void _welcome(SpaceDetail space) {
+    if (_welcomeAsked || widget.onChat) return;
+    _welcomeAsked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final KeyPeople people;
+      try {
+        people = await ref.read(spaceKeyPeopleProvider(space.id).future);
+      } on Exception {
+        // Not read: the Space opens as it is; the sheet comes next time.
+        return;
+      }
+      if (!mounted || people.seen || !people.hasAnyone) return;
+      await showKeyPeopleWelcome(context, ref, space: space, people: people);
     });
   }
 
@@ -294,6 +317,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     }
 
     _openPeople();
+    _welcome(detail);
     final unread = spaceUnread(
       ref.watch(spaceThreadsProvider(widget.spaceId)).value ?? const [],
     );

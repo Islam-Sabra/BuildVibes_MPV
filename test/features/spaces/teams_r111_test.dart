@@ -146,9 +146,13 @@ void main() {
         await _go(tester, _spaces(), lang, '/spaces/$_space/people');
         await _openTeams(tester);
         expect(_key('team-row-t-civil'), findsOneWidget);
+        // Review 121 OC1: the Team admin with its badge on each card.
         expect(
-          find.textContaining(l10n.teamRowAdmin, findRichText: true),
-          findsWidgets,
+          find.descendant(
+            of: _key('team-row-t-civil'),
+            matching: find.text(l10n.teamAdminBadge),
+          ),
+          findsOneWidget,
         );
         expect(find.textContaining('Omar X', findRichText: true), findsWidgets);
         expect(find.text(l10n.teamsNewByHand), findsOneWidget);

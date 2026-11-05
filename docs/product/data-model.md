@@ -45,6 +45,7 @@ Every state change that has business rules goes through a Postgres function (`se
 **Access:**
 - Profiles: any signed-in user can read them, **except** when either side has blocked the other. Only the owner can update their own profile.
 - Follower and following counts are allowed on profiles (founder decision). Store them as plain counts computed from `follows`; never use them for ranking.
+- **Column grants (review 121, from `20261201120000`):** `authenticated` may select every column of `profiles` except `phone`. **Any new `profiles` column needs its own `grant select (col) on public.profiles to authenticated` in its migration, or the app can't read it.** The number is read one person at a time through `person_phone` (30 a day); lists get `can_call` only.
 
 ## 3. Companies (migration 2)
 **Tables:**
