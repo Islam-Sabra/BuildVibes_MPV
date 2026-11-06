@@ -123,6 +123,7 @@ Nothing on the server changes.
   - **remove the description line**;
   - the card's height drops to one row (`BvSpace` row padding).
 - **TM0:** shorten it to **"Teams from companies need 2 people with the same company."** / «فرق الشركات تحتاج شخصين من نفس الشركة.»
+- **OC1 (Teams):** **remove the short connector lines** between the blocks. With no key people, a lone line shows under the Space admin card and reads as a glitch (founder's phone, 6 Nov). The section labels separate the blocks well enough.
 - **KP3:** remove **both** texts: the intro on top ("People everyone here should know…") and the note at the bottom ("Only the Space admin changes key people…"). The screen is the title, the roles, and **+ Add a role**. The no-number line under a person stays, because it's a fact, not an explanation.
 - **KP4:** remove the **"Role name"** label above the first field, because its hint already says it. Keep "Call them for", whose hint is only an example.
 - **Rule from now on, for the lead and Cursor:**
