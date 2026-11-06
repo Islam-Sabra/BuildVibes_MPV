@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 6 Nov 2026, evening — review 122b (free role names) on `claude/r122b`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r122b` from `slice2-app` (07bac22c). Not merged, nothing live, no build. No server change.
+- **Report:** `docs/reviews/2026-11-06-122b-report.md`, with one question for the lead: Save sits under the keyboard on a tall sheet.
+- **Checks:**
+  - `flutter analyze` clean;
+  - `flutter test` 4,057;
+  - `test_screens` 772;
+  - `supabase test db` 4,702.
+- **After the lead's check, with the founder's yes:** merge → build → install. There is no `db push`.
+- **Local stack:** the key people seed, plus two typed roles; the admin has the test phone 96550000002. Run `supabase db reset` before `supabase test db`, or the test phones clash.
+- **Emulator:** Pixel_8_B has this branch's debug build, in English, with the handwriting toolbar off.
+- **Who has which branch:**
+  - PC has `claude/r122b`.
+  - `slice2-app` is at 07bac22c.
+
 ## PC update: 6 Nov 2026, later — review 122 merged; build 1097 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

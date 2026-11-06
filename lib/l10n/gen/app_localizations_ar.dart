@@ -7683,6 +7683,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyRoleName => 'اسم الدور';
 
   @override
+  String get keyRoleNameHint => 'ابحث عن دور... للتواصل السريع';
+
+  @override
   String get keyRoleCallFor => 'اتصل بهم من أجل';
 
   @override

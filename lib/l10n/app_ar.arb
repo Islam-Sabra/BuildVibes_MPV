@@ -2085,6 +2085,7 @@
   "keyRoleNew": "دور أساسي جديد",
   "keyRoleEdit": "دور أساسي",
   "keyRoleName": "اسم الدور",
+  "keyRoleNameHint": "ابحث عن دور... للتواصل السريع",
   "keyRoleCallFor": "اتصل بهم من أجل",
   "keyRoleCallForHint": "مثلاً: المخاطر والحوادث وأذونات العمل",
   "keyRoleHolders": "من يشغله (حتى 2)",

@@ -8,6 +8,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/text/fold_for_search.dart';
 import '../../data/models/key_people.dart';
 import '../../data/models/market.dart';
 import '../../data/models/space.dart';
@@ -419,11 +420,16 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final label = type.metadata.copyWith(color: BvColors.textSecondary);
+    final name = _name.text.trim();
+    // Review 122b: the name is free; the market pack's examples narrow to
+    // what is typed, in either language.
+    final typed = foldForSearch(name);
     final suggestions = [
       for (final s in _market()?.keyRoleSuggestions ?? const <LocalizedText>[])
-        lang == 'ar' && s.ar.isNotEmpty ? s.ar : s.en,
+        if (foldForSearch(s.en).contains(typed) ||
+            foldForSearch(s.ar).contains(typed))
+          lang == 'ar' && s.ar.isNotEmpty ? s.ar : s.en,
     ];
-    final name = _name.text.trim();
 
     return Column(
       key: const Key('key-role-sheet'),
@@ -435,6 +441,8 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
         BvTextField(
           key: const Key('key-role-name'),
           controller: _name,
+          placeholder: l10n.keyRoleNameHint,
+          autofocus: widget.role == null,
           maxLength: 40,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.sentences,

@@ -12608,6 +12608,12 @@ abstract class AppLocalizations {
   /// **'Role name'**
   String get keyRoleName;
 
+  /// Review 122b KP4: the role name field while empty, in the founder's words; any name can be typed, the examples narrow as you type.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a role... for quick contact'**
+  String get keyRoleNameHint;
+
   /// Review 121 KP4: what to call them for.
   ///
   /// In en, this message translates to:

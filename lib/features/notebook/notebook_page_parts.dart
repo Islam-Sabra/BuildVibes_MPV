@@ -7,6 +7,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/text/fold_for_search.dart';
 import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
@@ -337,19 +338,6 @@ String entryFirstLine(Note note) {
   final title = note.title.trim();
   if (title.isNotEmpty) return title;
   return note.body.trim().split('\n').first.trim();
-}
-
-/// Words as the picker compares them: lower case, Arabic letter forms and
-/// digits folded as the server's search_fold does.
-String foldForSearch(String text) {
-  const from = 'أإآٱىیةؤئک٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹';
-  const to = 'ااااييهءءك01234567890123456789';
-  final out = StringBuffer();
-  for (final c in text.trim().toLowerCase().characters) {
-    final i = from.indexOf(c);
-    out.write(i < 0 || c.length != 1 ? c : to[i]);
-  }
-  return out.toString().replaceAll(RegExp(r'\s+'), ' ');
 }
 
 /// What a page picker chose (A2, A4).

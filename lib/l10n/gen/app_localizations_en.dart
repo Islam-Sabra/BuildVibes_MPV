@@ -7620,6 +7620,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyRoleName => 'Role name';
 
   @override
+  String get keyRoleNameHint => 'Search for a role... for quick contact';
+
+  @override
   String get keyRoleCallFor => 'Call them for';
 
   @override

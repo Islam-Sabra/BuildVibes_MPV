@@ -946,6 +946,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - No server change. `OfferCard` is shared by KP0 and Make Teams from companies.
   - Checks: 4,039 Flutter tests, 772 screen tests, 75 files with 4,702 SQL checks.
   - Report: `docs/reviews/2026-11-05-122-report.md`; shots in `docs/reviews/shots-122/`.
+- **6 Nov (review 122b, `claude/r122b`, waiting for the lead):** KP4's role name is a search with free text.
+  - The founder's hint; autofocus; the examples narrow in either language, ignoring Arabic letter forms.
+  - Anything typed is saved. `foldForSearch` moved to `lib/core/text/`.
+  - Checks: 4,057 Flutter tests, 772 screen tests, 4,702 SQL checks.
+  - Report: `docs/reviews/2026-11-06-122b-report.md`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
