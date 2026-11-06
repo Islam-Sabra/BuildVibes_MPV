@@ -125,7 +125,6 @@ class TeamsView extends ConsumerWidget {
             padding: _gutter,
             child: _Admins(admins: admins),
           ),
-          const _BlockLine(),
         ],
         if (toCall.isNotEmpty) ...[
           label(l10n.keyPeopleWhoToCall),
@@ -150,7 +149,6 @@ class TeamsView extends ConsumerWidget {
               ],
             ),
           ),
-          const _BlockLine(),
         ],
         label(l10n.spacesTeams),
         // Review 122 TM0: why nothing is offered yet.
@@ -298,30 +296,7 @@ class _CompanyHint extends StatelessWidget {
   );
 }
 
-/// OC1: between its blocks, a short 2 px line at the start.
 const _gutter = EdgeInsetsDirectional.symmetric(horizontal: BvSpace.gutter);
-
-class _BlockLine extends StatelessWidget {
-  const _BlockLine();
-
-  @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsetsDirectional.fromSTEB(
-      BvSpace.gutter,
-      BvKeyPeopleSpec.blockLineTop,
-      BvSpace.gutter,
-      0,
-    ),
-    child: Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: SizedBox(
-        width: BvStroke.thick,
-        height: BvKeyPeopleSpec.blockLineHeight,
-        child: ColoredBox(color: BvColors.borderDefault),
-      ),
-    ),
-  );
-}
 
 /// Runs this Space: every Space admin, with the Space admin tag.
 class _Admins extends StatelessWidget {

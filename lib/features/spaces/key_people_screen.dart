@@ -100,10 +100,6 @@ class _KeyPeopleScreenState extends ConsumerState<KeyPeopleScreen> {
               buildDefaultDragHandles: false,
               padding: const EdgeInsets.symmetric(horizontal: BvSpace.gutter),
               onReorderItem: (from, to) => unawaited(_reorder(roles, from, to)),
-              header: Padding(
-                padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s8),
-                child: Text(l10n.keyPeopleIntro, style: quiet),
-              ),
               footer: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -136,12 +132,6 @@ class _KeyPeopleScreenState extends ConsumerState<KeyPeopleScreen> {
                     ),
                   if (roles.length > 1)
                     Text(l10n.keyPeopleReorder, style: quiet),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.symmetric(
-                      vertical: BvSpace.s8,
-                    ),
-                    child: Text(l10n.keyPeopleFootnote, style: quiet),
-                  ),
                 ],
               ),
               children: [
@@ -439,7 +429,6 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: BvSpace.s8,
       children: [
-        Text(l10n.keyRoleName, style: label),
         BvTextField(
           key: const Key('key-role-name'),
           controller: _name,

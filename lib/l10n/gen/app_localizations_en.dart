@@ -7580,15 +7580,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyPeopleTitle => 'Key people';
 
   @override
-  String get keyPeopleIntro =>
-      'People everyone here should know. They show at the top of People, and first to every new member.';
-
-  @override
   String get keyPeopleAddRole => 'Add a role';
-
-  @override
-  String get keyPeopleFootnote =>
-      'Only the Space admin changes key people. Call shows only for a key person who chose to show their number to this Space.';
 
   @override
   String get keyPeopleNoOne => 'No one yet';
@@ -7600,12 +7592,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyPeopleSetTitle => 'Set who to call';
 
   @override
-  String get keyPeopleSetLine =>
-      'Safety officer, project engineer… they show on top of People and to every new member.';
-
-  @override
   String get teamsCompanyHint =>
-      'Teams from companies are offered once 2 or more people have the same company on their profile.';
+      'Teams from companies need 2 people with the same company.';
 
   @override
   String get keyPeopleReorder => 'Hold and drag a role to move it.';
@@ -7615,9 +7603,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keyRoleEdit => 'Key role';
-
-  @override
-  String get keyRoleName => 'Role name';
 
   @override
   String get keyRoleNameHint => 'Search for a role... for quick contact';

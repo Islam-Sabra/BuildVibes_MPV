@@ -112,16 +112,6 @@ void main() {
           find.text(t('Set who to call', 'حدّد بمن يتصل الناس')),
           findsOneWidget,
         );
-        expect(
-          find.text(
-            t(
-              'Safety officer, project engineer… they show on top of People '
-                  'and to every new member.',
-              'ضابط السلامة، مهندس المشروع… يظهرون أعلى الأشخاص ولكل عضو جديد.',
-            ),
-          ),
-          findsOneWidget,
-        );
         expect(find.text(l10n.keyPeopleEveryone), findsOneWidget);
         expect(
           tester.getTopLeft(_key('kp0-set-who-to-call')).dy,
@@ -191,11 +181,10 @@ void main() {
     });
 
     group('TM0 why no Teams from companies [$lang]', () {
+      // Review 122c: one short line.
       final hint = t(
-        'Teams from companies are offered once 2 or more people have the '
-            'same company on their profile.',
-        'تُقترح الفرق من الشركات عندما يكتب شخصان أو أكثر اسم الشركة نفسها '
-            'في ملفاتهم.',
+        'Teams from companies need 2 people with the same company.',
+        'فرق الشركات تحتاج شخصين من نفس الشركة.',
       );
 
       Future<void> teams(

@@ -12536,23 +12536,11 @@ abstract class AppLocalizations {
   /// **'Key people'**
   String get keyPeopleTitle;
 
-  /// Review 121 KP3: the line under the title.
-  ///
-  /// In en, this message translates to:
-  /// **'People everyone here should know. They show at the top of People, and first to every new member.'**
-  String get keyPeopleIntro;
-
   /// Review 121 KP3: adds a key role.
   ///
   /// In en, this message translates to:
   /// **'Add a role'**
   String get keyPeopleAddRole;
-
-  /// Review 121 KP3: the note at the bottom.
-  ///
-  /// In en, this message translates to:
-  /// **'Only the Space admin changes key people. Call shows only for a key person who chose to show their number to this Space.'**
-  String get keyPeopleFootnote;
 
   /// Review 121 KP3: a role nobody holds.
   ///
@@ -12572,16 +12560,10 @@ abstract class AppLocalizations {
   /// **'Set who to call'**
   String get keyPeopleSetTitle;
 
-  /// Review 122 KP0: the card's line.
-  ///
-  /// In en, this message translates to:
-  /// **'Safety officer, project engineer… they show on top of People and to every new member.'**
-  String get keyPeopleSetLine;
-
   /// Review 122 TM0: for the Space admin, under Teams, while no company of 2 or more people waits.
   ///
   /// In en, this message translates to:
-  /// **'Teams from companies are offered once 2 or more people have the same company on their profile.'**
+  /// **'Teams from companies need 2 people with the same company.'**
   String get teamsCompanyHint;
 
   /// Review 121 KP3: how to change the order (more than one role).
@@ -12601,12 +12583,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Key role'**
   String get keyRoleEdit;
-
-  /// Review 121 KP4: the name field's label.
-  ///
-  /// In en, this message translates to:
-  /// **'Role name'**
-  String get keyRoleName;
 
   /// Review 122b KP4: the role name field while empty, in the founder's words; any name can be typed, the examples narrow as you type.
   ///

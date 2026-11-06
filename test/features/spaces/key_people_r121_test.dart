@@ -325,6 +325,17 @@ void main() {
         await _tap(tester, _key('people-view-teams'));
       }
 
+      // Review 122c: no short connector line between the blocks.
+      testWidgets('no line between the blocks', (tester) async {
+        await teams(tester);
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is SizedBox && w.width == 2 && w.height == 12,
+          ),
+          findsNothing,
+        );
+      });
+
       testWidgets('who runs it, Who to call, then each Team with its admin '
           'and faces, no count', (tester) async {
         await teams(tester);
@@ -498,8 +509,6 @@ void main() {
           spaces: _spaces(admin: true, pass: SpacePass.lead),
           keys: keys,
         );
-        expect(find.text(l10n.keyPeopleIntro), findsOneWidget);
-        expect(find.text(l10n.keyPeopleFootnote), findsOneWidget);
         expect(_key('key-role-r-safety'), findsOneWidget);
         expect(
           find.descendant(

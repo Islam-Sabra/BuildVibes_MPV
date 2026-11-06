@@ -7643,15 +7643,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyPeopleTitle => 'الأشخاص الأساسيون';
 
   @override
-  String get keyPeopleIntro =>
-      'أشخاص يجب أن يعرفهم الجميع هنا. يظهرون في أعلى الأشخاص، وأولًا لكل عضو جديد.';
-
-  @override
   String get keyPeopleAddRole => 'أضف دورًا';
-
-  @override
-  String get keyPeopleFootnote =>
-      'مدير المساحة وحده يغيّر الأشخاص الأساسيين. يظهر زر الاتصال فقط لمن اختار إظهار رقمه لهذه المساحة.';
 
   @override
   String get keyPeopleNoOne => 'لا أحد بعد';
@@ -7663,12 +7655,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyPeopleSetTitle => 'حدّد بمن يتصل الناس';
 
   @override
-  String get keyPeopleSetLine =>
-      'ضابط السلامة، مهندس المشروع… يظهرون أعلى الأشخاص ولكل عضو جديد.';
-
-  @override
-  String get teamsCompanyHint =>
-      'تُقترح الفرق من الشركات عندما يكتب شخصان أو أكثر اسم الشركة نفسها في ملفاتهم.';
+  String get teamsCompanyHint => 'فرق الشركات تحتاج شخصين من نفس الشركة.';
 
   @override
   String get keyPeopleReorder => 'اضغط مطولًا على دور واسحبه لتغيير ترتيبه.';
@@ -7678,9 +7665,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get keyRoleEdit => 'دور أساسي';
-
-  @override
-  String get keyRoleName => 'اسم الدور';
 
   @override
   String get keyRoleNameHint => 'ابحث عن دور... للتواصل السريع';

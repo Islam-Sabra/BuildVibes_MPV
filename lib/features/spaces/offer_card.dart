@@ -8,22 +8,21 @@ import 'who_sees_sheet.dart' show BvTeamDisc;
 
 /// The brand card that points the Space admin to a next step: Make Teams
 /// from companies (TM1) and, review 122 KP0, Set who to call. A white disc
-/// with [icon], the title in the action colour, a line, and the caret.
+/// with [icon], the title in the action colour, an optional line, and the
+/// caret.
 class OfferCard extends StatelessWidget {
   const OfferCard({
     super.key,
     required this.icon,
     required this.title,
-    required this.line,
+    this.line,
     required this.onTap,
-    this.lineColor = BvColors.textSecondary,
   });
 
   final IconData icon;
   final String title;
-  final String line;
+  final String? line;
   final VoidCallback onTap;
-  final Color lineColor;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +55,13 @@ class OfferCard extends StatelessWidget {
                       title,
                       style: type.emphasis.copyWith(color: BvColors.textAction),
                     ),
-                    Text(line, style: type.metadata.copyWith(color: lineColor)),
+                    if (line != null)
+                      Text(
+                        line!,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
+                      ),
                   ],
                 ),
               ),

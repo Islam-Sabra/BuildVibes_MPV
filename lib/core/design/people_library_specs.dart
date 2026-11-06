@@ -74,10 +74,6 @@ abstract final class BvKeyPeopleSpec {
   static const headIcon = BvSize.iconSm;
   static const headGap = BvSpace.s6;
 
-  /// OC1: between its blocks, a short line at the start.
-  static const blockLineHeight = BvSpace.s12;
-  static const blockLineTop = BvSpace.s16;
-
   /// OC1's Who to call chips and a Team card's faces (up to 5, never a
   /// count).
   static const chipPadding = EdgeInsetsDirectional.fromSTEB(

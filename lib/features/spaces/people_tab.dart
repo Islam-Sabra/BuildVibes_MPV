@@ -455,8 +455,6 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 key: const Key('kp0-set-who-to-call'),
                 icon: BvIcons.shieldCheck,
                 title: l10n.keyPeopleSetTitle,
-                line: l10n.keyPeopleSetLine,
-                lineColor: BvColors.textPrimary,
                 onTap: () => context.push(AppRoutes.spaceKeyPeople(_spaceId)),
               ),
             ),
