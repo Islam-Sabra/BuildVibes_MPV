@@ -24,6 +24,7 @@ Future<String?> showTextSheet(
 }) {
   return showBvSheet<String>(
     context: context,
+    form: true,
     title: title,
     builder: (_) =>
         _TextSheet(initial: initial, hint: hint, maxLength: maxLength),
@@ -53,28 +54,31 @@ class _TextSheetState extends State<_TextSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('text-sheet-field'),
-          controller: _text,
-          placeholder: widget.hint,
-          autofocus: true,
-          maxLength: widget.maxLength,
-          onChanged: (_) => setState(() {}),
-        ),
-        BvButton(
-          key: const Key('text-sheet-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: _text.text.trim().isEmpty
-              ? null
-              : () => Navigator.of(context).pop(_text.text.trim()),
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('text-sheet-field'),
+            controller: _text,
+            placeholder: widget.hint,
+            autofocus: true,
+            maxLength: widget.maxLength,
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('text-sheet-save'),
+        label: l10n.save,
+        expand: true,
+        onPressed: _text.text.trim().isEmpty
+            ? null
+            : () => Navigator.of(context).pop(_text.text.trim()),
+      ),
     );
   }
 }
@@ -114,6 +118,7 @@ Future<CvEntryInput?> showCvEntrySheet(
   final l10n = AppLocalizations.of(context);
   return showBvSheet<CvEntryInput>(
     context: context,
+    form: true,
     title: l10n.cvEntryTitle(projectName),
     builder: (_) => _CvEntryForm(role: role),
   );
@@ -152,87 +157,90 @@ class _CvEntryFormState extends ConsumerState<_CvEntryForm> {
     _startText.text = _start == null ? '' : formatMonth(_start!, locale);
     _endText.text = _end == null ? l10n.present : formatMonth(_end!, locale);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('cv-role'),
-          label: l10n.yourRole,
-          placeholder: l10n.headlineHint,
-          controller: _role,
-          error: _showErrors && _role.text.trim().isEmpty
-              ? l10n.roleTitleRequired
-              : null,
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: BvSpace.s12,
-          children: [
-            Expanded(
-              child: BvTextField(
-                key: const Key('cv-start'),
-                label: l10n.startedLabel,
-                controller: _startText,
-                readOnly: true,
-                suffixIcon: BvIcons.month,
-                onTap: () async {
-                  final c = await showBvMonthSheet(
-                    context,
-                    title: l10n.startedLabel,
-                    initial: _start,
-                    now: now,
-                  );
-                  if (c is PickedMonth && mounted) {
-                    setState(() => _start = c.month);
-                  }
-                },
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('cv-role'),
+            label: l10n.yourRole,
+            placeholder: l10n.headlineHint,
+            controller: _role,
+            error: _showErrors && _role.text.trim().isEmpty
+                ? l10n.roleTitleRequired
+                : null,
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: BvSpace.s12,
+            children: [
+              Expanded(
+                child: BvTextField(
+                  key: const Key('cv-start'),
+                  label: l10n.startedLabel,
+                  controller: _startText,
+                  readOnly: true,
+                  suffixIcon: BvIcons.month,
+                  onTap: () async {
+                    final c = await showBvMonthSheet(
+                      context,
+                      title: l10n.startedLabel,
+                      initial: _start,
+                      now: now,
+                    );
+                    if (c is PickedMonth && mounted) {
+                      setState(() => _start = c.month);
+                    }
+                  },
+                ),
               ),
-            ),
-            Expanded(
-              child: BvTextField(
-                key: const Key('cv-end'),
-                label: l10n.endedLabel,
-                controller: _endText,
-                readOnly: true,
-                suffixIcon: BvIcons.month,
-                onTap: () async {
-                  final c = await showBvMonthSheet(
-                    context,
-                    title: l10n.endedLabel,
-                    initial: _end,
-                    allowStillGoing: true,
-                    stillGoing: _end == null,
-                    now: now,
-                  );
-                  if (!mounted || c == null) return;
-                  setState(
-                    () => _end = switch (c) {
-                      PickedMonth(:final month) => month,
-                      StillGoing() => null,
-                    },
-                  );
-                },
+              Expanded(
+                child: BvTextField(
+                  key: const Key('cv-end'),
+                  label: l10n.endedLabel,
+                  controller: _endText,
+                  readOnly: true,
+                  suffixIcon: BvIcons.month,
+                  onTap: () async {
+                    final c = await showBvMonthSheet(
+                      context,
+                      title: l10n.endedLabel,
+                      initial: _end,
+                      allowStillGoing: true,
+                      stillGoing: _end == null,
+                      now: now,
+                    );
+                    if (!mounted || c == null) return;
+                    setState(
+                      () => _end = switch (c) {
+                        PickedMonth(:final month) => month,
+                        StillGoing() => null,
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-        BvButton(
-          key: const Key('cv-add'),
-          label: l10n.addToCv,
-          expand: true,
-          onPressed: () {
-            if (_role.text.trim().isEmpty) {
-              setState(() => _showErrors = true);
-              return;
-            }
-            Navigator.of(
-              context,
-            ).pop(CvEntryInput(role: _role.text, start: _start, end: _end));
-          },
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('cv-add'),
+        label: l10n.addToCv,
+        expand: true,
+        onPressed: () {
+          if (_role.text.trim().isEmpty) {
+            setState(() => _showErrors = true);
+            return;
+          }
+          Navigator.of(
+            context,
+          ).pop(CvEntryInput(role: _role.text, start: _start, end: _end));
+        },
+      ),
     );
   }
 }
@@ -246,6 +254,7 @@ Future<(EditField, String)?> showSuggestEditSheet(
   final l10n = AppLocalizations.of(context);
   return showBvSheet<(EditField, String)>(
     context: context,
+    form: true,
     title: l10n.suggestTitle(projectName),
     subtitle: l10n.suggestBody,
     builder: (_) => const _SuggestForm(),
@@ -281,55 +290,58 @@ class _SuggestFormState extends State<_SuggestForm> {
       EditField.dates: l10n.wrongDates,
       EditField.duplicate: l10n.wrongDuplicate,
     };
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s12,
-      children: [
-        Text(
-          l10n.whatsWrong,
-          style: type.overline.copyWith(color: BvColors.textSecondary),
-        ),
-        // One choice: chips that exclude each other.
-        Semantics(
-          container: true,
-          child: Wrap(
-            spacing: BvSpace.s8,
-            runSpacing: BvSpace.s8,
-            children: [
-              for (final e in labels.entries)
-                BvChip(
-                  key: Key('wrong-${e.key.name}'),
-                  label: e.value,
-                  selected: _field == e.key,
-                  onTap: () => setState(() => _field = e.key),
-                ),
-            ],
+    return BvSheetForm(
+      gap: BvSpace.s12,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s12,
+        children: [
+          Text(
+            l10n.whatsWrong,
+            style: type.overline.copyWith(color: BvColors.textSecondary),
           ),
-        ),
-        BvTextField(
-          key: const Key('suggest-value'),
-          label: l10n.correctValue,
-          controller: _value,
-          helper: l10n.correctValueHelp,
-          maxLength: 300,
-          error: _showErrors && _value.text.trim().isEmpty
-              ? l10n.correctValueRequired
-              : null,
-        ),
-        BvButton(
-          key: const Key('suggest-send'),
-          label: l10n.sendForReview,
-          expand: true,
-          onPressed: () {
-            if (_value.text.trim().isEmpty) {
-              setState(() => _showErrors = true);
-              return;
-            }
-            Navigator.of(context).pop((_field, _value.text.trim()));
-          },
-        ),
-      ],
+          // One choice: chips that exclude each other.
+          Semantics(
+            container: true,
+            child: Wrap(
+              spacing: BvSpace.s8,
+              runSpacing: BvSpace.s8,
+              children: [
+                for (final e in labels.entries)
+                  BvChip(
+                    key: Key('wrong-${e.key.name}'),
+                    label: e.value,
+                    selected: _field == e.key,
+                    onTap: () => setState(() => _field = e.key),
+                  ),
+              ],
+            ),
+          ),
+          BvTextField(
+            key: const Key('suggest-value'),
+            label: l10n.correctValue,
+            controller: _value,
+            helper: l10n.correctValueHelp,
+            maxLength: 300,
+            error: _showErrors && _value.text.trim().isEmpty
+                ? l10n.correctValueRequired
+                : null,
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('suggest-send'),
+        label: l10n.sendForReview,
+        expand: true,
+        onPressed: () {
+          if (_value.text.trim().isEmpty) {
+            setState(() => _showErrors = true);
+            return;
+          }
+          Navigator.of(context).pop((_field, _value.text.trim()));
+        },
+      ),
     );
   }
 }

@@ -276,6 +276,7 @@ Future<TemplateSaved> saveAsTemplate(
   final l10n = AppLocalizations.of(context);
   final name = await showBvSheet<String>(
     context: context,
+    form: true,
     title: l10n.templateNameTitle,
     builder: (_) => _NameSheet(initial: post.title),
   );
@@ -333,28 +334,31 @@ class _NameSheetState extends State<_NameSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ok = _name.text.trim().isNotEmpty;
-    return Column(
-      key: const Key('template-name-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('template-name'),
-          controller: _name,
-          placeholder: l10n.templateNameHint,
-          maxLength: PostTemplate.nameMax,
-          autofocus: true,
-          onChanged: (_) => setState(() {}),
-        ),
-        BvButton(
-          key: const Key('template-name-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: ok
-              ? () => Navigator.of(context).pop(_name.text.trim())
-              : null,
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        key: const Key('template-name-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('template-name'),
+            controller: _name,
+            placeholder: l10n.templateNameHint,
+            maxLength: PostTemplate.nameMax,
+            autofocus: true,
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('template-name-save'),
+        label: l10n.save,
+        expand: true,
+        onPressed: ok
+            ? () => Navigator.of(context).pop(_name.text.trim())
+            : null,
+      ),
     );
   }
 }

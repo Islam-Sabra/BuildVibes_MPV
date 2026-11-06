@@ -109,6 +109,7 @@ class SpaceInfoScreen extends ConsumerWidget {
     Future<void> edit() async {
       final saved = await showBvSheet<({String name, String about})>(
         context: context,
+        form: true,
         title: l10n.spacesEditTitle,
         builder: (_) => _EditSpace(name: space.name, about: space.about),
       );
@@ -618,43 +619,46 @@ class _EditSpaceState extends State<_EditSpace> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ok = _name.text.trim().length >= NewSpaceScreen.nameMin;
-    return Column(
-      key: const Key('edit-space-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('edit-space-name'),
-          label: l10n.spacesNameLabel,
-          controller: _name,
-          maxLength: NewSpaceScreen.nameMax,
-          error: _showErrors && !ok ? l10n.spacesNameRequired : null,
-          onChanged: (_) => setState(() {}),
-        ),
-        BvTextField(
-          key: const Key('edit-space-about'),
-          label: l10n.spacesAboutLabel,
-          helper: l10n.spacesAboutHelp,
-          controller: _about,
-          maxLines: 3,
-          maxLength: NewSpaceScreen.aboutMax,
-        ),
-        BvButton(
-          key: const Key('edit-space-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: () {
-            if (!ok) {
-              setState(() => _showErrors = true);
-              return;
-            }
-            Navigator.of(
-              context,
-            ).pop((name: _name.text.trim(), about: _about.text.trim()));
-          },
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        key: const Key('edit-space-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('edit-space-name'),
+            label: l10n.spacesNameLabel,
+            controller: _name,
+            maxLength: NewSpaceScreen.nameMax,
+            error: _showErrors && !ok ? l10n.spacesNameRequired : null,
+            onChanged: (_) => setState(() {}),
+          ),
+          BvTextField(
+            key: const Key('edit-space-about'),
+            label: l10n.spacesAboutLabel,
+            helper: l10n.spacesAboutHelp,
+            controller: _about,
+            maxLines: 3,
+            maxLength: NewSpaceScreen.aboutMax,
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('edit-space-save'),
+        label: l10n.save,
+        expand: true,
+        onPressed: () {
+          if (!ok) {
+            setState(() => _showErrors = true);
+            return;
+          }
+          Navigator.of(
+            context,
+          ).pop((name: _name.text.trim(), about: _about.text.trim()));
+        },
+      ),
     );
   }
 }

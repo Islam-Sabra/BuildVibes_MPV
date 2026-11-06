@@ -74,6 +74,7 @@ Future<void> startReport(
   if (reason == ReportReason.other) {
     note = await showBvSheet<String>(
       context: context,
+      form: true,
       title: l10n.reportNoteTitle,
       builder: (sheet) => const _NoteSheet(),
     );
@@ -182,28 +183,29 @@ class _NoteSheetState extends State<_NoteSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final text = _note.text.trim();
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('report-note'),
-          controller: _note,
-          placeholder: l10n.reportNoteHint,
-          maxLines: 3,
-          maxLength: 500,
-          onChanged: (_) => setState(() {}),
-        ),
-        BvButton(
-          key: const Key('report-send'),
-          label: l10n.reportSend,
-          expand: true,
-          onPressed: text.isEmpty
-              ? null
-              : () => Navigator.of(context).pop(text),
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('report-note'),
+            controller: _note,
+            placeholder: l10n.reportNoteHint,
+            maxLines: 3,
+            maxLength: 500,
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('report-send'),
+        label: l10n.reportSend,
+        expand: true,
+        onPressed: text.isEmpty ? null : () => Navigator.of(context).pop(text),
+      ),
     );
   }
 }

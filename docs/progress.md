@@ -951,6 +951,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Anything typed is saved. `foldForSearch` moved to `lib/core/text/`.
   - Checks: 4,057 Flutter tests, 772 screen tests, 4,702 SQL checks.
   - Report: `docs/reviews/2026-11-06-122b-report.md`.
+- **6 Nov (review 122b merged into `slice2-app`, e3e7c93a).**
+- **6 Nov (review 123, `claude/r123`, waiting for the lead):** a sheet's main button sits above the keyboard.
+  - `BvSheetForm` in `bv_sheet.dart` (fields scroll, the button is pinned, a 1 px line only while fields run under it); 18 sheets use it.
+  - No change with the keyboard closed: 772 screen goldens unchanged.
+  - Checks: 4,071 Flutter tests, 772 screen tests. No server change.
+  - Report: `docs/reviews/2026-11-06-123-report.md`; shots in `docs/reviews/shots-123/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

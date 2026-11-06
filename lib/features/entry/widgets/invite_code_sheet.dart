@@ -16,6 +16,7 @@ import '../../spaces/code_sheet.dart'
 Future<String?> showInviteCodeSheet(BuildContext context) =>
     showBvSheet<String>(
       context: context,
+      form: true,
       title: AppLocalizations.of(context).obInviteTitle,
       builder: (sheet) => const _InviteSheet(),
     );
@@ -46,33 +47,36 @@ class _InviteSheetState extends State<_InviteSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final code = normalizeInviteCode(_code.text);
-    return Column(
-      key: const Key('invite-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        Text(
-          l10n.obInviteSub,
-          style: BvType.of(
-            context,
-          ).bodyMd.copyWith(color: BvColors.textSecondary),
-        ),
-        BvCodeField(
-          controller: _code,
-          semanticLabel: l10n.spacesInviteCode,
-          autofocus: true,
-          inputFormatters: const [InviteCodeFormatter()],
-        ),
-        BvButton(
-          key: const Key('invite-continue'),
-          label: l10n.continueLabel,
-          expand: true,
-          onPressed: code.length == inviteCodeLength
-              ? () => Navigator.of(context).pop(code)
-              : null,
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        key: const Key('invite-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          Text(
+            l10n.obInviteSub,
+            style: BvType.of(
+              context,
+            ).bodyMd.copyWith(color: BvColors.textSecondary),
+          ),
+          BvCodeField(
+            controller: _code,
+            semanticLabel: l10n.spacesInviteCode,
+            autofocus: true,
+            inputFormatters: const [InviteCodeFormatter()],
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('invite-continue'),
+        label: l10n.continueLabel,
+        expand: true,
+        onPressed: code.length == inviteCodeLength
+            ? () => Navigator.of(context).pop(code)
+            : null,
+      ),
     );
   }
 }

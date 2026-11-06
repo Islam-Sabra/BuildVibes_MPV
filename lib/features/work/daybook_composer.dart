@@ -1413,6 +1413,7 @@ Future<void> editComposerTable(
   ];
   final rows = await showBvSheet<List<List<String>>>(
     context: context,
+    form: true,
     title: l10n.pageTable,
     builder: (sheet) => _TableSheet(
       rows: start.isEmpty
@@ -1452,6 +1453,7 @@ Future<void> editComposerTasks(
   ];
   final tasks = await showBvSheet<List<String>>(
     context: context,
+    form: true,
     title: l10n.pageTaskTable,
     builder: (sheet) => _LinesSheet(
       lines: [for (final t in start) t.text],
@@ -1605,74 +1607,78 @@ class _TableSheetState extends State<_TableSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    return Column(
-      key: const Key('composer-table-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s8,
-      children: [
-        for (final (r, row) in _cells.indexed)
-          Row(
-            spacing: BvSpace.s6,
-            children: [
-              for (final (c, cell) in row.indexed)
-                Expanded(
-                  child: TextField(
-                    key: Key('table-cell-$r-$c'),
-                    controller: cell,
-                    maxLength: PageTable.cellMax,
-                    buildCounter: DaybookComposerState._noCounter,
-                    style: (r == 0 ? type.emphasis : type.bodyMd).copyWith(
-                      color: BvColors.textPrimary,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
+    return BvSheetForm(
+      gap: BvSpace.s8,
+      body: Column(
+        key: const Key('composer-table-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s8,
+        children: [
+          for (final (r, row) in _cells.indexed)
+            Row(
+              spacing: BvSpace.s6,
+              children: [
+                for (final (c, cell) in row.indexed)
+                  Expanded(
+                    child: TextField(
+                      key: Key('table-cell-$r-$c'),
+                      controller: cell,
+                      maxLength: PageTable.cellMax,
+                      buildCounter: DaybookComposerState._noCounter,
+                      style: (r == 0 ? type.emphasis : type.bodyMd).copyWith(
+                        color: BvColors.textPrimary,
+                      ),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                   ),
+              ],
+            ),
+          Row(
+            spacing: BvSpace.s8,
+            children: [
+              if (_cells.length < PageTable.maxRows)
+                BvButton(
+                  key: const Key('table-add-row'),
+                  label: l10n.cpAddRow,
+                  icon: BvIcons.add,
+                  style: BvButtonStyle.quiet,
+                  size: BvButtonSize.medium,
+                  onPressed: () => setState(
+                    () => _cells.add([
+                      for (var c = 0; c < _columns; c++)
+                        TextEditingController(),
+                    ]),
+                  ),
+                ),
+              if (_columns < PageTable.maxColumns)
+                BvButton(
+                  key: const Key('table-add-column'),
+                  label: l10n.cpAddColumn,
+                  icon: BvIcons.add,
+                  style: BvButtonStyle.quiet,
+                  size: BvButtonSize.medium,
+                  onPressed: () => setState(() {
+                    for (final r in _cells) {
+                      r.add(TextEditingController());
+                    }
+                  }),
                 ),
             ],
           ),
-        Row(
-          spacing: BvSpace.s8,
-          children: [
-            if (_cells.length < PageTable.maxRows)
-              BvButton(
-                key: const Key('table-add-row'),
-                label: l10n.cpAddRow,
-                icon: BvIcons.add,
-                style: BvButtonStyle.quiet,
-                size: BvButtonSize.medium,
-                onPressed: () => setState(
-                  () => _cells.add([
-                    for (var c = 0; c < _columns; c++) TextEditingController(),
-                  ]),
-                ),
-              ),
-            if (_columns < PageTable.maxColumns)
-              BvButton(
-                key: const Key('table-add-column'),
-                label: l10n.cpAddColumn,
-                icon: BvIcons.add,
-                style: BvButtonStyle.quiet,
-                size: BvButtonSize.medium,
-                onPressed: () => setState(() {
-                  for (final r in _cells) {
-                    r.add(TextEditingController());
-                  }
-                }),
-              ),
-          ],
-        ),
-        BvButton(
-          key: const Key('table-done'),
-          label: l10n.notebookDone,
-          expand: true,
-          onPressed: () => Navigator.of(context).pop([
-            for (final r in _cells) [for (final c in r) c.text.trim()],
-          ]),
-        ),
-      ],
+        ],
+      ),
+      action: BvButton(
+        key: const Key('table-done'),
+        label: l10n.notebookDone,
+        expand: true,
+        onPressed: () => Navigator.of(context).pop([
+          for (final r in _cells) [for (final c in r) c.text.trim()],
+        ]),
+      ),
     );
   }
 }
@@ -1715,44 +1721,47 @@ class _LinesSheetState extends State<_LinesSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    return Column(
-      key: const Key('composer-lines-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s8,
-      children: [
-        for (final (i, l) in _lines.indexed)
-          TextField(
-            key: Key('line-$i'),
-            controller: l,
-            autofocus: i == _lines.length - 1,
-            maxLength: widget.cellMax,
-            buildCounter: DaybookComposerState._noCounter,
-            style: type.bodyMd.copyWith(color: BvColors.textPrimary),
-            decoration: InputDecoration(
-              isDense: true,
-              hintText: widget.hint,
-              border: const OutlineInputBorder(),
+    return BvSheetForm(
+      gap: BvSpace.s8,
+      body: Column(
+        key: const Key('composer-lines-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s8,
+        children: [
+          for (final (i, l) in _lines.indexed)
+            TextField(
+              key: Key('line-$i'),
+              controller: l,
+              autofocus: i == _lines.length - 1,
+              maxLength: widget.cellMax,
+              buildCounter: DaybookComposerState._noCounter,
+              style: type.bodyMd.copyWith(color: BvColors.textPrimary),
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: widget.hint,
+                border: const OutlineInputBorder(),
+              ),
             ),
-          ),
-        if (_lines.length < widget.max)
-          BvButton(
-            key: const Key('line-add'),
-            label: widget.addLabel,
-            icon: BvIcons.add,
-            style: BvButtonStyle.quiet,
-            size: BvButtonSize.medium,
-            onPressed: () =>
-                setState(() => _lines.add(TextEditingController())),
-          ),
-        BvButton(
-          key: const Key('lines-done'),
-          label: l10n.notebookDone,
-          expand: true,
-          onPressed: () =>
-              Navigator.of(context).pop([for (final l in _lines) l.text]),
-        ),
-      ],
+          if (_lines.length < widget.max)
+            BvButton(
+              key: const Key('line-add'),
+              label: widget.addLabel,
+              icon: BvIcons.add,
+              style: BvButtonStyle.quiet,
+              size: BvButtonSize.medium,
+              onPressed: () =>
+                  setState(() => _lines.add(TextEditingController())),
+            ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('lines-done'),
+        label: l10n.notebookDone,
+        expand: true,
+        onPressed: () =>
+            Navigator.of(context).pop([for (final l in _lines) l.text]),
+      ),
     );
   }
 }

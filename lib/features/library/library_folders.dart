@@ -349,6 +349,7 @@ Future<bool> showFolderSheet(
   final l10n = AppLocalizations.of(context);
   final saved = await showBvSheet<bool>(
     context: context,
+    form: true,
     title: editing != null
         ? l10n.libraryEditFolder
         : link
@@ -495,125 +496,128 @@ class _FolderSheetState extends ConsumerState<FolderSheet> {
       ),
       _ => null,
     };
-    return Column(
-      key: const Key('folder-sheet'),
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvFolderSpec.sheetGap,
-      children: [
-        if (_newLink) ...[
-          BvTextField(
-            key: const Key('folder-url'),
-            controller: _url,
-            placeholder: l10n.libraryLinkPasteHint,
-            keyboardType: TextInputType.url,
-            textDirection: TextDirection.ltr,
-            suggestions: false,
-            suffixIcon: BvIcons.link,
-            autofocus: true,
-            error: url.isNotEmpty && service == null
-                ? l10n.libraryLinkWrong
-                : null,
-            onChanged: (_) => setState(() {}),
-          ),
-          if (service != null)
-            Row(
-              key: const Key('folder-service'),
-              spacing: BvFolderSpec.lineGap,
-              children: [
-                Icon(
-                  linkServiceIcon(service),
-                  size: BvChipSpec.iconSize,
-                  color: BvFolderSpec.linkInk,
-                ),
-                Flexible(
-                  child: Text(
-                    l10n.libraryLinkFound(linkServiceName(l10n, service)),
-                    style: quiet,
-                  ),
-                ),
-              ],
+    return BvSheetForm(
+      gap: BvFolderSpec.sheetGap,
+      body: Column(
+        key: const Key('folder-sheet'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvFolderSpec.sheetGap,
+        children: [
+          if (_newLink) ...[
+            BvTextField(
+              key: const Key('folder-url'),
+              controller: _url,
+              placeholder: l10n.libraryLinkPasteHint,
+              keyboardType: TextInputType.url,
+              textDirection: TextDirection.ltr,
+              suggestions: false,
+              suffixIcon: BvIcons.link,
+              autofocus: true,
+              error: url.isNotEmpty && service == null
+                  ? l10n.libraryLinkWrong
+                  : null,
+              onChanged: (_) => setState(() {}),
             ),
-        ],
-        BvTextField(
-          key: const Key('folder-name'),
-          controller: _name,
-          placeholder: l10n.libraryFolderNameHint,
-          maxLength: LibraryFolderRules.nameMax,
-          autofocus: !_newLink && widget.editing == null,
-          textCapitalization: TextCapitalization.sentences,
-          onChanged: (_) => setState(() {}),
-        ),
-        Text(l10n.libraryWhoSees, style: quiet),
-        Wrap(
-          key: const Key('folder-share'),
-          spacing: BvChipSpec.rowGapTight,
-          runSpacing: BvSpace.s8,
-          children: [
-            for (final s in const [
-              FolderShare.onlyMe,
-              FolderShare.person,
-              FolderShare.team,
-              FolderShare.space,
-            ])
-              BvChip(
-                key: Key('folder-share-${s.json}'),
-                label: switch (s) {
-                  FolderShare.onlyMe => l10n.libraryShareOnlyMe,
-                  FolderShare.person => l10n.librarySharePerson,
-                  FolderShare.team => l10n.libraryShareTeam,
-                  FolderShare.space => l10n.libraryShareSpace,
-                },
-                tight: true,
-                selected: _share == s,
-                onTap: () => unawaited(_choose(s)),
+            if (service != null)
+              Row(
+                key: const Key('folder-service'),
+                spacing: BvFolderSpec.lineGap,
+                children: [
+                  Icon(
+                    linkServiceIcon(service),
+                    size: BvChipSpec.iconSize,
+                    color: BvFolderSpec.linkInk,
+                  ),
+                  Flexible(
+                    child: Text(
+                      l10n.libraryLinkFound(linkServiceName(l10n, service)),
+                      style: quiet,
+                    ),
+                  ),
+                ],
               ),
           ],
-        ),
-        if (picked != null)
-          BvListRow(
-            key: Key(picked.key),
-            title: picked.label,
-            leading: BvRowIcon(picked.icon, ink: true),
-            onTap: () => unawaited(picked.onTap()),
+          BvTextField(
+            key: const Key('folder-name'),
+            controller: _name,
+            placeholder: l10n.libraryFolderNameHint,
+            maxLength: LibraryFolderRules.nameMax,
+            autofocus: !_newLink && widget.editing == null,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (_) => setState(() {}),
           ),
-        if (_newLink || (widget.editing?.isLink ?? false))
-          Container(
-            key: const Key('folder-warning'),
-            padding: BvFolderSpec.warningPadding,
-            decoration: const BoxDecoration(
-              color: BvColors.surfaceWarningSoft,
-              borderRadius: BvFolderSpec.warningRadius,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: BvSpace.s8,
-              children: [
-                const Icon(
-                  BvIcons.lock,
-                  size: BvChipSpec.iconSize,
-                  color: BvColors.textWarning,
+          Text(l10n.libraryWhoSees, style: quiet),
+          Wrap(
+            key: const Key('folder-share'),
+            spacing: BvChipSpec.rowGapTight,
+            runSpacing: BvSpace.s8,
+            children: [
+              for (final s in const [
+                FolderShare.onlyMe,
+                FolderShare.person,
+                FolderShare.team,
+                FolderShare.space,
+              ])
+                BvChip(
+                  key: Key('folder-share-${s.json}'),
+                  label: switch (s) {
+                    FolderShare.onlyMe => l10n.libraryShareOnlyMe,
+                    FolderShare.person => l10n.librarySharePerson,
+                    FolderShare.team => l10n.libraryShareTeam,
+                    FolderShare.space => l10n.libraryShareSpace,
+                  },
+                  tight: true,
+                  selected: _share == s,
+                  onTap: () => unawaited(_choose(s)),
                 ),
-                Expanded(
-                  child: Text(
-                    l10n.libraryLinkWarning,
-                    style: type.bodySm.copyWith(color: BvColors.textPrimary),
+            ],
+          ),
+          if (picked != null)
+            BvListRow(
+              key: Key(picked.key),
+              title: picked.label,
+              leading: BvRowIcon(picked.icon, ink: true),
+              onTap: () => unawaited(picked.onTap()),
+            ),
+          if (_newLink || (widget.editing?.isLink ?? false))
+            Container(
+              key: const Key('folder-warning'),
+              padding: BvFolderSpec.warningPadding,
+              decoration: const BoxDecoration(
+                color: BvColors.surfaceWarningSoft,
+                borderRadius: BvFolderSpec.warningRadius,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: BvSpace.s8,
+                children: [
+                  const Icon(
+                    BvIcons.lock,
+                    size: BvChipSpec.iconSize,
+                    color: BvColors.textWarning,
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Text(
+                      l10n.libraryLinkWarning,
+                      style: type.bodySm.copyWith(color: BvColors.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        BvButton(
-          key: const Key('folder-save'),
-          label: widget.editing != null
-              ? l10n.librarySaveFolder
-              : l10n.libraryAddFolder,
-          expand: true,
-          onPressed: change.complete && !_saving
-              ? () => unawaited(_save())
-              : null,
-        ),
-      ],
+        ],
+      ),
+      action: BvButton(
+        key: const Key('folder-save'),
+        label: widget.editing != null
+            ? l10n.librarySaveFolder
+            : l10n.libraryAddFolder,
+        expand: true,
+        onPressed: change.complete && !_saving
+            ? () => unawaited(_save())
+            : null,
+      ),
     );
   }
 }

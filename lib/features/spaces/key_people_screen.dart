@@ -265,6 +265,7 @@ Future<bool> showKeyRoleSheet(
   final done = await showBvSheet<bool>(
     context: context,
     title: role == null ? l10n.keyRoleNew : l10n.keyRoleEdit,
+    form: true,
     builder: (_) => _KeyRoleForm(spaceId: spaceId, role: role),
   );
   return done ?? false;
@@ -353,6 +354,7 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
     final h = _holders[i];
     final note = await showBvSheet<String>(
       context: context,
+      form: true,
       title: inOwnDirection(h.person.fullName),
       builder: (_) => _NoteForm(note: h.note),
     );
@@ -431,7 +433,7 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
           lang == 'ar' && s.ar.isNotEmpty ? s.ar : s.en,
     ];
 
-    return Column(
+    final fields = Column(
       key: const Key('key-role-sheet'),
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -503,22 +505,32 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
             ],
           ),
         ),
-        const SizedBox(height: BvSpace.s8),
-        BvButton(
-          key: const Key('key-role-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: name.isEmpty || _saving ? null : _save,
-        ),
-        if (widget.role != null)
-          BvButton(
-            key: const Key('key-role-delete'),
-            label: l10n.keyRoleDelete,
-            style: BvButtonStyle.destructive,
-            expand: true,
-            onPressed: _saving ? null : _delete,
-          ),
       ],
+    );
+    return BvSheetForm(
+      gap: BvSpace.s24,
+      body: fields,
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s8,
+        children: [
+          BvButton(
+            key: const Key('key-role-save'),
+            label: l10n.save,
+            expand: true,
+            onPressed: name.isEmpty || _saving ? null : _save,
+          ),
+          if (widget.role != null)
+            BvButton(
+              key: const Key('key-role-delete'),
+              label: l10n.keyRoleDelete,
+              style: BvButtonStyle.destructive,
+              expand: true,
+              onPressed: _saving ? null : _delete,
+            ),
+        ],
+      ),
     );
   }
 
@@ -629,26 +641,29 @@ class _NoteFormState extends State<_NoteForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('key-holder-note-field'),
-          controller: _note,
-          placeholder: l10n.keyRoleNoteHint,
-          maxLength: 24,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-        ),
-        BvButton(
-          key: const Key('key-holder-note-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: _done,
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('key-holder-note-field'),
+            controller: _note,
+            placeholder: l10n.keyRoleNoteHint,
+            maxLength: 24,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('key-holder-note-save'),
+        label: l10n.save,
+        expand: true,
+        onPressed: _done,
+      ),
     );
   }
 }

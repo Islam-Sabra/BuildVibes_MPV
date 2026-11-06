@@ -108,6 +108,7 @@ class TeamScreen extends ConsumerWidget {
     Future<void> rename() async {
       final name = await showBvSheet<String>(
         context: context,
+        form: true,
         title: l10n.spacesRenameTeam,
         builder: (_) => _RenameTeam(name: team.name),
       );
@@ -351,33 +352,36 @@ class _RenameTeamState extends State<_RenameTeam> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('team-rename-field'),
-          label: l10n.spacesTeamName,
-          controller: _name,
-          autofocus: true,
-          maxLength: NewTeamScreen.nameMax,
-          error: _error,
-        ),
-        BvButton(
-          key: const Key('team-rename-save'),
-          label: l10n.save,
-          expand: true,
-          onPressed: () {
-            final name = _name.text.trim();
-            if (name.isEmpty) {
-              setState(() => _error = l10n.spacesTeamNameRequired);
-              return;
-            }
-            Navigator.of(context).pop(name);
-          },
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('team-rename-field'),
+            label: l10n.spacesTeamName,
+            controller: _name,
+            autofocus: true,
+            maxLength: NewTeamScreen.nameMax,
+            error: _error,
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('team-rename-save'),
+        label: l10n.save,
+        expand: true,
+        onPressed: () {
+          final name = _name.text.trim();
+          if (name.isEmpty) {
+            setState(() => _error = l10n.spacesTeamNameRequired);
+            return;
+          }
+          Navigator.of(context).pop(name);
+        },
+      ),
     );
   }
 }
