@@ -20,6 +20,7 @@ import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_card.dart';
 import 'key_people.dart';
 import 'make_teams_sheet.dart';
+import 'offer_card.dart';
 import 'who_sees_sheet.dart';
 
 /// Review 111 TM1, review 121 OC1: People's Teams side, the Space as an
@@ -101,7 +102,13 @@ class TeamsView extends ConsumerWidget {
               BvSpace.gutter,
               0,
             ),
-            child: _MakeCard(onTap: () => unawaited(_make(context, preview!))),
+            child: OfferCard(
+              key: const Key('teams-make-card'),
+              icon: BvIcons.company,
+              title: l10n.teamsMakeTitle,
+              line: l10n.teamsMakeCardLine,
+              onTap: () => unawaited(_make(context, preview!)),
+            ),
           ),
         if (waiting.length == 1)
           _NewLine(
@@ -146,6 +153,17 @@ class TeamsView extends ConsumerWidget {
           const _BlockLine(),
         ],
         label(l10n.spacesTeams),
+        // Review 122 TM0: why nothing is offered yet.
+        if (preview != null && waiting.isEmpty)
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              BvSpace.gutter,
+              0,
+              BvSpace.gutter,
+              BvKeyPeopleSpec.cardGap,
+            ),
+            child: _CompanyHint(text: l10n.teamsCompanyHint),
+          ),
         for (final t in teams)
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(
@@ -197,71 +215,6 @@ class TeamsView extends ConsumerWidget {
   }
 }
 
-/// Make Teams from companies: the brand card at the top of TM1.
-class _MakeCard extends StatelessWidget {
-  const _MakeCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    return Material(
-      key: const Key('teams-make-card'),
-      color: BvColors.surfaceBrandSoft,
-      shape: RoundedRectangleBorder(
-        borderRadius: BvRadius.cardAll,
-        side: const BorderSide(
-          color: BvColors.borderSelected,
-          width: BvStroke.thin,
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BvRadius.cardAll,
-        splashFactory: NoSplash.splashFactory,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.all(BvTeamsSpec.cardPadding),
-          child: Row(
-            spacing: BvTeamsSpec.rowGap,
-            children: [
-              const BvTeamDisc(
-                size: BvTeamsSpec.cardDisc,
-                icon: BvIcons.company,
-                onCard: true,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvTeamsSpec.lineGap,
-                  children: [
-                    Text(
-                      l10n.teamsMakeTitle,
-                      style: type.emphasis.copyWith(color: BvColors.textAction),
-                    ),
-                    Text(
-                      l10n.teamsMakeCardLine,
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                BvIcons.caretForward,
-                size: BvSize.iconMd,
-                color: BvColors.iconAction,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// "2 new people from Delta Steel: make a Team?"
 class _NewLine extends StatelessWidget {
   const _NewLine({required this.label, required this.onTap});
@@ -299,6 +252,45 @@ class _NewLine extends StatelessWidget {
             BvIcons.caretForward,
             size: BvSize.iconMd,
             color: BvColors.iconAction,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// TM0: a quiet note with the info mark.
+class _CompanyHint extends StatelessWidget {
+  const _CompanyHint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    key: const Key('teams-company-hint'),
+    decoration: BoxDecoration(
+      color: BvColors.surfaceElevated,
+      borderRadius: BvKeyPeopleSpec.hintRadius,
+      border: Border.all(color: BvColors.borderSubtle, width: BvStroke.thin),
+    ),
+    child: Padding(
+      padding: BvKeyPeopleSpec.hintPadding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: BvKeyPeopleSpec.hintGap,
+        children: [
+          const Icon(
+            BvIcons.info,
+            size: BvSize.iconSm,
+            color: BvColors.iconSecondary,
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: BvType.of(
+                context,
+              ).metadata.copyWith(color: BvColors.textSecondary),
+            ),
           ),
         ],
       ),

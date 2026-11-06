@@ -120,8 +120,9 @@ void main() {
       expect(find.text(l10n.peopleConfirm), findsOneWidget);
       // No Invite people button (review 67).
       expect(find.byKey(const Key('space-invite')), findsNothing);
-      // One list (SP8), no sections by pass; the admin as a tag.
-      expect(find.text(l10n.peopleInThisSpace), findsOneWidget);
+      // One list (SP8), no sections by pass; the admin as a tag. Review
+      // 122: the admin, no key roles yet: KP0, then Everyone.
+      expect(find.text(l10n.keyPeopleEveryone), findsOneWidget);
       expect(find.text(l10n.peopleLeads), findsNothing);
       expect(find.text(l10n.peopleViewers), findsNothing);
       expect(

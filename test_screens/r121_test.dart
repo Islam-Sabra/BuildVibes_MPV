@@ -1,5 +1,6 @@
 // Review 121: KP1, OC1, KP2, KP3, KP4 and NUM1, in English and Arabic at
-// 390 × 844 in the app's fonts, with the frames' people. Run:
+// 390 × 844 in the app's fonts, with the frames' people; review 122's KP0
+// and TM0 with the same people (docs/screens/r122/). Run:
 //   flutter test test_screens/r121_test.dart --update-goldens
 import 'package:buildvibes/data/models/key_people.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -12,14 +13,19 @@ import '../test/helpers/pump_app.dart';
 import '../test/helpers/space_fakes.dart';
 import 'shot.dart';
 
-Future<void> _snap(WidgetTester tester, String name, String lang) async {
+Future<void> _snap(
+  WidgetTester tester,
+  String name,
+  String lang, {
+  String review = 'r121',
+}) async {
   debugDisableShadows = false;
   try {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await expectLater(
       find.byType(MaterialApp).first,
-      matchesGoldenFile('../docs/screens/r121/${name}_$lang.png'),
+      matchesGoldenFile('../docs/screens/$review/${name}_$lang.png'),
     );
   } finally {
     debugDisableShadows = true;
@@ -322,6 +328,23 @@ void main() {
         ),
       );
       await _snap(tester, 'num1', lang);
+    });
+
+    // Review 122.
+    testWidgets('KP0 [$lang]', (tester) async {
+      await go(
+        tester,
+        '/spaces/$_space/people',
+        admin: true,
+        people: const KeyPeople(),
+      );
+      await _snap(tester, 'kp0', lang, review: 'r122');
+    });
+
+    testWidgets('TM0 [$lang]', (tester) async {
+      await go(tester, '/spaces/$_space/people', admin: true);
+      await _tap(tester, 'people-view-teams');
+      await _snap(tester, 'tm0', lang, review: 'r122');
     });
 
     testWidgets('P1, a person in two Teams [$lang]', (tester) async {

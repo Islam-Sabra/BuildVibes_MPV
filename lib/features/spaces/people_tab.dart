@@ -29,6 +29,7 @@ import 'confirm_join_sheet.dart';
 import 'key_people.dart';
 import 'need_you_notice.dart';
 import 'need_you_sheet.dart';
+import 'offer_card.dart';
 import 'pass_words.dart';
 import 'remove_member.dart';
 import 'space_errors.dart';
@@ -358,6 +359,13 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
         !showTeams && query.isEmpty && (keyPeople?.hasAnyone ?? false)
         ? keyPeople!.toCall
         : null;
+    // Review 122 KP0: the Space admin, while there are no key roles.
+    final setWhoToCall =
+        admin &&
+        !showTeams &&
+        query.isEmpty &&
+        keyPeople != null &&
+        keyPeople.roles.isEmpty;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -435,9 +443,26 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 ],
               ),
             ),
+          if (setWhoToCall)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                BvSpace.gutter,
+                BvPeopleSpec.sectionTop,
+                BvSpace.gutter,
+                0,
+              ),
+              child: OfferCard(
+                key: const Key('kp0-set-who-to-call'),
+                icon: BvIcons.shieldCheck,
+                title: l10n.keyPeopleSetTitle,
+                line: l10n.keyPeopleSetLine,
+                lineColor: BvColors.textPrimary,
+                onTap: () => context.push(AppRoutes.spaceKeyPeople(_spaceId)),
+              ),
+            ),
           if (!showTeams && members.isNotEmpty)
             section(
-              whoToCall != null
+              whoToCall != null || setWhoToCall
                   ? l10n.keyPeopleEveryone
                   : l10n.peopleInThisSpace,
             ),
