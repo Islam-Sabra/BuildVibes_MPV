@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 6 Nov 2026, later — review 122 merged; build 1097 waiting for the phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Review 122:**
+  - F1 done, test first: KP3 shows Call them for under the role tag.
+  - Merged into `slice2-app` (45033006). No `db push`: there is no server change.
+- **Build 1097:**
+  - Its exact source is on `release-1097`.
+  - The APK is at `Desktop/BuildVibes-1097.apk`, signed with the upload key.
+  - Rule 9, arm64: 30.1 MB installed and about 14.4 MB to download, against WhatsApp's 104.6 / ~88.8 MB.
+- **Not installed yet:** the phone wasn't reachable (no mDNS, and 192.168.8.33:45467 refused). Next: the founder's IP:port (or a pairing code) → confirm 22120RN86G → install 1097 → disconnect.
+- **Who has which branch:**
+  - PC has `slice2-app`.
+  - `claude/r122` is merged.
+
 ## PC update: 6 Nov 2026 — review 122 (empty states KP0, TM0, KP3 line) on `claude/r122`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
