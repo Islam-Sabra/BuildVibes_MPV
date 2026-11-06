@@ -2,6 +2,19 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 6 Nov 2026, night — 122b and 123 merged; build 1103 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** 122b (e3e7c93a) and review 123 (abd7c92f) into `slice2-app`. No `db push`: neither has a server change.
+- **Build 1103 (122b + 123):**
+  - Its exact source is on `release-1103`. The APK is at `Desktop/BuildVibes-1103.apk`, signed with the upload key.
+  - Rule 9: arm64 30.1 MB installed, about 14.4 MB download; WhatsApp is 104.6 MB and about 88.8 MB. Written in the review 123 report.
+  - Installed on 22120RN86G through 172.20.10.10:37071 (1097 → 1103), then disconnected.
+- **Next:** wait for the lead's next review.
+- **Emulator:** Pixel_8_B has the r123 debug build, in Arabic. adb: start with `ADB_MDNS_AUTO_CONNECT=0`, always `-s emulator-5556`.
+- **Who has which branch:** `slice2-app` is on the PC. No branch is out.
+
 ## PC update: 6 Nov 2026, night — 122b merged; review 123 (button above the keyboard) on `claude/r123`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
