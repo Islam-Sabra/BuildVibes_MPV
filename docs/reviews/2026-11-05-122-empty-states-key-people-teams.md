@@ -99,3 +99,19 @@ Nothing on the server changes.
   - A widget test with a simulated keyboard (viewInsets 300): the main button is hit-testable and fully on screen, in EN and AR, for KP4 and two other sheets.
   - The goldens with no keyboard must not change.
 - **No server change.**
+
+## The lead's check of review 123: `claude/r123` at `0e8f2fda` (6 Nov), accepted
+- **No server change** in the diff. 26 files.
+- **The fix is made once**, in `lib/shared/widgets/bv_sheet.dart`, and **18 sheets** use it.
+  - "File rename" and "poll composer" aren't sheets in the code, so they're correctly left alone.
+  - Search-only sheets have no main button, so they're unchanged.
+- **Shots viewed (AR, keyboard up):**
+  - KP4: «حفظ» sits above the keyboard (disabled while empty), and a line shows over it while fields scroll under;
+  - Edit Space: «حفظ» is in view;
+  - New folder: «إضافة المجلد» is in view.
+- **The keyboard-closed goldens are unchanged (772).** The 4 px clip on Arabic letter tails was fixed in the shared sheet. Accepted.
+- **Go live, with the founder's yes:**
+  1. merge;
+  2. **one** release build with 122b and 123;
+  3. install;
+  4. the size against WhatsApp in the report (rule 9).
