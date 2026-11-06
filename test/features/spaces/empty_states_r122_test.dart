@@ -4,6 +4,7 @@
 import 'package:buildvibes/data/models/company_teams.dart';
 import 'package:buildvibes/data/models/key_people.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/features/spaces/key_people.dart' show KeyRoleTag;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -334,6 +335,40 @@ void main() {
           ),
           findsNothing,
         );
+      });
+
+      // Review 122 F1: tag → Call them for → each person.
+      testWidgets('Call them for sits under the role tag, above the people', (
+        tester,
+      ) async {
+        await _go(
+          tester,
+          lang,
+          '/spaces/$_space/key-people',
+          spaces: _spaces(),
+          keys: _keys(
+            const KeyPeople(
+              roles: [
+                KeyRole(
+                  id: 'r-safety',
+                  name: 'Safety officer',
+                  callFor: 'hazards, accidents, work permits',
+                  holders: [
+                    KeyHolder(person: _khalid, canCall: true),
+                    KeyHolder(person: _tariq),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+        final tag = tester.getRect(find.byType(KeyRoleTag));
+        final callFor = tester.getRect(
+          find.textContaining('hazards, accidents, work permits'),
+        );
+        final first = tester.getRect(_key('key-role-holder-r-safety-p-khalid'));
+        expect(tag.bottom, lessThanOrEqualTo(callFor.top));
+        expect(callFor.bottom, lessThanOrEqualTo(first.top));
       });
     });
   }

@@ -196,6 +196,14 @@ class _RoleRow extends StatelessWidget {
                     ),
                     child: KeyRoleTag(name: role.name),
                   ),
+                  // Review 122 F1: what to call them for, above the people.
+                  if (callFor != null)
+                    Text(
+                      inOwnDirection(callFor),
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
                   if (role.holders.isEmpty)
                     Text(
                       l10n.keyPeopleNoOne,
@@ -222,13 +230,6 @@ class _RoleRow extends StatelessWidget {
                             ),
                           ),
                       ],
-                    ),
-                  if (callFor != null)
-                    Text(
-                      inOwnDirection(callFor),
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
                     ),
                 ],
               ),
