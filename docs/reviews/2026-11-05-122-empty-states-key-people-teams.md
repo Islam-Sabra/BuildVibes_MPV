@@ -55,3 +55,19 @@ Nothing on the server changes.
   2. build;
   3. install.
   - No re-check by the lead is needed for F1, but put its EN and AR shots in the report.
+
+## 122b. Role names are free, and the screen must say so (founder, 6 Nov)
+- **The founder's note:** "roles shouldn't be fixed; I gave examples only". BuildVibes serves the whole AECO industry, so any role must be possible.
+- **What the code does:** the role name is already free text (`BvTextField`, 40 characters). The chips only fill the field. **But the screen hides this:** the field is empty with no hint, and the chips sit right under it, so they read as the only choices.
+- **Fixes (KP4), test first:**
+  - **The name field gets a hint:** "Type any role, e.g. Crane operator" / «اكتب أي دور، مثلاً: مشغّل الرافعة».
+  - **The field opens with the keyboard up** (autofocus) when a new role is added.
+  - **A small caption above the chips:** "Or tap a common one" / «أو اختر دوراً شائعاً». The chips stay **after** the field, as shortcuts.
+  - **Chips and typing work together:** a chip fills the field, and it can still be edited. Typing something else turns the chip off.
+  - **The same for "Call them for":** it's free text (already true), with the 122 hint.
+- **Market pack:** the suggestions stay examples, never a list to choose from. Keep 5 to 8 per pack; no change now.
+- **Tests:**
+  - widget: a typed role that isn't in the suggestions saves and shows as typed, in EN and AR;
+  - the hint shows when the field is empty;
+  - a chip, then an edit, saves the edited text.
+- **No server change.** `save_key_role` already takes any name of up to 40 characters.
