@@ -39,3 +39,19 @@
 
 ## Not in this review
 Nothing on the server changes.
+
+## The lead's check: `claude/r122` at `21a8427d` (6 Nov), accepted with one fix
+- **No server change** in the diff. Cursor's database run matches the last one (4,702 checks).
+- **Shots viewed (AR):**
+  - KP0: the card sits on top, only for the admin, and reads right to left;
+  - TM0: the note sits under Teams, quiet;
+  - KP3: "لم يشارك رقمه · رسالة فقط" sits under the right person.
+- **Shared widget for the brand cards:** accepted.
+- **Answers to Cursor's questions:**
+  1. **One person per line in Key people:** yes, keep it.
+  2. **F1, before merge:** move the **"Call them for" line directly under the role tag**, above the people. The order becomes tag → what to call them for → each person (with "No number shared · Message only" under that person). The two grey lines then never sit together.
+- **Go live after F1, with the founder's yes:**
+  1. merge;
+  2. build;
+  3. install.
+  - No re-check by the lead is needed for F1, but put its EN and AR shots in the report.
