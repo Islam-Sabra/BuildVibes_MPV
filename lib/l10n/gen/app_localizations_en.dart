@@ -7594,6 +7594,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyPeopleNoOne => 'No one yet';
 
   @override
+  String get keyPeopleMessageOnly => 'No number shared · Message only';
+
+  @override
+  String get keyPeopleSetTitle => 'Set who to call';
+
+  @override
+  String get keyPeopleSetLine =>
+      'Safety officer, project engineer… they show on top of People and to every new member.';
+
+  @override
+  String get teamsCompanyHint =>
+      'Teams from companies are offered once 2 or more people have the same company on their profile.';
+
+  @override
   String get keyPeopleReorder => 'Hold and drag a role to move it.';
 
   @override

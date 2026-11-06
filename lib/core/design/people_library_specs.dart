@@ -100,6 +100,14 @@ abstract final class BvKeyPeopleSpec {
     vertical: BvSpace.s12,
   );
   static const noteGap = BvSpace.s8;
+
+  /// Review 122 TM0's note under Teams.
+  static const hintPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: 10,
+  );
+  static const hintGap = BvSpace.s8;
+  static const hintRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
 }
 
 /// Slice 4's Library (LV1 2543:34980) and a file's page (LV2 2543:35101).

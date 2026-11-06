@@ -12560,6 +12560,30 @@ abstract class AppLocalizations {
   /// **'No one yet'**
   String get keyPeopleNoOne;
 
+  /// Review 122 KP3: under a key person who shares no number, so the admin knows why there is no Call.
+  ///
+  /// In en, this message translates to:
+  /// **'No number shared · Message only'**
+  String get keyPeopleMessageOnly;
+
+  /// Review 122 KP0: the card on top of People for the Space admin while there are no key roles.
+  ///
+  /// In en, this message translates to:
+  /// **'Set who to call'**
+  String get keyPeopleSetTitle;
+
+  /// Review 122 KP0: the card's line.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety officer, project engineer… they show on top of People and to every new member.'**
+  String get keyPeopleSetLine;
+
+  /// Review 122 TM0: for the Space admin, under Teams, while no company of 2 or more people waits.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams from companies are offered once 2 or more people have the same company on their profile.'**
+  String get teamsCompanyHint;
+
   /// Review 121 KP3: how to change the order (more than one role).
   ///
   /// In en, this message translates to:

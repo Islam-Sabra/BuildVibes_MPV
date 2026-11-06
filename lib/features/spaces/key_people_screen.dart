@@ -196,17 +196,33 @@ class _RoleRow extends StatelessWidget {
                     ),
                     child: KeyRoleTag(name: role.name),
                   ),
-                  Text(
-                    role.holders.isEmpty
-                        ? l10n.keyPeopleNoOne
-                        : joinMeta([
-                            for (final h in role.holders)
-                              inOwnDirection(h.person.fullName),
-                          ]),
-                    style: role.holders.isEmpty
-                        ? type.bodyMd.copyWith(color: BvColors.textSecondary)
-                        : type.bodyMd,
-                  ),
+                  if (role.holders.isEmpty)
+                    Text(
+                      l10n.keyPeopleNoOne,
+                      style: type.bodyMd.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  // Review 122: each holder on a line; under one who shares
+                  // no number, why there is no Call.
+                  for (final h in role.holders)
+                    Column(
+                      key: Key('key-role-holder-${role.id}-${h.person.id}'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          inOwnDirection(h.person.fullName),
+                          style: type.bodyMd,
+                        ),
+                        if (!h.canCall)
+                          Text(
+                            l10n.keyPeopleMessageOnly,
+                            style: type.metadata.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
                   if (callFor != null)
                     Text(
                       inOwnDirection(callFor),

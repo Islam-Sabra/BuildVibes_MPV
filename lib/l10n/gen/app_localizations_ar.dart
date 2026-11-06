@@ -7657,6 +7657,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyPeopleNoOne => 'لا أحد بعد';
 
   @override
+  String get keyPeopleMessageOnly => 'لم يشارك رقمه · رسالة فقط';
+
+  @override
+  String get keyPeopleSetTitle => 'حدّد بمن يتصل الناس';
+
+  @override
+  String get keyPeopleSetLine =>
+      'ضابط السلامة، مهندس المشروع… يظهرون أعلى الأشخاص ولكل عضو جديد.';
+
+  @override
+  String get teamsCompanyHint =>
+      'تُقترح الفرق من الشركات عندما يكتب شخصان أو أكثر اسم الشركة نفسها في ملفاتهم.';
+
+  @override
   String get keyPeopleReorder => 'اضغط مطولًا على دور واسحبه لتغيير ترتيبه.';
 
   @override

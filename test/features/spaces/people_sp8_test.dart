@@ -106,7 +106,8 @@ void main() {
       testWidgets('one list, "In this Space": name; title · company; the '
           'pass and the Teams as chips', (tester) async {
         await _open(tester, lang);
-        expect(find.text(l10n.peopleInThisSpace), findsOneWidget);
+        // Review 122: the admin, no key roles yet: KP0, then Everyone.
+        expect(find.text(l10n.keyPeopleEveryone), findsOneWidget);
         // No Leads · Crew · Viewers groups (Crew is also the pass's word).
         for (final group in [l10n.peopleLeads, l10n.peopleViewers]) {
           expect(find.text(group), findsNothing, reason: group);
@@ -154,7 +155,7 @@ void main() {
         final spaces = await _open(tester, lang);
         final needs = tester.getRect(find.text(l10n.peopleNeedsYouRequests));
         final request = tester.getRect(_key('request-req-1'));
-        final members = tester.getRect(find.text(l10n.peopleInThisSpace));
+        final members = tester.getRect(find.text(l10n.keyPeopleEveryone));
         expect(needs.top, lessThan(request.top));
         expect(request.bottom, lessThanOrEqualTo(members.top));
         expect(

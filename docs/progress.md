@@ -939,6 +939,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checks: 4,017 Flutter tests, 768 screen tests, 75 files with 4,702 SQL checks.
   - Report: `docs/reviews/2026-11-05-121b-report.md`.
 - **5 Nov (121b live, build 1092):** merged (9656522c); `20261202120000` live after a dry run; build 1092 on `release-1092` with 121 and 121b, installed on the founder's phone (1079 → 1092). Rule 9, arm64: 30.1 MB installed, ~14.4 MB download; WhatsApp 2.26.42.74 on the same phone: 104.6 MB installed, ~88.8 MB download.
+- **6 Nov (review 122, `claude/r122`, waiting for the lead):** the way in when things are empty.
+  - KP0: Set who to call, for the Space admin while there are no key roles.
+  - TM0: why Teams from companies aren't offered yet.
+  - KP3: "No number shared · Message only" under a key person who shares no number.
+  - No server change. `OfferCard` is shared by KP0 and Make Teams from companies.
+  - Checks: 4,039 Flutter tests, 772 screen tests, 75 files with 4,702 SQL checks.
+  - Report: `docs/reviews/2026-11-05-122-report.md`; shots in `docs/reviews/shots-122/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

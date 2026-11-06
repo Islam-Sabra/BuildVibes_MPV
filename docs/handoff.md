@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 6 Nov 2026 — review 122 (empty states KP0, TM0, KP3 line) on `claude/r122`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r122` from `slice2-app` (3ded9729). Not merged, nothing live, no build. No server change.
+- **Report:** `docs/reviews/2026-11-05-122-report.md`, with two questions for the lead about KP3's lines.
+- **Checks:**
+  - `flutter analyze` clean;
+  - `flutter test` 4,039;
+  - `test_screens` 772;
+  - `supabase test db` 75 files, 4,702 checks, on a fresh reset.
+- **After the lead's check, with the founder's yes:** merge → build → install. There is no `db push`.
+- **Emulator:** Pixel_8_B has this branch's debug build, in Arabic. The local stack was reset after the shots.
+- **adb:** the founder's phone reconnected by itself over Wi-Fi debugging (mDNS) during this session. It was disconnected at once, and adb was restarted with `ADB_MDNS_AUTO_CONNECT=0`. Start adb that way, and run `adb devices -l` before any install.
+- **Who has which branch:**
+  - PC has `claude/r122`.
+  - `slice2-app` is at 3ded9729.
+
 ## PC update: 5 Nov 2026, evening (last) — build 1092 on the founder's phone
 
 - **Installed:**
