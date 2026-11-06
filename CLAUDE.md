@@ -28,12 +28,12 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
 - Work in the Daybook design: writing in place with drafts; work item, checklist, announcement, scheduled activity, check-in (review 109) and file posts; opening a post in place (blocks, /, turn into, tables); work items under one work item; walk mode; templates; daily report; meeting notes into work items; management report (see `docs/product/daybook.md`);
 - Planning: the personal notebook and My calendar across all Spaces;
 - Direct messages between two people;
-- Home feed and the Spaces tab;
+- Home (the Spaces; the old feed stays hidden) and **Explore** as the public side: 24-hour posts, company and BuildVibes posts, site alerts, events, search, Near you (founder, 6 Nov; review 125);
 - Activity and push notifications;
 - report and block;
 - delete account.
 
-**Not in the MVP:** export a work item's record as PDF, approval codes, repeating work items, Translate, phone and WhatsApp sign-in, Jobs and hiring, company job management, Explore beyond people search, community question Spaces, CV import, connected accounts, paid plan, sponsored posts.
+**Not in the MVP:** export a work item's record as PDF, approval codes, repeating work items, Translate, phone and WhatsApp sign-in, Jobs and hiring (part of Explore, after the pilot), company job management, community question Spaces, CV import, connected accounts, paid plan, sponsored posts.
 
 Don't build out-of-scope features, even partly, without the founder's yes.
 
