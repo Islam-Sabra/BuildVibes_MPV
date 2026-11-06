@@ -74,3 +74,28 @@ Nothing on the server changes.
   - typing «سلا» narrows the chips to «ضابط السلامة», and typing «مشغّل رافعة» shows no chips and saves as typed;
   - a chip, then an edit, saves the edited text.
 - **No server change.** `save_key_role` already takes any name of up to 40 characters.
+
+## The lead's check of 122b: `claude/r122b` at `e3e7c93a` (6 Nov), accepted
+- **No server change** in the diff.
+- **Shots viewed (AR):**
+  - the empty sheet shows «ابحث عن دور... للتواصل السريع» with the keyboard up;
+  - «سلا» narrows to «ضابط السلامة»;
+  - «مشغّل رافعة» saves as typed and shows in Key people with «لا أحد بعد».
+- **Reusing the notebook's search helper:** accepted. There's one place for letter-form matching.
+- **Cursor's question (Save behind the keyboard):** yes, as its own item, **review 123**. It's real: with the keyboard up, a foreman can't see Save (rule 2).
+- **Go live, with the founder's yes:** merge, then the build. **Install 122b and 123 together**, or 122b alone if 123 isn't ready by then.
+
+# Review 123: a sheet's main button always sits above the keyboard
+- **The problem:**
+  - on bottom sheets with text fields (KP4, and every sheet built the same way), the main button (Save, Send, Post…) is hidden under the keyboard until the person scrolls;
+  - KP4's new autofocus makes this show straight away.
+- **The fix, in the shared sheet:**
+  - The sheet's **main action becomes a footer pinned to the bottom of the sheet**, lifted by the keyboard's height (`MediaQuery.viewInsets.bottom`), with the sheet's usual bottom padding.
+  - The fields above it scroll. The focused field stays visible (`Scrollable.ensureVisible`).
+  - **When the keyboard is closed, it looks exactly as now.**
+  - The footer gets the sheet's surface colour and a 1 px `border/subtle` line on top, **only while the content scrolls under it**.
+- **Where:** only in `lib/shared/widgets/`, through the sheet component(s). Then every sheet with a text field and a main button uses it: KP4, holder note, Team name, new Space, poll composer, file rename, report… **List every sheet changed in the report.**
+- **Tests:**
+  - A widget test with a simulated keyboard (viewInsets 300): the main button is hit-testable and fully on screen, in EN and AR, for KP4 and two other sheets.
+  - The goldens with no keyboard must not change.
+- **No server change.**
