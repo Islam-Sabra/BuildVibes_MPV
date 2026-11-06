@@ -123,7 +123,7 @@ Nothing on the server changes.
   - **remove the description line**;
   - the card's height drops to one row (`BvSpace` row padding).
 - **TM0:** shorten it to **"Teams from companies need 2 people with the same company."** / «فرق الشركات تحتاج شخصين من نفس الشركة.»
-- **KP3 intro text:** remove it. The screen title says enough.
+- **KP3:** remove **both** texts: the intro on top ("People everyone here should know…") and the note at the bottom ("Only the Space admin changes key people…"). The screen is the title, the roles, and **+ Add a role**. The no-number line under a person stays, because it's a fact, not an explanation.
 - **Rule from now on, for the lead and Cursor:**
   - empty states and prompts are **one short line**: no explanations of what a feature does;
   - **if a screen needs a paragraph to be understood, the design is wrong.**
