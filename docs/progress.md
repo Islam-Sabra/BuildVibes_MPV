@@ -957,6 +957,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - No change with the keyboard closed: 772 screen goldens unchanged.
   - Checks: 4,071 Flutter tests, 772 screen tests. No server change.
   - Report: `docs/reviews/2026-11-06-123-report.md`; shots in `docs/reviews/shots-123/`.
+- **6 Nov (review 123 merged; build 1103 with 122b and 123 on the founder's phone).**
+- **6 Nov (review 122c, `claude/r122c`, waiting for the lead):** one short line, no explanations.
+  - KP0 is one row; TM0 is one short line; KP3 has no intro or footnote; KP4 has no "Role name" label; OC1 has no lines between its blocks.
+  - Checks: 4,081 Flutter tests, 772 screen tests (31 goldens updated). No server change.
+  - Report: `docs/reviews/2026-11-06-122c-report.md`; shots in `docs/reviews/shots-122c/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

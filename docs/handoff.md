@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 6 Nov 2026, late night — review 122c (too much text) on `claude/r122c`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r122c` from `slice2-app` (79a5c94e). Not merged, nothing live, no build. No server change.
+- **Report:** `docs/reviews/2026-11-06-122c-report.md`, with two questions for the lead (KP3's drag hint; TM0 wraps in English).
+- **Checks:** `flutter analyze` clean; `flutter test` 4,081; `test_screens` 772.
+- **After the lead's check, with the founder's yes:** merge → build → install. There is no `db push`.
+- **Local stack:** key roles and companies were cleared for the KP0/TM0 shots and restored after (4 roles, 3 holders, 10 companies).
+- **Emulator:** Pixel_8_B has this branch's debug build, in English.
+- **Who has which branch:**
+  - PC has `claude/r122c`.
+  - `slice2-app` is at 79a5c94e (build 1103 on the founder's phone).
+
 ## PC update: 6 Nov 2026, night — 122b and 123 merged; build 1103 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
