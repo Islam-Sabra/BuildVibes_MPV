@@ -130,3 +130,13 @@ Nothing on the server changes.
   - empty states and prompts are **one short line**: no explanations of what a feature does;
   - **if a screen needs a paragraph to be understood, the design is wrong.**
 - **Test first:** update the KP0, TM0 and KP3 widget tests and goldens in EN and AR. No server change.
+
+## The lead's check of 122c: `claude/r122c` at `6dc0c75e` (6 Nov), accepted with two small fixes
+- **Answers to Cursor's questions:**
+  1. Remove "Hold and drag a role to move it." too. It's an explanation; dragging is learned by doing.
+  2. English TM0: use **"Teams from companies need 2 people from one company."**
+- **Then go live, with the founder's yes:**
+  1. merge;
+  2. build;
+  3. install.
+  - The lead needs no re-check for these two text changes. Put their EN shots in the report.
