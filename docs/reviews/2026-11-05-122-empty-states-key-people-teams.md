@@ -60,14 +60,17 @@ Nothing on the server changes.
 - **The founder's note:** "roles shouldn't be fixed; I gave examples only". BuildVibes serves the whole AECO industry, so any role must be possible.
 - **What the code does:** the role name is already free text (`BvTextField`, 40 characters). The chips only fill the field. **But the screen hides this:** the field is empty with no hint, and the chips sit right under it, so they read as the only choices.
 - **Fixes (KP4), test first:**
-  - **The name field gets a hint:** "Type any role, e.g. Crane operator" / «اكتب أي دور، مثلاً: مشغّل الرافعة».
+  - **The name field's hint, in the founder's words (6 Nov):** «ابحث عن دور... للتواصل السريع» / "Search for a role... for quick contact". Use exactly this, with the three dots as typed.
+  - **It works as a search with free text:** as the person types, the suggestion chips narrow to the ones that contain the text, matched in either language and ignoring Arabic letter forms (أ/إ/ا, ة/ه, ى/ي).
+  - **Whatever is typed is kept**, even if nothing matches. With no match, there are simply no chips, and Save saves the typed name.
   - **The field opens with the keyboard up** (autofocus) when a new role is added.
-  - **A small caption above the chips:** "Or tap a common one" / «أو اختر دوراً شائعاً». The chips stay **after** the field, as shortcuts.
+  - **No caption above the chips** (the search hint says enough). The chips stay **after** the field, as shortcuts.
   - **Chips and typing work together:** a chip fills the field, and it can still be edited. Typing something else turns the chip off.
   - **The same for "Call them for":** it's free text (already true), with the 122 hint.
 - **Market pack:** the suggestions stay examples, never a list to choose from. Keep 5 to 8 per pack; no change now.
 - **Tests:**
   - widget: a typed role that isn't in the suggestions saves and shows as typed, in EN and AR;
   - the hint shows when the field is empty;
+  - typing «سلا» narrows the chips to «ضابط السلامة», and typing «مشغّل رافعة» shows no chips and saves as typed;
   - a chip, then an edit, saves the edited text.
 - **No server change.** `save_key_role` already takes any name of up to 40 characters.
