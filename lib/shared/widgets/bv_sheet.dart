@@ -201,12 +201,20 @@ class BvSheetForm extends StatefulWidget {
 }
 
 class _BvSheetFormState extends State<BvSheetForm> {
-  static const _inside = BvSpace.s4;
+  static const _scrollTail = BvSpace.s4;
 
   var _under = false;
 
-  bool _onMetrics(ScrollMetrics m) {
-    final under = m.extentAfter > 0;
+  /// Only the form's own scroll: a field that scrolls inside it doesn't
+  /// count.
+  bool _onScroll(Notification n) {
+    final metrics = switch (n) {
+      ScrollMetricsNotification(:final metrics, depth: 0) => metrics,
+      ScrollUpdateNotification(:final metrics, depth: 0) => metrics,
+      _ => null,
+    };
+    if (metrics == null) return false;
+    final under = metrics.extentAfter > 0;
     if (under != _under) setState(() => _under = under);
     return false;
   }
@@ -218,16 +226,13 @@ class _BvSheetFormState extends State<BvSheetForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Flexible(
-          child: NotificationListener<ScrollMetricsNotification>(
-            onNotification: (n) => _onMetrics(n.metrics),
-            child: NotificationListener<ScrollUpdateNotification>(
-              onNotification: (n) => _onMetrics(n.metrics),
-              // Part of the gap scrolls with the fields, so letters that
-              // reach below their line (Arabic) are not cut.
-              child: SingleChildScrollView(
-                padding: const EdgeInsetsDirectional.only(bottom: _inside),
-                child: widget.body,
-              ),
+          child: NotificationListener<Notification>(
+            onNotification: _onScroll,
+            // Part of the gap scrolls with the fields, so letters that
+            // reach below their line (Arabic) are not cut.
+            child: SingleChildScrollView(
+              padding: const EdgeInsetsDirectional.only(bottom: _scrollTail),
+              child: widget.body,
             ),
           ),
         ),
@@ -245,7 +250,7 @@ class _BvSheetFormState extends State<BvSheetForm> {
                 : null,
           ),
           child: Padding(
-            padding: EdgeInsetsDirectional.only(top: widget.gap - _inside),
+            padding: EdgeInsetsDirectional.only(top: widget.gap - _scrollTail),
             child: widget.action,
           ),
         ),

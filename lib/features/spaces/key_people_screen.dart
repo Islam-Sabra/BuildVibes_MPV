@@ -508,8 +508,8 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
       ],
     );
     return BvSheetForm(
-      body: fields,
       gap: BvSpace.s24,
+      body: fields,
       action: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
