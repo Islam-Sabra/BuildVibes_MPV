@@ -79,6 +79,7 @@ Future<void> showNeedYouSheet(
 }) async {
   final sent = await showBvSheet<bool>(
     context: context,
+    form: true,
     builder: (_) => NeedYouSheet(spaceId: spaceId, member: member),
   );
   if (sent == true && context.mounted) {
@@ -160,82 +161,92 @@ class _NeedYouSheetState extends ConsumerState<NeedYouSheet> {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final refused = _refused;
-    return Column(
-      key: const Key('need-you-sheet'),
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvFolderSpec.sheetGap,
-      children: [
-        Row(
-          spacing: BvPeopleSpec.rowGap,
-          children: [
-            BvAvatar(
-              name: _person.fullName,
-              size: BvAvatarSize.list,
-              tint: BvAvatarTints.forId(_person.id),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: BvSpace.s2,
-                children: [
-                  Text(
-                    inOwnDirection(_person.fullName),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.emphasis,
-                  ),
-                  RoleCompanyLine(person: _person, lang: lang),
-                ],
+    return BvSheetForm(
+      gap: BvFolderSpec.sheetGap,
+      body: Column(
+        key: const Key('need-you-sheet'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvFolderSpec.sheetGap,
+        children: [
+          Row(
+            spacing: BvPeopleSpec.rowGap,
+            children: [
+              BvAvatar(
+                name: _person.fullName,
+                size: BvAvatarSize.list,
+                tint: BvAvatarTints.forId(_person.id),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: BvSpace.s2,
+                  children: [
+                    Text(
+                      inOwnDirection(_person.fullName),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.emphasis,
+                    ),
+                    RoleCompanyLine(person: _person, lang: lang),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          BvTextField(
+            key: const Key('need-you-reason'),
+            controller: _reason,
+            placeholder: l10n.needYouReasonHint,
+            maxLength: NeedYouRules.reasonMax,
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          if (_withPlace)
+            BvTextField(
+              key: const Key('need-you-place'),
+              controller: _place,
+              placeholder: l10n.needYouPlaceHint,
+              maxLength: NeedYouRules.placeMax,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+            )
+          else
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: BvChip(
+                key: const Key('need-you-add-place'),
+                label: l10n.needYouAddPlace,
+                icon: BvIcons.place,
+                onTap: () => setState(() => _withPlace = true),
               ),
             ),
-          ],
-        ),
-        BvTextField(
-          key: const Key('need-you-reason'),
-          controller: _reason,
-          placeholder: l10n.needYouReasonHint,
-          maxLength: NeedYouRules.reasonMax,
-          textCapitalization: TextCapitalization.sentences,
-        ),
-        if (_withPlace)
-          BvTextField(
-            key: const Key('need-you-place'),
-            controller: _place,
-            placeholder: l10n.needYouPlaceHint,
-            maxLength: NeedYouRules.placeMax,
-            autofocus: true,
-            textCapitalization: TextCapitalization.sentences,
-          )
-        else
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: BvChip(
-              key: const Key('need-you-add-place'),
-              label: l10n.needYouAddPlace,
-              icon: BvIcons.place,
-              onTap: () => setState(() => _withPlace = true),
+          if (refused != null)
+            Text(
+              refused,
+              key: const Key('need-you-refused'),
+              style: type.bodySm.copyWith(color: BvColors.textDestructive),
             ),
+        ],
+      ),
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvFolderSpec.sheetGap,
+        children: [
+          BvButton(
+            key: const Key('need-you-send'),
+            label: l10n.needYouNow,
+            icon: BvIcons.needYou,
+            expand: true,
+            onPressed: _sending ? null : () => unawaited(_send()),
           ),
-        if (refused != null)
           Text(
-            refused,
-            key: const Key('need-you-refused'),
-            style: type.bodySm.copyWith(color: BvColors.textDestructive),
+            l10n.needYouStrongNote(inOwnDirection(_person.firstName)),
+            textAlign: TextAlign.center,
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
-        BvButton(
-          key: const Key('need-you-send'),
-          label: l10n.needYouNow,
-          icon: BvIcons.needYou,
-          expand: true,
-          onPressed: _sending ? null : () => unawaited(_send()),
-        ),
-        Text(
-          l10n.needYouStrongNote(inOwnDirection(_person.firstName)),
-          textAlign: TextAlign.center,
-          style: type.metadata.copyWith(color: BvColors.textSecondary),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

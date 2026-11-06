@@ -847,6 +847,7 @@ Future<({String text, String note})?> showTaskRowSheet(BuildContext context) {
   final l10n = AppLocalizations.of(context);
   return showBvSheet<({String text, String note})>(
     context: context,
+    form: true,
     title: l10n.pageAddRow,
     builder: (sheet) => const _TaskRowForm(),
   );
@@ -881,41 +882,44 @@ class _TaskRowFormState extends State<_TaskRowForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s12,
-      children: [
-        TextField(
-          key: const Key('task-add-text'),
-          controller: _text,
-          autofocus: true,
-          maxLength: PageTaskTable.cellMax,
-          style: type.bodyMd,
-          decoration: InputDecoration(
-            hintText: l10n.taskTableTask,
-            counterText: '',
+    return BvSheetForm(
+      gap: BvSpace.s12,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s12,
+        children: [
+          TextField(
+            key: const Key('task-add-text'),
+            controller: _text,
+            autofocus: true,
+            maxLength: PageTaskTable.cellMax,
+            style: type.bodyMd,
+            decoration: InputDecoration(
+              hintText: l10n.taskTableTask,
+              counterText: '',
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _send(),
           ),
-          onChanged: (_) => setState(() {}),
-          onSubmitted: (_) => _send(),
-        ),
-        TextField(
-          key: const Key('task-add-note'),
-          controller: _note,
-          maxLength: PageTaskTable.cellMax,
-          style: type.bodyMd,
-          decoration: InputDecoration(
-            hintText: l10n.taskTableNoteHint,
-            counterText: '',
+          TextField(
+            key: const Key('task-add-note'),
+            controller: _note,
+            maxLength: PageTaskTable.cellMax,
+            style: type.bodyMd,
+            decoration: InputDecoration(
+              hintText: l10n.taskTableNoteHint,
+              counterText: '',
+            ),
+            onSubmitted: (_) => _send(),
           ),
-          onSubmitted: (_) => _send(),
-        ),
-        BvButton(
-          key: const Key('task-add-send'),
-          label: l10n.pageMenuTitle,
-          expand: true,
-          onPressed: _text.text.trim().isEmpty ? null : _send,
-        ),
-      ],
+        ],
+      ),
+      action: BvButton(
+        key: const Key('task-add-send'),
+        label: l10n.pageMenuTitle,
+        expand: true,
+        onPressed: _text.text.trim().isEmpty ? null : _send,
+      ),
     );
   }
 }

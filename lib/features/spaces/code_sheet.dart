@@ -24,6 +24,7 @@ const inviteCodeLength = 6;
 /// characters it shows the Space and who shared the code, then Ask to join.
 Future<void> showInviteCodeSheet(BuildContext context) => showBvSheet<void>(
   context: context,
+  form: true,
   title: AppLocalizations.of(context).spacesEnterCode,
   builder: (_) => const _CodeSheet(),
 );
@@ -154,49 +155,52 @@ class _CodeSheetState extends ConsumerState<_CodeSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final preview = _preview;
-    return Column(
-      key: const Key('code-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('invite-code-field'),
-          label: l10n.spacesInviteCode,
-          helper: l10n.spacesCodeHint,
-          error: _error,
-          controller: _code,
-          autofocus: true,
-          keyboardType: TextInputType.visiblePassword,
-          textCapitalization: TextCapitalization.characters,
-          suggestions: false,
-          textDirection: TextDirection.ltr,
-          inputFormatters: const [InviteCodeFormatter()],
-          valueStyle: BvType.of(context).titleLg,
-          onChanged: _onChanged,
-        ),
-        if (preview != null)
-          ProfileCard(
-            padding: false,
-            child: BvListRow(
-              key: const Key('invite-preview'),
-              leading: const BvRowIcon(BvIcons.team),
-              title: preview.spaceName,
-              subtitle: preview.invitedByName == null
-                  ? null
-                  : l10n.spacesInvitedBy(
-                      inOwnDirection(preview.invitedByName!),
-                    ),
-              trailing: const BvRowTrailing.none(),
-            ),
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        key: const Key('code-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('invite-code-field'),
+            label: l10n.spacesInviteCode,
+            helper: l10n.spacesCodeHint,
+            error: _error,
+            controller: _code,
+            autofocus: true,
+            keyboardType: TextInputType.visiblePassword,
+            textCapitalization: TextCapitalization.characters,
+            suggestions: false,
+            textDirection: TextDirection.ltr,
+            inputFormatters: const [InviteCodeFormatter()],
+            valueStyle: BvType.of(context).titleLg,
+            onChanged: _onChanged,
           ),
-        BvButton(
-          key: const Key('ask-to-join'),
-          label: l10n.spacesAskToJoin,
-          expand: true,
-          onPressed: preview == null || _busy ? null : _ask,
-        ),
-      ],
+          if (preview != null)
+            ProfileCard(
+              padding: false,
+              child: BvListRow(
+                key: const Key('invite-preview'),
+                leading: const BvRowIcon(BvIcons.team),
+                title: preview.spaceName,
+                subtitle: preview.invitedByName == null
+                    ? null
+                    : l10n.spacesInvitedBy(
+                        inOwnDirection(preview.invitedByName!),
+                      ),
+                trailing: const BvRowTrailing.none(),
+              ),
+            ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('ask-to-join'),
+        label: l10n.spacesAskToJoin,
+        expand: true,
+        onPressed: preview == null || _busy ? null : _ask,
+      ),
     );
   }
 }

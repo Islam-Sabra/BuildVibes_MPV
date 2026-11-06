@@ -13,6 +13,7 @@ Future<T?> showBvSheet<T>({
   String? subtitle,
   BvSheetFooter? footer,
   WidgetBuilder? foot,
+  bool form = false,
   bool useRootNavigator = true,
 }) {
   return showModalBottomSheet<T>(
@@ -34,6 +35,7 @@ Future<T?> showBvSheet<T>({
       subtitle: subtitle,
       footer: footer,
       foot: foot?.call(context),
+      form: form,
       child: builder(context),
     ),
   );
@@ -65,6 +67,7 @@ class BvSheet extends StatelessWidget {
     this.subtitle,
     this.footer,
     this.foot,
+    this.form = false,
   });
 
   final Widget child;
@@ -74,6 +77,9 @@ class BvSheet extends StatelessWidget {
 
   /// Stays at the foot while the content scrolls (a picker's Done).
   final Widget? foot;
+
+  /// [child] is a [BvSheetForm], which scrolls its own fields.
+  final bool form;
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +141,9 @@ class BvSheet extends StatelessWidget {
                       ),
                   ],
                 ),
-              Flexible(child: SingleChildScrollView(child: child)),
+              Flexible(
+                child: form ? child : SingleChildScrollView(child: child),
+              ),
               ?foot,
               if (footer != null)
                 Row(
@@ -166,6 +174,82 @@ class BvSheet extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Review 123: a sheet's form. [body] (the fields) scrolls; [action] (the
+/// main button) stays at the sheet's foot, so with the keyboard up it sits
+/// right above it. Open it with `showBvSheet(form: true)`. While the fields
+/// run on under it, a 1 px line tops the action.
+class BvSheetForm extends StatefulWidget {
+  const BvSheetForm({
+    super.key,
+    required this.body,
+    required this.action,
+    this.gap = BvSheetSpec.gap,
+  });
+
+  final Widget body;
+  final Widget action;
+
+  /// Between [body] and [action].
+  final double gap;
+
+  @override
+  State<BvSheetForm> createState() => _BvSheetFormState();
+}
+
+class _BvSheetFormState extends State<BvSheetForm> {
+  static const _inside = BvSpace.s4;
+
+  var _under = false;
+
+  bool _onMetrics(ScrollMetrics m) {
+    final under = m.extentAfter > 0;
+    if (under != _under) setState(() => _under = under);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Flexible(
+          child: NotificationListener<ScrollMetricsNotification>(
+            onNotification: (n) => _onMetrics(n.metrics),
+            child: NotificationListener<ScrollUpdateNotification>(
+              onNotification: (n) => _onMetrics(n.metrics),
+              // Part of the gap scrolls with the fields, so letters that
+              // reach below their line (Arabic) are not cut.
+              child: SingleChildScrollView(
+                padding: const EdgeInsetsDirectional.only(bottom: _inside),
+                child: widget.body,
+              ),
+            ),
+          ),
+        ),
+        DecoratedBox(
+          key: const Key('bv-sheet-form-action'),
+          decoration: BoxDecoration(
+            color: BvColors.surfaceApp,
+            border: _under
+                ? const Border(
+                    top: BorderSide(
+                      color: BvColors.borderSubtle,
+                      width: BvStroke.thin,
+                    ),
+                  )
+                : null,
+          ),
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(top: widget.gap - _inside),
+            child: widget.action,
+          ),
+        ),
+      ],
     );
   }
 }

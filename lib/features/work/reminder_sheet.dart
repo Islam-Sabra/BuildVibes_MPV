@@ -43,6 +43,7 @@ Future<String?> showReminderSheet(
   required DaybookPost post,
 }) => showBvSheet<String>(
   context: context,
+  form: true,
   title: AppLocalizations.of(context).workReminder,
   builder: (sheet) => _ReminderSheet(space: space, post: post),
 );
@@ -269,143 +270,155 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       l10n,
     ).time.clock(spaceTimeOn(null, now, hour: _morning));
 
-    return Column(
-      key: const Key('reminder-sheet'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s12,
-      children: [
-        if (maySomeone)
-          BvSegmented<_Who>(
-            segments: [
-              BvSegment(
-                key: const Key('reminder-me'),
-                value: _Who.me,
-                label: l10n.rmMe,
-              ),
-              BvSegment(
-                key: const Key('reminder-someone'),
-                value: _Who.someone,
-                label: l10n.rmSomeone,
-              ),
-            ],
-            value: _who,
-            onChanged: (v) => setState(() {
-              _who = v;
-              _error = null;
-            }),
+    return BvSheetForm(
+      gap: BvSpace.s12,
+      body: Column(
+        key: const Key('reminder-sheet'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s12,
+        children: [
+          if (maySomeone)
+            BvSegmented<_Who>(
+              segments: [
+                BvSegment(
+                  key: const Key('reminder-me'),
+                  value: _Who.me,
+                  label: l10n.rmMe,
+                ),
+                BvSegment(
+                  key: const Key('reminder-someone'),
+                  value: _Who.someone,
+                  label: l10n.rmSomeone,
+                ),
+              ],
+              value: _who,
+              onChanged: (v) => setState(() {
+                _who = v;
+                _error = null;
+              }),
+            ),
+          if (someone)
+            BvWritingRows(
+              rows: [
+                BvWritingRow(
+                  key: const Key('reminder-who'),
+                  label: l10n.rmWho,
+                  value: chosen.isEmpty
+                      ? l10n.rmChooseWho
+                      : chosen.length == 1
+                      ? chosen.single.name
+                      : l10n.rmWhoMore(
+                          inOwnDirection(chosen.first.name),
+                          [
+                            for (final p in chosen.skip(1))
+                              inOwnDirection(p.name),
+                          ].join(l10n.rmSeparator),
+                        ),
+                  person: chosen.firstOrNull?.name,
+                  empty: chosen.isEmpty,
+                  onTap: people == null ? null : () => _choosePeople(people),
+                ),
+              ],
+            ),
+          Text(
+            l10n.rmWhen,
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
-        if (someone)
-          BvWritingRows(
-            rows: [
-              BvWritingRow(
-                key: const Key('reminder-who'),
-                label: l10n.rmWho,
-                value: chosen.isEmpty
-                    ? l10n.rmChooseWho
-                    : chosen.length == 1
-                    ? chosen.single.name
-                    : l10n.rmWhoMore(
-                        inOwnDirection(chosen.first.name),
-                        [for (final p in chosen.skip(1)) inOwnDirection(p.name)]
-                            .join(l10n.rmSeparator),
-                      ),
-                person: chosen.firstOrNull?.name,
-                empty: chosen.isEmpty,
-                onTap: people == null ? null : () => _choosePeople(people),
-              ),
-            ],
-          ),
-        Text(
-          l10n.rmWhen,
-          style: type.metadata.copyWith(color: BvColors.textSecondary),
-        ),
-        Wrap(
-          spacing: BvSpace.s8,
-          runSpacing: BvSpace.s8,
-          // RM1d: a picked time stands alone, × back to the suggestions.
-          children: [
-            if (_when == _When.picked && _picked != null)
-              BvFilterChip(
-                key: const Key('reminder-picked'),
-                clearKey: const Key('reminder-picked-clear'),
-                label: _whenWords(l10n, _picked!, now),
-                icon: BvIcons.clock,
-                clearLabel: l10n.rmClearTime,
-                onClear: () => setState(() {
-                  _picked = null;
-                  _when = _When.tomorrow;
-                  _error = null;
-                }),
-              )
-            else ...[
-              BvChip(
-                key: const Key('reminder-tomorrow'),
-                label: l10n.rmTomorrowAt(clock),
-                icon: BvIcons.clock,
-                selected: _when == _When.tomorrow,
-                onTap: () => setState(() {
-                  _when = _When.tomorrow;
-                  _error = null;
-                }),
-              ),
-              if (widget.post.dueAt != null)
+          Wrap(
+            spacing: BvSpace.s8,
+            runSpacing: BvSpace.s8,
+            // RM1d: a picked time stands alone, × back to the suggestions.
+            children: [
+              if (_when == _When.picked && _picked != null)
+                BvFilterChip(
+                  key: const Key('reminder-picked'),
+                  clearKey: const Key('reminder-picked-clear'),
+                  label: _whenWords(l10n, _picked!, now),
+                  icon: BvIcons.clock,
+                  clearLabel: l10n.rmClearTime,
+                  onClear: () => setState(() {
+                    _picked = null;
+                    _when = _When.tomorrow;
+                    _error = null;
+                  }),
+                )
+              else ...[
                 BvChip(
-                  key: const Key('reminder-before-due'),
-                  label: l10n.rmBeforeDue,
-                  selected: _when == _When.beforeDue,
+                  key: const Key('reminder-tomorrow'),
+                  label: l10n.rmTomorrowAt(clock),
+                  icon: BvIcons.clock,
+                  selected: _when == _When.tomorrow,
                   onTap: () => setState(() {
-                    _when = _When.beforeDue;
+                    _when = _When.tomorrow;
                     _error = null;
                   }),
                 ),
-              BvChip(
-                key: const Key('reminder-pick'),
-                label: l10n.rmPick,
-                icon: BvIcons.calendar,
-                onTap: () => unawaited(_pick(now)),
-              ),
+                if (widget.post.dueAt != null)
+                  BvChip(
+                    key: const Key('reminder-before-due'),
+                    label: l10n.rmBeforeDue,
+                    selected: _when == _When.beforeDue,
+                    onTap: () => setState(() {
+                      _when = _When.beforeDue;
+                      _error = null;
+                    }),
+                  ),
+                BvChip(
+                  key: const Key('reminder-pick'),
+                  label: l10n.rmPick,
+                  icon: BvIcons.calendar,
+                  onTap: () => unawaited(_pick(now)),
+                ),
+              ],
             ],
-          ],
-        ),
-        if (someone)
-          BvTextField(
-            key: const Key('reminder-note'),
-            label: l10n.rmNote,
-            controller: _note,
-            maxLength: _noteMax,
-            textCapitalization: TextCapitalization.sentences,
           ),
-        if (_error != null)
-          Text(
-            _error!,
-            key: const Key('reminder-error'),
-            style: type.metadata.copyWith(color: BvColors.textDestructive),
-          ),
-        BvButton(
-          key: const Key('reminder-set'),
-          label: l10n.rmSet,
-          icon: BvIcons.remind,
-          expand: true,
-          onPressed: _saving ? null : () => _set(now, people),
-        ),
-        if (!someone && kept != null)
-          Center(
-            child: BvButton(
-              key: const Key('reminder-remove'),
-              label: l10n.rmRemoveMine,
-              style: BvButtonStyle.tertiary,
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                await ref
-                    .read(spaceRemindersProvider.notifier)
-                    .set(_spaceId, widget.post, at: null, body: '');
-                navigator.pop();
-              },
+          if (someone)
+            BvTextField(
+              key: const Key('reminder-note'),
+              label: l10n.rmNote,
+              controller: _note,
+              maxLength: _noteMax,
+              textCapitalization: TextCapitalization.sentences,
             ),
+          if (_error != null)
+            Text(
+              _error!,
+              key: const Key('reminder-error'),
+              style: type.metadata.copyWith(color: BvColors.textDestructive),
+            ),
+        ],
+      ),
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s12,
+        children: [
+          BvButton(
+            key: const Key('reminder-set'),
+            label: l10n.rmSet,
+            icon: BvIcons.remind,
+            expand: true,
+            onPressed: _saving ? null : () => _set(now, people),
           ),
-        const SizedBox(height: BvSheetSpec.footerGap),
-      ],
+          if (!someone && kept != null)
+            Center(
+              child: BvButton(
+                key: const Key('reminder-remove'),
+                label: l10n.rmRemoveMine,
+                style: BvButtonStyle.tertiary,
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  await ref
+                      .read(spaceRemindersProvider.notifier)
+                      .set(_spaceId, widget.post, at: null, body: '');
+                  navigator.pop();
+                },
+              ),
+            ),
+          const SizedBox(height: BvSheetSpec.footerGap),
+        ],
+      ),
     );
   }
 }

@@ -48,6 +48,7 @@ Future<String?> pickDialCode(
   if (picked != other) return picked;
   return showBvSheet<String>(
     context: context,
+    form: true,
     title: l10n.dialCodeOther,
     builder: (_) => const _OtherDialCode(),
   );
@@ -75,31 +76,32 @@ class _OtherDialCodeState extends State<_OtherDialCode> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final code = PhoneRules.dialCode(_code.text);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvSpace.s16,
-      children: [
-        BvTextField(
-          key: const Key('dial-other-field'),
-          controller: _code,
-          autofocus: true,
-          prefixText: '+',
-          helper: l10n.dialCodeOtherHelp,
-          textDirection: TextDirection.ltr,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [BvWesternDigitsFormatter()],
-          onChanged: (_) => setState(() {}),
-        ),
-        BvButton(
-          key: const Key('dial-other-confirm'),
-          label: l10n.commonConfirm,
-          expand: true,
-          onPressed: code == null
-              ? null
-              : () => Navigator.of(context).pop(code),
-        ),
-      ],
+    return BvSheetForm(
+      gap: BvSpace.s16,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s16,
+        children: [
+          BvTextField(
+            key: const Key('dial-other-field'),
+            controller: _code,
+            autofocus: true,
+            prefixText: '+',
+            helper: l10n.dialCodeOtherHelp,
+            textDirection: TextDirection.ltr,
+            keyboardType: TextInputType.number,
+            inputFormatters: const [BvWesternDigitsFormatter()],
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      ),
+      action: BvButton(
+        key: const Key('dial-other-confirm'),
+        label: l10n.commonConfirm,
+        expand: true,
+        onPressed: code == null ? null : () => Navigator.of(context).pop(code),
+      ),
     );
   }
 }
