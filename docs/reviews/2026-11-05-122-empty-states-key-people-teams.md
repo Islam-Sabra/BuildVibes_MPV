@@ -115,3 +115,16 @@ Nothing on the server changes.
   2. **one** release build with 122b and 123;
   3. install;
   4. the size against WhatsApp in the report (rule 9).
+
+## 122c. Too much text (founder, 6 Nov, phone check of 1103)
+- **The founder:** the KP0 card explains too much. Keep the screens short, not explanatory.
+- **KP0:**
+  - one line only: shield icon + **"Set who to call"** / «حدّد بمن يتصل الناس» + chevron;
+  - **remove the description line**;
+  - the card's height drops to one row (`BvSpace` row padding).
+- **TM0:** shorten it to **"Teams from companies need 2 people with the same company."** / «فرق الشركات تحتاج شخصين من نفس الشركة.»
+- **KP3 intro text:** remove it. The screen title says enough.
+- **Rule from now on, for the lead and Cursor:**
+  - empty states and prompts are **one short line**: no explanations of what a feature does;
+  - **if a screen needs a paragraph to be understood, the design is wrong.**
+- **Test first:** update the KP0, TM0 and KP3 widget tests and goldens in EN and AR. No server change.
