@@ -10,7 +10,9 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Live:** migration `20261203120000` (review 126 P1), pushed from the PC with the founder's yes. 0 profiles skipped. `profiles.company_id` / `company_name_text` are gone: builds up to 1110 can't load people lists any more.
 - **Build 1116:** `Desktop/BuildVibes-1116.apk`. arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Installed on 22120RN86G (1110 → 1116), then disconnected.
   - The phone refused two installs ("Install canceled by user"); it worked on a fresh Wireless debugging port.
-- **Next:** `claude/r122e`, removing every example and sample text inside fields (the list is in the 122d report). No server change expected.
+- **Review 122e:** on `claude/r122e` (from `slice2-app` 79434e28), waiting for the lead. Every example and sample text in fields is gone, EN and AR. Report: `docs/reviews/2026-11-07-122e-report.md`.
+  - Checks: analyze clean; 4,112 tests; `test_screens` 752 (22 `r109` clock shots differ).
+  - No server change. After the lead's check: merge, build, install.
 - **Local stack:** has 126 applied. pgTAP `03` still needs `kp.admin@example.com`'s phone blanked for a full run.
 - **Emulator:** Pixel_8_B (emulator-5554) has the r126 debug build, signed in as Islam.
 - **PC clock:** still W. Europe, which still gives the 22 `r109` screen-test differences.

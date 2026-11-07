@@ -976,6 +976,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **7 Nov (122d and 126 P1 merged; migration 20261203120000 live; build 1116 on the founder's phone).**
   - Lead's check of 126: inside a Space its members see each member's current work whatever the entry's visibility (`space_member_work`; Teams from companies, the Team match and key-role rows); the basics' headline renames the current entry.
   - Rule 9: arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Back-fill skipped 0 profiles.
+- **7 Nov (review 122e, `claude/r122e`, waiting for the lead):** no example or sample text in fields, EN/AR. Seven keys removed; the Space search, KP4 note and phone error reworded without examples. 4,112 Flutter tests, 752 screen tests.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
