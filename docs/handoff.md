@@ -2,6 +2,18 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 7 Nov 2026, night — 122e merged; build 1119 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged:** `claude/r122e` into `slice2-app` (fast-forward to aad99040, also `release-1119`). No `db push`: no server change.
+- **Build 1119:** `Desktop/BuildVibes-1119.apk`. arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Installed on 22120RN86G through 192.168.8.33:34055 (1116 → 1119), then disconnected.
+- **Next:** wait for the lead's next review (126 P2, Profile v3, is in the review file).
+- **Release builds:** the split build failed once with no clear error and passed on a retry; run it again before suspecting the code.
+- **Emulator:** Pixel_8_B (emulator-5554) has the r126 debug build, signed in as Islam.
+- **PC clock:** still W. Europe, which still gives the 22 `r109` screen-test differences.
+- **Who has which branch:** `slice2-app` is on the PC. No branch is out; the worktrees `BuildVibes-r122c`, `-r122d`, `-r122e`, `-r126` and `-tz` can be removed.
+
 ## PC update: 7 Nov 2026, evening — 122d and 126 P1 live; build 1116 on the founder's phone; next: r122e
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
