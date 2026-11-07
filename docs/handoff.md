@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 7 Nov 2026 — 122c and the Kuwait clock fix merged; build 1110 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged into `slice2-app` (2f1956b2):**
+  - `claude/r122c`, with the lead's two last fixes (KP3 drag hint gone; TM0 English "Company Teams need 2 people from one company.").
+  - `claude/tz-alias`: the Space clock reads `Asia/Kuwait` (`latest_all.dart`).
+  - No `db push`: no server change.
+- **Build 1110:** its source is `release-1110`; the APK is `Desktop/BuildVibes-1110.apk`. arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Installed on 22120RN86G (1103 → 1110), then disconnected.
+- **Checks:** analyze clean; `flutter test` 4,086; `test_screens` 750 pass, and 22 `r109` check-in shots differ only in a post's own time, because this PC is on W. Europe time.
+- **For the lead:** the 122c report's last section covers the tz-alias fix, which was made without a review.
+- **PC clock:** the zone still reads W. Europe, and the clock was set forward to Kuwait time. Set "time zone automatically" off, pick (UTC+03:00) Kuwait, Riyadh, and set the time automatically. Then `test_screens` should be 772/772 again.
+- **Release builds:** run without `--no-pub`, or the release build keeps a stale `GeneratedPluginRegistrant` that still lists `integration_test`.
+- **Who has which branch:** `slice2-app` is on the PC. `claude/r122c` and `claude/tz-alias` are merged; their worktrees (`BuildVibes-r122c`, `BuildVibes-tz`) can be removed.
+
 ## PC update: 6 Nov 2026, late night — review 122c (too much text) on `claude/r122c`; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

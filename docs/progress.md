@@ -962,6 +962,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - KP0 is one row; TM0 is one short line; KP3 has no intro or footnote; KP4 has no "Role name" label; OC1 has no lines between its blocks.
   - Checks: 4,081 Flutter tests, 772 screen tests (31 goldens updated). No server change.
   - Report: `docs/reviews/2026-11-06-122c-report.md`; shots in `docs/reviews/shots-122c/`.
+- **7 Nov (122c lead's check; Kuwait clock fix; build 1110 on the founder's phone).**
+  - KP3: the drag hint is gone (`keyPeopleReorder` removed). TM0 English: "Company Teams need 2 people from one company." (the founder's pick; the lead's wording needed 329 px of 310). A screen test checks TM0 is one line in EN and AR.
+  - Bug found and fixed (`claude/tz-alias`): the zone list had no `Asia/Kuwait` (the Kuwait pack's zone, an IANA alias), so a Kuwait Space's check-in times and day end followed the phone's clock. Both imports now use `latest_all.dart`. Test: `test/features/work/space_zone_alias_test.dart`.
+  - Merged into `slice2-app` (2f1956b2). Checks: analyze clean; 4,086 Flutter tests; screen tests 750 pass, 22 differ only in a post's own time (`r109` check-in shots; the PC is on W. Europe time, the goldens were drawn on Kuwait time).
+  - Build 1110 (`release-1110`): arm64 30.2 MB installed, ~14.4 MB download; WhatsApp 104.6 MB / ~88.8 MB. Installed on 22120RN86G (1103 → 1110).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
