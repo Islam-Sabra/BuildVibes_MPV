@@ -978,6 +978,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Rule 9: arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Back-fill skipped 0 profiles.
 - **7 Nov (review 122e, `claude/r122e`, waiting for the lead):** no example or sample text in fields, EN/AR. Seven keys removed; the Space search, KP4 note and phone error reworded without examples. 4,112 Flutter tests, 752 screen tests.
 - **7 Nov (122e merged; build 1119 on the founder's phone).** arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). No server change.
+- **7 Nov (review 126 P2 + P3 stage 1, `claude/r126-data`, waiting for the lead; migration not live):** data and server for Profile v3 and the project studio.
+  - Project kinds, stages and the market tool list; CV entry fields (what I did, status, featured, with, link, tools, visibility); `cv_project_media` (bucket `cv-media`); `cv_project_teammates` (one notification each).
+  - `experience_timeline` (promotions); `my_profile_completion`.
+  - pgTAP 77 files, 4,828 checks (local). Report `docs/reviews/2026-11-07-126-data-report.md`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

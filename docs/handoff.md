@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 7 Nov 2026, late night — 126 P2 + P3 stage 1 (data and server) on `claude/r126-data`; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r126-data` from `slice2-app` 732a6d41. Report: `docs/reviews/2026-11-07-126-data-report.md`.
+- **Migration `20261204120000_review126_data.sql` is not live.** It is applied to the local database only. It works with build 1119 (defaults; `show_on_profile` kept as a mirror; `create_project` takes today's call).
+- **No Dart change, no build.** The screens (EN/AR frames, then the app) are the next stage.
+- **Local stack:** has 126 P1 and this migration. `build/rollback.sql` in the branch's worktree undoes this one locally (it can't delete the `cv-media` bucket; the migration skips it if present).
+- **Who has which branch:** PC has `claude/r126-data`. `slice2-app` is at 732a6d41 (build 1119 on the founder's phone).
+
 ## PC update: 7 Nov 2026, night — 122e merged; build 1119 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -71,7 +71,41 @@ Every state change that has business rules goes through a Postgres function (`se
 **Access:**
 - Projects: anyone signed in can read. Anyone can create one, but only after `find_similar_projects` has been offered (the app enforces this; the server rate-limits it).
 - **There is no update policy on projects.** Corrections go through suggestions only.
-- `cv_projects`: the owner writes. Others read only when `show_on_profile` is set.
+- `cv_projects`: the owner writes. Who else reads is set by `visibility` (review 126, below); `show_on_profile` is its mirror.
+
+**Review 126 P2 + P3 (migration `20261204120000_review126_data.sql`, stage 1: data and server):**
+- **Reference data:**
+  - `project_kinds`: Building · Infrastructure · Interior · Design study · Software · Website · Plugin or tool · Research · Course · Other, with a `physical` flag.
+  - `project_stages`: Design · Tender · Construction · Handover.
+  - `market_tools` (per market): the tool list.
+- **`projects`:**
+  - `kind_id` (default building) and `stage_id null`.
+  - `type_id` is needed only for a building; the place stays optional for every kind.
+  - `create_project` takes `p_kind_id` and `p_stage_id`.
+- **`cv_projects` adds:**
+  - `what_i_did` (≤ 200);
+  - `status` (in_progress | completed; from the end month when not given);
+  - `featured` + `featured_order` (6 at most);
+  - `with_company_ids` (≤ 2 registered) or `with_company_text` (rule 4);
+  - `link` (one http(s) URL);
+  - `tool_ids` (the owner's market list) + `tools_text` (≤ 5 of their own);
+  - `visibility` (everyone | team_only | hidden). `show_on_profile` is kept as its mirror, true only for everyone, so today's readers keep their meaning.
+- **`cv_project_media`:**
+  - Ordered photos and videos; the lowest `sort` is the cover; 10 at most.
+  - Stored in the private bucket `cv-media` under `<owner>/<entry>/<file>`, read through signed URLs.
+  - `source_post_file_id`: a Space photo only its poster may add, copied on choice (rule 8).
+- **`cv_project_teammates`:**
+  - People tagged on an entry; 20 at most; never across a block.
+  - Each gets one `cv_teammate` notification. No confirmation.
+- **Access:**
+  - `can_read_cv_project(id)`: the owner; or, not across a block, anyone for everyone, and the tagged teammates for team_only.
+  - Media and teammates follow the entry. Storage reads follow the media row.
+- **`experience_timeline(profile)`:**
+  - Experience as the caller may read it, newest first, in runs of roles at one company.
+  - `promoted_on` = the newer role's start, when the role before it in the run was at the same company. No new column.
+- **`my_profile_completion()`:** the caller's Finish your profile.
+  - The steps are photo, title, current_work, summary, first_project, and phone only while in a Space.
+  - It returns `steps`, `missing`, `done` and `total`.
 
 ## 5. Spaces (migration 6, `20261011160000_spaces.sql`)
 **MVP:** private **work** Spaces only. Community Spaces come after the pilot. The columns `kind` and `access` are there already, but `create_space()` only makes `work` / `private`.
