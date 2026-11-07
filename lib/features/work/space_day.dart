@@ -1,4 +1,6 @@
-import 'package:timezone/data/latest.dart' as tz_data;
+// The full list, with aliases: market packs name zones like Asia/Kuwait,
+// an alias of Asia/Riyadh that the alias-free list leaves out.
+import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../data/models/daybook.dart';
