@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 7 Nov 2026, evening — 122d and 126 P1 live; build 1116 on the founder's phone; next: r122e
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merged into `slice2-app` (0ce4f730 = `release-1116`):** `claude/r122d` and `claude/r126-p1`, with the lead's three answers for 126.
+- **Live:** migration `20261203120000` (review 126 P1), pushed from the PC with the founder's yes. 0 profiles skipped. `profiles.company_id` / `company_name_text` are gone: builds up to 1110 can't load people lists any more.
+- **Build 1116:** `Desktop/BuildVibes-1116.apk`. arm64 30.2 MB installed, ~14.4 MB download (WhatsApp 104.6 / ~88.8 MB). Installed on 22120RN86G (1110 → 1116), then disconnected.
+  - The phone refused two installs ("Install canceled by user"); it worked on a fresh Wireless debugging port.
+- **Next:** `claude/r122e`, removing every example and sample text inside fields (the list is in the 122d report). No server change expected.
+- **Local stack:** has 126 applied. pgTAP `03` still needs `kp.admin@example.com`'s phone blanked for a full run.
+- **Emulator:** Pixel_8_B (emulator-5554) has the r126 debug build, signed in as Islam.
+- **PC clock:** still W. Europe, which still gives the 22 `r109` screen-test differences.
+- **Who has which branch:** PC has `slice2-app`. `claude/r122d` and `claude/r126-p1` are merged; their worktrees can go.
+
 ## PC update: 7 Nov 2026, afternoon — 122d and 126 P1 on their branches; waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
