@@ -194,7 +194,6 @@ class _ComponentsGalleryScreenState extends State<ComponentsGalleryScreen> {
                   key: const Key('gallery-phone'),
                   label: s.phoneLabel,
                   dialCode: market?.dialCode ?? '+',
-                  placeholder: market?.phoneExample,
                 );
               },
             ),

@@ -167,7 +167,6 @@ class _CvEntryFormState extends ConsumerState<_CvEntryForm> {
           BvTextField(
             key: const Key('cv-role'),
             label: l10n.yourRole,
-            placeholder: l10n.headlineHint,
             controller: _role,
             error: _showErrors && _role.text.trim().isEmpty
                 ? l10n.roleTitleRequired
@@ -322,7 +321,6 @@ class _SuggestFormState extends State<_SuggestForm> {
             key: const Key('suggest-value'),
             label: l10n.correctValue,
             controller: _value,
-            helper: l10n.correctValueHelp,
             maxLength: 300,
             error: _showErrors && _value.text.trim().isEmpty
                 ? l10n.correctValueRequired

@@ -706,7 +706,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(keys.setPhones, isEmpty);
         expect(
-          find.text(l10n.phoneCheck(kuwait.phoneExample!)),
+          find.text(l10n.phoneCheck),
           findsOneWidget,
         );
       });

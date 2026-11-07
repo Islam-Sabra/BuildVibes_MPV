@@ -114,9 +114,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dialCodeOther => 'رمز دولة آخر';
 
   @override
-  String get dialCodeOtherHelp => 'اكتب الرمز، مثلًا +91.';
-
-  @override
   String get comingSoon => 'قريبًا';
 
   @override
@@ -461,9 +458,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get headline => 'المسمى';
 
   @override
-  String get headlineHint => 'مثال: مدير BIM';
-
-  @override
   String get addPhoto => 'أضف صورة';
 
   @override
@@ -525,9 +519,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get openToNote => 'ملاحظة قصيرة (اختياري)';
-
-  @override
-  String get openToNoteHint => 'مثال: متاح من الشهر القادم';
 
   @override
   String get cvShowOnProfile => 'إظهار في ملفي';
@@ -613,9 +604,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذا يعرّف المشروع ويضعه في سيرتك بدورك. لا أحد يملك المشروع، ويمكن لكل من عمل فيه إضافته إلى سيرته.';
 
   @override
-  String get projectNameHint => 'مثال: مجمع الكوت المرحلة 2';
-
-  @override
   String get projectTitle => 'المشروع';
 
   @override
@@ -666,9 +654,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get correctValue => 'القيمة الصحيحة';
-
-  @override
-  String get correctValueHelp => 'أضف مصدرًا إن وُجد، مثل صورة لوحة الموقع.';
 
   @override
   String get correctValueRequired => 'اكتب القيمة الصحيحة.';
@@ -767,9 +752,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesNameLabel => 'الاسم';
-
-  @override
-  String get spacesNameHint => 'مثال: البرج B — فريق التصميم';
 
   @override
   String get spacesNameRequired => 'اكتب اسمًا من حرفين على الأقل.';
@@ -1154,9 +1136,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesTeamName => 'اسم الفريق';
-
-  @override
-  String get spacesTeamNameHint => 'مثال: فريق MEP';
 
   @override
   String get spacesTeamHelp =>
@@ -3808,7 +3787,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchMenu => 'بحث';
 
   @override
-  String get searchHint => 'ابحث بكلمة أو رقم، مثل 23';
+  String get searchHint => 'ابحث بكلمة أو رقم';
 
   @override
   String get searchClear => 'امسح';
@@ -7676,7 +7655,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyRoleAddPerson => 'أضف شخصًا';
 
   @override
-  String get keyRoleNoteHint => 'ملاحظة، مثل الوردية الليلية';
+  String get keyRoleNoteHint => 'ملاحظة';
 
   @override
   String get keyRoleRemovePerson => 'إزالة';
@@ -7727,9 +7706,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يظهر رقمك في البحث ولا في ملفك العام ولا لأي أحد خارج اختيارك.';
 
   @override
-  String phoneCheck(String example) {
-    return 'تحقّق من الرقم، مثلًا $example';
-  }
+  String get phoneCheck => 'تحقّق من الرقم.';
 
   @override
   String get phoneNotAdded => 'لم يُضَف';

@@ -158,7 +158,6 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
             onDialCodeTap: markets.isEmpty ? null : _pickDialCode,
             controller: _number,
             autofocus: true,
-            placeholder: _market?.phoneExample,
             helper: whatsapp ? l10n.phoneHelpWhatsapp : l10n.phoneHelpSms,
             error: _error,
             onChanged: (_) {

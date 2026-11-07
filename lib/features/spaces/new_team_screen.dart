@@ -100,7 +100,6 @@ class _NewTeamScreenState extends ConsumerState<NewTeamScreen> {
             child: BvTextField(
               key: const Key('team-name'),
               label: l10n.spacesTeamName,
-              placeholder: l10n.spacesTeamNameHint,
               helper: l10n.spacesTeamHelp,
               error: _error,
               controller: _name,

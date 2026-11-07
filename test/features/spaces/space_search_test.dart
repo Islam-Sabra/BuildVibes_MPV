@@ -129,8 +129,8 @@ void main() {
       await _tap(tester, 'space-search');
       expect(find.byType(SpaceSearchScreen), findsOneWidget);
       expect(find.text(l10n.searchHint), findsOneWidget);
-      // The example in Western digits, in Arabic too.
-      expect(l10n.searchHint, contains('23'));
+      // Review 122e: no example in the hint.
+      expect(l10n.searchHint, isNot(contains('23')));
     });
 
     testWidgets('review 95: "23" puts post 23 first, marked exact, with its '

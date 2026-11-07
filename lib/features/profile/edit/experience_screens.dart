@@ -195,7 +195,6 @@ class _ExperienceFormScreenState extends ConsumerState<ExperienceFormScreen> {
           BvTextField(
             key: const Key('experience-title'),
             label: l10n.titleLabel,
-            placeholder: l10n.headlineHint,
             controller: _title,
             error: _showErrors && _title.text.trim().isEmpty
                 ? l10n.titleRequired

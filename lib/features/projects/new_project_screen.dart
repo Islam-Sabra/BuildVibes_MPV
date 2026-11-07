@@ -119,14 +119,12 @@ class _NewProjectScreenState extends ConsumerState<NewProjectScreen> {
                   key: const Key('cell-name'),
                   label: l10n.cellProjectName,
                   value: _name,
-                  placeholder: l10n.projectNameHint,
                   error: _showErrors && _name.trim().length < 2,
                   onTap: () async {
                     final v = await showTextSheet(
                       context,
                       title: l10n.cellProjectName,
                       initial: _name,
-                      hint: l10n.projectNameHint,
                     );
                     if (v != null && mounted) setState(() => _name = v);
                   },
@@ -219,7 +217,6 @@ class _NewProjectScreenState extends ConsumerState<NewProjectScreen> {
                   key: const Key('cell-role'),
                   label: l10n.cellYourRole,
                   value: _role,
-                  placeholder: l10n.headlineHint,
                   error: _showErrors && (_role ?? '').isEmpty,
                   onTap: () async {
                     final v = await showTextSheet(
@@ -227,7 +224,6 @@ class _NewProjectScreenState extends ConsumerState<NewProjectScreen> {
                       title: l10n.yourRole,
                       initial:
                           _role ?? ref.read(myProfileProvider).value?.headline,
-                      hint: l10n.headlineHint,
                     );
                     if (v != null && mounted) setState(() => _role = v);
                   },

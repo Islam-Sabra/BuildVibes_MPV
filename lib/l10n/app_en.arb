@@ -148,10 +148,6 @@
   "@dialCodeOther": {
     "description": "Dial code option."
   },
-  "dialCodeOtherHelp": "Type the code, for example +91.",
-  "@dialCodeOtherHelp": {
-    "description": "Dial code field helper."
-  },
   "comingSoon": "Coming soon",
   "@comingSoon": {
     "description": "A market that is not open yet."
@@ -637,10 +633,6 @@
   "@headline": {
     "description": "Field label."
   },
-  "headlineHint": "e.g. BIM Manager",
-  "@headlineHint": {
-    "description": "Field placeholder."
-  },
   "addPhoto": "Add a photo",
   "@addPhoto": {
     "description": "Button."
@@ -724,10 +716,6 @@
   "openToNote": "A short note (optional)",
   "@openToNote": {
     "description": "Field label."
-  },
-  "openToNoteHint": "e.g. Available from next month",
-  "@openToNoteHint": {
-    "description": "Field placeholder."
   },
   "cvShowOnProfile": "Show on my profile",
   "@cvShowOnProfile": {
@@ -838,10 +826,6 @@
   "@newProjectNote": {
     "description": "P14 note."
   },
-  "projectNameHint": "e.g. Al Kout Mall Phase 2",
-  "@projectNameHint": {
-    "description": "Field placeholder."
-  },
   "projectTitle": "Project",
   "@projectTitle": {
     "description": "PJ1 title."
@@ -910,10 +894,6 @@
   "correctValue": "Correct value",
   "@correctValue": {
     "description": "Field label."
-  },
-  "correctValueHelp": "Add a source if you have one, such as a site board photo.",
-  "@correctValueHelp": {
-    "description": "Field helper."
   },
   "correctValueRequired": "Write the correct value.",
   "@correctValueRequired": {
@@ -1044,10 +1024,6 @@
   "spacesNameLabel": "Name",
   "@spacesNameLabel": {
     "description": "S5 field."
-  },
-  "spacesNameHint": "e.g. Tower B — Design team",
-  "@spacesNameHint": {
-    "description": "S5 placeholder. No country facts."
   },
   "spacesNameRequired": "Write a name with at least 2 letters.",
   "@spacesNameRequired": {
@@ -1596,10 +1572,6 @@
   "spacesTeamName": "Team name",
   "@spacesTeamName": {
     "description": "S12 field."
-  },
-  "spacesTeamNameHint": "e.g. MEP Team",
-  "@spacesTeamNameHint": {
-    "description": "S12 placeholder."
   },
   "spacesTeamHelp": "Everyone in the Space can see Team names and members. Only members see its chat.",
   "@spacesTeamHelp": {
@@ -5362,7 +5334,7 @@
   "@searchMenu": {
     "description": "The Space menu's first item (MN1): opens Search inside the Space."
   },
-  "searchHint": "Search words or a number, e.g. 23",
+  "searchHint": "Search words or a number",
   "@searchHint": {
     "description": "S: the field's placeholder (review 95). It searches after 2 characters, or a number alone. The example stays in Western digits in Arabic."
   },
@@ -10458,7 +10430,7 @@
   "@keyRoleHolders": {"description": "Review 121 KP4: the people holding the role."},
   "keyRoleAddPerson": "Add a person",
   "@keyRoleAddPerson": {"description": "Review 121 KP4: opens the member picker."},
-  "keyRoleNoteHint": "Note, such as Night shift",
+  "keyRoleNoteHint": "Note",
   "@keyRoleNoteHint": {"description": "Review 121 KP4: a holder's short note."},
   "keyRoleRemovePerson": "Take off",
   "@keyRoleRemovePerson": {"description": "Review 121 KP4: takes a person off the role."},
@@ -10492,8 +10464,8 @@
   "@phoneDmsLine": {"description": "Review 121 NUM1: under the third choice."},
   "phoneNever": "Your number never shows in search, on your public profile, or to anyone outside your choice.",
   "@phoneNever": {"description": "Review 121 NUM1: the note at the bottom."},
-  "phoneCheck": "Check the number, for example {example}",
-  "@phoneCheck": {"description": "Review 121 NUM1: the number doesn't fit the market pack.", "placeholders": {"example": {"type": "String", "example": "5000 0000"}}},
+  "phoneCheck": "Check the number.",
+  "@phoneCheck": {"description": "Review 122e: the number doesn't fit the market pack; no sample number (rule from 122d)."},
   "phoneNotAdded": "Not added",
   "@phoneNotAdded": {"description": "Review 121 Edit profile: no number yet."},
   "activityKeyRoleEmpty": "{role} has no one now",

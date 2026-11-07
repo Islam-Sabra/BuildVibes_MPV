@@ -109,7 +109,6 @@ class _OpenToScreenState extends ConsumerState<OpenToScreen> {
           BvTextField(
             key: const Key('open-to-note'),
             label: l10n.openToNote,
-            placeholder: l10n.openToNoteHint,
             controller: _note,
             maxLength: 200,
           ),

@@ -114,9 +114,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dialCodeOther => 'Other country code';
 
   @override
-  String get dialCodeOtherHelp => 'Type the code, for example +91.';
-
-  @override
   String get comingSoon => 'Coming soon';
 
   @override
@@ -459,9 +456,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get headline => 'Headline';
 
   @override
-  String get headlineHint => 'e.g. BIM Manager';
-
-  @override
   String get addPhoto => 'Add a photo';
 
   @override
@@ -524,9 +518,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openToNote => 'A short note (optional)';
-
-  @override
-  String get openToNoteHint => 'e.g. Available from next month';
 
   @override
   String get cvShowOnProfile => 'Show on my profile';
@@ -612,9 +603,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.';
 
   @override
-  String get projectNameHint => 'e.g. Al Kout Mall Phase 2';
-
-  @override
   String get projectTitle => 'Project';
 
   @override
@@ -666,10 +654,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get correctValue => 'Correct value';
-
-  @override
-  String get correctValueHelp =>
-      'Add a source if you have one, such as a site board photo.';
 
   @override
   String get correctValueRequired => 'Write the correct value.';
@@ -770,9 +754,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesNameLabel => 'Name';
-
-  @override
-  String get spacesNameHint => 'e.g. Tower B — Design team';
 
   @override
   String get spacesNameRequired => 'Write a name with at least 2 letters.';
@@ -1145,9 +1126,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesTeamName => 'Team name';
-
-  @override
-  String get spacesTeamNameHint => 'e.g. MEP Team';
 
   @override
   String get spacesTeamHelp =>
@@ -3796,7 +3774,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchMenu => 'Search';
 
   @override
-  String get searchHint => 'Search words or a number, e.g. 23';
+  String get searchHint => 'Search words or a number';
 
   @override
   String get searchClear => 'Clear';
@@ -7614,7 +7592,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyRoleAddPerson => 'Add a person';
 
   @override
-  String get keyRoleNoteHint => 'Note, such as Night shift';
+  String get keyRoleNoteHint => 'Note';
 
   @override
   String get keyRoleRemovePerson => 'Take off';
@@ -7665,9 +7643,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your number never shows in search, on your public profile, or to anyone outside your choice.';
 
   @override
-  String phoneCheck(String example) {
-    return 'Check the number, for example $example';
-  }
+  String get phoneCheck => 'Check the number.';
 
   @override
   String get phoneNotAdded => 'Not added';

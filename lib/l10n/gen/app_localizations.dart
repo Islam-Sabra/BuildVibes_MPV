@@ -296,12 +296,6 @@ abstract class AppLocalizations {
   /// **'Other country code'**
   String get dialCodeOther;
 
-  /// Dial code field helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Type the code, for example +91.'**
-  String get dialCodeOtherHelp;
-
   /// A market that is not open yet.
   ///
   /// In en, this message translates to:
@@ -896,12 +890,6 @@ abstract class AppLocalizations {
   /// **'Headline'**
   String get headline;
 
-  /// Field placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. BIM Manager'**
-  String get headlineHint;
-
   /// Button.
   ///
   /// In en, this message translates to:
@@ -1027,12 +1015,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A short note (optional)'**
   String get openToNote;
-
-  /// Field placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Available from next month'**
-  String get openToNoteHint;
 
   /// Switch.
   ///
@@ -1190,12 +1172,6 @@ abstract class AppLocalizations {
   /// **'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.'**
   String get newProjectNote;
 
-  /// Field placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Al Kout Mall Phase 2'**
-  String get projectNameHint;
-
   /// PJ1 title.
   ///
   /// In en, this message translates to:
@@ -1291,12 +1267,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Correct value'**
   String get correctValue;
-
-  /// Field helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a source if you have one, such as a site board photo.'**
-  String get correctValueHelp;
 
   /// Validation.
   ///
@@ -1477,12 +1447,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get spacesNameLabel;
-
-  /// S5 placeholder. No country facts.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Tower B — Design team'**
-  String get spacesNameHint;
 
   /// S5 error.
   ///
@@ -2083,12 +2047,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Team name'**
   String get spacesTeamName;
-
-  /// S12 placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. MEP Team'**
-  String get spacesTeamNameHint;
 
   /// S12 helper.
   ///
@@ -6371,7 +6329,7 @@ abstract class AppLocalizations {
   /// S: the field's placeholder (review 95). It searches after 2 characters, or a number alone. The example stays in Western digits in Arabic.
   ///
   /// In en, this message translates to:
-  /// **'Search words or a number, e.g. 23'**
+  /// **'Search words or a number'**
   String get searchHint;
 
   /// S: what a screen reader says for the ✕ in the field.
@@ -12605,7 +12563,7 @@ abstract class AppLocalizations {
   /// Review 121 KP4: a holder's short note.
   ///
   /// In en, this message translates to:
-  /// **'Note, such as Night shift'**
+  /// **'Note'**
   String get keyRoleNoteHint;
 
   /// Review 121 KP4: takes a person off the role.
@@ -12698,11 +12656,11 @@ abstract class AppLocalizations {
   /// **'Your number never shows in search, on your public profile, or to anyone outside your choice.'**
   String get phoneNever;
 
-  /// Review 121 NUM1: the number doesn't fit the market pack.
+  /// Review 122e: the number doesn't fit the market pack; no sample number (rule from 122d).
   ///
   /// In en, this message translates to:
-  /// **'Check the number, for example {example}'**
-  String phoneCheck(String example);
+  /// **'Check the number.'**
+  String get phoneCheck;
 
   /// Review 121 Edit profile: no number yet.
   ///

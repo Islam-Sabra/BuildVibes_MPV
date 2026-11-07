@@ -147,7 +147,6 @@ class _NewSpaceScreenState extends ConsumerState<NewSpaceScreen> {
           BvTextField(
             key: const Key('space-name'),
             label: l10n.spacesNameLabel,
-            placeholder: l10n.spacesNameHint,
             controller: _name,
             maxLength: NewSpaceScreen.nameMax,
             textInputAction: TextInputAction.next,

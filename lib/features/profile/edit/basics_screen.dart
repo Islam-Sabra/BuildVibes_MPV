@@ -294,7 +294,6 @@ class _BasicsScreenState extends ConsumerState<BasicsScreen> {
                 BvTextField(
                   key: const Key('basics-headline'),
                   label: l10n.headline,
-                  placeholder: l10n.headlineHint,
                   controller: _headline,
                   maxLength: 120,
                 ),

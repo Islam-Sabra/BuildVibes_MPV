@@ -76,7 +76,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
     final market = _market;
     final typed = _typed(market);
     if (!typed.ok) {
-      setState(() => _error = l10n.phoneCheck(market?.phoneExample ?? ''));
+      setState(() => _error = l10n.phoneCheck);
       return;
     }
     final choice = visibility ?? _visibility;
@@ -101,7 +101,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
       setState(() {
         _saved = before.$1;
         _visibility = before.$2;
-        if (refused) _error = l10n.phoneCheck(market?.phoneExample ?? '');
+        if (refused) _error = l10n.phoneCheck;
       });
       if (!refused) showSpaceError(context, e);
     }
@@ -190,7 +190,6 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
             controller: _number,
             focusNode: _focus,
             prefixText: market?.dialCode,
-            placeholder: market?.phoneExample,
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             // Numbers read left to right, in Arabic too; Western digits.

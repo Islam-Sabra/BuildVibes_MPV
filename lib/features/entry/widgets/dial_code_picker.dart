@@ -88,7 +88,6 @@ class _OtherDialCodeState extends State<_OtherDialCode> {
             controller: _code,
             autofocus: true,
             prefixText: '+',
-            helper: l10n.dialCodeOtherHelp,
             textDirection: TextDirection.ltr,
             keyboardType: TextInputType.number,
             inputFormatters: const [BvWesternDigitsFormatter()],
