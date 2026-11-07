@@ -147,6 +147,38 @@ void main() {
         expect(find.textContaining('Project manager'), findsNothing);
       });
 
+      testWidgets('the basics: the headline field shows the current title; '
+          'editing it renames the current entry (lead\'s check)', (
+        tester,
+      ) async {
+        final app = await pumpApp(tester, language: lang);
+        app.pages.headline['user-1'] = 'Project manager';
+        app.pages.experience['user-1'] = [
+          ExperienceEntry(
+            id: 'e-now',
+            title: 'BIM Manager',
+            start: DateTime(2022, 3),
+            companyLabel: 'IMAR Group',
+          ),
+        ];
+        GoRouter.of(
+          tester.element(find.byType(Scaffold).first),
+        ).push('/profile/edit/basics');
+        await tester.pumpAndSettle();
+        final field = find.descendant(
+          of: find.byKey(const Key('basics-headline')),
+          matching: find.byType(TextField),
+        );
+        expect(tester.widget<TextField>(field).controller?.text, 'BIM Manager');
+        await tester.enterText(field, 'BIM Lead');
+        await tester.ensureVisible(find.byKey(const Key('basics-save')));
+        await tester.tap(find.byKey(const Key('basics-save')));
+        await tester.pumpAndSettle();
+        final now = app.pages.experience['user-1']!.single;
+        expect(now.title, 'BIM Lead');
+        expect(now.companyLabel, 'IMAR Group');
+      });
+
       testWidgets('the profile header with no Experience: the headline, no '
           'company', (tester) async {
         final app = await pumpApp(tester, language: lang);

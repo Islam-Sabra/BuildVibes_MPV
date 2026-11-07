@@ -168,12 +168,14 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
   @override
   Future<void> saveBasics(String me, BasicsInput input) async {
     await _client.from('profiles').update(input.toJson()).eq('id', me);
-    // Review 126 P1: the company is the current Experience entry's.
+    // Review 126 P1: the company is the current Experience entry's, and
+    // the headline renames that entry (lead's check).
     await _client.rpc<Object?>(
       'set_current_company',
       params: {
         'p_company_id': input.companyId,
         'p_company_name_text': input.companyNameText,
+        'p_title': input.headline,
       },
     );
   }

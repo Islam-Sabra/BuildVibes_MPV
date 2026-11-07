@@ -71,7 +71,9 @@ class _BasicsScreenState extends ConsumerState<BasicsScreen> {
     _filled = true;
     _first.text = p.firstName;
     _last.text = p.lastName;
-    _headline.text = p.headline ?? '';
+    // Review 126 (lead's check): the headline is the current entry's title
+    // when there is one, and saving it renames that entry.
+    _headline.text = p.currentTitle ?? p.headline ?? '';
     _placeId = p.placeId;
     _tradeId = p.tradeId;
     _roleText.text = p.tradeName?.of(Locale(lang)) ?? '';

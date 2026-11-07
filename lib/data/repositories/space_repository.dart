@@ -357,12 +357,26 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .select(teamsSelect)
         .eq('space_id', spaceId)
         .order('name', ascending: true);
+    // Review 126 (lead's check): inside the Space its members see each
+    // member's current work, whatever the entry's visibility.
+    final work = {
+      for (final r in _rows(
+        await _client.rpc<List<dynamic>>(
+          'space_member_work',
+          params: {'p_space': spaceId},
+        ),
+      ))
+        r['profile_id'] as String: r['work'],
+    };
 
     final loaded = [
       for (final m in members)
-        if (m['person'] != null)
+        if (m['person'] case final Map<String, dynamic> person)
           SpaceMember(
-            person: SpacePerson.fromJson(m['person'] as Map<String, dynamic>),
+            person: SpacePerson.fromJson({
+              ...person,
+              'current_work': work[person['id']],
+            }),
             pass: SpacePass.fromJson(m['pass']),
             isAdmin: m['is_admin'] as bool? ?? false,
             custom: {

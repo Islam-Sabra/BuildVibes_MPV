@@ -147,7 +147,8 @@ select ok(not has_function_privilege('authenticated', 'public.can_post_to_team(u
           and not has_function_privilege('authenticated', 'public.is_any_team_admin(uuid)', 'execute')
           and not has_function_privilege('authenticated', 'public.company_key(text)', 'execute')
           and not has_function_privilege('authenticated', 'public.company_keys_similar(text, text)', 'execute')
-          and not has_function_privilege('authenticated', 'public.person_company(uuid)', 'execute')
+          and not has_function_privilege('authenticated', 'public.space_current_work(uuid, uuid)', 'execute')
+          and not has_function_privilege('authenticated', 'public.current_work_entry(uuid, boolean)', 'execute')
           and not has_function_privilege('authenticated', 'public.team_for_company(uuid, text, text)', 'execute'),
   'the helpers are not callable');
 select ok(not exists (

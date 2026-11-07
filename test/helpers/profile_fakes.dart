@@ -96,9 +96,10 @@ class FakeProfilePageRepository implements ProfilePageRepository {
     final i = list.indexWhere((e) => e.end == null);
     if (i >= 0) {
       final e = list[i];
+      final renamed = input.headline?.trim();
       list[i] = ExperienceEntry(
         id: e.id,
-        title: e.title,
+        title: (renamed ?? '').isEmpty ? e.title : renamed!,
         start: e.start,
         companyId: input.companyId,
         companyLabel: label,

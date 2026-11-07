@@ -10,6 +10,10 @@
 --     more than the profile already allowed. The function serves SQL; the
 --     view of the same name serves the app (embedded from profiles, under
 --     the reader's own row-level security).
+--   * Inside a Space (lead's check), its members see a member's current
+--     work whatever the entry's visibility: Space rows (space_member_work),
+--     Teams from companies, the Team match and key-role rows. Outside it
+--     (profile, search, Near you, feed, messages) the visibility applies.
 --   * Space rows (through the app), Teams from companies, key-role rows,
 --     direct messages, the feed, search and Near you read it.
 --   * The basics and onboarding company field writes the current entry
@@ -22,7 +26,8 @@
 
 -- current_work ----------------------------------------------------------------------------------------
 
-create function public.current_work(p_profile uuid)
+-- The current entry; [p_any] skips the entry's visibility (inside a Space).
+create function public.current_work_entry(p_profile uuid, p_any boolean)
 returns jsonb
 language sql
 stable
@@ -38,13 +43,26 @@ as $$
   where e.profile_id = p_profile
     and e.end_month is null
     -- experience_read, plus the profile's own demo split.
-    and (e.profile_id = auth.uid()
+    and (p_any
+         or e.profile_id = auth.uid()
          or (not public.is_blocked_with(e.profile_id)
              and not public.demo_apart(e.profile_id)
              and (e.visibility = 'everyone'
                   or (e.visibility = 'connections' and public.is_connected_with(e.profile_id)))))
   order by e.start_month desc, e.created_at desc, e.id
   limit 1;
+$$;
+
+revoke all on function public.current_work_entry(uuid, boolean) from public, anon, authenticated;
+
+create function public.current_work(p_profile uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.current_work_entry(p_profile, false);
 $$;
 
 revoke all on function public.current_work(uuid) from public, anon;
@@ -65,12 +83,58 @@ order by e.profile_id, e.start_month desc, e.created_at desc, e.id;
 revoke all on public.current_work from public, anon;
 grant select on public.current_work to authenticated, service_role;
 
+-- [p_profile]'s current work as a member of [p_space] sees it: whatever
+-- the entry's visibility when both are its members (not across a block);
+-- otherwise as anyone sees it.
+create function public.space_current_work(p_space uuid, p_profile uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+    when public.is_member(p_space)
+         and public.is_active_member(p_space, p_profile)
+         and not public.is_blocked_with(p_profile)
+      then public.current_work_entry(p_profile, true)
+    else public.current_work(p_profile)
+  end;
+$$;
+
+revoke all on function public.space_current_work(uuid, uuid) from public, anon, authenticated;
+
+-- The Space rows: each member's current work, for the Space's members.
+create function public.space_member_work(p_space uuid)
+returns table (profile_id uuid, work jsonb)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_member(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query
+    select m.profile_id, w.work
+    from public.space_members m
+    cross join lateral (select public.space_current_work(p_space, m.profile_id) as work) w
+    where m.space_id = p_space and m.left_at is null and w.work is not null;
+end;
+$$;
+
+revoke all on function public.space_member_work(uuid) from public, anon;
+grant execute on function public.space_member_work(uuid) to authenticated;
+
 -- The basics' company, written to the current entry. With a current entry,
--- its company changes (its title stays). With none, a company makes one,
+-- its company changes, and its title too when [p_title] (the basics'
+-- headline) is given. With none, a company makes one,
 -- titled with the headline, else the role (trade) in the profile's language,
 -- from [p_start]'s month; with no title at all nothing is made (null).
 create function public.current_work_from_basics(
-  p_profile uuid, p_company_id uuid, p_company_name_text text, p_start date)
+  p_profile uuid, p_company_id uuid, p_company_name_text text, p_start date,
+  p_title text default null)
 returns uuid
 language plpgsql
 security definer
@@ -88,7 +152,8 @@ begin
   limit 1;
   if v_id is not null then
     update public.experience
-    set company_id = p_company_id, company_name_text = v_text
+    set company_id = p_company_id, company_name_text = v_text,
+        title = coalesce(left(nullif(trim(p_title), ''), 120), title)
     where id = v_id;
     return v_id;
   end if;
@@ -110,11 +175,13 @@ begin
 end;
 $$;
 
-revoke all on function public.current_work_from_basics(uuid, uuid, text, date)
+revoke all on function public.current_work_from_basics(uuid, uuid, text, date, text)
   from public, anon, authenticated;
 
--- The basics and onboarding company field: always the caller's own entry.
-create function public.set_current_company(p_company_id uuid, p_company_name_text text)
+-- The basics and onboarding company field (and the basics' headline as
+-- [p_title]): always the caller's own entry.
+create function public.set_current_company(
+  p_company_id uuid, p_company_name_text text, p_title text default null)
 returns uuid
 language plpgsql
 security definer
@@ -124,12 +191,13 @@ begin
   if auth.uid() is null then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  return public.current_work_from_basics(auth.uid(), p_company_id, p_company_name_text, current_date);
+  return public.current_work_from_basics(auth.uid(), p_company_id, p_company_name_text, current_date,
+                                        p_title);
 end;
 $$;
 
-revoke all on function public.set_current_company(uuid, text) from public, anon;
-grant execute on function public.set_current_company(uuid, text) to authenticated;
+revoke all on function public.set_current_company(uuid, text, text) from public, anon;
+grant execute on function public.set_current_company(uuid, text, text) to authenticated;
 
 -- Search and Near you: the people whose current company's name contains
 -- [p_query], or who are at the registered company [p_company]; not the
@@ -159,15 +227,8 @@ grant execute on function public.people_at_current_company(text, uuid) to authen
 
 -- Readers ---------------------------------------------------------------------------------------------
 
--- A person's current company, for a Team match (TM4).
-create or replace function public.person_company(p_profile uuid)
- returns text
- language sql
- stable security definer
- set search_path to ''
-as $function$
-  select public.current_work(p_profile) ->> 'company_name';
-$function$;
+-- The Team match (TM4) reads the person's current work as the Space sees
+-- it; person_company has no other reader.
 
 CREATE OR REPLACE FUNCTION public.company_team_preview(p_space uuid)
  RETURNS jsonb
@@ -191,7 +252,7 @@ begin
            (w.work ->> 'company_id') is not null as registered
     from public.space_members m
     join public.profiles p on p.id = m.profile_id
-    cross join lateral (select public.current_work(p.id) as work) w
+    cross join lateral (select public.space_current_work(p_space, p.id) as work) w
     where m.space_id = p_space and m.left_at is null
       and not public.is_hidden_account(m.profile_id)
       and not public.is_blocked_with(m.profile_id)
@@ -250,6 +311,40 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.company_team_for(p_space uuid, p_profile uuid)
+ RETURNS TABLE(team_id uuid, team_name text, company text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_company text;
+begin
+  -- Only for someone asking to join this Space, or a member of it; never
+  -- across a block or for an account going away (V2).
+  if not public.is_space_admin(p_space)
+     or p_profile is null
+     or public.is_blocked_with(p_profile)
+     or public.is_hidden_account(p_profile)
+     or not (public.is_active_member(p_space, p_profile)
+             or exists (select 1 from public.space_join_requests r
+                        where r.space_id = p_space and r.profile_id = p_profile
+                          and r.status = 'pending')) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  v_company := public.space_current_work(p_space, p_profile) ->> 'company_name';
+  if public.company_key(v_company) is null then
+    return;
+  end if;
+  return query
+    select t.id, t.name, v_company
+    from public.teams t
+    where t.id = public.team_for_company(p_space, public.company_key(v_company), v_company);
+end;
+$function$;
+
+drop function public.person_company(uuid);
+
 CREATE OR REPLACE FUNCTION public.space_key_people(p_space uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -274,7 +369,7 @@ begin
                           'headline', p.headline, 'trade_id', p.trade_id,
                           'trade', (select jsonb_build_object('name', t.name)
                                     from public.trades t where t.id = p.trade_id),
-                          'current_work', public.current_work(p.id),
+                          'current_work', public.space_current_work(p_space, p.id),
                           'note', h.note,
                           'can_call', p.phone is not null
                                       and public.phone_shown_to(p.id, v_me, p_space))

@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(44);
+select plan(56);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000126' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -74,6 +74,19 @@ create function pg_temp.no_company() returns uuid[] language sql as $$
   select array_agg((x ->> 'id')::uuid order by x ->> 'id')
   from jsonb_array_elements(pg_temp.preview() -> 'no_company') x;
 $$;
+-- What [p_who] reads from space_member_work (a member's current work in
+-- the Space), for [p_of].
+create function pg_temp.in_space(p_who text, p_of text) returns jsonb language plpgsql as $$
+declare v jsonb;
+begin
+  perform pg_temp.as_user(p_who);
+  set local role authenticated;
+  select w.work into v from public.space_member_work(pg_temp.sp()) w
+  where w.profile_id = pg_temp.uid(p_of);
+  reset role;
+  return v;
+end;
+$$;
 -- Who [p_who] finds by a company's name.
 create function pg_temp.found(p_who text, p_query text) returns uuid[] language plpgsql as $$
 declare v uuid[];
@@ -83,6 +96,17 @@ begin
   select array_agg(x order by x) into v from public.people_at_current_company(p_query, null) x;
   reset role;
   return coalesce(v, '{}');
+end;
+$$;
+-- The key roles as the Space admin reads them.
+create function pg_temp.people_roles() returns jsonb language plpgsql as $$
+declare v jsonb;
+begin
+  perform pg_temp.as_user('a1');
+  set local role authenticated;
+  v := public.space_key_people(pg_temp.sp()) -> 'roles';
+  reset role;
+  return v;
 end;
 $$;
 -- The first key-role holder as a Space member reads it.
@@ -134,9 +158,9 @@ select ok(has_function_privilege('authenticated', 'public.current_work(uuid)', '
           and not has_table_privilege('anon', 'public.current_work', 'select'),
   'current_work: signed-in people only');
 select ok(not has_function_privilege('authenticated',
-            'public.current_work_from_basics(uuid, uuid, text, date)', 'execute')
+            'public.current_work_from_basics(uuid, uuid, text, date, text)', 'execute')
           and not has_function_privilege('anon',
-            'public.current_work_from_basics(uuid, uuid, text, date)', 'execute'),
+            'public.current_work_from_basics(uuid, uuid, text, date, text)', 'execute'),
   'the back-fill rule is the server''s own');
 
 -- A current entry drives everything -------------------------------------------------------------------
@@ -201,9 +225,31 @@ reset role;
 
 select is(pg_temp.work('e5', 'f6'), null, 'connections only: hidden from someone not connected');
 select is(pg_temp.work('f6', 'f6') ->> 'company_name', 'Near Co', 'its owner sees it');
-select is(pg_temp.work('a1', 'ca'), null, 'only me: hidden even from the Space admin');
-select ok(pg_temp.uid('ca') = any(pg_temp.no_company()), 'and Teams from companies doesn''t use it');
-select is(pg_temp.found('e5', 'quiet'), '{}', 'nor search');
+select is(pg_temp.work('a1', 'ca'), null, 'only me: hidden outside the Space, even from its admin');
+select is(pg_temp.found('a1', 'quiet'), '{}', 'and from search');
+
+-- Inside a Space, its members see a member's current work (lead's check) -------------------------
+
+select is(pg_temp.in_space('a1', 'f6') ->> 'company_name', 'Near Co',
+  'the Space admin sees a connections-only member''s company in the Space');
+select is(pg_temp.in_space('c9', 'ca') ->> 'company_name', 'Quiet Co',
+  'a member sees an only-me member''s company in the Space');
+select is(pg_temp.group_people('Near Co'), array[pg_temp.uid('f6')],
+  'Teams from companies uses it');
+select ok(not (pg_temp.uid('ca') = any(pg_temp.no_company())), 'the only-me member too');
+insert into public.space_key_holders (role_id, profile_id) values (pg_temp.id('a001'), pg_temp.uid('ca'));
+select is((select h -> 'current_work' ->> 'company_name'
+           from jsonb_array_elements(pg_temp.people_roles() -> 0 -> 'holders') h
+           where h ->> 'id' = pg_temp.uid('ca')::text), 'Quiet Co', 'and the key-role row');
+select pg_temp.as_user('e5');
+set local role authenticated;
+select throws_ok(format($$select * from public.space_member_work(%L)$$, pg_temp.sp()), '42501', null,
+  'a non-member reads nothing of the Space');
+select throws_ok(format($$select public.company_team_preview(%L)$$, pg_temp.sp()), '42501', null,
+  'nor its Teams from companies');
+reset role;
+select is(pg_temp.work('e5', 'f6'), null, 'nor, outside the Space, the connections-only company');
+select is(pg_temp.found('e5', 'near'), '{}', 'nor finds her by it');
 insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('c3'), pg_temp.uid('e5'));
 select is(pg_temp.work('e5', 'c3'), null, 'nothing across a block');
 
@@ -233,6 +279,20 @@ select lives_ok(format($$select public.set_current_company(%L, null)$$, pg_temp.
 reset role;
 select is((select company_id from public.experience where profile_id = pg_temp.uid('a7')), pg_temp.id('c001'),
   'changes the same entry, linked');
+select pg_temp.as_user('a7');
+set local role authenticated;
+select lives_ok(format($$select public.set_current_company(%L, null, 'Store manager')$$, pg_temp.id('c001')),
+  'editing the headline in the basics');
+reset role;
+select is((select title from public.experience where profile_id = pg_temp.uid('a7')), 'Store manager',
+  'renames the current entry');
+select pg_temp.as_user('e5');
+set local role authenticated;
+select lives_ok($$select public.set_current_company(null, null, 'Nurse')$$,
+  'a headline with no company and no current entry');
+reset role;
+select is((select count(*)::int from public.experience where profile_id = pg_temp.uid('e5')), 0,
+  'makes no entry: the headline stays as it is');
 
 select * from finish();
 rollback;
