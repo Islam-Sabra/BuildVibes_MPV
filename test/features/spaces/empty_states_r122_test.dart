@@ -183,7 +183,7 @@ void main() {
     group('TM0 why no Teams from companies [$lang]', () {
       // Review 122c: one short line.
       final hint = t(
-        'Teams from companies need 2 people with the same company.',
+        'Company Teams need 2 people from one company.',
         'فرق الشركات تحتاج شخصين من نفس الشركة.',
       );
 

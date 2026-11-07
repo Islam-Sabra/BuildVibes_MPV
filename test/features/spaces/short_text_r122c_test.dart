@@ -110,7 +110,7 @@ void main() {
             of: _key('teams-company-hint'),
             matching: find.text(
               t(
-                'Teams from companies need 2 people with the same company.',
+                'Company Teams need 2 people from one company.',
                 'فرق الشركات تحتاج شخصين من نفس الشركة.',
               ),
             ),
@@ -154,6 +154,32 @@ void main() {
           findsOneWidget,
         );
         expect(_key('key-people-add'), findsOneWidget);
+      });
+
+      testWidgets('KP3 with two roles: no drag hint (lead\'s check)', (
+        tester,
+      ) async {
+        await _go(
+          tester,
+          lang,
+          '/spaces/$_space/key-people',
+          who: const KeyPeople(
+            roles: [
+              KeyRole(id: 'r-safety', name: 'Safety officer'),
+              KeyRole(id: 'r-store', name: 'Storekeeper'),
+            ],
+          ),
+        );
+        expect(_key('key-role-r-store'), findsOneWidget);
+        expect(
+          find.text(
+            t(
+              'Hold and drag a role to move it.',
+              'اضغط مطولًا على دور واسحبه لتغيير ترتيبه.',
+            ),
+          ),
+          findsNothing,
+        );
       });
 
       testWidgets('KP4: no "Role name" label; "Call them for" stays', (

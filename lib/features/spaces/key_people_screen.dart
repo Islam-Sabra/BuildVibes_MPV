@@ -83,7 +83,6 @@ class _KeyPeopleScreenState extends ConsumerState<KeyPeopleScreen> {
     final space = ref.watch(spaceDetailProvider(_spaceId)).value;
     final people = ref.watch(spaceKeyPeopleProvider(_spaceId));
     final roles = _moved ?? people.value?.roles;
-    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
 
     return BvSectionScaffold(
       title: l10n.keyPeopleTitle,
@@ -130,8 +129,6 @@ class _KeyPeopleScreenState extends ConsumerState<KeyPeopleScreen> {
                         ),
                       ),
                     ),
-                  if (roles.length > 1)
-                    Text(l10n.keyPeopleReorder, style: quiet),
                 ],
               ),
               children: [

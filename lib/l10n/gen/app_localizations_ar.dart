@@ -7658,9 +7658,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamsCompanyHint => 'فرق الشركات تحتاج شخصين من نفس الشركة.';
 
   @override
-  String get keyPeopleReorder => 'اضغط مطولًا على دور واسحبه لتغيير ترتيبه.';
-
-  @override
   String get keyRoleNew => 'دور أساسي جديد';
 
   @override

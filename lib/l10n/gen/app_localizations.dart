@@ -12563,14 +12563,8 @@ abstract class AppLocalizations {
   /// Review 122 TM0: for the Space admin, under Teams, while no company of 2 or more people waits.
   ///
   /// In en, this message translates to:
-  /// **'Teams from companies need 2 people with the same company.'**
+  /// **'Company Teams need 2 people from one company.'**
   String get teamsCompanyHint;
-
-  /// Review 121 KP3: how to change the order (more than one role).
-  ///
-  /// In en, this message translates to:
-  /// **'Hold and drag a role to move it.'**
-  String get keyPeopleReorder;
 
   /// Review 121 KP4: the sheet's title for a new role.
   ///

@@ -5,6 +5,7 @@
 import 'package:buildvibes/data/models/key_people.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -344,6 +345,24 @@ void main() {
     testWidgets('TM0 [$lang]', (tester) async {
       await go(tester, '/spaces/$_space/people', admin: true);
       await _tap(tester, 'people-view-teams');
+      // Lead's check of 122c: the line fits on one line at 390, EN and AR.
+      final line = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.descendant(
+            of: find.byKey(const Key('teams-company-hint')),
+            matching: find.byType(Text),
+          ),
+          matching: find.byType(RichText),
+        ),
+      );
+      final oneLine = line.getFullHeightForCaret(
+        const TextPosition(offset: 0),
+      );
+      expect(
+        line.size.height,
+        lessThan(oneLine * 1.5),
+        reason: 'TM0 wraps in $lang: ${line.text.toPlainText()}',
+      );
       await _snap(tester, 'tm0', lang, review: 'r122');
     });
 

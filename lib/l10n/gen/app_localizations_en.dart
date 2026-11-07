@@ -7593,10 +7593,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamsCompanyHint =>
-      'Teams from companies need 2 people with the same company.';
-
-  @override
-  String get keyPeopleReorder => 'Hold and drag a role to move it.';
+      'Company Teams need 2 people from one company.';
 
   @override
   String get keyRoleNew => 'New key role';
