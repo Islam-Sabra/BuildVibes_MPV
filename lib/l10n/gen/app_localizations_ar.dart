@@ -7670,9 +7670,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keyRoleCallFor => 'اتصل بهم من أجل';
 
   @override
-  String get keyRoleCallForHint => 'مثلاً: المخاطر والحوادث وأذونات العمل';
-
-  @override
   String get keyRoleHolders => 'من يشغله (حتى 2)';
 
   @override

@@ -273,24 +273,11 @@ class _CompanyHint extends StatelessWidget {
     ),
     child: Padding(
       padding: BvKeyPeopleSpec.hintPadding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: BvKeyPeopleSpec.hintGap,
-        children: [
-          const Icon(
-            BvIcons.info,
-            size: BvSize.iconSm,
-            color: BvColors.iconSecondary,
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: BvType.of(
-                context,
-              ).metadata.copyWith(color: BvColors.textSecondary),
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: BvType.of(
+          context,
+        ).metadata.copyWith(color: BvColors.textSecondary),
       ),
     ),
   );

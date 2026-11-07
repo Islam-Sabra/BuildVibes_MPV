@@ -12590,12 +12590,6 @@ abstract class AppLocalizations {
   /// **'Call them for'**
   String get keyRoleCallFor;
 
-  /// Review 121 F2: KP4's Call them for field while empty.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. hazards, accidents, work permits'**
-  String get keyRoleCallForHint;
-
   /// Review 121 KP4: the people holding the role.
   ///
   /// In en, this message translates to:

@@ -44,6 +44,25 @@ Future<void> _tap(WidgetTester tester, String k) async {
 
 const _space = 'space-1';
 
+/// TM0's line is one line (the app's fonts, this screen's width).
+void _tm0OneLine(WidgetTester tester, String lang) {
+  final line = tester.renderObject<RenderParagraph>(
+    find.descendant(
+      of: find.descendant(
+        of: _key('teams-company-hint'),
+        matching: find.byType(Text),
+      ),
+      matching: find.byType(RichText),
+    ),
+  );
+  final oneLine = line.getFullHeightForCaret(const TextPosition(offset: 0));
+  expect(
+    line.size.height,
+    lessThan(oneLine * 1.5),
+    reason: 'TM0 wraps in $lang: ${line.text.toPlainText()}',
+  );
+}
+
 void main() {
   setUpAll(loadAppFonts);
 
@@ -346,24 +365,18 @@ void main() {
       await go(tester, '/spaces/$_space/people', admin: true);
       await _tap(tester, 'people-view-teams');
       // Lead's check of 122c: the line fits on one line at 390, EN and AR.
-      final line = tester.renderObject<RenderParagraph>(
-        find.descendant(
-          of: find.descendant(
-            of: find.byKey(const Key('teams-company-hint')),
-            matching: find.byType(Text),
-          ),
-          matching: find.byType(RichText),
-        ),
-      );
-      final oneLine = line.getFullHeightForCaret(
-        const TextPosition(offset: 0),
-      );
-      expect(
-        line.size.height,
-        lessThan(oneLine * 1.5),
-        reason: 'TM0 wraps in $lang: ${line.text.toPlainText()}',
-      );
+      _tm0OneLine(tester, lang);
       await _snap(tester, 'tm0', lang, review: 'r122');
+    });
+
+    testWidgets('TM0 at 393 wide, text 1.15 [$lang]', (tester) async {
+      await go(tester, '/spaces/$_space/people', admin: true);
+      // Review 122d: the founder's phone.
+      tester.view.physicalSize = const Size(393, 852);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.15;
+      await tester.pumpAndSettle();
+      await _tap(tester, 'people-view-teams');
+      _tm0OneLine(tester, lang);
     });
 
     testWidgets('P1, a person in two Teams [$lang]', (tester) async {

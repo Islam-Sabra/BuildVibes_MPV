@@ -621,21 +621,6 @@ void main() {
       });
 
       // Review 121 F2.
-      testWidgets('Call them for shows a hint while empty', (tester) async {
-        await open(tester);
-        await _tap(tester, _key('key-people-add'));
-        final hint = lang == 'ar'
-            ? 'مثلاً: المخاطر والحوادث وأذونات العمل'
-            : 'e.g. hazards, accidents, work permits';
-        expect(
-          find.descendant(
-            of: _key('key-role-call-for'),
-            matching: find.text(hint),
-          ),
-          findsOneWidget,
-        );
-      });
-
       testWidgets('up to 2 people, members of the Space only', (tester) async {
         await open(tester);
         await _tap(tester, _key('key-people-add'));

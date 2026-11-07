@@ -102,7 +102,6 @@ abstract final class BvKeyPeopleSpec {
     horizontal: BvSpace.s12,
     vertical: 10,
   );
-  static const hintGap = BvSpace.s8;
   static const hintRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
 }
 

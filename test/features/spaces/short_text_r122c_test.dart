@@ -182,6 +182,44 @@ void main() {
         );
       });
 
+      testWidgets('122d TM0: no info icon in the box', (tester) async {
+        await _go(
+          tester,
+          lang,
+          '/spaces/$_space/people',
+          preview: const CompanyTeamPreview(),
+        );
+        await tester.tap(_key('people-view-teams'));
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(
+            of: _key('teams-company-hint'),
+            matching: find.byType(Icon),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('122d KP4: "Call them for" keeps its label, no example '
+          'inside', (tester) async {
+        await _go(tester, lang, '/spaces/$_space/key-people');
+        await tester.tap(_key('key-people-add'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(t('Call them for', 'اتصل بهم من أجل')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: _key('key-role-call-for'),
+            matching: find.textContaining(
+              t('hazards, accidents, work permits', 'المخاطر والحوادث'),
+            ),
+          ),
+          findsNothing,
+        );
+      });
+
       testWidgets('KP4: no "Role name" label; "Call them for" stays', (
         tester,
       ) async {

@@ -453,7 +453,6 @@ class _KeyRoleFormState extends ConsumerState<_KeyRoleForm> {
         BvTextField(
           key: const Key('key-role-call-for'),
           controller: _callFor,
-          placeholder: l10n.keyRoleCallForHint,
           maxLength: 120,
           textCapitalization: TextCapitalization.sentences,
         ),

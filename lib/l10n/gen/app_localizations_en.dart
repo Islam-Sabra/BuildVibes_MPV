@@ -7608,9 +7608,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyRoleCallFor => 'Call them for';
 
   @override
-  String get keyRoleCallForHint => 'e.g. hazards, accidents, work permits';
-
-  @override
   String get keyRoleHolders => 'Who holds it (up to 2)';
 
   @override
