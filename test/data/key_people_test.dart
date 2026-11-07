@@ -24,9 +24,13 @@ void main() {
               'last_name': 'Al-Mansour',
               'headline': 'Safety',
               'trade_id': null,
-              'company_name_text': null,
               'trade': null,
-              'company': {'name': 'NBKCH'},
+              // Review 126 P1: the current Experience entry.
+              'current_work': {
+                'title': 'Safety',
+                'company_id': 'c-nbkch',
+                'company_name': 'NBKCH',
+              },
               'note': 'Day shift',
               'can_call': true,
             },
@@ -34,7 +38,11 @@ void main() {
               'id': 'p-tariq',
               'first_name': 'Tariq',
               'last_name': 'Rahman',
-              'company_name_text': 'NBKCH',
+              'current_work': {
+                'title': 'Safety',
+                'company_id': null,
+                'company_name': 'NBKCH',
+              },
               'note': null,
               'can_call': false,
             },

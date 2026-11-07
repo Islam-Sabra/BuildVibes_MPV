@@ -337,9 +337,13 @@ class FakeProfileRepository implements ProfileRepository {
       tradeName: input.role.trade.name,
       headline: input.role.customText,
       homeMarketId: input.homeMarketId,
+      // set_current_company: a company becomes the current entry, titled
+      // with the role.
+      currentTitle: company != null || input.companyNameText != null
+          ? input.role.customText ?? input.role.trade.name.en
+          : null,
       companyId: input.companyId,
-      companyName: company?.name,
-      companyNameText: input.companyNameText,
+      companyName: company?.name ?? input.companyNameText,
     );
   }
 
@@ -393,9 +397,9 @@ extension MyProfileCopy on MyProfile {
         headline: headline,
         homeMarketId: homeMarketId,
         placeId: placeId,
+        currentTitle: currentTitle,
         companyId: companyId,
         companyName: companyName,
-        companyNameText: companyNameText,
       );
 }
 

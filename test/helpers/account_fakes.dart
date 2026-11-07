@@ -61,9 +61,9 @@ class FakeAccountRepository implements AccountRepository {
         headline: m.headline,
         homeMarketId: m.homeMarketId,
         placeId: m.placeId,
+        currentTitle: m.currentTitle,
         companyId: m.companyId,
         companyName: m.companyName,
-        companyNameText: m.companyNameText,
         deletionScheduled: on,
       );
     }

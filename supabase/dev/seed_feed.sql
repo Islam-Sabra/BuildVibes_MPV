@@ -6,10 +6,15 @@
 begin;
 
 -- Roles and companies on the author line ("{role}, {company} · 3h").
-update public.profiles set headline = 'Site Engineer', company_name_text = 'Al Hamra Contracting'
+-- Review 126 P1: the company is the current Experience entry's.
+update public.profiles set headline = 'Site Engineer'
 where id = '11111111-0000-0000-0000-000000000001';
-update public.profiles set company_name_text = 'Gulf Build Co.'
-where id = '11111111-0000-0000-0000-000000000002';
+insert into public.experience (profile_id, title, company_name_text, start_month)
+select x.id::uuid, x.t, x.c, date_trunc('month', now())::date
+from (values ('11111111-0000-0000-0000-000000000001', 'Site Engineer', 'Al Hamra Contracting'),
+             ('11111111-0000-0000-0000-000000000002', 'Site Engineer', 'Gulf Build Co.')) x(id, t, c)
+where not exists (select 1 from public.experience e
+                  where e.profile_id = x.id::uuid and e.end_month is null);
 
 select set_config('seed.project', (select id from public.projects where name = 'Kuwait City Tower')::text, true);
 

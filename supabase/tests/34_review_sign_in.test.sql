@@ -323,11 +323,13 @@ select throws_ok(format($$select public.create_space('B5 real site', null, %L)$$
 select throws_ok(format($$insert into public.cv_projects (project_id, role_title) values (%L, 'Engineer')$$,
                         current_setting('test.demo_project')), '42501', null,
   'nor a real CV entry');
-select throws_ok(format($$update public.profiles set company_id = %L, company_name_text = null where id = %L$$,
-                        current_setting('test.demo_company'), pg_temp.uid('e1')), '42501', null,
-  'nor a real profile''s company');
-select lives_ok(format($$update public.profiles set company_id = %L, company_name_text = null where id = %L$$,
-                       current_setting('test.real_company'), pg_temp.uid('e1')),
+select throws_ok(format($$insert into public.experience (profile_id, title, company_id, start_month)
+                          values (%L, 'Engineer', %L, '2026-01-01')$$,
+                        pg_temp.uid('e1'), current_setting('test.demo_company')), '42501', null,
+  'nor a real person''s current company');
+select lives_ok(format($$insert into public.experience (profile_id, title, company_id, start_month)
+                         values (%L, 'Engineer', %L, '2026-01-01')$$,
+                       pg_temp.uid('e1'), current_setting('test.real_company')),
   'a real company still links');
 reset role;
 

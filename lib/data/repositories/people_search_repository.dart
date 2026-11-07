@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/current_work.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
@@ -27,8 +28,8 @@ abstract class PeopleSearchRepository {
 
 /// How a search person is selected: name, and role · company.
 const _person =
-    'id, first_name, last_name, headline, trade_id, company_name_text, '
-    'trade:trades(name), company:companies!profiles_company_fk(name)';
+    'id, first_name, last_name, headline, trade_id, trade:trades(name), '
+    '$currentWorkSelect';
 
 /// The words PostgREST's filter syntax would read as its own.
 final _unsafe = RegExp(
@@ -74,24 +75,21 @@ class SupabasePeopleSearchRepository implements PeopleSearchRepository {
             .select(_person)
             .or(
               'first_name.ilike.$like,last_name.ilike.$like,'
-              'headline.ilike.$like,company_name_text.ilike.$like',
+              'headline.ilike.$like',
             )
             .neq('id', me)
             .limit(PeopleSearchRepository.limit);
-        // A registered company's name.
-        final companies = await _client
-            .from('companies')
-            .select('id')
-            .ilike('name', like)
-            .limit(PeopleSearchRepository.limit);
-        final companyIds = [for (final c in companies) c['id'] as String];
-        final byCompany = companyIds.isEmpty
+        // The current company's name, registered or typed (review 126 P1).
+        final atCompany = await _client.rpc<List<dynamic>>(
+          'people_at_current_company',
+          params: {'p_query': key, 'p_company': null},
+        );
+        final byCompany = atCompany.isEmpty
             ? const <Map<String, dynamic>>[]
             : await _client
                   .from('profiles')
                   .select(_person)
-                  .inFilter('company_id', companyIds)
-                  .neq('id', me)
+                  .inFilter('id', atCompany.cast<String>())
                   .limit(PeopleSearchRepository.limit);
         final seen = <String>{};
         return [

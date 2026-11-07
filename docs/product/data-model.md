@@ -35,10 +35,14 @@ Every state change that has business rules goes through a Postgres function (`se
 
 ## 2. People (migration 2)
 **Tables:**
-- `profiles`: `id uuid pk references auth.users`, `first_name`, `last_name`, `headline`, `trade_id`, `home_market_id`, `place_id`, `company_id null`, `company_name_text null`, `photo_path`, `about`, `locale` ('en' | 'ar'), `created_at`.
-  - Exactly one of `company_id` or `company_name_text` may be set.
+- `profiles`: `id uuid pk references auth.users`, `first_name`, `last_name`, `headline`, `trade_id`, `home_market_id`, `place_id`, `photo_path`, `about`, `locale` ('en' | 'ar'), `created_at`.
+  - No company of its own (review 126 P1): where someone works now is their current `experience` entry.
 - `profile_private`: `id pk/fk`, `phone_e164`, `recovery_email`. Only the owner can read or write it.
 - `experience`: `id`, `profile_id`, `title`, `company_id | company_name_text`, `start_month`, `end_month null`, `visibility` ('everyone' | 'connections' | 'only_me').
+  - **Current work (review 126 P1):** the entry with no `end_month`; if several, the latest `start_month`. It is the only source of a person's company and current title.
+    - `current_work(profile_id)` (function, for SQL) and the view `current_work` (one row per person, for the app to embed from `profiles`). Both show it only to whoever may read that entry, never across a block or a demo split.
+    - `set_current_company(company_id, company_name_text)`: the basics and onboarding company field. It changes the current entry's company; with none, a company makes one, titled with the headline or the role.
+    - `people_at_current_company(query, company_id)`: search and Near you.
 - `follows`: `follower_id`, `followee_id`, `created_at`, with primary key (`follower_id`, `followee_id`).
 - `blocks`: `blocker_id`, `blocked_id`.
 

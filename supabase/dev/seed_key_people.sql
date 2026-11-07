@@ -34,9 +34,8 @@ select gen_random_uuid(), u.id, u.id::text,
        'email', now(), now(), now()
 from auth.users u where u.id::text like 'c1210000-%';
 
-update public.profiles p set first_name = v.f, last_name = v.l, headline = v.h,
-  company_name_text = v.c
-from (values
+create temp table seed_people on commit drop as
+select * from (values
   ('01', 'Islam', 'Sabra', 'BIM manager', 'AECOX'),
   ('02', 'Khalid', 'Al-Mansour', 'Safety', 'NBKCH'),
   ('03', 'Omar', 'Haddad', 'Project engineer', 'NBKCH'),
@@ -48,8 +47,16 @@ from (values
   ('09', 'Joseph', 'Mathew', 'Plumber', 'Gulf MEP'),
   ('10', 'Sami', 'Youssef', 'Carpenter', 'NBKCH'),
   ('11', 'Nabil', 'Hamdan', 'Steel fixer', 'NBKCH')
-) as v (n, f, l, h, c)
-where p.id = ('c1210000-0000-0000-0000-0000000000' || v.n)::uuid;
+) as v (n, f, l, h, c);
+update public.profiles p set first_name = v.f, last_name = v.l, headline = v.h
+from seed_people v where p.id = ('c1210000-0000-0000-0000-0000000000' || v.n)::uuid;
+-- Review 126 P1: the company is the current Experience entry's.
+insert into public.experience (profile_id, title, company_name_text, start_month)
+select ('c1210000-0000-0000-0000-0000000000' || v.n)::uuid, v.h, v.c, date_trunc('month', now())::date
+from seed_people v
+where not exists (select 1 from public.experience e
+                  where e.profile_id = ('c1210000-0000-0000-0000-0000000000' || v.n)::uuid
+                    and e.end_month is null);
 -- Khalid's number, shown to his Spaces (NUM1); Tariq's to nobody.
 update public.profiles set phone = '+96555123456', phone_visibility = 'spaces'
 where id = 'c1210000-0000-0000-0000-000000000002';

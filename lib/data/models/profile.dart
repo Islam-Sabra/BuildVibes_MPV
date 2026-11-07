@@ -204,9 +204,9 @@ class ProfileView {
     this.placeId,
     this.placeName,
     this.homeMarketId,
+    this.currentTitle,
     this.companyId,
     this.companyName,
-    this.companyNameText,
     this.photoUrl,
     this.photoPath,
     this.about,
@@ -226,9 +226,12 @@ class ProfileView {
   final String? placeId;
   final LocalizedText? placeName;
   final String? homeMarketId;
+
+  /// The current Experience entry's title, company id and company name
+  /// (review 126 P1: the only source).
+  final String? currentTitle;
   final String? companyId;
   final String? companyName;
-  final String? companyNameText;
   final String? photoUrl;
   final String? photoPath;
   final String? about;
@@ -238,10 +241,11 @@ class ProfileView {
 
   String get fullName => '$firstName $lastName'.trim();
 
-  String? get companyLabel => companyName ?? companyNameText;
+  String? get companyLabel => companyName;
 
-  /// The headline when set, otherwise the trade.
+  /// The current title, else the headline, else the trade.
   String? roleLabel(String languageCode) {
+    if ((currentTitle ?? '').trim().isNotEmpty) return currentTitle;
     if ((headline ?? '').trim().isNotEmpty) return headline;
     final name = tradeName;
     if (name == null || tradeId == Trade.otherId) return null;
@@ -279,6 +283,9 @@ class BasicsInput {
   final String? headline;
   final String? placeId;
   final String? tradeId;
+
+  /// Saved as the current Experience entry (set_current_company), not on
+  /// the profile (review 126 P1).
   final String? companyId;
   final String? companyNameText;
 
@@ -288,11 +295,5 @@ class BasicsInput {
     'headline': (headline ?? '').trim().isEmpty ? null : headline!.trim(),
     'place_id': placeId,
     'trade_id': ?tradeId,
-    'company_id': companyId,
-    'company_name_text': companyId == null
-        ? ((companyNameText ?? '').trim().isEmpty
-              ? null
-              : companyNameText!.trim())
-        : null,
   };
 }

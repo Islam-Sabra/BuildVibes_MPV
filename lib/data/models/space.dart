@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'current_work.dart';
 import 'market.dart';
 import 'people.dart';
 
@@ -328,22 +329,23 @@ class SpacePerson {
   });
 
   /// The embed `profiles(id, first_name, last_name, headline, trade_id,
-  /// company_name_text, trade:trades(name), company:companies(name))`.
+  /// trade:trades(name), current_work(...))`, or space_key_people's holder.
+  /// The title is the current Experience entry's, else the headline
+  /// (review 126 P1).
   factory SpacePerson.fromJson(Map<String, dynamic> json) {
     final trade = json['trade'] as Map<String, dynamic>?;
-    final company = json['company'] as Map<String, dynamic>?;
+    final work = CurrentWork.fromJson(json['current_work']);
     return SpacePerson(
       id: json['id'] as String,
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
-      headline: json['headline'] as String?,
+      headline: work?.title ?? json['headline'] as String?,
       tradeId: json['trade_id'] as String?,
       tradeName: trade == null
           ? null
           : LocalizedText.fromJson(trade['name'] as Map<String, dynamic>),
-      companyLabel:
-          company?['name'] as String? ?? json['company_name_text'] as String?,
-      companyRegistered: company?['name'] != null,
+      companyLabel: work?.companyName,
+      companyRegistered: work?.registered ?? false,
     );
   }
 

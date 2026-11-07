@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/current_work.dart';
 import '../models/market.dart';
 import '../models/profile.dart';
 import '../supabase/supabase_provider.dart';
@@ -81,10 +82,8 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
 
   static const _profile =
       'id, first_name, last_name, headline, trade_id, home_market_id, '
-      'place_id, company_id, company_name_text, photo_path, about, '
-      'follower_count, following_count, '
-      'trade:trades(name), company:companies!profiles_company_fk(name), '
-      'place:places(name)';
+      'place_id, photo_path, about, follower_count, following_count, '
+      'trade:trades(name), $currentWorkSelect, place:places(name)';
 
   static const _cv =
       'id, role_title, start_month, end_month, show_on_profile, '
@@ -122,7 +121,7 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
     final cv = results[1]! as List<Map<String, dynamic>>;
     final openTo = results[2] as Map<String, dynamic>?;
     final trade = row['trade'] as Map<String, dynamic>?;
-    final company = row['company'] as Map<String, dynamic>?;
+    final work = CurrentWork.fromJson(row['current_work']);
     final place = row['place'] as Map<String, dynamic>?;
     final photoPath = row['photo_path'] as String?;
     return ProfileView(
@@ -141,9 +140,9 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
           ? null
           : LocalizedText.fromJson(place['name'] as Map<String, dynamic>),
       homeMarketId: row['home_market_id'] as String?,
-      companyId: row['company_id'] as String?,
-      companyName: company?['name'] as String?,
-      companyNameText: row['company_name_text'] as String?,
+      currentTitle: work?.title,
+      companyId: work?.companyId,
+      companyName: work?.companyName,
       photoPath: photoPath,
       photoUrl: photoPath == null
           ? null
@@ -167,8 +166,17 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
   }
 
   @override
-  Future<void> saveBasics(String me, BasicsInput input) =>
-      _client.from('profiles').update(input.toJson()).eq('id', me);
+  Future<void> saveBasics(String me, BasicsInput input) async {
+    await _client.from('profiles').update(input.toJson()).eq('id', me);
+    // Review 126 P1: the company is the current Experience entry's.
+    await _client.rpc<Object?>(
+      'set_current_company',
+      params: {
+        'p_company_id': input.companyId,
+        'p_company_name_text': input.companyNameText,
+      },
+    );
+  }
 
   @override
   Future<void> saveAbout(String me, String about) => _client

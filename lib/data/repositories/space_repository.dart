@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/widgets/bv_text_field.dart';
 import '../models/company_teams.dart';
+import '../models/current_work.dart';
 import '../models/market.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
@@ -162,8 +163,8 @@ abstract class SpaceRepository {
 
 /// How Space lists select a person: name, and role · company.
 const _person =
-    'id, first_name, last_name, headline, trade_id, company_name_text, '
-    'trade:trades(name), company:companies!profiles_company_fk(name)';
+    'id, first_name, last_name, headline, trade_id, trade:trades(name), '
+    '$currentWorkSelect';
 
 /// What people type: spaces and dashes go, letters go upper case, Arabic
 /// and Persian digits become 0-9. The server does the same.
