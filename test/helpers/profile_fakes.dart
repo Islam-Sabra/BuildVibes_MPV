@@ -42,6 +42,11 @@ class FakeProfilePageRepository implements ProfilePageRepository {
     final p = people.profiles[profileId];
     if (p == null || blocked.contains(profileId)) return null;
     final placeId = place[profileId] ?? p.placeId;
+    // Review 126 P1: the current Experience entry (no end; the latest
+    // start), else what onboarding saved as the current entry.
+    final current = [...?experience[profileId]?.where((e) => e.end == null)]
+      ..sort((a, b) => b.start.compareTo(a.start));
+    final now = current.firstOrNull;
     return ProfileView(
       id: p.id,
       firstName: p.firstName,
@@ -54,9 +59,9 @@ class FakeProfilePageRepository implements ProfilePageRepository {
       placeId: placeId,
       placeName: testPlaces.where((x) => x.id == placeId).firstOrNull?.name,
       homeMarketId: p.homeMarketId,
-      companyId: p.companyId,
-      companyName: p.companyName,
-      companyNameText: p.companyNameText,
+      currentTitle: now == null ? p.currentTitle : now.title,
+      companyId: now == null ? p.companyId : now.companyId,
+      companyName: now == null ? p.companyName : now.companyLabel,
       photoPath: photo[profileId],
       about: about[profileId],
       openTo: openTo[profileId],
@@ -79,6 +84,40 @@ class FakeProfilePageRepository implements ProfilePageRepository {
     );
     if ((input.headline ?? '').isNotEmpty) headline[me] = input.headline!;
     if (input.placeId != null) place[me] = input.placeId!;
+    _setCurrentCompany(me, input);
+  }
+
+  /// set_current_company: the current entry's company changes; with none,
+  /// a company makes one, titled with the headline.
+  void _setCurrentCompany(String me, BasicsInput input) {
+    final name = input.companyNameText?.trim();
+    final label = (name ?? '').isEmpty ? null : name;
+    final list = experience[me] ??= [];
+    final i = list.indexWhere((e) => e.end == null);
+    if (i >= 0) {
+      final e = list[i];
+      final renamed = input.headline?.trim();
+      list[i] = ExperienceEntry(
+        id: e.id,
+        title: (renamed ?? '').isEmpty ? e.title : renamed!,
+        start: e.start,
+        companyId: input.companyId,
+        companyLabel: label,
+        visibility: e.visibility,
+      );
+      return;
+    }
+    final title = input.headline?.trim();
+    if (label == null || title == null || title.isEmpty) return;
+    list.add(
+      ExperienceEntry(
+        id: 'exp-${_ids++}',
+        title: title,
+        start: DateTime(2026, 11),
+        companyId: input.companyId,
+        companyLabel: label,
+      ),
+    );
   }
 
   @override

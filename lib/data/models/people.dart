@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'current_work.dart';
 import 'market.dart';
 
 /// A trade or role from the role picker (E9b).
@@ -103,15 +104,15 @@ class MyProfile {
     this.headline,
     this.homeMarketId,
     this.placeId,
+    this.currentTitle,
     this.companyId,
     this.companyName,
-    this.companyNameText,
     this.deletionScheduled = false,
   });
 
   factory MyProfile.fromJson(Map<String, dynamic> json) {
     final trade = json['trade'] as Map<String, dynamic>?;
-    final company = json['company'] as Map<String, dynamic>?;
+    final work = CurrentWork.fromJson(json['current_work']);
     return MyProfile(
       id: json['id'] as String,
       firstName: json['first_name'] as String? ?? '',
@@ -124,9 +125,9 @@ class MyProfile {
       headline: json['headline'] as String?,
       homeMarketId: json['home_market_id'] as String?,
       placeId: json['place_id'] as String?,
-      companyId: json['company_id'] as String?,
-      companyName: company?['name'] as String?,
-      companyNameText: json['company_name_text'] as String?,
+      currentTitle: work?.title,
+      companyId: work?.companyId,
+      companyName: work?.companyName,
       deletionScheduled: json['deletion_scheduled_at'] != null,
     );
   }
@@ -140,9 +141,12 @@ class MyProfile {
   final String? headline;
   final String? homeMarketId;
   final String? placeId;
+
+  /// The current Experience entry's title, company id and company name
+  /// (review 126 P1: the only source).
+  final String? currentTitle;
   final String? companyId;
   final String? companyName;
-  final String? companyNameText;
 
   /// The person asked to delete the account (S14 until they restore it).
   final bool deletionScheduled;
@@ -153,8 +157,10 @@ class MyProfile {
       lastName.trim().isNotEmpty &&
       tradeId != null;
 
-  /// What shows under the name: the person's own words, or the trade.
+  /// What shows under the name: the current title, else the person's own
+  /// words, else the trade.
   String? roleLabel(String languageCode) {
+    if ((currentTitle ?? '').trim().isNotEmpty) return currentTitle;
     // The headline when set ("BIM Manager"), otherwise the trade.
     if ((headline ?? '').trim().isNotEmpty) return headline;
     if (tradeId == Trade.otherId) return null;
@@ -164,7 +170,7 @@ class MyProfile {
   }
 
   /// The registered company's name, or the name as the person typed it.
-  String? get companyLabel => companyName ?? companyNameText;
+  String? get companyLabel => companyName;
 }
 
 /// What the person filled in on "About you" (E9).
@@ -186,6 +192,8 @@ class AboutYouInput {
   final String homeMarketId;
   final RoleChoice role;
   final String locale;
+  /// Saved as the current Experience entry (set_current_company), not on
+  /// the profile (review 126 P1).
   final String? companyId;
   final String? companyNameText;
 
@@ -198,8 +206,6 @@ class AboutYouInput {
     'home_market_id': homeMarketId,
     'trade_id': role.trade.id,
     'headline': role.customText?.trim(),
-    'company_id': companyId,
-    'company_name_text': companyId == null ? companyNameText?.trim() : null,
     'locale': locale,
   };
 }

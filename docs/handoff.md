@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 7 Nov 2026, afternoon — 122d and 126 P1 on their branches; waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Review 122d:** `claude/r122d` (924c1889) from `slice2-app` bb766ec5. TM0 without the icon; KP4 "Call them for" without an example. No server change. Report: `docs/reviews/2026-11-07-122d-report.md`.
+- **Review 126 P1:** `claude/r126-p1` from `slice2-app` bb766ec5. The current company comes from Experience only. Report: `docs/reviews/2026-11-07-126-p1-report.md`.
+  - **Migration `20261203120000` is not live.** It is applied to the local database only.
+  - It drops `profiles.company_id` / `company_name_text`: builds up to 1110 then fail on people lists. Order after the lead's check: merge, build, then `db push` and install straight after.
+- **New rule (122d):** no example or "e.g." text inside any field. The report lists those still left.
+- **Local stack:**
+  - The 126 migration is applied; 10 basics companies were back-filled into Experience.
+  - `kp.admin@example.com` holds phone 96550000002, which makes pgTAP `03` fail locally; blank it for a full run, then restore it.
+  - The local auth server sends mail through Resend with no local key, so emailed codes fail locally. For emulator sign-in, use the admin `generate_link` code.
+- **Emulator:** Pixel_8_B (emulator-5554 this time) has the r126 debug build, signed in as Islam, in English.
+- **PC clock:** still W. Europe (see below); `test_screens` keeps 22 `r109` differences until it is on Kuwait time.
+- **Who has which branch:** PC has `claude/r122d` and `claude/r126-p1`. `slice2-app` is at bb766ec5.
+
 ## PC update: 7 Nov 2026 — 122c and the Kuwait clock fix merged; build 1110 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -20,15 +20,20 @@ select ('00000000-0000-0000-0000-0000000061' || x.id)::uuid, 'authenticated', 'a
        x.id || '@r111.example.com', '{"home_market_id": "kw"}'::jsonb
 from (values ('a1'), ('b2'), ('c3'), ('d4'), ('e5'), ('f6'), ('a7'), ('a8'), ('b9'), ('c9'),
              ('ca'), ('cb')) x(id);
-update public.profiles p set first_name = n.f, last_name = n.l, company_name_text = n.c
-from (values ('a1', 'Omar', 'Haddad', null), ('b2', 'Rakesh', 'Nair', 'Delta Steel Co.'),
+create temp table r126_people on commit drop as
+select * from (values ('a1', 'Omar', 'Haddad', null), ('b2', 'Rakesh', 'Nair', 'Delta Steel Co.'),
              ('c3', 'Tariq', 'Aziz', 'DELTA.STEEL'), ('a7', 'Gus', 'Lead', 'delta  steel'),
              ('a8', 'Hana', 'Hidden', 'Delta Steal'), ('d4', 'Lina', 'Saad', null),
              ('e5', 'Vera', 'Lane', 'gulf mech company'), ('b9', 'Bilal', 'Block', null),
              ('f6', 'Eve', 'Out', 'Delta Steel'), ('c9', 'Noor', 'Ali', 'Nile Build'),
              ('ca', 'Sami', 'Adel', 'Nile Build Co.'), ('cb', 'Zaki', 'Nour', 'شركة النيل')
-     ) n(id, f, l, c)
-where p.id = ('00000000-0000-0000-0000-0000000061' || n.id)::uuid;
+     ) n(id, f, l, c);
+update public.profiles p set first_name = n.f, last_name = n.l
+from r126_people n where p.id = ('00000000-0000-0000-0000-0000000061' || n.id)::uuid;
+-- Review 126: a company is the current Experience entry's.
+insert into public.experience (profile_id, title, company_name_text, start_month)
+select ('00000000-0000-0000-0000-0000000061' || n.id)::uuid, 'Crew', n.c, '2026-01-01'
+from r126_people n where n.c is not null;
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',
@@ -101,8 +106,8 @@ insert into public.space_join_requests (space_id, profile_id, via)
 values (pg_temp.sp(), pg_temp.uid('cb'), 'code');
 insert into public.companies (id, name, kind_id, market_id)
 values (pg_temp.id('c001'), 'Gulf Mech', 'contractor', 'kw');
-update public.profiles set company_id = pg_temp.id('c001'), company_name_text = null
-where id = pg_temp.uid('d4');
+insert into public.experience (profile_id, title, company_id, start_month)
+values (pg_temp.uid('d4'), 'Crew', pg_temp.id('c001'), '2026-01-01');
 select pg_temp.as_user('a1');
 set local role authenticated;
 select set_config('test.rig', public.create_team(pg_temp.sp(), 'Rigging',
@@ -142,7 +147,8 @@ select ok(not has_function_privilege('authenticated', 'public.can_post_to_team(u
           and not has_function_privilege('authenticated', 'public.is_any_team_admin(uuid)', 'execute')
           and not has_function_privilege('authenticated', 'public.company_key(text)', 'execute')
           and not has_function_privilege('authenticated', 'public.company_keys_similar(text, text)', 'execute')
-          and not has_function_privilege('authenticated', 'public.person_company(uuid)', 'execute')
+          and not has_function_privilege('authenticated', 'public.space_current_work(uuid, uuid)', 'execute')
+          and not has_function_privilege('authenticated', 'public.current_work_entry(uuid, boolean)', 'execute')
           and not has_function_privilege('authenticated', 'public.team_for_company(uuid, text, text)', 'execute'),
   'the helpers are not callable');
 select ok(not exists (
@@ -286,7 +292,7 @@ select is((select count(*)::integer from public.company_team_for(pg_temp.sp(), p
 select is((select count(*)::integer from public.company_team_for(pg_temp.sp(), pg_temp.uid('cb'))), 0,
   'someone only asking to join: no Team of that company, no row');
 reset role;
-update public.profiles set company_name_text = 'Nile.Build' where id = pg_temp.uid('cb');
+update public.experience set company_name_text = 'Nile.Build' where profile_id = pg_temp.uid('cb');
 select pg_temp.as_user('a1');
 set local role authenticated;
 select is((select team_id from public.company_team_for(pg_temp.sp(), pg_temp.uid('cb'))), pg_temp.nile(),
@@ -312,9 +318,9 @@ select is((select count(*)::integer from public.threads where team_id = current_
   'the new Team has its Chat');
 select is((select count(*)::integer from public.companies where id <> pg_temp.id('c001')
            and name in ('Delta Steel Co.', 'Nile Build')), 0, 'creating Teams creates no company');
-select is((select company_name_text from public.profiles where id = pg_temp.uid('b2')), 'Delta Steel Co.',
-  'a typed name stays plain text');
-select is((select company_id from public.profiles where id = pg_temp.uid('b2')), null,
+select is((select company_name_text from public.experience where profile_id = pg_temp.uid('b2')),
+  'Delta Steel Co.', 'a typed name stays plain text');
+select is((select company_id from public.experience where profile_id = pg_temp.uid('b2')), null,
   'and links to no company');
 
 -- A retry.

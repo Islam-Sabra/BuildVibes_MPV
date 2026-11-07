@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/widgets/bv_text_field.dart';
 import '../models/company_teams.dart';
+import '../models/current_work.dart';
 import '../models/market.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
@@ -162,8 +163,8 @@ abstract class SpaceRepository {
 
 /// How Space lists select a person: name, and role · company.
 const _person =
-    'id, first_name, last_name, headline, trade_id, company_name_text, '
-    'trade:trades(name), company:companies!profiles_company_fk(name)';
+    'id, first_name, last_name, headline, trade_id, trade:trades(name), '
+    '$currentWorkSelect';
 
 /// What people type: spaces and dashes go, letters go upper case, Arabic
 /// and Persian digits become 0-9. The server does the same.
@@ -356,12 +357,26 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .select(teamsSelect)
         .eq('space_id', spaceId)
         .order('name', ascending: true);
+    // Review 126 (lead's check): inside the Space its members see each
+    // member's current work, whatever the entry's visibility.
+    final work = {
+      for (final r in _rows(
+        await _client.rpc<List<dynamic>>(
+          'space_member_work',
+          params: {'p_space': spaceId},
+        ),
+      ))
+        r['profile_id'] as String: r['work'],
+    };
 
     final loaded = [
       for (final m in members)
-        if (m['person'] != null)
+        if (m['person'] case final Map<String, dynamic> person)
           SpaceMember(
-            person: SpacePerson.fromJson(m['person'] as Map<String, dynamic>),
+            person: SpacePerson.fromJson({
+              ...person,
+              'current_work': work[person['id']],
+            }),
             pass: SpacePass.fromJson(m['pass']),
             isAdmin: m['is_admin'] as bool? ?? false,
             custom: {

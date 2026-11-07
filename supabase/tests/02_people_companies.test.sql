@@ -90,11 +90,10 @@ select throws_ok(
     values ('Typed Co', 'contractor', 'kw')$$,
   '42501', null, 'a company is never inserted directly');
 select throws_ok(
-  $$update public.profiles
-    set company_id = (select id from public.companies limit 1),
-        company_name_text = 'Also typed'
-    where id = '00000000-0000-0000-0000-0000000000a1'$$,
-  '23514', null, 'a profile has a registered company or a typed name, not both');
+  $$insert into public.experience (profile_id, title, company_id, company_name_text, start_month)
+    values ('00000000-0000-0000-0000-0000000000a1', 'Engineer',
+            (select id from public.companies limit 1), 'Also typed', '2026-01-01')$$,
+  '23514', null, 'a current company is a registered company or a typed name, not both');
 select lives_ok(
   $$update public.companies set about = 'Builders since 1990'
     where name = 'Al Noor Contracting'$$,

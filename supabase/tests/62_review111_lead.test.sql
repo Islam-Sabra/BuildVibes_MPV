@@ -19,15 +19,20 @@ select ('00000000-0000-0000-0000-0000000062' || x.id)::uuid, 'authenticated', 'a
        x.id || '@r62.example.com', '{"home_market_id": "kw"}'::jsonb
 from (values ('a1'), ('b2'), ('c3'), ('d4'), ('e5'), ('f6'), ('a7'), ('a8'), ('a9'),
              ('b1'), ('b3'), ('b4'), ('b5')) x(id);
-update public.profiles p set first_name = n.f, last_name = n.l, company_name_text = n.c
-from (values ('a1', 'Omar', 'Haddad', null), ('b2', 'Bea', 'Alpha', null),
+create temp table r126_people on commit drop as
+select * from (values ('a1', 'Omar', 'Haddad', null), ('b2', 'Bea', 'Alpha', null),
              ('c3', 'Cal', 'None', null), ('d4', 'Dee', 'View', 'Acme Steel'),
              ('e5', 'Eli', 'Crew', 'Acme Steel'), ('f6', 'Fay', 'Out', 'Acme Steel'),
              ('a7', 'Gil', 'Block', 'Acme Steel'), ('a8', 'Hal', 'Asks', 'Acme Steel'),
              ('a9', 'Ida', 'Gone', 'Acme Steel'), ('b1', 'Jon', 'View', 'Viper Works'),
              ('b3', 'Kim', 'Crew', 'Viper Works'), ('b4', 'Lia', 'View', 'Lone Corp'),
-             ('b5', 'Max', 'Typo', 'Acme Steal')) n(id, f, l, c)
-where p.id = ('00000000-0000-0000-0000-0000000062' || n.id)::uuid;
+             ('b5', 'Max', 'Typo', 'Acme Steal')) n(id, f, l, c);
+update public.profiles p set first_name = n.f, last_name = n.l
+from r126_people n where p.id = ('00000000-0000-0000-0000-0000000062' || n.id)::uuid;
+-- Review 126: a company is the current Experience entry's.
+insert into public.experience (profile_id, title, company_name_text, start_month)
+select ('00000000-0000-0000-0000-0000000062' || n.id)::uuid, 'Crew', n.c, '2026-01-01'
+from r126_people n where n.c is not null;
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',

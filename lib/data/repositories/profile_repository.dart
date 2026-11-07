@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/current_work.dart';
 import '../models/market.dart';
 import '../models/people.dart';
 import '../supabase/supabase_provider.dart';
@@ -42,13 +43,12 @@ class SupabaseProfileRepository implements ProfileRepository {
 
   static const _mine =
       'id, first_name, last_name, locale, trade_id, headline, home_market_id, '
-      'place_id, company_id, company_name_text, deletion_scheduled_at, '
-      'trade:trades(name), company:companies!profiles_company_fk(name)';
+      'place_id, deletion_scheduled_at, trade:trades(name), '
+      '$currentWorkSelect';
 
   static const _person =
-      'id, first_name, last_name, trade_id, headline, company_name_text, '
-      'trade:trades(name), company:companies!profiles_company_fk(name), '
-      'place:places(name)';
+      'id, first_name, last_name, trade_id, headline, trade:trades(name), '
+      '$currentWorkSelect, place:places(name)';
 
   static const _suggestionLimit = 8;
 
@@ -74,6 +74,14 @@ class SupabaseProfileRepository implements ProfileRepository {
       if (e.code == '23514') throw const HomeMarketRefused();
       rethrow;
     }
+    // Review 126 P1: the company is the current Experience entry's.
+    await _client.rpc<Object?>(
+      'set_current_company',
+      params: {
+        'p_company_id': input.companyId,
+        'p_company_name_text': input.companyNameText,
+      },
+    );
     final mobile = input.mobileE164;
     if (mobile != null && mobile.isNotEmpty) {
       await _client
@@ -122,10 +130,18 @@ class SupabaseProfileRepository implements ProfileRepository {
 
     final base = _client.from('profiles');
     if (me.companyId != null) {
-      await addFrom(
-        base.select(_person).eq('company_id', me.companyId!),
-        SuggestionReason.sameCompany,
+      // The people whose current Experience entry is at my registered
+      // company (review 126 P1).
+      final ids = await _client.rpc<List<dynamic>>(
+        'people_at_current_company',
+        params: {'p_query': null, 'p_company': me.companyId},
       );
+      if (ids.isNotEmpty) {
+        await addFrom(
+          base.select(_person).inFilter('id', ids.cast<String>()),
+          SuggestionReason.sameCompany,
+        );
+      }
     }
     if (me.placeId != null) {
       await addFrom(
@@ -147,7 +163,7 @@ class SupabaseProfileRepository implements ProfileRepository {
     SuggestionReason reason,
   ) {
     final trade = r['trade'] as Map<String, dynamic>?;
-    final company = r['company'] as Map<String, dynamic>?;
+    final work = CurrentWork.fromJson(r['current_work']);
     final place = r['place'] as Map<String, dynamic>?;
     return PersonSuggestion(
       id: r['id'] as String,
@@ -155,12 +171,11 @@ class SupabaseProfileRepository implements ProfileRepository {
       lastName: r['last_name'] as String? ?? '',
       reason: reason,
       tradeId: r['trade_id'] as String?,
-      headline: r['headline'] as String?,
+      headline: work?.title ?? r['headline'] as String?,
       tradeName: trade == null
           ? null
           : LocalizedText.fromJson(trade['name'] as Map<String, dynamic>),
-      companyLabel:
-          company?['name'] as String? ?? r['company_name_text'] as String?,
+      companyLabel: work?.companyName,
       placeName: place == null
           ? null
           : LocalizedText.fromJson(place['name'] as Map<String, dynamic>),

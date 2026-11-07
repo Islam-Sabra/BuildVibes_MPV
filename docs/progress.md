@@ -967,6 +967,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Bug found and fixed (`claude/tz-alias`): the zone list had no `Asia/Kuwait` (the Kuwait pack's zone, an IANA alias), so a Kuwait Space's check-in times and day end followed the phone's clock. Both imports now use `latest_all.dart`. Test: `test/features/work/space_zone_alias_test.dart`.
   - Merged into `slice2-app` (2f1956b2). Checks: analyze clean; 4,086 Flutter tests; screen tests 750 pass, 22 differ only in a post's own time (`r109` check-in shots; the PC is on W. Europe time, the goldens were drawn on Kuwait time).
   - Build 1110 (`release-1110`): arm64 30.2 MB installed, ~14.4 MB download; WhatsApp 104.6 MB / ~88.8 MB. Installed on 22120RN86G (1103 → 1110).
+- **7 Nov (review 122d, `claude/r122d`, waiting for the lead):** TM0 without the info icon (one line at 393, text 1.15, EN/AR); KP4's "Call them for" without an example. Report `docs/reviews/2026-11-07-122d-report.md` lists every field that still has an example inside.
+- **7 Nov (review 126 P1, `claude/r126-p1`, waiting for the lead; migration not live):** a person's current company comes from Experience only.
+  - Migration `20261203120000`: `current_work` (function and view), `set_current_company`, `people_at_current_company`; Teams from companies, key-role rows, DMs, the feed, search and Near you read it; back-fill; `profiles.company_id` / `company_name_text` dropped.
+  - App: selects embed `current_work`; the basics and onboarding write the current entry.
+  - Checks: 4,098 Flutter tests; 750 screen tests (22 `r109` differ, this PC's clock); pgTAP 76 files, 4,746 checks (local).
+  - Report `docs/reviews/2026-11-07-126-p1-report.md`; shots in `docs/reviews/shots-126/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

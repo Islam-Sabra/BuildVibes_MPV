@@ -18,9 +18,8 @@ select ('00000000-0000-0000-0000-0000000121' || x.id)::uuid, 'authenticated', 'a
        x.id || '@r121.example.com', '{"home_market_id": "kw"}'::jsonb
 from (values ('a1'), ('b2'), ('c3'), ('d4'), ('e5'), ('f6'), ('a7'), ('a8'), ('b9'), ('c9'),
              ('ca')) x(id);
-update public.profiles p set first_name = n.f, last_name = n.l, company_name_text = n.c,
-                             headline = n.h
-from (values ('a1', 'Omar', 'Haddad', null, 'Project manager'),
+create temp table r126_people on commit drop as
+select * from (values ('a1', 'Omar', 'Haddad', null, 'Project manager'),
              ('b2', 'Khalid', 'Al-Mansour', 'NBKCH', 'Safety'),
              ('c3', 'Tariq', 'Rahman', 'NBKCH', 'Safety'),
              ('d4', 'Lina', 'Saad', null, null), ('e5', 'Vera', 'Lane', null, null),
@@ -28,8 +27,13 @@ from (values ('a1', 'Omar', 'Haddad', null, 'Project manager'),
              ('a8', 'Hana', 'Nurse', null, null), ('b9', 'Bilal', 'Block', 'Delta Steel', null),
              ('c9', 'Ali', 'Saleh', 'Gulf MEP', 'Electrician'),
              ('ca', 'Sami', 'Adel', 'Delta Steel', null)
-     ) n(id, f, l, c, h)
-where p.id = ('00000000-0000-0000-0000-0000000121' || n.id)::uuid;
+     ) n(id, f, l, c, h);
+update public.profiles p set first_name = n.f, last_name = n.l, headline = n.h
+from r126_people n where p.id = ('00000000-0000-0000-0000-0000000121' || n.id)::uuid;
+-- Review 126: a company is the current Experience entry's.
+insert into public.experience (profile_id, title, company_name_text, start_month)
+select ('00000000-0000-0000-0000-0000000121' || n.id)::uuid, coalesce(n.h, 'Crew'), n.c, '2026-01-01'
+from r126_people n where n.c is not null;
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',
@@ -338,7 +342,7 @@ select is((select array_agg(h ->> 'first_name' order by o)
                 with ordinality x(h, o)),
   array['Khalid', 'Tariq'], 'its people, in order');
 select is(pg_temp.people('e5') -> 'roles' -> 0 -> 'holders' -> 0 ->> 'note', 'Day shift', 'with the note');
-select is(pg_temp.people('e5') -> 'roles' -> 0 -> 'holders' -> 0 ->> 'company_name_text', 'NBKCH',
+select is(pg_temp.people('e5') -> 'roles' -> 0 -> 'holders' -> 0 -> 'current_work' ->> 'company_name', 'NBKCH',
   'and title · company');
 select is((pg_temp.people('e5') -> 'roles' -> 0 -> 'holders' -> 0 ->> 'can_call')::boolean, true,
   'Call for Khalid (Spaces)');
